@@ -52,10 +52,7 @@ Arzkaro/
 │   │   └── index.ts
 │   │
 │   ├── hooks/                   # Custom hooks
-│   ├── context/                 # Providers
-│   ├── utils/                   # Helpers + constants
-│   ├── lib/                     # Clients (React Query, analytics)
-│   └── config/                  # Env loaders, configs
+│   └── utils/                   # Helpers + constants
 │
 ├── assets/                      # Images, fonts, icons
 ├── .env
@@ -83,11 +80,8 @@ Arzkaro/
   - NativeWind for Tailwind-style simplicity
   - Tamagui for cross-platform design systems
 
-- **React Query**
-  Handles data fetching and caching professionally.
-
-- **Context API**
-  Best for small/medium-scale state (auth, theme).
+- **React Hooks**
+  Built-in state management with useState, useReducer, and custom hooks.
 
 ---
 
