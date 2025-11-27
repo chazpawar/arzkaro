@@ -713,6 +713,4 @@ const [visible, setVisible] = useState(false);
 
 For more help, check:
 
-- `docs/tailwind-setup.md` - Tailwind configuration
-- `docs/safe-area-context.md` - Safe area usage
 - `docs/running-on-devices.md` - Running your app
