@@ -110,6 +110,7 @@ The Android Emulator lets you test your app on a virtual Android device on your 
    - Wait for emulator to boot up
 
 3. **Run Your App**
+
    ```bash
    pnpm start
    ```

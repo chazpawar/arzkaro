@@ -24,7 +24,7 @@ export default function Home() {
   const [initializing, setInitializing] = useState(true);
 
   // Google Auth hook for mobile platforms (iOS/Android)
-  const [request, response, promptAsync] = useGoogleAuth();
+  const [, response, promptAsync] = useGoogleAuth();
 
   console.log(
     '[UI] Component render - user:',
