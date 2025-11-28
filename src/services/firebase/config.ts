@@ -30,7 +30,6 @@ if (!getApps().length) {
   app = initializeApp(firebaseConfig);
 
   // Use IndexedDB persistence for web to survive redirects and HMR
-  // SessionStorage (default) gets cleared during redirects in Expo web
   if (Platform.OS === 'web') {
     auth = initializeAuth(app, {
       persistence: indexedDBLocalPersistence,
@@ -38,8 +37,11 @@ if (!getApps().length) {
     });
     console.log('Firebase Auth initialized with IndexedDB persistence for web');
   } else {
+    // For React Native (iOS/Android), use default getAuth()
+    // Firebase Web SDK doesn't support AsyncStorage persistence properly
+    // User state persists during app runtime but not between app restarts
     auth = getAuth(app);
-    console.log('Firebase Auth initialized for native');
+    console.log('Firebase Auth initialized for React Native (in-memory persistence)');
   }
 
   db = getFirestore(app);
