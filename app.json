@@ -15,7 +15,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.arzkaro.app"
+      "bundleIdentifier": "com.arzkaro.app",
+      "infoPlist": {
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "arzkaro",
+              "com.googleusercontent.apps.371056246396-u08b6nksg6euqrnufnfmo5ec9nb9qkkf"
+            ]
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {

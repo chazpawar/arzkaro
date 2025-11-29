@@ -67,22 +67,35 @@ export const googleSignInService = async (): Promise<AuthResponse> => {
 
 /**
  * Hook for Google authentication using expo-auth-session.
- * This works on all platforms including Expo Go.
+ * IMPORTANT: This requires a Development Build or Standalone build.
+ * DOES NOT work with Expo Go due to Google OAuth limitations.
  * Usage: const [request, response, promptAsync] = useGoogleAuth();
  */
+/**
+ * Hook for Google authentication using expo-auth-session.
+ * IMPORTANT: This requires a Development Build (not Expo Go).
+ * Usage: const [, response, promptAsync] = useGoogleAuth();
+ */
 export const useGoogleAuth = () => {
+  // Custom scheme for development builds
   const redirectUri = makeRedirectUri({
-    scheme: 'arzkaro', // matches your app.json scheme
+    scheme: 'arzkaro',
   });
 
   console.log('[AUTH] Google Auth redirectUri:', redirectUri);
+  console.log('[AUTH] Platform:', Platform.OS);
 
+  // Client IDs extracted from google-services.json and GoogleService-Info.plist
   return Google.useAuthRequest({
+    // iOS: From GoogleService-Info.plist CLIENT_ID
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID, // Use web client ID for Android
+    // Android: From google-services.json oauth_client (client_type: 3)
+    androidClientId:
+      process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
+      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    // Web: Same as Android
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     scopes: ['profile', 'email'],
-    // Force account selection
     selectAccount: true,
   });
 };
