@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "371056246396",
+    "project_id": "arzkaro-f67a3",
+    "storage_bucket": "arzkaro-f67a3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:371056246396:android:66c9cfa095b02fd6f513f9",
+        "android_client_info": {
+          "package_name": "com.arzkaro.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "371056246396-hv2gdhlu6lkovedhf0sl9jksojovsro7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8P1RjQ5tr-kpR0NCvVQwncdzxzwt9mio"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "371056246396-hv2gdhlu6lkovedhf0sl9jksojovsro7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "371056246396-u08b6nksg6euqrnufnfmo5ec9nb9qkkf.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.arzkaro.app"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

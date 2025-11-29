@@ -16,16 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.arzkaro.app",
-      "infoPlist": {
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLSchemes": [
-              "arzkaro",
-              "com.googleusercontent.apps.371056246396-u08b6nksg6euqrnufnfmo5ec9nb9qkkf"
-            ]
-          }
-        ]
-      }
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -34,11 +25,18 @@
       },
       "package": "com.arzkaro.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "expo-web-browser"]
+    "plugins": ["expo-router", "@react-native-google-signin/google-signin"],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e998f214-0dd4-4d63-b5f3-0d464ef70a7f"
+      }
+    }
   }
 }

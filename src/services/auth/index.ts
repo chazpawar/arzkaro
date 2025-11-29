@@ -11,16 +11,43 @@ import {
 import { Platform } from 'react-native';
 import { auth } from '../firebase/config';
 import { AuthResponse } from './types';
-import * as WebBrowser from 'expo-web-browser';
-import * as Google from 'expo-auth-session/providers/google';
-import { makeRedirectUri } from 'expo-auth-session';
 
-// Complete the web browser session after auth redirect
-WebBrowser.maybeCompleteAuthSession();
+// Lazy-load GoogleSignin to avoid Expo Go crashes
+let GoogleSignin: any = null;
+let isGoogleSigninConfigured = false;
+
+// Try to import GoogleSignin (only works in development builds, not Expo Go)
+const loadGoogleSignin = () => {
+  if (Platform.OS !== 'web' && !GoogleSignin) {
+    try {
+      // This will fail in Expo Go, but work in development builds
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const module = require('@react-native-google-signin/google-signin');
+      GoogleSignin = module.GoogleSignin;
+      return true;
+    } catch {
+      console.warn(
+        '[AUTH] GoogleSignin native module not available. You need a development build.',
+      );
+      return false;
+    }
+  }
+  return GoogleSignin !== null;
+};
+
+// Configure Google Sign-In for native platforms
+const configureGoogleSignIn = () => {
+  if (Platform.OS !== 'web' && !isGoogleSigninConfigured && loadGoogleSignin()) {
+    GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      offlineAccess: false,
+    });
+    isGoogleSigninConfigured = true;
+  }
+};
 
 /**
- * Signs in a user with Google using expo-auth-session (cross-platform compatible).
- * Works on web, iOS, and Android with Expo Go.
+ * Signs in a user with Google using native SDK on mobile, popup on web.
  * @returns Object containing user object or error message
  */
 export const googleSignInService = async (): Promise<AuthResponse> => {
@@ -51,71 +78,43 @@ export const googleSignInService = async (): Promise<AuthResponse> => {
         return { user: null, error: popupError.message };
       }
     } else {
-      // Mobile (iOS/Android) - use expo-auth-session
-      // This function should be called from a component that has access to the hook
-      return {
-        user: null,
-        error:
-          'Please use the useGoogleAuth hook for mobile platforms. See updated implementation.',
-      };
+      // Mobile (iOS/Android) - use native Google Sign-In SDK
+      console.log('[AUTH] Starting native Google Sign-In');
+
+      // Configure GoogleSignin if not already configured
+      configureGoogleSignIn();
+
+      if (!GoogleSignin) {
+        throw new Error(
+          'Google Sign-In is not available. You need to use a development build (not Expo Go). ' +
+            'Run: eas build --platform android --profile development',
+        );
+      }
+
+      // Check if your device supports Google Play
+      await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+
+      // Get the user's ID token
+      const userInfo = await GoogleSignin.signIn();
+      console.log('[AUTH] Google Sign-In successful:', userInfo.data?.user.email);
+
+      // Create a Google credential with the token
+      const idToken = userInfo.data?.idToken;
+
+      if (!idToken) {
+        throw new Error('No ID token received from Google Sign-In');
+      }
+
+      const googleCredential = GoogleAuthProvider.credential(idToken);
+
+      // Sign-in the user with the credential
+      const userCredential = await signInWithCredential(auth, googleCredential);
+      console.log('[AUTH] Firebase sign-in successful, user:', userCredential.user.email);
+
+      return { user: userCredential.user, error: null };
     }
   } catch (error: any) {
-    console.error('Google Sign-In Error:', error);
-    return { user: null, error: error.message };
-  }
-};
-
-/**
- * Hook for Google authentication using expo-auth-session.
- * IMPORTANT: This requires a Development Build or Standalone build.
- * DOES NOT work with Expo Go due to Google OAuth limitations.
- * Usage: const [request, response, promptAsync] = useGoogleAuth();
- */
-/**
- * Hook for Google authentication using expo-auth-session.
- * IMPORTANT: This requires a Development Build (not Expo Go).
- * Usage: const [, response, promptAsync] = useGoogleAuth();
- */
-export const useGoogleAuth = () => {
-  // Custom scheme for development builds
-  const redirectUri = makeRedirectUri({
-    scheme: 'arzkaro',
-  });
-
-  console.log('[AUTH] Google Auth redirectUri:', redirectUri);
-  console.log('[AUTH] Platform:', Platform.OS);
-
-  // Client IDs extracted from google-services.json and GoogleService-Info.plist
-  return Google.useAuthRequest({
-    // iOS: From GoogleService-Info.plist CLIENT_ID
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    // Android: From google-services.json oauth_client (client_type: 3)
-    androidClientId:
-      process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID ||
-      process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    // Web: Same as Android
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-    scopes: ['profile', 'email'],
-    selectAccount: true,
-  });
-};
-
-/**
- * Exchange Google auth code for Firebase credential and sign in
- * @param idToken Google ID token from auth response
- * @returns Object containing user object or error message
- */
-export const signInWithGoogleCredential = async (idToken: string): Promise<AuthResponse> => {
-  try {
-    console.log('[AUTH] Exchanging Google ID token for Firebase credential');
-
-    const credential = GoogleAuthProvider.credential(idToken);
-    const userCredential = await signInWithCredential(auth, credential);
-
-    console.log('[AUTH] Firebase sign-in successful, user:', userCredential.user.email);
-    return { user: userCredential.user, error: null };
-  } catch (error: any) {
-    console.error('[AUTH] Firebase sign-in error:', error);
+    console.error('[AUTH] Google Sign-In Error:', error);
     return { user: null, error: error.message };
   }
 };
@@ -156,6 +155,18 @@ export const signupService = async (email: string, pass: string): Promise<AuthRe
 export const logoutService = async (): Promise<{ error: string | null }> => {
   try {
     console.log('[AUTH] logoutService called');
+
+    // Sign out from Google on native platforms
+    if (Platform.OS !== 'web' && loadGoogleSignin() && GoogleSignin) {
+      try {
+        configureGoogleSignIn();
+        await GoogleSignin.signOut();
+        console.log('[AUTH] Google signOut completed');
+      } catch (googleError) {
+        console.log('[AUTH] Google signOut error (user may not be signed in):', googleError);
+        // Continue with Firebase logout even if Google signout fails
+      }
+    }
 
     // Sign out from Firebase
     await signOut(auth);

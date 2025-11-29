@@ -259,8 +259,8 @@ functions-debug.log*
 # Firebase credentials (NEVER commit these!)
 *firebase*key*.json
 *serviceAccountKey*.json
-google-services.json
-GoogleService-Info.plist
+# NOTE: google-services.json and GoogleService-Info.plist are safe to commit
+# They contain public configuration, not secrets
 
 # ============================================
 # EAS (Expo Application Services)

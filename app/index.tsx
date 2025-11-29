@@ -1,30 +1,13 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Platform,
-} from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useEffect, useState } from 'react';
-import {
-  googleSignInService,
-  useGoogleAuth,
-  signInWithGoogleCredential,
-  logoutService,
-  observeAuthState,
-} from '../src/services/auth';
+import { googleSignInService, logoutService, observeAuthState } from '../src/services/auth';
 import { User } from 'firebase/auth';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
-
-  // Google Auth hook for mobile platforms (iOS/Android)
-  const [, response, promptAsync] = useGoogleAuth();
 
   console.log(
     '[UI] Component render - user:',
@@ -51,59 +34,20 @@ export default function Home() {
     };
   }, []);
 
-  // Handle Google Sign-In response (for mobile)
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { authentication } = response;
-      console.log('[UI] Google auth success, exchanging for Firebase credential');
-
-      if (authentication?.idToken) {
-        setLoading(true);
-        signInWithGoogleCredential(authentication.idToken)
-          .then((res) => {
-            if (res.error) {
-              console.error('[UI] Firebase sign-in error:', res.error);
-              alert(`Sign-In Error: ${res.error}`);
-            } else {
-              console.log('[UI] Firebase sign-in successful');
-            }
-          })
-          .finally(() => setLoading(false));
-      }
-    } else if (response?.type === 'error') {
-      console.error('[UI] Google auth error:', response.error);
-      alert(`Google Sign-In Error: ${response.error?.message || 'Unknown error'}`);
-    }
-  }, [response]);
-
   const handleGoogleSignIn = async () => {
-    console.log('[UI] handleGoogleSignIn clicked, Platform:', Platform.OS);
+    console.log('[UI] handleGoogleSignIn clicked');
     setLoading(true);
 
-    if (Platform.OS === 'web') {
-      // Use Firebase popup for web
-      const res = await googleSignInService();
-      console.log('[UI] googleSignInService returned:', res);
+    const res = await googleSignInService();
+    console.log('[UI] googleSignInService returned:', res);
 
-      if (res.error) {
-        console.log('[UI] Sign-in error:', res.error);
-        alert(`Sign-In Error: ${res.error}`);
-      } else if (res.user) {
-        console.log('[UI] Sign-in successful, user:', res.user.email);
-      }
-      setLoading(false);
-    } else {
-      // Use expo-auth-session for mobile
-      console.log('[UI] Using expo-auth-session for mobile');
-      try {
-        await promptAsync();
-      } catch (error: any) {
-        console.error('[UI] promptAsync error:', error);
-        alert(`Error: ${error.message}`);
-        setLoading(false);
-      }
-      // Note: loading state will be updated in the response useEffect
+    if (res.error) {
+      console.log('[UI] Sign-in error:', res.error);
+      alert(`Sign-In Error: ${res.error}`);
+    } else if (res.user) {
+      console.log('[UI] Sign-in successful, user:', res.user.email);
     }
+    setLoading(false);
   };
 
   const handleLogout = async () => {
