@@ -9,7 +9,7 @@ import {
   signInWithCredential,
 } from 'firebase/auth';
 import { Platform } from 'react-native';
-import { auth } from '../firebase/config';
+import { auth } from '@services/firebase/config';
 import { AuthResponse } from './types';
 import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';

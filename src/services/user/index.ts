@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../firebase/config';
+import { db } from '@services/firebase/config';
 import { UserProfile, UserResponse } from './types';
 
 /**

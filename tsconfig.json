@@ -1,19 +1,37 @@
 {
-  "extends": "expo/tsconfig.base",
   "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "lib": ["es2017"],
+    "allowJs": true,
+    "jsx": "react-native",
+    "noEmit": true,
+    "isolatedModules": true,
     "strict": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./"],
+      "@components/*": ["src/components/*"],
+      "@screens/*": ["src/screens/*"],
+      "@services/*": ["src/services/*"],
+      "@utils/*": ["src/utils/*"],
+      "@hooks/*": ["src/hooks/*"],
+      "@context/*": ["src/context/*"],
+      "@types/*": ["src/types/*"],
+      "@types": ["src/types/index"],
+      "@assets/*": ["assets/*"],
+      "@navigation/*": ["src/navigation/*"],
+      "@theme": ["src/theme/index"],
+      "@theme/*": ["src/theme/*"],
+      "tailwind.config": ["./tailwind.config.js"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".eslintrc.js",
-    "babel.config.js",
-    "tailwind.config.js",
-    "metro.config.js",
-    "nativewind-env.d.ts"
-  ]
+  "exclude": ["node_modules", "babel.config.js", "metro.config.js"],
+  "extends": "expo/tsconfig.base",
+  "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"]
 }
