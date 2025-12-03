@@ -2,9 +2,9 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { signInWithGoogle } from '../../backend/auth';
 
-type AuthScreenProps = {
+interface AuthScreenProps {
   onSignInSuccess?: () => void;
-};
+}
 
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = React.useState(false);
@@ -18,7 +18,8 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
       const { error } = await signInWithGoogle();
 
       if (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Failed to sign in with Google';
+        const errorMessage =
+          error instanceof Error ? error.message : 'Failed to sign in with Google';
         setError(errorMessage);
       } else {
         onSignInSuccess?.();

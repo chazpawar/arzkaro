@@ -14,9 +14,10 @@ export const signInWithGoogle = async () => {
   try {
     // For iOS simulator, we must use a hardcoded deep link URL
     // makeRedirectUri defaults to localhost in dev which doesn't work
-    const redirectUrl = Platform.OS === 'ios' || Platform.OS === 'android'
-      ? 'arzkaro://auth/callback'
-      : makeRedirectUri({ path: 'auth/callback' });
+    const redirectUrl =
+      Platform.OS === 'ios' || Platform.OS === 'android'
+        ? 'arzkaro://auth/callback'
+        : makeRedirectUri({ path: 'auth/callback' });
 
     console.log('Redirect URL:', redirectUrl);
 
@@ -41,10 +42,7 @@ export const signInWithGoogle = async () => {
 
     // For native platforms, open the OAuth URL in browser
     if (Platform.OS !== 'web' && data?.url) {
-      const result = await WebBrowser.openAuthSessionAsync(
-        data.url,
-        redirectUrl
-      );
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectUrl);
 
       if (result.type === 'success') {
         const url = new URL(result.url);

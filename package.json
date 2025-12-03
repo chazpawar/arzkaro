@@ -7,7 +7,11 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:ios": "eas build --platform ios --profile development --local"
+    "build:ios": "eas build --platform ios --profile development --local",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -27,9 +31,16 @@
     "react-native-screens": "^4.16.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/react": "~19.1.0",
     "dotenv": "^17.2.3",
-    "typescript": "~5.9.2"
+    "eslint": "^9.39.1",
+    "eslint-config-expo": "^10.0.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.7.4",
+    "typescript": "~5.9.2",
+    "typescript-eslint": "^8.48.1"
   },
   "private": true
 }

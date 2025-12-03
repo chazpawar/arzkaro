@@ -2,18 +2,20 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../../backend/supabase';
 
-type AuthContextType = {
+interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
   signOut: () => Promise<void>;
-};
+}
 
 const AuthContext = createContext<AuthContextType>({
   session: null,
   user: null,
   loading: true,
-  signOut: async () => {},
+  signOut: async () => {
+    // Default empty implementation
+  },
 });
 
 export const useAuth = () => {
@@ -24,9 +26,9 @@ export const useAuth = () => {
   return context;
 };
 
-type AuthProviderProps = {
+interface AuthProviderProps {
   children: React.ReactNode;
-};
+}
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [session, setSession] = useState<Session | null>(null);
