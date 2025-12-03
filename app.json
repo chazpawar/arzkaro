@@ -2,11 +2,11 @@
   "expo": {
     "name": "arzkaro",
     "slug": "arzkaro",
-    "scheme": "arzkaro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "arzkaro",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -16,24 +16,22 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.arzkaro.app",
-      "googleServicesFile": "./GoogleService-Info.plist"
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.arzkaro.app",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
-      "googleServicesFile": "./google-services.json"
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "plugins": ["expo-router", "@react-native-google-signin/google-signin"],
     "extra": {
-      "router": {},
       "eas": {
         "projectId": "e998f214-0dd4-4d63-b5f3-0d464ef70a7f"
       }

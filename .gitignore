@@ -1,316 +1,45 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# ============================================
-# Dependencies
-# ============================================
+# dependencies
 node_modules/
-.pnp
-.pnp.js
-.yarn/install-state.gz
 
-# ============================================
-# Package Managers
-# ============================================
-# npm
-package-lock.json
-npm-debug.log*
-
-# Yarn
-yarn-debug.log*
-yarn-error.log*
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
-
-# pnpm
-pnpm-debug.log*
-.pnpm-store/
-
-# ============================================
 # Expo
-# ============================================
 .expo/
-.expo-shared/
 dist/
 web-build/
 expo-env.d.ts
 
-# ============================================
-# Native Builds
-# ============================================
-# Generated native folders (CNG - Continuous Native Generation)
-/ios
-/android
-
-# Native build artifacts
+# Native
+.kotlin/
 *.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-*.keystore
 
-# Gradle (Android)
-.gradle/
-build/
-*.iml
-.idea/
-local.properties
-
-# Xcode (iOS)
-*.xcodeproj
-*.xcworkspace
-xcuserdata/
-*.xcscmblueprint
-DerivedData/
-*.hmap
-*.ipa
-*.dSYM.zip
-*.dSYM
-
-# Pods (iOS)
-Pods/
-Podfile.lock
-
-# Kotlin
-.kotlin/
-
-# ============================================
-# Metro Bundler
-# ============================================
+# Metro
 .metro-health-check*
-.metro/
 
-# ============================================
-# Environment Variables
-# ============================================
-.env
-.env*.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.development
-.env.test
-.env.production
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
 
-# ============================================
-# Operating System
-# ============================================
 # macOS
 .DS_Store
-.AppleDouble
-.LSOverride
-Icon
-._*
-.DocumentRevisions-V100
-.fseventsd
-.Spotlight-V100
-.TemporaryItems
-.Trashes
-.VolumeIcon.icns
-.com.apple.timemachine.donotpresent
-.AppleDB
-.AppleDesktop
-Network Trash Folder
-Temporary Items
-.apdisk
 *.pem
 
-# Windows
-Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
-*.stackdump
-[Dd]esktop.ini
-$RECYCLE.BIN/
-*.cab
-*.msi
-*.msix
-*.msm
-*.msp
-*.lnk
+# local env files
+.env*.local
 
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
-
-# ============================================
-# IDEs and Editors
-# ============================================
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-*.code-workspace
-.history/
-
-# IntelliJ IDEA / WebStorm / Android Studio
-.idea/
-*.iws
-*.iml
-*.ipr
-out/
-.idea_modules/
-
-# Sublime Text
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
-*.sublime-project
-sftp-config.json
-
-# Vim
-[._]*.s[a-v][a-z]
-[._]*.sw[a-p]
-[._]s[a-rt-v][a-z]
-[._]ss[a-gi-z]
-[._]sw[a-p]
-Session.vim
-Sessionx.vim
-.netrwhist
-tags
-[._]*.un~
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-auto-save-list
-tramp
-.\#*
-
-# ============================================
-# TypeScript
-# ============================================
+# typescript
 *.tsbuildinfo
-.tsbuildinfo
-*.js.map
-*.d.ts.map
 
-# ============================================
-# Testing
-# ============================================
-coverage/
-*.lcov
-.nyc_output/
-.cache/
-.parcel-cache/
+# generated native folders
+/ios
+/android
 
-# Jest
-jest/
-.jest/
-
-# ============================================
-# Logs
-# ============================================
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
-.pnpm-debug.log*
-
-# ============================================
-# Temporary Files
-# ============================================
-*.tmp
-*.temp
-*.swp
-*.swo
-*.bak
-*.cache
-.temp/
-.tmp/
-
-# ============================================
-# Build Outputs
-# ============================================
-dist/
-build/
-out/
-.next/
-.nuxt/
-.cache/
-.output/
-
-# ============================================
-# Firebase
-# ============================================
-.firebase/
-firebase-debug.log*
-firestore-debug.log*
-ui-debug.log*
-database-debug.log*
-pubsub-debug.log*
-functions-debug.log*
-
-# Firebase credentials (NEVER commit these!)
-*firebase*key*.json
-*serviceAccountKey*.json
-# NOTE: google-services.json and GoogleService-Info.plist are safe to commit
-# They contain public configuration, not secrets
-
-# ============================================
-# EAS (Expo Application Services)
-# ============================================
-.eas/
-eas.json.backup
-
-# ============================================
-# Sentry
-# ============================================
-.sentryclirc
-
-# ============================================
-# Misc
-# ============================================
-*.swp
-*.swo
-*.swn
-.npmrc
-.yarnrc
-.eslintcache
-.stylelintcache
-
-# Debug files
-debug/
-*.debug
-
-# Documentation builds
-docs/_build/
-
-# ============================================
-# Security & Secrets
-# ============================================
-# API keys and secrets (add your patterns here)
-*secret*
-*private*
-*.secret
-secrets.ts
-secrets.js
-config/secrets/
-
-# SSL certificates
-*.crt
-*.key
-*.pem
-*.p12
-*.pfx
-
-# ============================================
-# Keep Empty Folders
-# ============================================
-!.gitkeep
-!**/.gitkeep
+# EAS build artifacts
+*.tar.gz
+build-*.tar.gz

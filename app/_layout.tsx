@@ -1,11 +1,40 @@
-import { Slot } from 'expo-router';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import '../global.css';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
-  return (
-    <SafeAreaProvider>
-      <Slot />
-    </SafeAreaProvider>
-  );
+    return (
+        <>
+            <StatusBar style="auto" />
+            <Stack
+                screenOptions={{
+                    headerStyle: {
+                        backgroundColor: '#6366f1',
+                    },
+                    headerTintColor: '#fff',
+                    headerTitleStyle: {
+                        fontWeight: '600',
+                    },
+                }}
+            >
+                <Stack.Screen
+                    name="index"
+                    options={{
+                        title: 'Home',
+                    }}
+                />
+                <Stack.Screen
+                    name="profile"
+                    options={{
+                        title: 'Profile',
+                    }}
+                />
+                <Stack.Screen
+                    name="settings"
+                    options={{
+                        title: 'Settings',
+                    }}
+                />
+            </Stack>
+        </>
+    );
 }
