@@ -35,6 +35,13 @@ export default function RootLayout() {
             title: 'Settings',
           }}
         />
+        <Stack.Screen
+          name="auth/callback"
+          options={{
+            headerShown: false,
+            presentation: 'transparentModal',
+          }}
+        />
       </Stack>
     </AuthProvider>
   );

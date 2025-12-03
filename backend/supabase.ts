@@ -26,8 +26,9 @@ export const supabase = createClient<Database>(
       autoRefreshToken: true,
       persistSession: true,
       detectSessionInUrl: false,
-      // For Expo, we use custom scheme for deep linking
-      flowType: 'pkce',
+      // Use implicit flow for React Native - tokens come in URL fragment
+      // PKCE doesn't work well because code_verifier is lost when app restarts
+      flowType: 'implicit',
     },
   }
 );
