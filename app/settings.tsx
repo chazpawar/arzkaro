@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Switch, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../src/components/Button';
-import Card from '../src/components/Card';
-import { Colors } from '../src/constants/Colors';
-import { Spacing, Typography } from '../src/constants/Styles';
+import Button from '../src/components/ui/button';
+import Card from '../src/components/ui/card';
+import { Colors } from '../src/constants/colors';
+import { Spacing, Typography, BorderRadius } from '../src/constants/styles';
+import { useAuth } from '../src/contexts/auth-context';
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const { isHost, isAdmin } = useAuth();
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [autoUpdate, setAutoUpdate] = useState(true);
@@ -16,6 +18,49 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Admin & Host Access */}
+        {(isAdmin || isHost) && (
+          <>
+            <Text style={styles.sectionTitle}>Management</Text>
+
+            {isAdmin && (
+              <Pressable
+                style={styles.managementCard}
+                onPress={() => router.push('/admin/dashboard')}
+              >
+                <View style={[styles.managementIcon, { backgroundColor: Colors.error + '20' }]}>
+                  <Text style={styles.managementIconText}>🛡️</Text>
+                </View>
+                <View style={styles.managementInfo}>
+                  <Text style={styles.managementTitle}>Admin Dashboard</Text>
+                  <Text style={styles.managementDescription}>
+                    Manage users, host requests, and platform settings
+                  </Text>
+                </View>
+                <Text style={styles.arrow}>→</Text>
+              </Pressable>
+            )}
+
+            {isHost && (
+              <Pressable
+                style={styles.managementCard}
+                onPress={() => router.push('/host/dashboard')}
+              >
+                <View style={[styles.managementIcon, { backgroundColor: Colors.primary + '20' }]}>
+                  <Text style={styles.managementIconText}>🎭</Text>
+                </View>
+                <View style={styles.managementInfo}>
+                  <Text style={styles.managementTitle}>Host Dashboard</Text>
+                  <Text style={styles.managementDescription}>
+                    Manage your events, bookings, and scan tickets
+                  </Text>
+                </View>
+                <Text style={styles.arrow}>→</Text>
+              </Pressable>
+            )}
+          </>
+        )}
+
         <Text style={styles.sectionTitle}>Preferences</Text>
 
         <Card style={styles.card}>
@@ -27,7 +72,7 @@ export default function SettingsScreen() {
             <Switch
               value={notifications}
               onValueChange={setNotifications}
-              trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
+              trackColor={{ false: Colors.border, true: Colors.primary }}
               thumbColor="#ffffff"
             />
           </View>
@@ -42,7 +87,7 @@ export default function SettingsScreen() {
             <Switch
               value={darkMode}
               onValueChange={setDarkMode}
-              trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
+              trackColor={{ false: Colors.border, true: Colors.primary }}
               thumbColor="#ffffff"
             />
           </View>
@@ -57,7 +102,7 @@ export default function SettingsScreen() {
             <Switch
               value={autoUpdate}
               onValueChange={setAutoUpdate}
-              trackColor={{ false: Colors.light.border, true: Colors.light.primary }}
+              trackColor={{ false: Colors.border, true: Colors.primary }}
               thumbColor="#ffffff"
             />
           </View>
@@ -78,16 +123,13 @@ export default function SettingsScreen() {
         <View style={styles.buttonContainer}>
           <Button
             title="Clear Cache"
-            onPress={() => console.log('Clear cache')}
+            onPress={() => {
+              // Placeholder - cache clearing logic would go here
+            }}
             variant="secondary"
             size="large"
           />
-          <Button
-            title="Back to Home"
-            onPress={() => router.back()}
-            variant="outline"
-            size="large"
-          />
+          <Button title="Back to Home" onPress={() => router.back()} variant="ghost" size="large" />
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -97,16 +139,53 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     padding: Spacing.lg,
   },
   sectionTitle: {
     ...Typography.h2,
-    color: Colors.light.text,
+    color: Colors.text,
     marginBottom: Spacing.md,
     marginTop: Spacing.md,
+  },
+  managementCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  managementIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  managementIconText: {
+    fontSize: 22,
+  },
+  managementInfo: {
+    flex: 1,
+    marginLeft: Spacing.md,
+  },
+  managementTitle: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  managementDescription: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+  },
+  arrow: {
+    ...Typography.h3,
+    color: Colors.textSecondary,
   },
   card: {
     marginBottom: Spacing.md,
@@ -122,17 +201,17 @@ const styles = StyleSheet.create({
   },
   settingLabel: {
     ...Typography.body,
-    color: Colors.light.text,
+    color: Colors.text,
     fontWeight: '600',
     marginBottom: Spacing.xs,
   },
   settingDescription: {
     ...Typography.bodySmall,
-    color: Colors.light.textSecondary,
+    color: Colors.textSecondary,
   },
   settingValue: {
     ...Typography.body,
-    color: Colors.light.textSecondary,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   buttonContainer: {

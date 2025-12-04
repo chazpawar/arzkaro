@@ -1,7 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Colors } from '../constants/Colors';
-import { BorderRadius, Spacing, Typography } from '../constants/Styles';
+import { Colors } from '../constants/colors';
+import { BorderRadius, Spacing, Typography } from '../constants/styles';
 
 interface ButtonProps {
   title: string;
@@ -37,15 +37,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   primary: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
   },
   secondary: {
-    backgroundColor: Colors.light.secondary,
+    backgroundColor: Colors.secondary,
   },
   outline: {
     backgroundColor: 'transparent',
     borderWidth: 2,
-    borderColor: Colors.light.primary,
+    borderColor: Colors.primary,
   },
   small: {
     paddingVertical: Spacing.sm,
@@ -73,6 +73,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   outlineText: {
-    color: Colors.light.primary,
+    color: Colors.primary,
   },
 });

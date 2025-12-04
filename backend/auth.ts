@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { makeRedirectUri } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { supabase } from './supabase';
@@ -10,7 +11,9 @@ WebBrowser.maybeCompleteAuthSession();
  * Parse tokens from URL - handles both query params and hash fragments
  * Implicit flow returns tokens in the URL fragment (#access_token=...)
  */
-const parseTokensFromUrl = (url: string): { access_token?: string; refresh_token?: string; error?: string } => {
+const parseTokensFromUrl = (
+  url: string
+): { access_token?: string; refresh_token?: string; error?: string } => {
   try {
     // Try to parse from hash fragment first (implicit flow)
     const hashIndex = url.indexOf('#');
@@ -20,12 +23,12 @@ const parseTokensFromUrl = (url: string): { access_token?: string; refresh_token
       const access_token = params.get('access_token') || undefined;
       const refresh_token = params.get('refresh_token') || undefined;
       const error = params.get('error') || undefined;
-      
+
       if (access_token || error) {
         return { access_token, refresh_token, error };
       }
     }
-    
+
     // Fallback to query params
     const queryIndex = url.indexOf('?');
     if (queryIndex !== -1) {
@@ -37,7 +40,7 @@ const parseTokensFromUrl = (url: string): { access_token?: string; refresh_token
         error: params.get('error') || undefined,
       };
     }
-    
+
     return {};
   } catch (err) {
     console.error('Error parsing URL tokens:', err);
@@ -51,27 +54,27 @@ const parseTokensFromUrl = (url: string): { access_token?: string; refresh_token
  */
 export const createSessionFromUrl = async (url: string) => {
   console.log('Creating session from URL:', url);
-  
+
   const { access_token, refresh_token, error: urlError } = parseTokensFromUrl(url);
-  
+
   if (urlError) {
     throw new Error(urlError);
   }
-  
+
   if (!access_token) {
     console.log('No access_token found in URL');
     return null;
   }
-  
+
   console.log('Found tokens, setting session...');
-  
+
   const { data, error } = await supabase.auth.setSession({
     access_token,
     refresh_token: refresh_token || '',
   });
-  
+
   if (error) throw error;
-  
+
   console.log('Session set successfully!');
   return data.session;
 };
@@ -84,7 +87,7 @@ export const signInWithGoogle = async () => {
   try {
     // Use custom scheme with /auth/callback path
     const redirectUrl = 'arzkaro://auth/callback';
-    
+
     console.log('Redirect URL:', redirectUrl);
 
     // Start OAuth flow with Supabase - use skipBrowserRedirect for native

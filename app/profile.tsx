@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Button from '../src/components/Button';
-import Card from '../src/components/Card';
-import { Colors } from '../src/constants/Colors';
-import { Spacing, Typography } from '../src/constants/Styles';
-import { useAuth } from '../src/contexts/AuthContext';
+import Button from '../src/components/ui/button';
+import Card from '../src/components/ui/card';
+import { Colors } from '../src/constants/colors';
+import { Spacing, Typography } from '../src/constants/styles';
+import { useAuth } from '../src/contexts/auth-context';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -33,7 +33,7 @@ export default function ProfileScreen() {
           try {
             setIsLoggingOut(true);
             await signOut();
-            // Navigation will be handled automatically by the auth state change
+            router.replace('/');
           } catch (error) {
             console.error('Logout error:', error);
             Alert.alert('Error', 'Failed to sign out. Please try again.');
@@ -94,12 +94,12 @@ export default function ProfileScreen() {
           <Button
             title={isLoggingOut ? 'Signing Out...' : 'Sign Out'}
             onPress={handleLogout}
-            variant="outline"
+            variant="secondary"
             size="large"
             disabled={isLoggingOut}
           />
           {isLoggingOut && (
-            <ActivityIndicator size="small" color={Colors.light.primary} style={styles.loader} />
+            <ActivityIndicator size="small" color={Colors.primary} style={styles.loader} />
           )}
           <Button
             title="Back to Home"
@@ -116,7 +116,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.background,
   },
   scrollContent: {
     padding: Spacing.lg,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    backgroundColor: Colors.light.primary,
+    backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.md,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     ...Typography.h2,
-    color: Colors.light.text,
+    color: Colors.text,
     fontWeight: 'bold',
   },
   card: {
@@ -155,18 +155,18 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.bodySmall,
-    color: Colors.light.textSecondary,
+    color: Colors.textSecondary,
     marginBottom: Spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   value: {
     ...Typography.body,
-    color: Colors.light.text,
+    color: Colors.text,
   },
   valueSmall: {
     ...Typography.bodySmall,
-    color: Colors.light.text,
+    color: Colors.text,
     fontFamily: 'monospace',
   },
   buttonContainer: {

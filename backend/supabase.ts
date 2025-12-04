@@ -2,22 +2,32 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import type { Database } from './types/database.types';
 
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl as string | undefined;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+// Check if we have valid credentials
+export const hasValidCredentials = !!(
+  supabaseUrl &&
+  supabaseAnonKey &&
+  supabaseUrl !== 'https://your-project-id.supabase.co' &&
+  supabaseAnonKey !== 'your-anon-key-here'
+);
+
+if (!hasValidCredentials) {
   console.warn(
-    'Missing Supabase environment variables. Please create a .env file with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY'
+    'Missing or invalid Supabase environment variables. Please create a .env file with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY'
   );
 }
 
 // Create a placeholder client if credentials are missing (for development)
 const placeholderUrl = 'https://placeholder.supabase.co';
-const placeholderKey = 'placeholder-key';
+const placeholderKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
-export const supabase = createClient<Database>(
+// Create untyped client for development flexibility
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const supabase = createClient<any>(
   supabaseUrl || placeholderUrl,
   supabaseAnonKey || placeholderKey,
   {

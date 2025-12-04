@@ -1,14 +1,19 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithGoogle } from '../../backend/auth';
+import { Colors } from '../constants/colors';
+import { Spacing, Typography, BorderRadius } from '../constants/styles';
+import { useAuth } from '../contexts/auth-context';
 
 interface AuthScreenProps {
   onSignInSuccess?: () => void;
 }
 
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { signInAsAdmin } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -31,100 +36,217 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome to ArzKaro</Text>
-        <Text style={styles.subtitle}>Sign in to get started</Text>
+  const handleAdminSignIn = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      await signInAsAdmin?.();
+      onSignInSuccess?.();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const openTerms = () => {
+    Linking.openURL('https://arzkaro.com/terms');
+  };
+
+  const openPrivacy = () => {
+    Linking.openURL('https://arzkaro.com/privacy');
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Main Content - White Background */}
+      <View style={styles.content}>
+        {/* Logo Section */}
+        <View style={styles.logoSection}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoText}>arz</Text>
+            <Text style={styles.logoDot}>.</Text>
+          </View>
+          <Text style={styles.tagline}>
+            Discover concerts, workshops,{'\n'}meetups, and exclusive events{'\n'}happening around
+            you.
+          </Text>
+        </View>
+      </View>
+
+      {/* Bottom Section - Orange Background */}
+      <View style={styles.bottomSection}>
+        {/* Error Message */}
         {error && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
 
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
+        {/* Google Sign In Button */}
+        <Pressable
+          style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
           onPress={handleGoogleSignIn}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Text style={styles.buttonText}>Continue with Google</Text>
-            </>
-          )}
-        </TouchableOpacity>
+          <View style={styles.googleIconContainer}>
+            <Text style={styles.googleIcon}>G</Text>
+          </View>
+          <Text style={styles.googleButtonText}>
+            {loading ? 'Signing in...' : 'Sign in with Google'}
+          </Text>
+        </Pressable>
 
-        <Text style={styles.disclaimer}>
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </Text>
+        {/* Admin Sign In Button (Dev) */}
+        <Pressable
+          style={({ pressed }) => [styles.adminButton, pressed && styles.buttonPressed]}
+          onPress={handleAdminSignIn}
+          disabled={loading}
+        >
+          <Text style={styles.adminButtonText}>Sign in as Admin (Dev)</Text>
+        </Pressable>
+
+        {/* Terms and Privacy */}
+        <View style={styles.termsContainer}>
+          <Text style={styles.termsText}>
+            By signing in, you agree to our{' '}
+            <Text style={styles.termsLink} onPress={openTerms}>
+              Terms of Service
+            </Text>{' '}
+            and{'\n'}
+            <Text style={styles.termsLink} onPress={openPrivacy}>
+              Privacy Policy
+            </Text>
+          </Text>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.background,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: Spacing.xl,
+    backgroundColor: Colors.background,
   },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
+  logoSection: {
+    alignItems: 'center',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: Spacing.xl,
+  },
+  logoText: {
+    fontSize: 72,
+    fontWeight: '700',
+    color: Colors.text,
+    letterSpacing: -2,
+  },
+  logoDot: {
+    fontSize: 72,
+    fontWeight: '700',
+    color: Colors.primary,
+    marginLeft: -4,
+  },
+  tagline: {
+    fontSize: 18,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  bottomSection: {
+    backgroundColor: Colors.primary,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xxl,
+  },
+  errorContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  errorText: {
+    ...Typography.bodySmall,
+    color: Colors.textInverse,
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 48,
-    textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#4285F4',
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-    width: '100%',
-    maxWidth: 320,
+  googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.md,
   },
-  buttonDisabled: {
-    opacity: 0.6,
+  googleIconContainer: {
+    width: 24,
+    height: 24,
+    marginRight: Spacing.sm,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  buttonText: {
-    color: '#fff',
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.google,
+  },
+  googleButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: Colors.text,
   },
-  errorContainer: {
-    backgroundColor: '#fee',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    width: '100%',
-    maxWidth: 320,
+  adminButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.text,
+    borderRadius: BorderRadius.xl,
+    paddingVertical: Spacing.md + 2,
+    paddingHorizontal: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
-  errorText: {
-    color: '#c00',
+  adminButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textInverse,
+  },
+  buttonPressed: {
+    opacity: 0.9,
+    transform: [{ scale: 0.98 }],
+  },
+  termsContainer: {
+    alignItems: 'center',
+  },
+  termsText: {
+    fontSize: 13,
+    color: Colors.textInverse,
     textAlign: 'center',
+    lineHeight: 20,
+    opacity: 0.9,
   },
-  disclaimer: {
-    marginTop: 24,
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-    maxWidth: 320,
+  termsLink: {
+    textDecorationLine: 'underline',
+    fontWeight: '500',
+  },
+  googleLogo: {
+    width: 20,
+    height: 20,
+  },
+  googleG: {
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
