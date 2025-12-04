@@ -60,6 +60,7 @@ pnpm run ios
 ```
 
 **Alternative using EAS Build (Local)**:
+
 ```bash
 # Build using EAS locally
 pnpm run build:ios
@@ -141,7 +142,7 @@ eas build --platform ios --profile development-device --local
 📱 **Three Sample Screens** - Home, Profile, and Settings  
 🔧 **Reusable Components** - Button and Card components  
 🏗️ **Local EAS Builds** - Build iOS apps locally  
-📦 **pnpm** - Fast and efficient package manager  
+📦 **pnpm** - Fast and efficient package manager
 
 ## Troubleshooting
 

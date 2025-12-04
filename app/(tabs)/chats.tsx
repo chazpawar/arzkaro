@@ -34,16 +34,8 @@ export default function ChatsTab() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch groups and DMs from backend
-  const {
-    groups,
-    loading: groupsLoading,
-    refresh: refreshGroups,
-  } = useUserGroups(user?.id);
-  const {
-    conversations,
-    loading: dmsLoading,
-    refresh: refreshDMs,
-  } = useDMConversations(user?.id);
+  const { groups, loading: groupsLoading, refresh: refreshGroups } = useUserGroups(user?.id);
+  const { conversations, loading: dmsLoading, refresh: refreshDMs } = useDMConversations(user?.id);
 
   const loading = groupsLoading || dmsLoading;
 
@@ -241,8 +233,8 @@ export default function ChatsTab() {
               {activeFilter === 'unread'
                 ? "You're all caught up! No unread messages."
                 : activeFilter === 'groups'
-                  ? 'When you book events, you\'ll be added to their group chats.'
-                  : "No conversations yet. Start chatting with other users!"}
+                  ? "When you book events, you'll be added to their group chats."
+                  : 'No conversations yet. Start chatting with other users!'}
             </Text>
           </View>
         }

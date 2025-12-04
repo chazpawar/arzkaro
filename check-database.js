@@ -2,7 +2,7 @@
 
 /**
  * Database Health Check and Fix Script
- * 
+ *
  * This script:
  * 1. Checks all tables exist
  * 2. Checks all RLS policies
@@ -31,7 +31,7 @@ async function checkDatabase() {
   console.log('\n📋 Test 1: Check profiles table...');
   try {
     const { data, error } = await supabase.from('profiles').select('id').limit(1);
-    
+
     if (error) {
       if (error.code === 'PGRST204' || error.code === 'PGRST116') {
         console.log('✅ Profiles table exists (empty)');
@@ -53,11 +53,11 @@ async function checkDatabase() {
   // Test 2: Check other critical tables
   const tables = ['events', 'bookings', 'tickets', 'host_requests'];
   console.log('\n📋 Test 2: Check other tables...');
-  
+
   for (const table of tables) {
     try {
       const { error } = await supabase.from(table).select('id').limit(1);
-      
+
       if (error) {
         if (error.code === 'PGRST204' || error.code === 'PGRST116') {
           console.log(`✅ ${table} - exists (empty)`);
@@ -77,13 +77,16 @@ async function checkDatabase() {
   // Test 3: Try to get current user
   console.log('\n📋 Test 3: Check authentication...');
   try {
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
     if (error) {
       console.log('⚠️  No authenticated user (expected in CLI context)');
     } else if (user) {
       console.log('✅ User authenticated:', user.email);
-      
+
       // Test 4: Try to fetch profile
       console.log('\n📋 Test 4: Check profile for authenticated user...');
       const { data: profile, error: profileError } = await supabase
@@ -91,7 +94,7 @@ async function checkDatabase() {
         .select('*')
         .eq('id', user.id)
         .single();
-      
+
       if (profileError) {
         if (profileError.code === 'PGRST116') {
           console.log('❌ Profile does NOT exist for user:', user.email);

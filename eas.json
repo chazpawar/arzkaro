@@ -1,38 +1,38 @@
 {
-    "cli": {
-        "version": ">= 5.0.0"
+  "cli": {
+    "version": ">= 5.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true,
+        "buildConfiguration": "Debug"
+      }
     },
-    "build": {
-        "development": {
-            "developmentClient": true,
-            "distribution": "internal",
-            "ios": {
-                "simulator": true,
-                "buildConfiguration": "Debug"
-            }
-        },
-        "development-device": {
-            "developmentClient": true,
-            "distribution": "internal",
-            "ios": {
-                "simulator": false,
-                "buildConfiguration": "Debug"
-            }
-        },
-        "preview": {
-            "distribution": "internal",
-            "ios": {
-                "simulator": false
-            }
-        },
-        "production": {
-            "ios": {
-                "simulator": false,
-                "buildConfiguration": "Release"
-            }
-        }
+    "development-device": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": false,
+        "buildConfiguration": "Debug"
+      }
     },
-    "submit": {
-        "production": {}
+    "preview": {
+      "distribution": "internal",
+      "ios": {
+        "simulator": false
+      }
+    },
+    "production": {
+      "ios": {
+        "simulator": false,
+        "buildConfiguration": "Release"
+      }
     }
+  },
+  "submit": {
+    "production": {}
+  }
 }

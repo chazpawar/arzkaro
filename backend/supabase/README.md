@@ -16,11 +16,13 @@ This directory contains Supabase-specific configuration files.
 ## Migrations
 
 Create a new migration:
+
 ```bash
 supabase migration new migration_name
 ```
 
 Apply migrations:
+
 ```bash
 supabase db push
 ```

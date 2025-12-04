@@ -58,11 +58,11 @@ pnpm run ios
 
 ## 🐛 Common Issues
 
-| Error | Solution |
-|-------|----------|
-| Table not found | Run migrations (see above) |
-| Loading forever | Check .env has correct Supabase credentials |
-| No events showing | Create your first event as admin/host |
+| Error             | Solution                                    |
+| ----------------- | ------------------------------------------- |
+| Table not found   | Run migrations (see above)                  |
+| Loading forever   | Check .env has correct Supabase credentials |
+| No events showing | Create your first event as admin/host       |
 
 ## 📚 Documentation
 

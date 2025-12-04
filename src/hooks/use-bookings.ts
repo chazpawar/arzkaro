@@ -20,7 +20,7 @@ export function useBookings(userId: string | undefined) {
       return;
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     try {
       setLoading(true);
       setError(null);
@@ -71,7 +71,7 @@ export function useTickets(userId: string | undefined) {
       return;
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     try {
       setLoading(true);
       setError(null);

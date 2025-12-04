@@ -148,6 +148,7 @@ The app is already configured with the scheme `arzkaro` in `app.json`, which Exp
 ### 6.1 Install Dependencies (Already Done)
 
 The required dependencies are already installed:
+
 - `@supabase/supabase-js`
 - `@react-native-async-storage/async-storage`
 - `expo-auth-session`
@@ -164,6 +165,7 @@ pnpm run ios
 ```
 
 This will:
+
 1. Rebuild the native iOS app with new dependencies
 2. Start Metro bundler
 3. Launch the app in iPhone 17 Pro simulator
@@ -222,6 +224,7 @@ pnpm start
 ### When to Rebuild
 
 Only rebuild when you:
+
 - Install new native dependencies
 - Change `app.json` configuration
 - Modify native code

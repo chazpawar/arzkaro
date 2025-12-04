@@ -85,10 +85,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         // Check for profile not found error (PGRST116 - result contains 0 rows)
         if (error.code === 'PGRST116') {
           console.log('Profile not found for user, creating new profile...');
-          
+
           // Get user metadata from auth
-          const { data: { user }, error: userError } = await supabase.auth.getUser();
-          
+          const {
+            data: { user },
+            error: userError,
+          } = await supabase.auth.getUser();
+
           if (userError || !user) {
             console.error('Error getting user metadata:', userError);
             return null;
@@ -108,7 +111,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
           const { data: createdProfile, error: createError } = await supabase
             .from('profiles')
-            .insert(newProfile)
+            .upsert(newProfile, { onConflict: 'id' })
             .select()
             .single();
 

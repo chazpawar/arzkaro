@@ -2,7 +2,7 @@
 
 /**
  * Automated Migration Runner
- * 
+ *
  * This script helps you run the database migration.
  * It will open your browser to the Supabase SQL Editor with instructions.
  */
@@ -18,7 +18,7 @@ const migrationPath = path.join(__dirname, 'backend/supabase/migrations/001_init
 const migration = fs.readFileSync(migrationPath, 'utf8');
 
 console.log('✅ Migration file loaded');
-console.log(`   Statements: ${migration.split(';').filter(s => s.trim()).length}`);
+console.log(`   Statements: ${migration.split(';').filter((s) => s.trim()).length}`);
 console.log(`   File: ${migrationPath}\n`);
 
 // Get Supabase URL from .env
@@ -50,14 +50,14 @@ console.log('Press ENTER to continue...');
 
 process.stdin.once('data', () => {
   console.log('\n📂 Opening migration file in your default editor...');
-  
+
   const sqlEditorUrl = `https://supabase.com/dashboard/project/${projectId}/sql/new`;
-  
+
   // Open SQL Editor in browser
   console.log('🌐 Opening Supabase SQL Editor in browser...');
-  const openCommand = process.platform === 'win32' ? 'start' : 
-                     process.platform === 'darwin' ? 'open' : 'xdg-open';
-  
+  const openCommand =
+    process.platform === 'win32' ? 'start' : process.platform === 'darwin' ? 'open' : 'xdg-open';
+
   exec(`${openCommand} "${sqlEditorUrl}"`, (err) => {
     if (err) {
       console.error('❌ Could not open browser automatically');

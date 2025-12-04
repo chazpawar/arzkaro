@@ -20,14 +20,14 @@ interface MenuItemType {
 export default function ProfileTab() {
   const router = useRouter();
   const { user, profile, isHost, isAdmin, signOut } = useAuth();
-  
+
   // Fetch user stats
   const { bookings } = useBookings(user?.id);
   const { tickets } = useTickets(user?.id);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
-  
+
   // Calculate stats
   const uniqueEvents = new Set(bookings.map((b) => b.event_id)).size;
   const ticketCount = tickets.length;
@@ -43,13 +43,13 @@ export default function ProfileTab() {
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
       { text: 'Cancel', style: 'cancel' },
-      { 
-        text: 'Sign Out', 
-        style: 'destructive', 
+      {
+        text: 'Sign Out',
+        style: 'destructive',
         onPress: async () => {
           await signOut();
           router.replace('/');
-        }
+        },
       },
     ]);
   };
@@ -94,7 +94,21 @@ export default function ProfileTab() {
     <Pressable
       key={index}
       style={({ pressed }) => [styles.menuItem, pressed && styles.menuItemPressed]}
-      onPress={() => (item.route ? router.push(item.route as any) : item.action?.())}
+      onPress={() =>
+        item.route
+          ? router.push(
+              item.route as
+                | `/profile`
+                | `/(tabs)/tickets`
+                | `/saved`
+                | `/notifications`
+                | `/settings`
+                | `/support`
+                | `/admin/dashboard`
+                | `/host/dashboard`
+            )
+          : item.action?.()
+      }
     >
       <View style={styles.menuIconContainer}>
         <Ionicons name={item.icon} size={22} color={Colors.textSecondary} />

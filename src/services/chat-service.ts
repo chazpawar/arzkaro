@@ -39,7 +39,6 @@ export async function getUserGroups(userId: string) {
     throw new Error(error.message);
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (data as any[]).map((d) => d.group).filter(Boolean) as EventGroup[];
 }
 
@@ -330,7 +329,7 @@ export async function getFriends(userId: string) {
   }
 
   // Map to return the friend's profile (not the current user)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   return (data as any[]).map((f) => ({
     ...f,
     friend: f.friend1.id === userId ? f.friend2 : f.friend1,
@@ -427,7 +426,7 @@ export async function getDMConversations(userId: string) {
   }
 
   // Map to include the other user's profile
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+
   return (data as any[]).map((convo) => ({
     ...convo,
     other_user: convo.user1.id === userId ? convo.user2 : convo.user1,

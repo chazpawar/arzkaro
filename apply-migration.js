@@ -2,7 +2,7 @@
 
 /**
  * Apply Migration via Supabase Client
- * 
+ *
  * This script applies the migration 002 to fix profile insert policy
  */
 
@@ -29,7 +29,10 @@ if (!supabaseUrl || !anonKey) {
 }
 
 // Read migration file
-const migrationPath = path.join(__dirname, 'backend/supabase/migrations/002_fix_profile_insert_policy.sql');
+const migrationPath = path.join(
+  __dirname,
+  'backend/supabase/migrations/002_fix_profile_insert_policy.sql'
+);
 if (!fs.existsSync(migrationPath)) {
   console.error('❌ Migration file not found:', migrationPath);
   process.exit(1);
@@ -49,7 +52,11 @@ console.log('You need to run the migration manually in the Supabase SQL Editor.\
 
 console.log('📝 INSTRUCTIONS:\n');
 console.log('1. The migration SQL has been copied to your clipboard');
-console.log('2. Go to: https://supabase.com/dashboard/project/' + supabaseUrl.match(/https:\/\/(.+)\.supabase\.co/)?.[1] + '/sql/new');
+console.log(
+  '2. Go to: https://supabase.com/dashboard/project/' +
+    supabaseUrl.match(/https:\/\/(.+)\.supabase\.co/)?.[1] +
+    '/sql/new'
+);
 console.log('3. Paste the SQL (Ctrl+V)');
 console.log('4. Click RUN\n');
 
@@ -59,7 +66,7 @@ exec('echo ' + JSON.stringify(migrationSQL) + ' | clip', (err) => {
   if (!err) {
     console.log('✅ Migration SQL copied to clipboard!\n');
   }
-  
+
   console.log('─'.repeat(60));
   console.log('MIGRATION SQL PREVIEW:');
   console.log('─'.repeat(60));

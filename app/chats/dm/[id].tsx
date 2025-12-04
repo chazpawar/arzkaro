@@ -56,9 +56,16 @@ export default function DMChatScreen() {
           .single();
 
         if (data && !error) {
+          // Supabase returns arrays for foreign key relations, so we need to access [0]
+          const rawData = data as {
+            user_id_1: string;
+            user_id_2: string;
+            user1: { id: string; full_name: string | null; avatar_url: string | null }[];
+            user2: { id: string; full_name: string | null; avatar_url: string | null }[];
+          };
+
           // Get the other user's profile
-          const other =
-            (data as any).user1.id === user.id ? (data as any).user2 : (data as any).user1;
+          const other = rawData.user1[0]?.id === user.id ? rawData.user2[0] : rawData.user1[0];
           setOtherUser(other);
         }
       } catch (error) {

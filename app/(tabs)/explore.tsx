@@ -96,7 +96,7 @@ export default function ExploreTab() {
           style={[styles.categoryIconContainer, isSelected && styles.categoryIconContainerSelected]}
         >
           <Ionicons
-            name={category.icon as any}
+            name={category.icon as 'calendar-outline' | 'compass-outline' | 'airplane-outline'}
             size={22}
             color={isSelected ? Colors.primary : Colors.textSecondary}
           />
@@ -113,13 +113,7 @@ export default function ExploreTab() {
     );
   };
 
-  const renderPopularEventCard = ({
-    item,
-    index,
-  }: {
-    item: Event;
-    index: number;
-  }) => (
+  const renderPopularEventCard = ({ item, index }: { item: Event; index: number }) => (
     <Pressable
       style={[styles.popularCard, { marginLeft: index === 0 ? Spacing.lg : Spacing.md }]}
       onPress={() => router.push(`/events/${item.id}`)}
@@ -255,7 +249,9 @@ export default function ExploreTab() {
           <View style={styles.emptyContainer}>
             <Ionicons name="calendar-outline" size={64} color={Colors.textTertiary} />
             <Text style={styles.emptyTitle}>
-              {error && error.includes('Database not set up') ? 'Database Not Set Up' : 'No Events Found'}
+              {error && error.includes('Database not set up')
+                ? 'Database Not Set Up'
+                : 'No Events Found'}
             </Text>
             <Text style={styles.emptyText}>
               {error

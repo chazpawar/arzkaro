@@ -17,7 +17,6 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTickets } from '../../src/hooks/use-bookings';
-import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { TicketWithDetails } from '../../src/types';
 
 export default function TicketsTab() {
@@ -26,7 +25,7 @@ export default function TicketsTab() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Fetch tickets from backend
-  const { validTickets, loading, error, refresh } = useTickets(user?.id);
+  const { validTickets, refresh } = useTickets(user?.id);
   const [refreshing, setRefreshing] = useState(false);
 
   // Refresh on focus
@@ -110,7 +109,7 @@ export default function TicketsTab() {
           </Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.ticketLocation}>{event.location}</Text>
+            <Text style={styles.ticketLocation}>{event.location_name || 'TBA'}</Text>
           </View>
         </View>
 
@@ -128,7 +127,7 @@ export default function TicketsTab() {
         {/* Card Footer - Price and Action */}
         <View style={styles.ticketFooter}>
           <Text style={styles.ticketPrice}>
-            Rs.{(item.ticket_price || 0).toLocaleString('en-IN')}
+            Rs.{(item.booking.total_amount || 0).toLocaleString('en-IN')}
           </Text>
           <Pressable
             style={styles.viewTicketButton}

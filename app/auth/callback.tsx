@@ -17,7 +17,7 @@ export default function AuthCallback() {
       try {
         // Get the full URL that opened this screen
         const url = await Linking.getInitialURL();
-        // eslint-disable-next-line no-console
+
         console.log('Callback URL:', url);
 
         if (url) {
@@ -25,10 +25,8 @@ export default function AuthCallback() {
           const session = await createSessionFromUrl(url);
 
           if (session) {
-            // eslint-disable-next-line no-console
             console.log('Session created successfully!');
           } else {
-            // eslint-disable-next-line no-console
             console.log('No session created - no tokens in URL');
           }
         }

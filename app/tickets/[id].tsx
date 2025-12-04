@@ -95,8 +95,8 @@ export default function TicketDetailsScreen() {
           <View style={styles.ticketCard}>
             {/* Event Image Section */}
             <View style={styles.imageSection}>
-              {ticket.event.cover_image ? (
-                <Image source={{ uri: ticket.event.cover_image }} style={styles.eventImage} />
+              {ticket.event.cover_image_url ? (
+                <Image source={{ uri: ticket.event.cover_image_url }} style={styles.eventImage} />
               ) : (
                 <View style={styles.imagePlaceholder}>
                   <Ionicons name="musical-notes" size={48} color={Colors.textInverse} />
@@ -105,9 +105,7 @@ export default function TicketDetailsScreen() {
               {/* Ticket Type Badge */}
               <View style={styles.ticketTypeBadge}>
                 <Ionicons name="star" size={14} color={Colors.text} />
-                <Text style={styles.ticketTypeText}>
-                  {ticket.ticket_type?.name || 'General'}
-                </Text>
+                <Text style={styles.ticketTypeText}>{ticket.ticket_type?.name || 'General'}</Text>
               </View>
             </View>
 
@@ -151,7 +149,9 @@ export default function TicketDetailsScreen() {
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>DATE & TIME</Text>
                   <Text style={styles.detailValue}>{formatDate(ticket.event.start_date)}</Text>
-                  <Text style={styles.detailSubValue}>at {formatTime(ticket.event.start_date)}</Text>
+                  <Text style={styles.detailSubValue}>
+                    at {formatTime(ticket.event.start_date)}
+                  </Text>
                 </View>
               </View>
 
@@ -162,22 +162,22 @@ export default function TicketDetailsScreen() {
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>VENUE</Text>
-                  <Text style={styles.detailValue}>{ticket.event.location}</Text>
-                  {ticket.event.address && (
-                    <Text style={styles.detailSubValue}>{ticket.event.address}</Text>
+                  <Text style={styles.detailValue}>{ticket.event.location_name || 'TBA'}</Text>
+                  {ticket.event.location_address && (
+                    <Text style={styles.detailSubValue}>{ticket.event.location_address}</Text>
                   )}
                 </View>
               </View>
 
-              {/* Seat Information */}
-              {ticket.seat_info && (
+              {/* Ticket Type Information */}
+              {ticket.ticket_type && (
                 <View style={styles.detailRow}>
                   <View style={styles.detailIconContainer}>
-                    <Ionicons name="grid-outline" size={20} color={Colors.textSecondary} />
+                    <Ionicons name="star-outline" size={20} color={Colors.textSecondary} />
                   </View>
                   <View style={styles.detailContent}>
-                    <Text style={styles.detailLabel}>SEAT INFORMATION</Text>
-                    <Text style={styles.detailValue}>{ticket.seat_info}</Text>
+                    <Text style={styles.detailLabel}>TICKET TYPE</Text>
+                    <Text style={styles.detailValue}>{ticket.ticket_type.name}</Text>
                   </View>
                 </View>
               )}

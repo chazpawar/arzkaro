@@ -149,7 +149,7 @@ export function useUserGroups(userId: string | undefined) {
       return;
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     try {
       setLoading(true);
       setError(null);
@@ -325,7 +325,7 @@ export function useDMConversations(userId: string | undefined) {
       return;
     }
 
-    let timeoutId: NodeJS.Timeout;
+    let timeoutId: ReturnType<typeof setTimeout>;
     try {
       setLoading(true);
       setError(null);

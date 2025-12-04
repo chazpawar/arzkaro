@@ -16,8 +16,8 @@ export function useEvents(initialFilters?: EventFilters) {
   // Initial fetch only
   useEffect(() => {
     let mounted = true;
-    let timeoutId: NodeJS.Timeout;
-    
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const doFetch = async () => {
       // If no valid credentials, don't even try to fetch
       if (!hasValidCredentials) {
@@ -40,7 +40,7 @@ export function useEvents(initialFilters?: EventFilters) {
         });
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
-        
+
         if (mounted) {
           setEvents(result.data || []);
           setHasMore(result.hasMore || false);
@@ -48,12 +48,12 @@ export function useEvents(initialFilters?: EventFilters) {
       } catch (err) {
         if (mounted) {
           let errorMessage = err instanceof Error ? err.message : 'Failed to fetch events';
-          
+
           // Show helpful message if tables don't exist
           if (errorMessage.includes('Could not find the table')) {
             errorMessage = 'Database not set up. Please run migrations - see SETUP_DATABASE.md';
           }
-          
+
           console.error('Error fetching events:', errorMessage);
           setError(errorMessage);
           setEvents([]);

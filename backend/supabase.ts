@@ -26,7 +26,7 @@ const placeholderKey =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
 // Create untyped client for development flexibility
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+
 export const supabase = createClient<any>(
   supabaseUrl || placeholderUrl,
   supabaseAnonKey || placeholderKey,

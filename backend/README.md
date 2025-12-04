@@ -53,18 +53,24 @@ supabase db push
 ## Files
 
 ### `supabase.ts`
+
 Supabase client initialization with:
+
 - AsyncStorage for session persistence
 - PKCE flow for OAuth
 - TypeScript types from `database.types.ts`
 
 ### `auth.ts`
+
 Authentication helpers:
+
 - `signInWithGoogle()` - Cross-platform Google OAuth
 - `signOut()` - Sign out current user
 
 ### `types/database.types.ts`
+
 TypeScript types generated from your Supabase database schema. Update these by running:
+
 ```bash
 supabase gen types typescript --project-id YOUR_PROJECT_ID > backend/types/database.types.ts
 ```

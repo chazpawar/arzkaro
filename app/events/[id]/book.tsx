@@ -102,8 +102,7 @@ export default function BookEventScreen() {
 
       // Navigate to confirmation page with ticket ID
       if (result.tickets && result.tickets.length > 0) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        router.replace(`/tickets/${(result.tickets[0] as any).id}?new=true`);
+        router.replace(`/tickets/${(result.tickets[0] as { id: string }).id}?new=true`);
       } else {
         router.replace('/(tabs)/tickets');
       }
@@ -175,7 +174,7 @@ export default function BookEventScreen() {
           {ticketTypes.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Select Ticket Type</Text>
-              {ticketTypes.map((ticket: any) => {
+              {ticketTypes.map((ticket: TicketType) => {
                 const available = ticket.quantity_available - ticket.quantity_sold;
                 const isSelected = selectedTicketType?.id === ticket.id;
                 const isSoldOut = available <= 0;

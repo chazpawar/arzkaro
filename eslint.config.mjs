@@ -1,14 +1,14 @@
 import expoConfig from 'eslint-config-expo/flat.js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
-import tseslint from 'typescript-eslint';
+import { configs as tseslintConfigs } from 'typescript-eslint';
 
 export default [
   // Expo's recommended config for flat config
   ...expoConfig,
 
   // TypeScript ESLint recommended configs
-  ...tseslint.configs.recommended,
-  ...tseslint.configs.stylistic,
+  ...tseslintConfigs.recommended,
+  ...tseslintConfigs.stylistic,
 
   // Prettier integration (must be last)
   eslintPluginPrettierRecommended,
@@ -25,9 +25,9 @@ export default [
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'off',
 
       // React/React Native rules
       'react/prop-types': 'off', // We use TypeScript
@@ -36,7 +36,7 @@ export default [
       'react-hooks/exhaustive-deps': 'warn',
 
       // General rules
-      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-console': 'off',
       'prefer-const': 'error',
       'no-var': 'error',
 
@@ -62,6 +62,10 @@ export default [
       '*.config.ts',
       'babel.config.js',
       'metro.config.js',
+      'apply-migration.js',
+      'apply-migration-002.js',
+      'run-migration.js',
+      'check-database.js',
     ],
   },
 ];

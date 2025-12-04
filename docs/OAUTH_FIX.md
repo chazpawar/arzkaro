@@ -1,10 +1,13 @@
 # OAuth Callback Configuration Fix
 
 ## Problem
+
 After Google OAuth login, the app was showing "Unmatched route" error because it was trying to navigate to a route that expo-router couldn't handle properly.
 
 ## Root Cause
+
 The original implementation was manually creating a `/auth/callback` route and trying to handle the OAuth callback there. However, with `expo-web-browser` and `skipBrowserRedirect: true`, the proper pattern is to:
+
 1. Let `WebBrowser.openAuthSessionAsync` handle the redirect
 2. Process the callback URL directly using `Linking.useURL()`
 3. Extract tokens and create the session programmatically
@@ -12,17 +15,20 @@ The original implementation was manually creating a `/auth/callback` route and t
 ## Solution Applied
 
 ### 1. Updated `backend/auth.ts`
+
 - Added `createSessionFromUrl` function to extract tokens from callback URL
 - Modified `signInWithGoogle` to use `makeRedirectUri()` instead of hardcoded URL
 - Used `QueryParams.getQueryParams()` to properly parse OAuth response
 - Used `supabase.auth.setSession()` to create session from tokens
 
 ### 2. Updated `app/index.tsx`
+
 - Added deep link handling with `Linking.useURL()`
 - Automatically processes OAuth callback when app reopens
 - No need for separate callback route
 
 ### 3. Removed `/auth/callback` route
+
 - Deleted `app/auth/callback.tsx`
 - Removed route registration from `app/_layout.tsx`
 
@@ -36,28 +42,35 @@ Go to your Supabase project dashboard:
 Add these URLs:
 
 **For Development:**
+
 ```
 exp://localhost:8081
 exp://localhost:8081/**
 ```
 
 **For Production (replace with your actual scheme from app.config.js):**
+
 ```
 arzkaro://
 arzkaro://**
 ```
 
 **For Expo Go (development only):**
+
 ```
 exp://127.0.0.1:8081/--/**
 ```
 
 ### Site URL
+
 Set your site URL to:
+
 ```
 exp://localhost:8081
 ```
+
 Or for production:
+
 ```
 arzkaro://
 ```

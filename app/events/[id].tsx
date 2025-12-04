@@ -233,7 +233,7 @@ export default function EventDetailsScreen() {
                 ))}
               </View>
             )}
-            </View>
+          </View>
         </ScrollView>
 
         {/* Book Now Footer */}
@@ -515,6 +515,46 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textInverse,
+  },
+  footer: {
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  footerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.md,
+  },
+  footerPrice: {
+    flex: 1,
+  },
+  footerPriceLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 2,
+  },
+  footerPriceValue: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  bookButton: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.full,
+    minWidth: 140,
+    alignItems: 'center',
+  },
+  bookButtonDisabled: {
+    backgroundColor: Colors.textTertiary,
+  },
+  bookButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.textInverse,

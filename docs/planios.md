@@ -4,6 +4,7 @@
 > **Focus:** Local EAS builds for iOS development with Xcode emulation
 
 ## Table of Contents
+
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Initial Setup](#initial-setup)
@@ -22,6 +23,7 @@
 EAS (Expo Application Services) Build is a cloud-based build service for React Native apps. However, it also supports **local builds** which allow you to compile your app directly on your machine using your local Xcode installation.
 
 **Why Use Local EAS Builds?**
+
 - 🐛 **Debug build failures** that occur on cloud servers
 - 🏢 **Company policy compliance** - keep builds on internal infrastructure
 - 💰 **Bypass build quotas** - unlimited local builds without costs
@@ -34,19 +36,22 @@ EAS (Expo Application Services) Build is a cloud-based build service for React N
 
 ### Required Software
 
-1. **macOS Machine**  
+1. **macOS Machine**
    - iOS builds require macOS with Xcode
    - Cannot build iOS apps on Windows or Linux
 
 2. **Xcode** (Latest Version)
+
    ```bash
    # Install from Mac App Store or
    xcode-select --install
    ```
+
    - Includes iOS Simulator and command-line tools
    - Verify installation: `xcode-select -p`
 
 3. **Node.js** (LTS Version)
+
    ```bash
    # Check version
    node --version
@@ -58,6 +63,7 @@ EAS (Expo Application Services) Build is a cloud-based build service for React N
    - pnpm: `npm install -g pnpm`
 
 5. **CocoaPods** (for iOS dependencies)
+
    ```bash
    sudo gem install cocoapods
    pod --version
@@ -76,12 +82,14 @@ EAS (Expo Application Services) Build is a cloud-based build service for React N
    - Free tier is sufficient for local builds
 
 2. **Expo CLI**
+
    ```bash
    pnpm install -g @expo/cli
    expo --version
    ```
 
 3. **EAS CLI**
+
    ```bash
    pnpm install -g eas-cli
    eas --version
@@ -99,12 +107,14 @@ EAS (Expo Application Services) Build is a cloud-based build service for React N
 ### 1. Create or Navigate to Your Expo Project
 
 **New Project:**
+
 ```bash
 npx create-expo-app my-app
 cd my-app
 ```
 
 **Existing Project:**
+
 ```bash
 cd your-existing-expo-project
 ```
@@ -112,6 +122,7 @@ cd your-existing-expo-project
 ### 2. Install expo-dev-client
 
 For development builds with custom native code:
+
 ```bash
 npx expo install expo-dev-client
 ```
@@ -123,6 +134,7 @@ eas login
 ```
 
 Or set environment variable:
+
 ```bash
 export EXPO_TOKEN=your_token_here
 ```
@@ -195,6 +207,7 @@ The `eas.json` file defines build profiles for different scenarios. Here's a com
 ### Key Configuration Options
 
 #### For iOS Simulator Builds:
+
 ```json
 "ios": {
   "simulator": true,
@@ -203,6 +216,7 @@ The `eas.json` file defines build profiles for different scenarios. Here's a com
 ```
 
 #### For Physical Device Builds:
+
 ```json
 "ios": {
   "simulator": false,
@@ -211,9 +225,11 @@ The `eas.json` file defines build profiles for different scenarios. Here's a com
 ```
 
 #### Development Client:
+
 ```json
 "developmentClient": true
 ```
+
 - Enables custom native code and debugging
 - Allows using `expo-dev-client` instead of Expo Go
 
@@ -234,19 +250,20 @@ eas build --platform ios --profile development --local
 ```
 
 Or with a specific simulator profile:
+
 ```bash
 eas build --platform ios --profile ios-simulator-local --local
 ```
 
 ### Build Options
 
-| Flag | Description |
-|------|-------------|
-| `--platform ios` | Specify iOS platform |
-| `--local` | Run build locally instead of on EAS servers |
-| `--profile <name>` | Use specific build profile from eas.json |
-| `--clear-cache` | Clear local build cache |
-| `--non-interactive` | Run without prompts (useful for CI/CD) |
+| Flag                | Description                                 |
+| ------------------- | ------------------------------------------- |
+| `--platform ios`    | Specify iOS platform                        |
+| `--local`           | Run build locally instead of on EAS servers |
+| `--profile <name>`  | Use specific build profile from eas.json    |
+| `--clear-cache`     | Clear local build cache                     |
+| `--non-interactive` | Run without prompts (useful for CI/CD)      |
 
 ### Environment Variables for Local Builds
 
@@ -261,11 +278,13 @@ export EAS_LOCAL_BUILD_WORKINGDIR=/path/to/workdir
 ### Alternative: Using expo run:ios
 
 For quick local development without EAS:
+
 ```bash
 npx expo run:ios
 ```
 
 This command:
+
 - Compiles using local Xcode
 - Automatically opens iOS Simulator
 - Faster for rapid iteration
@@ -286,6 +305,7 @@ The build output will be a `.app` or `.tar.gz` file.
 ### 2. Locate the Build Output
 
 After successful build, note the output path:
+
 ```
 ✔ Build finished
 Build artifact: /path/to/your-app.app
@@ -294,10 +314,12 @@ Build artifact: /path/to/your-app.app
 ### 3. Install on Simulator
 
 **Method 1: Drag and Drop**
+
 - Open iOS Simulator (Xcode → Open Developer Tool → Simulator)
 - Drag the `.app` file onto the simulator window
 
 **Method 2: Command Line**
+
 ```bash
 # List available simulators
 xcrun simctl list devices
@@ -313,6 +335,7 @@ xcrun simctl launch booted com.yourcompany.yourapp
 ```
 
 **Method 3: Using expo run:ios**
+
 ```bash
 # Automatically builds and runs on simulator
 npx expo run:ios
@@ -325,6 +348,7 @@ open -a Simulator
 ```
 
 Or from Xcode:
+
 - Xcode → Open Developer Tool → Simulator
 - Choose device: Window → Devices and Simulators
 
@@ -335,6 +359,7 @@ Or from Xcode:
 ### Common Issues and Solutions
 
 #### 1. "Command not found: eas"
+
 ```bash
 pnpm install -g eas-cli
 # or
@@ -342,6 +367,7 @@ yarn global add eas-cli
 ```
 
 #### 2. "Xcode not found"
+
 ```bash
 # Install Xcode command-line tools
 xcode-select --install
@@ -351,6 +377,7 @@ xcode-select -p
 ```
 
 #### 3. CocoaPods Installation Issues
+
 ```bash
 # Update Ruby gems
 sudo gem update --system
@@ -363,7 +390,9 @@ brew install cocoapods
 ```
 
 #### 4. Build Fails with "No provisioning profile"
+
 For simulator builds, you don't need provisioning profiles. Ensure your `eas.json` has:
+
 ```json
 "ios": {
   "simulator": true
@@ -371,11 +400,13 @@ For simulator builds, you don't need provisioning profiles. Ensure your `eas.jso
 ```
 
 #### 5. "expo-dev-client" Not Found
+
 ```bash
 npx expo install expo-dev-client
 ```
 
 #### 6. Simulator Not Booting
+
 ```bash
 # Kill all simulator processes
 killall Simulator
@@ -388,7 +419,9 @@ open -a Simulator
 ```
 
 #### 7. Build Logs Location
+
 When using local builds with debugging enabled:
+
 ```bash
 export EAS_LOCAL_BUILD_SKIP_CLEANUP=1
 export EAS_LOCAL_BUILD_WORKINGDIR=~/eas-build-local
@@ -404,6 +437,7 @@ export EAS_LOCAL_BUILD_WORKINGDIR=~/eas-build-local
 ### 1. Use Separate Build Profiles
 
 Create distinct profiles for different scenarios:
+
 - `development` - Local simulator testing
 - `development-device` - Physical device testing
 - `preview` - Internal testing/TestFlight
@@ -412,6 +446,7 @@ Create distinct profiles for different scenarios:
 ### 2. Version Management
 
 Keep your tools updated:
+
 ```bash
 # Update EAS CLI
 pnpm install -g eas-cli@latest
@@ -426,6 +461,7 @@ npx expo install --fix
 ### 3. Clean Builds
 
 When encountering issues:
+
 ```bash
 # Clear Metro bundler cache
 npx expo start --clear
@@ -440,6 +476,7 @@ cd ios && xcodebuild clean && cd ..
 ### 4. Gitignore Configuration
 
 Add to `.gitignore`:
+
 ```
 # EAS
 .eas-build-local/
@@ -459,6 +496,7 @@ xcuserdata/
 ### 5. Development Workflow
 
 Recommended workflow:
+
 1. Use `npx expo run:ios` for rapid development
 2. Use `eas build --local` for testing production-like builds
 3. Use cloud EAS builds for final distribution
@@ -470,22 +508,27 @@ Recommended workflow:
 ### What Local Builds Cannot Do:
 
 ❌ **Build for multiple platforms simultaneously**
+
 - Cannot use `--platform all`
 - Must build iOS and Android separately
 
 ❌ **Customize software versions**
+
 - Cannot specify Node, Yarn, Fastlane versions in `eas.json`
 - Must manage versions locally
 
 ❌ **Use build caching**
+
 - Each local build starts fresh
 - Cloud builds benefit from caching
 
 ❌ **Use EAS Secrets**
+
 - Environment variables with "Secret" visibility not supported
 - Must set secrets in local environment
 
 ❌ **Build on non-macOS for iOS**
+
 - iOS builds require macOS with Xcode
 - No workarounds available
 
@@ -497,13 +540,14 @@ Recommended workflow:
 ✅ Full control over build environment  
 ✅ Unlimited builds without quota restrictions  
 ✅ Faster iteration during development  
-✅ Comply with company CI/CD policies  
+✅ Comply with company CI/CD policies
 
 ---
 
 ## Additional Resources
 
 ### Official Documentation
+
 - [Expo EAS Build Documentation](https://docs.expo.dev/build/introduction/)
 - [Local Builds Guide](https://docs.expo.dev/build-reference/local-builds/)
 - [iOS Simulator Builds](https://docs.expo.dev/build-reference/simulators/)
@@ -535,6 +579,7 @@ xcrun simctl list devices available
 ```
 
 ### Community Resources
+
 - [Expo Forums](https://forums.expo.dev/)
 - [Expo Discord](https://chat.expo.dev/)
 - [GitHub Issues](https://github.com/expo/expo/issues)

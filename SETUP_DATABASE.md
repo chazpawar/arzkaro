@@ -32,6 +32,7 @@ This error means the database tables haven't been created yet. Follow these step
 ## Option 2: Run Migrations via Supabase CLI
 
 1. **Install Supabase CLI** (if not installed)
+
    ```bash
    npm install -g supabase
    # or
@@ -39,15 +40,17 @@ This error means the database tables haven't been created yet. Follow these step
    ```
 
 2. **Login to Supabase**
+
    ```bash
    supabase login
    ```
 
 3. **Link to Your Project**
+
    ```bash
    supabase link --project-ref YOUR_PROJECT_REF
    ```
-   
+
    To find your project ref:
    - Go to Project Settings → General
    - Copy the "Reference ID"
@@ -67,12 +70,14 @@ If the above options don't work, you can manually create tables:
 ## Verify Setup
 
 After running migrations, restart your app:
+
 ```bash
 # Stop the app (Ctrl+C)
 pnpm run android
 ```
 
 You should now see:
+
 - ✅ Events load (or show empty state if no events created)
 - ✅ Chats load properly
 - ✅ Tickets load properly
@@ -102,6 +107,7 @@ The migration file includes RLS (Row Level Security) policies. Make sure you're 
 ⚠️ **Warning: This will delete ALL data**
 
 In Supabase Dashboard → SQL Editor:
+
 ```sql
 -- Drop all tables
 DROP TABLE IF EXISTS dm_messages CASCADE;

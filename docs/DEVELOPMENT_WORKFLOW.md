@@ -4,6 +4,7 @@
 > Last Updated: December 2025
 
 ## Table of Contents
+
 - [Quick Start](#quick-start)
 - [When to Rebuild vs When to Just Reload](#when-to-rebuild-vs-when-to-just-reload)
 - [Daily Development Workflow](#daily-development-workflow)
@@ -47,6 +48,7 @@ pnpm run ios
 ### ❌ NO REBUILD NEEDED (Just Save & Reload)
 
 **JavaScript/TypeScript Changes:**
+
 - ✅ Updating React components
 - ✅ Changing styles (StyleSheet)
 - ✅ Modifying business logic
@@ -59,6 +61,7 @@ pnpm run ios
 **How it works:** Metro bundler automatically detects changes and reloads the app (Fast Refresh).
 
 **Example workflow:**
+
 ```bash
 # Terminal 1: Start Metro (keep this running)
 pnpm start
@@ -73,6 +76,7 @@ pnpm run ios
 ### ✅ REBUILD REQUIRED (Full Build Needed)
 
 **Native Code Changes:**
+
 - 🔧 Installing new native modules (packages with native code)
 - 🔧 Modifying `app.json` or `app.config.js`
 - 🔧 Changing iOS permissions (Info.plist)
@@ -82,6 +86,7 @@ pnpm run ios
 - 🔧 Modifying build settings
 
 **How to rebuild:**
+
 ```bash
 # Option 1: Using expo run:ios (Recommended for development)
 pnpm run ios
@@ -119,6 +124,7 @@ pnpm run ios
 ```
 
 **Pro Tips:**
+
 - Keep Metro bundler running in a dedicated terminal
 - Use Fast Refresh - it preserves component state
 - If Fast Refresh fails, press 'r' in Metro terminal
@@ -140,6 +146,7 @@ pnpm install react-native-gesture-handler
 ```
 
 **If it's JavaScript-only (no native code):**
+
 ```bash
 # Just install and reload
 pnpm install <package>
@@ -148,6 +155,7 @@ pnpm install <package>
 ```
 
 **If it has native code:**
+
 ```bash
 # Install package
 pnpm install <package>
@@ -189,16 +197,16 @@ pnpm run ios --device "iPhone SE (3rd generation)"
 
 When Metro is running, you can press:
 
-| Key | Action |
-|-----|--------|
-| `r` | Reload app |
+| Key | Action                           |
+| --- | -------------------------------- |
+| `r` | Reload app                       |
 | `d` | Open developer menu in simulator |
-| `i` | Run on iOS |
-| `a` | Run on Android |
-| `w` | Run on web |
-| `j` | Open debugger |
-| `m` | Toggle menu |
-| `?` | Show all commands |
+| `i` | Run on iOS                       |
+| `a` | Run on Android                   |
+| `w` | Run on web                       |
+| `j` | Open debugger                    |
+| `m` | Toggle menu                      |
+| `?` | Show all commands                |
 
 ### Simulator Commands
 
@@ -237,16 +245,16 @@ xcrun simctl io booted recordVideo video.mp4
 
 ### Keyboard Shortcuts in Simulator
 
-| Shortcut | Action |
-|----------|--------|
-| `Cmd + R` | Reload app (if dev menu is enabled) |
-| `Cmd + D` | Open developer menu |
-| `Cmd + Ctrl + Z` | Shake device (opens dev menu) |
-| `Cmd + K` | Toggle software keyboard |
-| `Cmd + Shift + H` | Go to home screen |
-| `Cmd + L` | Lock screen |
-| `Cmd + S` | Screenshot |
-| `Cmd + 1/2/3` | Scale simulator (50%/75%/100%) |
+| Shortcut          | Action                              |
+| ----------------- | ----------------------------------- |
+| `Cmd + R`         | Reload app (if dev menu is enabled) |
+| `Cmd + D`         | Open developer menu                 |
+| `Cmd + Ctrl + Z`  | Shake device (opens dev menu)       |
+| `Cmd + K`         | Toggle software keyboard            |
+| `Cmd + Shift + H` | Go to home screen                   |
+| `Cmd + L`         | Lock screen                         |
+| `Cmd + S`         | Screenshot                          |
+| `Cmd + 1/2/3`     | Scale simulator (50%/75%/100%)      |
 
 ---
 
@@ -257,6 +265,7 @@ xcrun simctl io booted recordVideo video.mp4
 **Cause:** Metro bundler isn't running or can't connect.
 
 **Solution:**
+
 ```bash
 # Check if port 8081 is in use
 lsof -i :8081
@@ -276,6 +285,7 @@ pnpm start
 **Cause:** Bundle not found or Metro not running.
 
 **Solution:**
+
 ```bash
 # Kill the app in simulator
 # Start fresh:
@@ -287,6 +297,7 @@ pnpm run ios
 **Cause:** JavaScript errors in your code.
 
 **Solution:**
+
 - Read the error message carefully
 - Check the file and line number mentioned
 - Fix the error in your code
@@ -297,6 +308,7 @@ pnpm run ios
 **Cause:** Various - often native module issues.
 
 **Solution:**
+
 ```bash
 # Clear all caches and rebuild
 rm -rf node_modules
@@ -308,6 +320,7 @@ pnpm run ios
 ### Issue 5: "Unable to boot simulator"
 
 **Solution:**
+
 ```bash
 # Kill all simulator processes
 killall Simulator
@@ -324,6 +337,7 @@ pnpm run ios
 ### Issue 6: "Build Failed" with Xcode Errors
 
 **Solution:**
+
 ```bash
 # Clean iOS build folder
 cd ios
@@ -341,6 +355,7 @@ pnpm run ios
 ### Issue 7: "Pod install failed"
 
 **Solution:**
+
 ```bash
 # Update CocoaPods
 sudo gem install cocoapods
@@ -356,6 +371,7 @@ cd ..
 ### Issue 8: Metro Bundler Won't Start
 
 **Solution:**
+
 ```bash
 # Clear Metro cache
 pnpm start -- --reset-cache
@@ -407,6 +423,7 @@ pnpm run ios
 ### Make Development Faster
 
 1. **Keep Metro Running:**
+
    ```bash
    # Don't restart Metro for every change
    # Just keep it running in a terminal
@@ -419,19 +436,21 @@ pnpm run ios
    - If it doesn't work, press 'r' to reload
 
 3. **Simulator Performance:**
+
    ```bash
    # Use smaller simulator sizes
    # In Simulator: Window → Physical Size (or Cmd+1)
-   
+
    # Close other apps to free up RAM
    # Simulators use significant CPU/memory
    ```
 
 4. **Clear Caches Only When Needed:**
+
    ```bash
    # Don't clear cache unless you have issues
    # Clearing cache slows down the next reload
-   
+
    # Only clear when you see weird errors:
    pnpm start -- --reset-cache
    ```
@@ -441,6 +460,7 @@ pnpm run ios
 ## Understanding Build Types
 
 ### Development Build (pnpm run ios)
+
 - **Speed:** Fast (incremental builds after first time)
 - **Size:** Larger (includes debugging symbols)
 - **Use Case:** Daily development
@@ -449,6 +469,7 @@ pnpm run ios
 - **When to use:** Always during development
 
 ### EAS Local Build (eas build --local)
+
 - **Speed:** Slower (fresh build each time)
 - **Size:** Depends on configuration
 - **Use Case:** Testing production-like builds
@@ -457,6 +478,7 @@ pnpm run ios
 - **When to use:** Before releasing, testing build process
 
 ### Production Build (eas build)
+
 - **Speed:** Slowest (full optimization)
 - **Size:** Smallest (optimized)
 - **Use Case:** App Store submission
@@ -468,24 +490,25 @@ pnpm run ios
 
 ## Quick Reference: What Command to Use
 
-| Task | Command |
-|------|---------|
-| **Start development** | `pnpm run ios` |
-| **Just start Metro** | `pnpm start` |
-| **Reload app** | Press 'r' in Metro terminal |
-| **Open dev menu** | `Cmd+D` in simulator |
-| **Install new package** | `pnpm install <package>` |
-| **Install native package** | `pnpm install <package> && cd ios && pod install && cd .. && pnpm run ios` |
-| **Clear cache** | `pnpm start -- --reset-cache` |
-| **Clean rebuild** | `rm -rf node_modules && pnpm install && cd ios && pod install && cd .. && pnpm run ios` |
-| **Run on specific device** | `pnpm run ios --device "iPhone 15 Pro"` |
-| **Build for production** | `eas build --platform ios --profile production --local` |
+| Task                       | Command                                                                                 |
+| -------------------------- | --------------------------------------------------------------------------------------- |
+| **Start development**      | `pnpm run ios`                                                                          |
+| **Just start Metro**       | `pnpm start`                                                                            |
+| **Reload app**             | Press 'r' in Metro terminal                                                             |
+| **Open dev menu**          | `Cmd+D` in simulator                                                                    |
+| **Install new package**    | `pnpm install <package>`                                                                |
+| **Install native package** | `pnpm install <package> && cd ios && pod install && cd .. && pnpm run ios`              |
+| **Clear cache**            | `pnpm start -- --reset-cache`                                                           |
+| **Clean rebuild**          | `rm -rf node_modules && pnpm install && cd ios && pod install && cd .. && pnpm run ios` |
+| **Run on specific device** | `pnpm run ios --device "iPhone 15 Pro"`                                                 |
+| **Build for production**   | `eas build --platform ios --profile production --local`                                 |
 
 ---
 
 ## Summary: Do I Need to Rebuild?
 
 ### 🟢 NO REBUILD - Just Code & Reload (99% of the time)
+
 - Editing React components
 - Changing styles
 - Updating business logic
@@ -496,12 +519,14 @@ pnpm run ios
 **Just edit → save → see changes!**
 
 ### 🟡 REBUILD - After Installing Native Packages
+
 - Installing packages with native code
 - Running: `cd ios && pod install && cd .. && pnpm run ios`
 
 **Takes 2-5 minutes**
 
 ### 🔴 FULL REBUILD - After Configuration Changes
+
 - Changing app.json
 - Modifying build settings
 - Updating Expo SDK
@@ -528,7 +553,8 @@ A: YES! Once built, just use `pnpm start` and edit code. Rebuilds only needed fo
 A: Keep Metro running, edit files, save. Changes appear in 1-2 seconds.
 
 **Q: Should I use `pnpm run ios` or `pnpm start`?**
-A: 
+A:
+
 - First time: `pnpm run ios` (builds + runs)
 - After that: Just keep Metro running from the first command
 - If Metro stops: `pnpm start`

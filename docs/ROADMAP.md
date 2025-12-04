@@ -27,6 +27,7 @@ For development and testing purposes, the following email addresses are pre-assi
 ## 🛠️ Technology Stack
 
 ### Current Stack (Already Implemented)
+
 - **Frontend**: React Native 0.81.5 with Expo SDK 54
 - **Navigation**: Expo Router v6
 - **Backend**: Supabase (Authentication, Database)
@@ -464,7 +465,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Group members can view messages"
   ON messages FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM group_members 
+      SELECT 1 FROM group_members
       WHERE group_id = messages.group_id AND user_id = auth.uid()
     )
   );
@@ -472,7 +473,7 @@ CREATE POLICY "Group members can view messages"
 CREATE POLICY "Group members can send messages"
   ON messages FOR INSERT WITH CHECK (
     EXISTS (
-      SELECT 1 FROM group_members 
+      SELECT 1 FROM group_members
       WHERE group_id = messages.group_id AND user_id = auth.uid()
     )
   );
@@ -511,7 +512,7 @@ CREATE POLICY "Users can create DM conversations with friends"
   ON dm_conversations FOR INSERT WITH CHECK (
     (user_id_1 = auth.uid() OR user_id_2 = auth.uid()) AND
     EXISTS (
-      SELECT 1 FROM friendships 
+      SELECT 1 FROM friendships
       WHERE (user_id_1 = dm_conversations.user_id_1 AND user_id_2 = dm_conversations.user_id_2)
          OR (user_id_1 = dm_conversations.user_id_2 AND user_id_2 = dm_conversations.user_id_1)
     )
@@ -523,8 +524,8 @@ ALTER TABLE dm_messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Conversation participants can view DM messages"
   ON dm_messages FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM dm_conversations 
-      WHERE id = dm_messages.conversation_id 
+      SELECT 1 FROM dm_conversations
+      WHERE id = dm_messages.conversation_id
         AND (user_id_1 = auth.uid() OR user_id_2 = auth.uid())
     )
   );
@@ -533,8 +534,8 @@ CREATE POLICY "Conversation participants can send DM messages"
   ON dm_messages FOR INSERT WITH CHECK (
     sender_id = auth.uid() AND
     EXISTS (
-      SELECT 1 FROM dm_conversations 
-      WHERE id = dm_messages.conversation_id 
+      SELECT 1 FROM dm_conversations
+      WHERE id = dm_messages.conversation_id
         AND (user_id_1 = auth.uid() OR user_id_2 = auth.uid())
     )
   );
@@ -544,16 +545,19 @@ CREATE POLICY "Conversation participants can send DM messages"
 
 ## 📅 Development Phases
 
-### Phase 1: Foundation & Core Infrastructure 
+### Phase 1: Foundation & Core Infrastructure
+
 **Goal**: Set up the project foundation with proper architecture
 
 #### 1.1 Project Restructuring
+
 - [ ] Refactor folder structure to kebab-case naming convention
 - [ ] Set up proper component organization
 - [ ] Configure path aliases in `tsconfig.json`
 - [ ] Set up ESLint rules for file naming conventions
 
 #### 1.2 Database Setup
+
 - [ ] Create Supabase database migrations
 - [ ] Set up all core tables (profiles, events, bookings, tickets)
 - [ ] Implement Row Level Security (RLS) policies
@@ -561,6 +565,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Create database functions and triggers
 
 #### 1.3 Authentication Enhancement
+
 - [ ] **DO NOT MODIFY** - Current Google OAuth implementation is working properly
 - [ ] Implement automatic user profile creation on signup with role assignment
 - [ ] Add role-based authentication checks (user/host/admin)
@@ -568,6 +573,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Test with assigned roles: admin (dinesh.1124k@gmail.com), host (rrucnamra@gmail.com)
 
 #### 1.4 Design System Enhancement
+
 - [ ] Implement single hardcoded color theme (no theme switching)
 - [ ] Create comprehensive UI component library with fixed colors
 - [ ] Build common form components
@@ -575,6 +581,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Define app-wide color palette in constants
 
 **Deliverables**:
+
 - Fully structured codebase
 - Complete database schema with RLS
 - Enhanced authentication flow
@@ -583,15 +590,18 @@ CREATE POLICY "Conversation participants can send DM messages"
 ---
 
 ### Phase 2: User Features - Event Discovery & Browsing
+
 **Goal**: Enable users to discover and explore events
 
 #### 2.1 Home Screen
+
 - [ ] Create featured events carousel
 - [ ] Implement event categories section
 - [ ] Build nearby events section (location-based)
 - [ ] Add upcoming events timeline
 
 #### 2.2 Event Listing & Search
+
 - [ ] Build event list view with filters
 - [ ] Implement search functionality
 - [ ] Add category filtering
@@ -599,6 +609,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Implement infinite scroll pagination
 
 #### 2.3 Event Details
+
 - [ ] Design event details screen
 - [ ] Show event images gallery
 - [ ] Display event information (date, location, price)
@@ -606,11 +617,13 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Add "View Group Members" button for event attendees
 
 #### 2.4 Tab Navigation
+
 - [ ] Set up bottom tab navigation
 - [ ] Create Explore, Chats, Tickets, Profile tabs
 - [ ] Implement proper navigation stack for each tab
 
 **Deliverables**:
+
 - Complete event discovery experience
 - Search and filter functionality
 - Event details view
@@ -619,9 +632,11 @@ CREATE POLICY "Conversation participants can send DM messages"
 ---
 
 ### Phase 3: Booking & Ticket System (MVP - No Payment)
+
 **Goal**: Enable ticket booking and generation (skip payment for MVP)
 
 #### 3.1 Payment Integration (Production Only - Skip for MVP)
+
 - [ ] **FUTURE**: Install and configure Razorpay React Native SDK
 - [ ] **FUTURE**: Set up Razorpay backend integration
 - [ ] **FUTURE**: Configure payment methods (cards, UPI, wallets)
@@ -629,6 +644,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] **FUTURE**: Set up webhook handling for payment events
 
 #### 3.2 Booking Flow (MVP)
+
 - [ ] Create ticket selection UI
 - [ ] Build booking summary screen
 - [ ] Implement attendee information form
@@ -636,6 +652,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Redirect directly to ticket screen after booking
 
 #### 3.3 Booking Confirmation (MVP)
+
 - [ ] Auto-confirm bookings without payment
 - [ ] Generate ticket immediately after booking
 - [ ] Add user to event group automatically
@@ -643,10 +660,12 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Store booking records in database with 'confirmed' status
 
 #### 3.4 Booking Management
+
 - [ ] Create "Tickets" screen
 - [ ] Show booking history
 
 **Deliverables**:
+
 - End-to-end booking flow (no payment)
 - Auto-ticket generation
 - Booking management screens
@@ -654,16 +673,19 @@ CREATE POLICY "Conversation participants can send DM messages"
 
 ---
 
-### Phase 4: Ticket Generation & QR System 
+### Phase 4: Ticket Generation & QR System
+
 **Goal**: Generate and manage digital tickets with QR codes
 
 #### 4.1 QR Code Generation
+
 - [ ] Install `react-native-qrcode-svg`
 - [ ] Generate unique ticket QR codes
 - [ ] Store QR data securely in database
 - [ ] Implement ticket validation logic
 
 #### 4.2 Ticket Display
+
 - [ ] Create digital ticket UI
 - [ ] Display QR code prominently
 - [ ] Show event details on ticket
@@ -671,6 +693,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Implement offline ticket access
 
 #### 4.3 Ticket Scanner (for Hosts)
+
 - [ ] Implement camera-based QR scanner using `expo-camera`
 - [ ] Validate scanned tickets against database
 - [ ] Show validation result (valid/invalid/used)
@@ -678,6 +701,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Handle offline scanning scenarios
 
 **Deliverables**:
+
 - QR code ticket generation
 - Digital ticket display
 - Host ticket scanner
@@ -685,16 +709,19 @@ CREATE POLICY "Conversation participants can send DM messages"
 
 ---
 
-### Phase 5: Host Features 
+### Phase 5: Host Features
+
 **Goal**: Enable hosts to create and manage events
 
 #### 5.1 Host Application System
+
 - [ ] Create host application form
 - [ ] Implement application submission flow
 - [ ] Build application status tracking
 - [ ] Send notifications on status change
 
 #### 5.2 Event Creation
+
 - [ ] Build multi-step event creation form
 - [ ] Implement image upload with Supabase Storage
 - [ ] Add location picker/autocomplete
@@ -703,6 +730,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Implement event preview
 
 #### 5.3 Event Management
+
 - [ ] Create host dashboard
 - [ ] Build event edit functionality
 - [ ] Implement event publish/unpublish
@@ -711,10 +739,12 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Create attendee list view
 
 #### 5.4 Host Analytics
+
 - [ ] Display revenue statistics
 - [ ] Implement sales reports
 
 **Deliverables**:
+
 - Host application flow
 - Event creation wizard
 - Event management dashboard
@@ -723,20 +753,24 @@ CREATE POLICY "Conversation participants can send DM messages"
 ---
 
 ### Phase 6: Group Chat & Realtime Features
+
 **Goal**: Implement event group chats using Supabase Realtime
 
 #### 6.1 Supabase Realtime Setup
+
 - [ ] Configure Supabase Realtime channels
 - [ ] Set up Realtime authorization policies
 - [ ] Implement connection management
 - [ ] Handle reconnection scenarios
 
 #### 6.2 Auto Group Creation
+
 - [ ] Create database trigger for auto-creating groups on event creation
 - [ ] Implement auto-adding host as group admin
 - [ ] Auto-add users to group on successful booking
 
 #### 6.3 Chat Interface
+
 - [ ] Build chat room UI
 - [ ] Implement message list with infinite scroll
 - [ ] Create message input with send functionality
@@ -744,6 +778,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Implement message timestamps
 
 #### 6.4 Group Management
+
 - [ ] Allow hosts to manage group members (remove/moderate)
 - [ ] Implement member removal by hosts
 - [ ] Create group info screen with member list
@@ -752,11 +787,13 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Enable viewing other members' public profiles
 
 #### 6.5 Chat List
+
 - [ ] Build chat list screen
 - [ ] Show unread message counts
 - [ ] Add last message preview
 
 #### 6.6 Friend Requests & DM System
+
 - [ ] Implement friend request send functionality
 - [ ] Build friend request inbox (pending/accepted/rejected)
 - [ ] Create accept/reject friend request actions
@@ -768,6 +805,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Add "Send Message" option for friends
 
 **Deliverables**:
+
 - Realtime group chat
 - Auto group creation/membership
 - Chat management for hosts
@@ -778,14 +816,17 @@ CREATE POLICY "Conversation participants can send DM messages"
 ---
 
 ### Phase 7: Admin Panel
+
 **Goal**: Build administrative controls for super users
 
 #### 7.1 Admin Dashboard
+
 - [ ] Create admin-only navigation/routes
 - [ ] Build overview dashboard with key metrics
 - [ ] Show platform statistics
 
 #### 7.2 User Management
+
 - [ ] Create user listing with search/filter
 - [ ] Implement user detail view
 - [ ] Add role management (promote to host/admin, demote)
@@ -794,11 +835,13 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Monitor DM conversations (if needed)
 
 #### 7.3 Host Request Management
+
 - [ ] Create host requests queue
 - [ ] Build request review interface
 - [ ] Implement approve/reject functionality
 
 #### 7.4 Event & Group Oversight
+
 - [ ] Create all events view
 - [ ] Implement event moderation
 - [ ] Add featured event management
@@ -808,6 +851,7 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Remove inappropriate messages from any group/DM
 
 **Deliverables**:
+
 - Admin dashboard
 - User management
 - Host request processing
@@ -815,16 +859,19 @@ CREATE POLICY "Conversation participants can send DM messages"
 
 ---
 
-### Phase 8: Push Notifications 
+### Phase 8: Push Notifications
+
 **Goal**: Implement push notifications for key events
 
 #### 8.1 Expo Notifications Setup
+
 - [ ] Configure `expo-notifications`
 - [ ] Set up push notification tokens
 - [ ] Store tokens in database
 - [ ] Implement token refresh
 
 #### 8.2 Notification Types
+
 - [ ] Booking confirmation notifications
 - [ ] Event reminder notifications
 - [ ] Group chat message notifications
@@ -835,16 +882,19 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Group member added/removed notifications
 
 **Deliverables**:
+
 - Push notification system
 - Notification preferences
 - Deep linking from notifications
 
 ---
 
-### Phase 9: Polish & Optimization 
+### Phase 9: Polish & Optimization
+
 **Goal**: Refine the app for production readiness
 
 #### 9.1 Performance Optimization
+
 - [ ] Implement image optimization
 - [ ] Add list virtualization
 - [ ] Optimize database queries
@@ -852,18 +902,17 @@ CREATE POLICY "Conversation participants can send DM messages"
 - [ ] Reduce bundle size
 
 #### 9.2 Error Handling
+
 - [ ] Implement global error boundary
 - [ ] Add offline state handling
 - [ ] Create user-friendly error messages
 
-
 **Deliverables**:
+
 - Optimized performance
 - Comprehensive error handling
 
-
 ---
-
 
 ## 🔐 Environment Variables
 
@@ -889,20 +938,21 @@ GOOGLE_CLIENT_ID_WEB=your_google_web_client_id
 
 ## 📊 Success Metrics
 
-| Metric | Target |
-|--------|--------|
-| App Load Time | < 3 seconds |
-| Payment Success Rate | > 95% |
-| Chat Message Delivery | < 500ms |
-| Ticket Scan Time | < 2 seconds |
-| App Crash Rate | < 1% |
-| User Retention (7-day) | > 30% |
+| Metric                 | Target      |
+| ---------------------- | ----------- |
+| App Load Time          | < 3 seconds |
+| Payment Success Rate   | > 95%       |
+| Chat Message Delivery  | < 500ms     |
+| Ticket Scan Time       | < 2 seconds |
+| App Crash Rate         | < 1%        |
+| User Retention (7-day) | > 30%       |
 
 ---
 
 ## 🚀 Post-Launch Roadmap (Future Phases)
 
 ### Phase 10: Public User Profiles
+
 **Goal**: Implement public user profiles viewable by all users
 
 - [ ] Create public profile screen layout
@@ -915,6 +965,7 @@ GOOGLE_CLIENT_ID_WEB=your_google_web_client_id
 - [ ] Implement profile edit functionality
 
 **Deliverables**:
+
 - Public user profile pages
 - Friend request integration
 - Profile statistics
@@ -925,12 +976,14 @@ GOOGLE_CLIENT_ID_WEB=your_google_web_client_id
 ## 🚀 Post-Launch Roadmap (Future Phases)
 
 ### Phase 11: Advanced Features
+
 - [ ] Event recommendations using ML
 - [ ] Social features (follow hosts, share events)
 - [ ] Event reviews and ratings
 - [ ] Multi-language support
 
 ### Phase 12: Business Features
+
 - [ ] Multiple ticket tiers
 - [ ] Early bird pricing
 - [ ] Waitlist functionality
@@ -938,6 +991,7 @@ GOOGLE_CLIENT_ID_WEB=your_google_web_client_id
 - [ ] Event series
 
 ### Phase 13: Platform Expansion
+
 - [ ] Web application
 - [ ] Host mobile app (separate)
 - [ ] Admin dashboard web app
@@ -955,5 +1009,5 @@ GOOGLE_CLIENT_ID_WEB=your_google_web_client_id
 
 ---
 
-*Last Updated: December 4, 2025*
-*Version: 1.0.0*
+_Last Updated: December 4, 2025_
+_Version: 1.0.0_
