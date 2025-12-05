@@ -59,7 +59,7 @@ export async function createBooking(bookingData: CreateBookingInput, userId: str
       currency: eventData.currency || 'INR',
       status: 'confirmed', // Auto-confirm for MVP
       payment_status: 'completed', // Skip payment for MVP
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -132,7 +132,7 @@ export async function cancelBooking(id: string) {
   // Update booking status (trigger will handle ticket cancellation and event count update)
   const { error: updateError } = await supabase
     .from('bookings')
-    .update({ status: 'cancelled' } as Record<string, unknown>)
+    .update({ status: 'cancelled' })
     .eq('id', id);
 
   if (updateError) {
@@ -160,7 +160,7 @@ export async function getUserTickets(userId: string) {
     throw new Error(error.message);
   }
 
-  return data as TicketWithDetails[];
+  return data as unknown as TicketWithDetails[];
 }
 
 // Get ticket by ID
@@ -184,7 +184,7 @@ export async function getTicketById(id: string) {
     throw new Error(error.message);
   }
 
-  return data as TicketWithDetails;
+  return data as unknown as TicketWithDetails;
 }
 
 // Validate and check-in a ticket (for hosts)
@@ -205,7 +205,7 @@ export async function validateTicket(ticketNumber: string, checkedInBy: string) 
     return { valid: false, message: 'Ticket not found' };
   }
 
-  const ticketData = ticket as Record<string, unknown>;
+  const ticketData = ticket;
   const eventData = ticketData.event as Record<string, string>;
 
   // Check if already used
@@ -234,7 +234,7 @@ export async function validateTicket(ticketNumber: string, checkedInBy: string) 
       status: 'used',
       checked_in_at: new Date().toISOString(),
       checked_in_by: checkedInBy,
-    } as Record<string, unknown>)
+    })
     .eq('id', ticketData.id as string);
 
   if (updateError) {
@@ -266,7 +266,7 @@ async function addUserToEventGroup(userId: string, eventId: string) {
       group_id: groupData.id,
       user_id: userId,
       role: 'member',
-    } as Record<string, unknown>,
+    },
     {
       onConflict: 'group_id,user_id',
     }

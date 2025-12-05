@@ -111,7 +111,7 @@ export async function createEvent(eventData: CreateEvent, hostId: string) {
     .insert({
       ...eventData,
       host_id: hostId,
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -126,7 +126,7 @@ export async function createEvent(eventData: CreateEvent, hostId: string) {
 export async function updateEvent(id: string, updates: UpdateEvent) {
   const { data, error } = await supabase
     .from('events')
-    .update(updates as Record<string, unknown>)
+    .update(updates)
     .eq('id', id)
     .select()
     .single();
@@ -183,7 +183,7 @@ export async function createTicketType(eventId: string, ticketData: CreateTicket
     .insert({
       ...ticketData,
       event_id: eventId,
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -197,7 +197,7 @@ export async function createTicketType(eventId: string, ticketData: CreateTicket
 export async function updateTicketType(id: string, updates: Partial<CreateTicketType>) {
   const { data, error } = await supabase
     .from('ticket_types')
-    .update(updates as Record<string, unknown>)
+    .update(updates)
     .eq('id', id)
     .select()
     .single();

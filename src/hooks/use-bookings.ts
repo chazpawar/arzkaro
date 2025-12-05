@@ -3,7 +3,7 @@ import * as BookingService from '../services/booking-service';
 import type { BookingWithDetails, TicketWithDetails, CreateBooking } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
 
-const FETCH_TIMEOUT = 3000;
+const FETCH_TIMEOUT = 10000; // Increased to 10 seconds
 
 /**
  * Hook for managing user's bookings
@@ -33,9 +33,17 @@ export function useBookings(userId: string | undefined) {
       const data = await Promise.race([fetchPromise, timeoutPromise]);
       setBookings(data);
     } catch (err) {
-      console.error('Error fetching bookings:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch bookings');
-      setBookings([]);
+      // Don't show timeout as an error - just show empty state
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch bookings';
+      if (errorMessage.includes('Request timeout')) {
+        console.warn('Bookings fetch timed out - showing empty state');
+        setError(null);
+        setBookings([]);
+      } else {
+        console.error('Error fetching bookings:', err);
+        setError(errorMessage);
+        setBookings([]);
+      }
     } finally {
       setLoading(false);
       if (timeoutId!) {
@@ -84,9 +92,17 @@ export function useTickets(userId: string | undefined) {
       const data = await Promise.race([fetchPromise, timeoutPromise]);
       setTickets(data);
     } catch (err) {
-      console.error('Error fetching tickets:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch tickets');
-      setTickets([]);
+      // Don't show timeout as an error - just show empty state
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch tickets';
+      if (errorMessage.includes('Request timeout')) {
+        console.warn('Tickets fetch timed out - showing empty state');
+        setError(null);
+        setTickets([]);
+      } else {
+        console.error('Error fetching tickets:', err);
+        setError(errorMessage);
+        setTickets([]);
+      }
     } finally {
       setLoading(false);
       if (timeoutId!) {

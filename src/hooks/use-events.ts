@@ -33,10 +33,10 @@ export function useEvents(initialFilters?: EventFilters) {
         setLoading(true);
         setError(null);
 
-        // Set a timeout to prevent infinite loading (5 seconds)
+        // Set a timeout to prevent infinite loading (10 seconds)
         const fetchPromise = EventService.getEvents(filters, 1);
         const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 5000);
+          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 10000);
         });
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
@@ -54,9 +54,16 @@ export function useEvents(initialFilters?: EventFilters) {
             errorMessage = 'Database not set up. Please run migrations - see SETUP_DATABASE.md';
           }
 
-          console.error('Error fetching events:', errorMessage);
-          setError(errorMessage);
-          setEvents([]);
+          // Don't show timeout as an error - just show empty state
+          if (errorMessage.includes('Request timeout')) {
+            console.warn('Events fetch timed out - showing empty state');
+            setError(null);
+            setEvents([]);
+          } else {
+            console.error('Error fetching events:', errorMessage);
+            setError(errorMessage);
+            setEvents([]);
+          }
         }
       } finally {
         if (mounted) {

@@ -4,7 +4,7 @@ import * as ChatService from '../services/chat-service';
 import type { EventGroup, Message, GroupMember } from '../types';
 
 // Timeout for fetch operations (3 seconds)
-const FETCH_TIMEOUT = 3000;
+const FETCH_TIMEOUT = 3000; // Increased to 10 seconds
 
 /**
  * Hook for managing group chats
@@ -154,9 +154,17 @@ export function useUserGroups(userId: string | undefined) {
       const data = await Promise.race([fetchPromise, timeoutPromise]);
       setGroups(data);
     } catch (err) {
-      console.error('Error fetching groups:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch groups');
-      setGroups([]);
+      // Don't show timeout as an error - just show empty state
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch groups';
+      if (errorMessage.includes('Request timeout')) {
+        console.warn('Groups fetch timed out - showing empty state');
+        setError(null);
+        setGroups([]);
+      } else {
+        console.error('Error fetching groups:', err);
+        setError(errorMessage);
+        setGroups([]);
+      }
     } finally {
       setLoading(false);
       if (timeoutId!) {

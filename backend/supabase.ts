@@ -2,6 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import type { Database } from './types/database.types';
 
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl as string | undefined;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined;
@@ -25,9 +26,8 @@ const placeholderUrl = 'https://placeholder.supabase.co';
 const placeholderKey =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
-// Create untyped client for development flexibility
-
-export const supabase = createClient<any>(
+// Create typed client with Database types
+export const supabase = createClient<Database>(
   supabaseUrl || placeholderUrl,
   supabaseAnonKey || placeholderKey,
   {

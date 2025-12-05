@@ -52,7 +52,7 @@ export async function submitHostRequest(request: CreateHostRequest, userId: stri
     .insert({
       ...request,
       user_id: userId,
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -230,9 +230,9 @@ export async function createEventWithTickets(
   const { data: event, error: eventError } = await supabase
     .from('events')
     .insert({
-      ...eventData,
+      ...(eventData as any),
       host_id: hostId,
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -240,7 +240,7 @@ export async function createEventWithTickets(
     throw new Error(eventError.message);
   }
 
-  const eventRecord = event as Record<string, unknown>;
+  const eventRecord = event;
 
   // Create ticket types if provided
   if (ticketTypes.length > 0) {
@@ -251,7 +251,7 @@ export async function createEventWithTickets(
 
     const { error: ticketsError } = await supabase
       .from('ticket_types')
-      .insert(ticketTypesWithEventId as Record<string, unknown>[]);
+      .insert(ticketTypesWithEventId as any);
 
     if (ticketsError) {
       // Rollback: delete the event

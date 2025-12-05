@@ -91,44 +91,61 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         // Check for profile not found error (PGRST116 - result contains 0 rows)
         if (error.code === 'PGRST116') {
-          console.log('Profile not found for user, creating new profile...');
+          console.log('Profile not found, waiting for database trigger to create it...');
 
-          // Get user metadata from auth
-          const {
-            data: { user },
-            error: userError,
-          } = await supabase.auth.getUser();
+          // The database has a trigger that automatically creates profiles
+          // Wait a moment and retry the fetch
+          await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          if (userError || !user) {
-            console.error('Error getting user metadata:', userError);
-            return null;
-          }
-
-          // Create new profile from user metadata
-          const newProfile = {
-            id: userId,
-            email: user.email || null,
-            full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-            username: user.user_metadata?.preferred_username || user.email?.split('@')[0] || null,
-            avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-            role: 'user' as UserRole,
-            is_host_approved: false,
-            is_public: true,
-          };
-
-          const { data: createdProfile, error: createError } = await supabase
+          const { data: retryData, error: retryError } = await supabase
             .from('profiles')
-            .upsert(newProfile, { onConflict: 'id' })
-            .select()
+            .select('*')
+            .eq('id', userId)
             .single();
 
-          if (createError) {
-            console.error('Error creating profile:', createError);
-            return null;
+          if (retryError) {
+            console.error('Profile still not found after retry:', retryError);
+
+            // As a fallback, manually create the profile (trigger might have failed)
+            const {
+              data: { user },
+              error: userError,
+            } = await supabase.auth.getUser();
+
+            if (userError || !user || !user.email) {
+              console.error('Cannot create profile - user data unavailable');
+              return null;
+            }
+
+            const newProfile = {
+              id: userId,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              username: user.user_metadata?.preferred_username || user.email?.split('@')[0] || null,
+              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+              role: 'user' as UserRole,
+              is_host_approved: false,
+              is_public: true,
+            };
+
+            // Use upsert to safely create or update
+            const { data: upsertedProfile, error: upsertError } = await supabase
+              .from('profiles')
+              .upsert(newProfile, { onConflict: 'id' })
+              .select()
+              .single();
+
+            if (upsertError) {
+              console.error('Error upserting profile:', upsertError);
+              return null;
+            }
+
+            console.log('Profile created via fallback:', upsertedProfile);
+            return upsertedProfile as Profile;
           }
 
-          console.log('Profile created successfully:', createdProfile);
-          return createdProfile as Profile;
+          console.log('✅ Profile found after retry:', retryData);
+          return retryData as Profile;
         }
 
         console.error('❌ [AUTH] Error fetching profile:', error);

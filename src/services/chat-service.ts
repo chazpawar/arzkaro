@@ -96,7 +96,7 @@ export async function joinGroup(groupId: string, userId: string) {
       group_id: groupId,
       user_id: userId,
       role: 'member',
-    } as Record<string, unknown>)
+    })
     .select()
     .single();
 
@@ -168,7 +168,7 @@ export async function sendGroupMessage(message: CreateMessage, userId: string) {
       user_id: userId,
       content: message.content,
       message_type: message.message_type || 'text',
-    } as Record<string, unknown>)
+    })
     .select(
       `
       *,

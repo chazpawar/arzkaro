@@ -71,10 +71,7 @@ export async function getAdminStats(): Promise<AdminStats> {
   ]);
 
   const totalRevenue =
-    bookingsResult.data?.reduce(
-      (sum, b) => sum + ((b as Record<string, number>).total_amount || 0),
-      0
-    ) || 0;
+    bookingsResult.data?.reduce((sum, b) => sum + (Number(b.total_amount) || 0), 0) || 0;
 
   return {
     totalUsers: usersResult.count || 0,
@@ -257,7 +254,7 @@ export async function approveHostRequest(
       reviewed_by: adminId,
       reviewed_at: now,
       admin_notes: adminNotes || null,
-    } as Record<string, unknown>)
+    })
     .eq('id', requestId)
     .select()
     .single();
@@ -274,7 +271,7 @@ export async function approveHostRequest(
       is_host_approved: true,
       host_approved_at: now,
       updated_at: now,
-    } as Record<string, unknown>)
+    })
     .eq('id', (request as Record<string, string>).user_id);
 
   if (profileError) {
@@ -297,7 +294,7 @@ export async function rejectHostRequest(
       reviewed_by: adminId,
       reviewed_at: new Date().toISOString(),
       admin_notes: adminNotes || null,
-    } as Record<string, unknown>)
+    })
     .eq('id', requestId)
     .select()
     .single();
@@ -400,7 +397,7 @@ export async function cancelEvent(eventId: string): Promise<void> {
       is_cancelled: true,
       is_published: false,
       updated_at: new Date().toISOString(),
-    } as Record<string, unknown>)
+    })
     .eq('id', eventId);
 
   if (error) {
