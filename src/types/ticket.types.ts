@@ -8,7 +8,7 @@ export interface Ticket {
   user_id: string;
   event_id: string;
   ticket_type_id: string | null;
-  qr_code: string;
+  ticket_number: string;
   status: TicketStatus;
   checked_in_at: string | null;
   checked_in_by: string | null;

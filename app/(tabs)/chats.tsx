@@ -14,16 +14,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
-import { useUserGroups, useDMConversations } from '../../src/hooks/use-chat';
+import { useUserGroups } from '../../src/hooks/use-chat';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 
-type FilterType = 'all' | 'unread' | 'groups' | 'dms';
+type FilterType = 'all' | 'unread';
 
 const FILTERS: { id: FilterType; label: string }[] = [
   { id: 'all', label: 'All' },
   { id: 'unread', label: 'Unread' },
-  { id: 'groups', label: 'Groups' },
-  { id: 'dms', label: 'DMs' },
 ];
 
 export default function ChatsTab() {
@@ -33,64 +31,47 @@ export default function ChatsTab() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch groups and DMs from backend
-  const { groups, loading: groupsLoading, refresh: refreshGroups } = useUserGroups(user?.id);
-  const { conversations, loading: dmsLoading, refresh: refreshDMs } = useDMConversations(user?.id);
-
-  const loading = groupsLoading || dmsLoading;
+  // Fetch groups from backend
+  const { groups, loading, refresh: refreshGroups } = useUserGroups(user?.id);
 
   // Refresh on focus
   useFocusEffect(
     useCallback(() => {
       if (user?.id) {
         refreshGroups();
-        refreshDMs();
       }
-    }, [user?.id, refreshGroups, refreshDMs])
+    }, [user?.id, refreshGroups])
   );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([refreshGroups(), refreshDMs()]);
+    await refreshGroups();
     setRefreshing(false);
-  }, [refreshGroups, refreshDMs]);
+  }, [refreshGroups]);
 
-  // Combine groups and DMs for display
-  const allChats = [
-    ...groups.map((group) => ({
-      id: group.id,
-      name: group.event?.title || 'Event Group',
-      type: 'group' as const,
-      icon: 'people',
-      lastMessage: 'Group chat',
-      time: new Date(group.created_at).toLocaleString(),
-      unreadCount: 0, // TODO: Implement unread count
-      avatar: null,
-    })),
-    ...conversations.map((conv) => ({
-      id: conv.id,
-      name: conv.other_user?.full_name || 'User',
-      type: 'dm' as const,
-      icon: 'person',
-      lastMessage: conv.last_message?.content || 'No messages yet',
-      time: conv.last_message?.created_at
-        ? new Date(conv.last_message.created_at).toLocaleString()
-        : '',
-      unreadCount: conv.unread_count || 0,
-      avatar: conv.other_user?.avatar_url || null,
-    })),
-  ];
+  // Map groups for display
+  const allChats = groups.map((group) => ({
+    id: group.id,
+    name: group.event?.title || 'Event Group',
+    type: 'group' as const,
+    icon: 'people',
+    lastMessage: 'Group chat',
+    time: new Date(group.created_at).toLocaleString(),
+    unreadCount: 0, // TODO: Implement unread count
+    avatar: null,
+  }));
 
   // Filter chats based on active filter
-  const filteredChats = allChats
-    .filter((chat) => {
-      if (activeFilter === 'all') return true;
-      if (activeFilter === 'unread') return chat.unreadCount > 0;
-      if (activeFilter === 'groups') return chat.type === 'group';
-      if (activeFilter === 'dms') return chat.type === 'dm';
-      return true;
-    })
-    .filter((chat) => chat.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredChats = allChats.filter((chat) => {
+    // Search filter
+    if (searchQuery && !chat.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    // Type filter
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'unread') return chat.unreadCount > 0;
+    return true;
+  });
 
   // Not authenticated
   if (!isAuthenticated) {
@@ -110,7 +91,7 @@ export default function ChatsTab() {
           </View>
           <Text style={styles.emptyTitle}>Sign In to Chat</Text>
           <Text style={styles.emptyText}>
-            Sign in to access your chats, connect with friends, and join event group chats.
+            Sign in to access your event group chats and connect with other attendees.
           </Text>
           <Pressable style={styles.signInButton} onPress={() => router.push('/')}>
             <Text style={styles.signInButtonText}>Sign In</Text>
@@ -157,7 +138,14 @@ export default function ChatsTab() {
   const renderChatItem = ({ item }: { item: (typeof allChats)[0] }) => (
     <Pressable
       style={({ pressed }) => [styles.chatItem, pressed && styles.chatItemPressed]}
-      onPress={() => router.push(`/chats/dm/${item.id}`)}
+      onPress={() => {
+        // Navigate to event chat
+        if (item.type === 'group') {
+          // You would need to get the event_id from the group
+          // For now just show the group_id
+          router.push(`/events/${item.id}/chat`);
+        }
+      }}
     >
       <View style={styles.chatAvatar}>
         <Ionicons name={getIconForChat(item.icon)} size={24} color={Colors.textSecondary} />
@@ -232,9 +220,7 @@ export default function ChatsTab() {
             <Text style={styles.emptyText}>
               {activeFilter === 'unread'
                 ? "You're all caught up! No unread messages."
-                : activeFilter === 'groups'
-                  ? "When you book events, you'll be added to their group chats."
-                  : 'No conversations yet. Start chatting with other users!'}
+                : "When you book events, you'll be added to their group chats."}
             </Text>
           </View>
         }

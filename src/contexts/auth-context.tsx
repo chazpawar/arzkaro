@@ -73,7 +73,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const fetchProfile = useCallback(async (userId: string) => {
     setProfileLoading(true);
     try {
+      console.log('🔍 [AUTH] Fetching profile for user:', userId);
+
       const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+
+      console.log('📥 [AUTH] Profile fetch response:', {
+        data: data ? { ...data, id: '***' } : null,
+        error: error ? error.message : null,
+      });
 
       if (error) {
         // Check for missing table error
@@ -124,10 +131,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           return createdProfile as Profile;
         }
 
-        console.error('Error fetching profile:', error);
+        console.error('❌ [AUTH] Error fetching profile:', error);
         return null;
       }
 
+      console.log('✅ [AUTH] Profile fetched successfully. Role:', data?.role);
       return data as Profile;
     } catch (err) {
       console.error('Error fetching profile:', err);
@@ -139,8 +147,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Refresh profile data
   const refreshProfile = useCallback(async () => {
+    console.log('🔄 [AUTH] Refreshing profile...');
     if (user?.id) {
       const profileData = await fetchProfile(user.id);
+      console.log('📋 [AUTH] Setting profile state with role:', profileData?.role);
       setProfile(profileData);
     }
   }, [user?.id, fetchProfile]);
@@ -331,6 +341,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const role: UserRole = profile?.role ?? 'user';
   const isHost = role === 'host' || role === 'admin';
   const isAdmin = role === 'admin';
+
+  // Log role changes
+  useEffect(() => {
+    console.log('🎭 [AUTH] Role state updated:', {
+      role,
+      isAdmin,
+      isHost,
+      profileRole: profile?.role,
+      userId: user?.id,
+    });
+  }, [role, isAdmin, isHost, profile?.role, user?.id]);
 
   return (
     <AuthContext.Provider

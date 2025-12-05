@@ -12,7 +12,6 @@ import {
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import TicketQRCode from '../../src/components/tickets/ticket-qr-code';
 import { Colors } from '../../src/constants/colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useTicket } from '../../src/hooks/use-bookings';
@@ -116,18 +115,13 @@ export default function TicketDetailsScreen() {
               <View style={styles.dashedCircleRight} />
             </View>
 
-            {/* QR Code Section */}
+            {/* Ticket Number Section */}
             <View style={styles.qrSection}>
-              <View style={styles.qrCodeContainer}>
-                <TicketQRCode
-                  value={ticket.qr_code}
-                  size={180}
-                  backgroundColor={Colors.background}
-                  color={Colors.text}
-                />
+              <View style={styles.ticketNumberContainer}>
+                <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
               </View>
-              <Text style={styles.ticketCode}>{ticket.qr_code}</Text>
-              <Text style={styles.qrHint}>Show this QR code at the venue entrance</Text>
+              <Text style={styles.ticketCode}>{ticket.ticket_number}</Text>
+              <Text style={styles.qrHint}>Show this ticket number at the venue entrance</Text>
             </View>
 
             {/* Dashed Line Separator */}
@@ -297,12 +291,15 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },
-  qrCodeContainer: {
-    padding: Spacing.md,
-    backgroundColor: Colors.background,
+  ticketNumberContainer: {
+    padding: Spacing.xl,
+    backgroundColor: Colors.surfaceSecondary,
     borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ticketCode: {
     marginTop: Spacing.md,

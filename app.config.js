@@ -41,14 +41,6 @@ module.exports = {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     },
-    plugins: [
-      'expo-web-browser',
-      [
-        'expo-camera',
-        {
-          cameraPermission: 'Allow $(PRODUCT_NAME) to access your camera for scanning QR codes.',
-        },
-      ],
-    ],
+    plugins: ['expo-web-browser'],
   },
 };

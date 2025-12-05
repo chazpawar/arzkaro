@@ -1,6 +1,5 @@
 import { supabase } from '../../backend/supabase';
 import type { BookingWithDetails, TicketWithDetails } from '../types';
-import { generateQRCode } from '../utils/qr-utils';
 
 // Type for event with ticket types from query
 interface EventWithTicketTypes {
@@ -68,46 +67,13 @@ export async function createBooking(bookingData: CreateBookingInput, userId: str
     throw new Error(bookingError.message);
   }
 
-  const bookingRecord = booking as Record<string, unknown>;
-
-  // Generate tickets
-  const tickets: unknown[] = [];
-  for (let i = 0; i < bookingData.quantity; i++) {
-    const qrCode = generateQRCode(bookingRecord.id as string, userId, eventData.id);
-
-    const { data: ticket, error: ticketError } = await supabase
-      .from('tickets')
-      .insert({
-        booking_id: bookingRecord.id,
-        user_id: userId,
-        event_id: bookingData.event_id,
-        ticket_type_id: ticketTypeId,
-        qr_code: qrCode,
-        status: 'valid',
-      } as Record<string, unknown>)
-      .select()
-      .single();
-
-    if (ticketError) {
-      console.error('Error creating ticket:', ticketError);
-    } else {
-      tickets.push(ticket);
-    }
-  }
-
-  // Update event current_bookings count
-  await supabase
-    .from('events')
-    .update({ current_bookings: eventData.current_bookings + bookingData.quantity } as Record<
-      string,
-      unknown
-    >)
-    .eq('id', bookingData.event_id);
+  // Note: Tickets are now auto-created by the database trigger when booking is confirmed
+  // No need to manually create tickets or update event current_bookings
 
   // Add user to event group
   await addUserToEventGroup(userId, bookingData.event_id);
 
-  return { booking, tickets };
+  return { booking };
 }
 
 // Get user's bookings
@@ -156,20 +122,14 @@ export async function getBookingById(id: string) {
 
 // Cancel a booking
 export async function cancelBooking(id: string) {
-  const { data: booking, error: fetchError } = await supabase
-    .from('bookings')
-    .select('*, event:events(current_bookings)')
-    .eq('id', id)
-    .single();
+  // Just verify booking exists
+  const { error: fetchError } = await supabase.from('bookings').select('id').eq('id', id).single();
 
   if (fetchError) {
     throw new Error(fetchError.message);
   }
 
-  const bookingData = booking as Record<string, unknown>;
-  const eventData = bookingData.event as Record<string, number>;
-
-  // Update booking status
+  // Update booking status (trigger will handle ticket cancellation and event count update)
   const { error: updateError } = await supabase
     .from('bookings')
     .update({ status: 'cancelled' } as Record<string, unknown>)
@@ -178,20 +138,6 @@ export async function cancelBooking(id: string) {
   if (updateError) {
     throw new Error(updateError.message);
   }
-
-  // Cancel all tickets for this booking
-  await supabase
-    .from('tickets')
-    .update({ status: 'cancelled' } as Record<string, unknown>)
-    .eq('booking_id', id);
-
-  // Update event current_bookings count
-  await supabase
-    .from('events')
-    .update({
-      current_bookings: Math.max(0, eventData.current_bookings - (bookingData.quantity as number)),
-    } as Record<string, unknown>)
-    .eq('id', bookingData.event_id as string);
 
   return { success: true };
 }
@@ -242,8 +188,8 @@ export async function getTicketById(id: string) {
 }
 
 // Validate and check-in a ticket (for hosts)
-export async function validateTicket(qrCode: string, checkedInBy: string) {
-  // Find ticket by QR code
+export async function validateTicket(ticketNumber: string, checkedInBy: string) {
+  // Find ticket by ticket number
   const { data: ticket, error: fetchError } = await supabase
     .from('tickets')
     .select(
@@ -252,7 +198,7 @@ export async function validateTicket(qrCode: string, checkedInBy: string) {
       event:events(id, title, host_id, end_date)
     `
     )
-    .eq('qr_code', qrCode)
+    .eq('ticket_number', ticketNumber)
     .single();
 
   if (fetchError) {

@@ -201,11 +201,11 @@ export function useTicketValidation() {
     ticket?: any;
   } | null>(null);
 
-  const validateTicket = useCallback(async (qrCode: string, hostId: string) => {
+  const validateTicket = useCallback(async (ticketNumber: string, hostId: string) => {
     try {
       setValidating(true);
       setResult(null);
-      const validationResult = await BookingService.validateTicket(qrCode, hostId);
+      const validationResult = await BookingService.validateTicket(ticketNumber, hostId);
       setResult(validationResult);
       return validationResult;
     } catch (err) {

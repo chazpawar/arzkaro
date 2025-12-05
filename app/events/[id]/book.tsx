@@ -91,7 +91,7 @@ export default function BookEventScreen() {
     if (!user?.id || !event?.id) return;
 
     try {
-      const result = await createBooking(
+      await createBooking(
         {
           event_id: event.id,
           ticket_type_id: selectedTicketType?.id,
@@ -100,12 +100,12 @@ export default function BookEventScreen() {
         user.id
       );
 
-      // Navigate to confirmation page with ticket ID
-      if (result.tickets && result.tickets.length > 0) {
-        router.replace(`/tickets/${(result.tickets[0] as { id: string }).id}?new=true`);
-      } else {
-        router.replace('/(tabs)/tickets');
-      }
+      // Navigate to tickets tab after successful booking
+      Alert.alert(
+        'Booking Confirmed!',
+        'Your booking has been confirmed. Check your tickets tab.',
+        [{ text: 'OK', onPress: () => router.replace('/(tabs)/tickets') }]
+      );
     } catch (_err) {
       Alert.alert(
         'Booking Failed',

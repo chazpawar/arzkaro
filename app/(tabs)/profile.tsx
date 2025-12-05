@@ -1,5 +1,14 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, Image, Alert } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Pressable,
+  Image,
+  Alert,
+  RefreshControl,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +28,8 @@ interface MenuItemType {
 
 export default function ProfileTab() {
   const router = useRouter();
-  const { user, profile, isHost, isAdmin, signOut } = useAuth();
+  const { user, profile, isHost, isAdmin, role, refreshProfile, signOut } = useAuth();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Fetch user stats
   const { bookings } = useBookings(user?.id);
@@ -27,6 +37,19 @@ export default function ProfileTab() {
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
+
+  // Pull to refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfile();
+      console.log('Profile refreshed! Current role:', role, 'isAdmin:', isAdmin, 'isHost:', isHost);
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshProfile, role, isAdmin, isHost]);
 
   // Calculate stats
   const uniqueEvents = new Set(bookings.map((b) => b.event_id)).size;
@@ -68,6 +91,17 @@ export default function ProfileTab() {
     { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
   ];
 
+  // DEBUG: Add debug screen (remove after debugging)
+  if (__DEV__) {
+    menuItems.unshift({
+      icon: 'bug-outline',
+      label: '🐛 Debug Profile',
+      route: '/debug-profile',
+      badge: 'DEV',
+      showArrow: true,
+    });
+  }
+
   // Add admin panel if user is admin
   if (isAdmin) {
     menuItems.splice(2, 0, {
@@ -106,6 +140,7 @@ export default function ProfileTab() {
                 | `/support`
                 | `/admin/dashboard`
                 | `/host/dashboard`
+                | `/debug-profile`
             )
           : item.action?.()
       }
@@ -125,7 +160,18 @@ export default function ProfileTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[Colors.primary]}
+            tintColor={Colors.primary}
+          />
+        }
+      >
         {/* Profile Header */}
         <View style={styles.header}>
           <Pressable style={styles.avatarContainer} onPress={() => router.push('/profile')}>
@@ -143,6 +189,13 @@ export default function ProfileTab() {
 
           <Text style={styles.displayName}>{displayName}</Text>
           <Text style={styles.email}>{user?.email}</Text>
+
+          {/* Debug: Show current role */}
+          {__DEV__ && (
+            <Text style={styles.debugRole}>
+              Role: {role} | Admin: {isAdmin ? 'Yes' : 'No'} | Host: {isHost ? 'Yes' : 'No'}
+            </Text>
+          )}
 
           {/* Role Badges */}
           <View style={styles.badgesContainer}>
@@ -282,6 +335,16 @@ const styles = StyleSheet.create({
   email: {
     fontSize: 14,
     color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  debugRole: {
+    fontSize: 11,
+    color: Colors.warning,
+    fontFamily: 'monospace',
+    backgroundColor: Colors.warningLight,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
     marginBottom: Spacing.sm,
   },
   badgesContainer: {
