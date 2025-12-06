@@ -19,7 +19,6 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
-  signInAsAdmin: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -39,9 +38,6 @@ const AuthContext = createContext<AuthContextType>({
     /* noop */
   },
   updateProfile: async () => ({ error: null }),
-  signInAsAdmin: async () => {
-    /* noop */
-  },
 });
 
 export const useAuth = () => {
@@ -202,64 +198,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Sign out
   const signOut = useCallback(async () => {
     try {
-      // Sign out from Supabase
       await supabase.auth.signOut();
+      setSession(null);
+      setUser(null);
+      setProfile(null);
     } catch (error) {
       console.error('Error signing out:', error);
-    } finally {
-      // Always clear local state regardless of API response
+      // Force clear state even if sign out fails
       setSession(null);
       setUser(null);
       setProfile(null);
     }
-  }, []);
-
-  // Sign in as admin (for development/testing only)
-  const signInAsAdmin = useCallback(async () => {
-    // Create a mock admin session and user
-    const mockUser = {
-      id: 'dev-admin-001',
-      aud: 'authenticated',
-      role: 'authenticated',
-      email: 'admin@arzkaro.dev',
-      app_metadata: {},
-      user_metadata: {},
-      created_at: new Date().toISOString(),
-    } as User;
-
-    const mockSession = {
-      access_token: 'dev-mock-token',
-      token_type: 'bearer',
-      expires_in: 3600,
-      expires_at: Date.now() + 3600000,
-      refresh_token: 'dev-mock-refresh',
-      user: mockUser,
-    } as Session;
-
-    const mockAdminProfile: Profile = {
-      id: 'dev-admin-001',
-      email: 'admin@arzkaro.dev',
-      full_name: 'Dev Admin',
-      username: 'devadmin',
-      bio: 'Development admin account',
-      avatar_url: null,
-      phone: null,
-      role: 'admin',
-      is_host_approved: true,
-      host_requested_at: null,
-      host_approved_at: new Date().toISOString(),
-      is_public: true,
-      location: null,
-      website: null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    // Set the mock session, user, and profile
-    setSession(mockSession);
-    setUser(mockUser);
-    setProfile(mockAdminProfile);
-    setLoading(false);
   }, []);
 
   // Initialize auth state
@@ -385,7 +334,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         signOut,
         refreshProfile,
         updateProfile,
-        signInAsAdmin,
       }}
     >
       {children}

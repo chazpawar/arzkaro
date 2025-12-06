@@ -32,13 +32,13 @@ export const supabase = createClient<Database>(
   supabaseAnonKey || placeholderKey,
   {
     auth: {
-      storage: AsyncStorage,
+      storage: AsyncStorage, // AsyncStorage persists the code_verifier for PKCE
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: false,
-      // Use implicit flow for React Native - tokens come in URL fragment
-      // PKCE doesn't work well because code_verifier is lost when app restarts
-      flowType: 'implicit',
+      detectSessionInUrl: Platform.OS === 'web', // Only detect URL sessions on web
+      // Use PKCE flow for better security
+      // AsyncStorage will persist code_verifier between app restarts
+      flowType: 'pkce',
     },
   }
 );

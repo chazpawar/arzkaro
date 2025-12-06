@@ -85,9 +85,10 @@ You should now see:
 
 ## Next Steps: Create Your First Event
 
-1. Sign in as Admin using the "Sign in as Admin (Dev)" button
-2. In the Explore tab, you'll see "Create Event" button
-3. Click it to create your first event!
+1. Sign in with Google OAuth
+2. Request host access from your Profile tab
+3. Once approved (or manually set role to 'host' in database), navigate to Events
+4. Click "Create Event" button to create your first event!
 
 ## Troubleshooting
 

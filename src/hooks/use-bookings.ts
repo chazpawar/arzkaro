@@ -217,11 +217,11 @@ export function useTicketValidation() {
     ticket?: any;
   } | null>(null);
 
-  const validateTicket = useCallback(async (ticketNumber: string, hostId: string) => {
+  const validateTicket = useCallback(async (ticketId: string, hostId: string) => {
     try {
       setValidating(true);
       setResult(null);
-      const validationResult = await BookingService.validateTicket(ticketNumber, hostId);
+      const validationResult = await BookingService.validateTicket(ticketId, hostId);
       setResult(validationResult);
       return validationResult;
     } catch (err) {

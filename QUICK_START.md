@@ -40,14 +40,15 @@ pnpm run android
 pnpm run ios
 ```
 
-## 👤 Testing as Admin
+## 👤 Sign In
 
-1. Click **"Sign in as Admin (Dev)"** button
-2. You'll be logged in as a development admin
-3. You can now:
-   - Create events
-   - Manage users
-   - View admin dashboard
+1. Click **"Sign in with Google"** button
+2. Authorize with your Google account
+3. Your profile will be created automatically
+4. To become a host:
+   - Go to Profile tab
+   - Request host access
+   - Wait for admin approval (or manually update role in database)
 
 ## ✨ Features to Test
 

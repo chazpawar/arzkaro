@@ -2,12 +2,12 @@ import { useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Linking from 'expo-linking';
-import { createSessionFromUrl } from '../../backend/auth';
+import { handleOAuthCallback } from '../../backend/auth';
 
 /**
  * OAuth Callback Handler for arzkaro://auth/callback
  * Handles the redirect from OAuth providers (like Google)
- * Works with implicit flow - tokens come in URL fragment
+ * Works with PKCE flow - authorization code is exchanged for tokens
  */
 export default function AuthCallback() {
   const router = useRouter();
@@ -21,13 +21,14 @@ export default function AuthCallback() {
         console.log('Callback URL:', url);
 
         if (url) {
-          // Use the createSessionFromUrl helper which handles implicit flow tokens
-          const session = await createSessionFromUrl(url);
+          // Use the handleOAuthCallback helper which handles PKCE flow
+          // It extracts the authorization code and exchanges it for a session
+          const session = await handleOAuthCallback(url);
 
           if (session) {
-            console.log('Session created successfully!');
+            console.log('Session created successfully via PKCE!');
           } else {
-            console.log('No session created - no tokens in URL');
+            console.log('No session created - no authorization code in URL');
           }
         }
 

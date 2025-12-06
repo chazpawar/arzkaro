@@ -8,80 +8,85 @@ import { Platform } from 'react-native';
 WebBrowser.maybeCompleteAuthSession();
 
 /**
- * Parse tokens from URL - handles both query params and hash fragments
- * Implicit flow returns tokens in the URL fragment (#access_token=...)
+ * Parse OAuth callback URL and extract tokens or authorization code
+ * PKCE flow returns an authorization code in the URL
  */
-const parseTokensFromUrl = (
+const parseOAuthCallback = (
   url: string
-): { access_token?: string; refresh_token?: string; error?: string } => {
+): { code?: string; error?: string; error_description?: string } => {
   try {
-    // Try to parse from hash fragment first (implicit flow)
-    const hashIndex = url.indexOf('#');
-    if (hashIndex !== -1) {
-      const fragment = url.substring(hashIndex + 1);
-      const params = new URLSearchParams(fragment);
-      const access_token = params.get('access_token') || undefined;
-      const refresh_token = params.get('refresh_token') || undefined;
-      const error = params.get('error') || undefined;
-
-      if (access_token || error) {
-        return { access_token, refresh_token, error };
-      }
-    }
-
-    // Fallback to query params
+    // Try to parse from query params (PKCE flow)
     const queryIndex = url.indexOf('?');
     if (queryIndex !== -1) {
       const query = url.substring(queryIndex + 1);
       const params = new URLSearchParams(query);
-      return {
-        access_token: params.get('access_token') || undefined,
-        refresh_token: params.get('refresh_token') || undefined,
-        error: params.get('error') || undefined,
-      };
+      const code = params.get('code') || undefined;
+      const error = params.get('error') || undefined;
+      const error_description = params.get('error_description') || undefined;
+
+      if (code || error) {
+        return { code, error, error_description };
+      }
+    }
+
+    // Also check hash fragment for backward compatibility
+    const hashIndex = url.indexOf('#');
+    if (hashIndex !== -1) {
+      const fragment = url.substring(hashIndex + 1);
+      const params = new URLSearchParams(fragment);
+      const code = params.get('code') || undefined;
+      const error = params.get('error') || undefined;
+      const error_description = params.get('error_description') || undefined;
+
+      if (code || error) {
+        return { code, error, error_description };
+      }
     }
 
     return {};
   } catch (err) {
-    console.error('Error parsing URL tokens:', err);
+    console.error('Error parsing OAuth callback URL:', err);
     return {};
   }
 };
 
 /**
- * Create a session from the callback URL (implicit flow)
- * Tokens come directly in the URL fragment
+ * Handle OAuth callback - exchange code for session (PKCE flow)
+ * Supabase client handles the code exchange automatically
  */
-export const createSessionFromUrl = async (url: string) => {
-  console.log('Creating session from URL:', url);
+export const handleOAuthCallback = async (url: string) => {
+  console.log('Handling OAuth callback URL:', url);
 
-  const { access_token, refresh_token, error: urlError } = parseTokensFromUrl(url);
+  const { code, error: urlError, error_description } = parseOAuthCallback(url);
 
   if (urlError) {
-    throw new Error(urlError);
+    console.error('OAuth error:', urlError, error_description);
+    throw new Error(error_description || urlError);
   }
 
-  if (!access_token) {
-    console.log('No access_token found in URL');
+  if (!code) {
+    console.log('No authorization code found in URL');
     return null;
   }
 
-  console.log('Found tokens, setting session...');
+  console.log('Found authorization code, exchanging for session...');
 
-  const { data, error } = await supabase.auth.setSession({
-    access_token,
-    refresh_token: refresh_token || '',
-  });
+  // Supabase client automatically exchanges the code for a session
+  // using the stored code_verifier from AsyncStorage
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error exchanging code for session:', error);
+    throw error;
+  }
 
-  console.log('Session set successfully!');
+  console.log('Session created successfully!');
   return data.session;
 };
 
 /**
  * Create an auth request for Google OAuth using Supabase
- * This works cross-platform (iOS, Android, Web)
+ * Uses PKCE flow for better security on native platforms
  */
 export const signInWithGoogle = async () => {
   try {
@@ -90,12 +95,13 @@ export const signInWithGoogle = async () => {
 
     console.log('Redirect URL:', redirectUrl);
 
-    // Start OAuth flow with Supabase - use skipBrowserRedirect for native
+    // Start OAuth flow with Supabase - PKCE flow is automatic
+    // skipBrowserRedirect is needed for React Native to handle the redirect manually
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: redirectUrl,
-        skipBrowserRedirect: true, // Important for native apps!
+        skipBrowserRedirect: Platform.OS !== 'web', // Let native app handle the redirect
         // Request offline access to get refresh token
         queryParams: {
           access_type: 'offline',
@@ -107,7 +113,6 @@ export const signInWithGoogle = async () => {
     if (error) throw error;
 
     console.log('OAuth URL:', data?.url);
-    console.log('Full OAuth URL details:', JSON.stringify(data, null, 2));
 
     // For native platforms, open the OAuth URL in browser
     if (Platform.OS !== 'web' && data?.url) {
@@ -115,7 +120,11 @@ export const signInWithGoogle = async () => {
 
       if (result.type === 'success') {
         const { url } = result;
-        await createSessionFromUrl(url);
+        // Exchange the authorization code for a session
+        await handleOAuthCallback(url);
+      } else if (result.type === 'cancel') {
+        console.log('User cancelled OAuth flow');
+        return { data: null, error: new Error('User cancelled') };
       }
     }
 

@@ -12,7 +12,7 @@ import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 export default function HostScannerScreen() {
   const { user } = useAuth();
   const { validateTicket, validating, result } = useTicketValidation();
-  const [ticketNumber, setTicketNumber] = useState('');
+  const [ticketId, setTicketId] = useState('');
 
   const handleValidate = async () => {
     if (!user?.id) {
@@ -20,16 +20,16 @@ export default function HostScannerScreen() {
       return;
     }
 
-    if (!ticketNumber.trim()) {
-      Alert.alert('Error', 'Please enter a ticket number');
+    if (!ticketId.trim()) {
+      Alert.alert('Error', 'Please enter a ticket ID');
       return;
     }
 
-    const result = await validateTicket(ticketNumber.trim().toUpperCase(), user.id);
+    const result = await validateTicket(ticketId.trim(), user.id);
 
     if (result.valid) {
       Alert.alert('✅ Valid Ticket', result.message, [
-        { text: 'OK', onPress: () => setTicketNumber('') },
+        { text: 'OK', onPress: () => setTicketId('') },
       ]);
     } else {
       Alert.alert('❌ Invalid Ticket', result.message, [{ text: 'OK' }]);
@@ -51,16 +51,16 @@ export default function HostScannerScreen() {
           </View>
 
           <Text style={styles.title}>Validate Ticket</Text>
-          <Text style={styles.subtitle}>Enter the ticket number to validate entry</Text>
+          <Text style={styles.subtitle}>Enter the ticket ID to validate entry</Text>
 
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
-              value={ticketNumber}
-              onChangeText={setTicketNumber}
-              placeholder="TKT-12345-ABCD"
+              value={ticketId}
+              onChangeText={setTicketId}
+              placeholder="e.g., 123e4567-e89b-12d3..."
               placeholderTextColor={Colors.textTertiary}
-              autoCapitalize="characters"
+              autoCapitalize="none"
               autoCorrect={false}
               editable={!validating}
             />
@@ -70,7 +70,7 @@ export default function HostScannerScreen() {
             title={validating ? 'Validating...' : 'Validate Ticket'}
             onPress={handleValidate}
             variant="primary"
-            disabled={validating || !ticketNumber.trim()}
+            disabled={validating || !ticketId.trim()}
             style={styles.validateButton}
           />
 

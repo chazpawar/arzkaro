@@ -174,7 +174,8 @@ export async function getTicketById(id: string) {
         host:profiles!host_id(id, full_name)
       ),
       ticket_type:ticket_types(id, name, description),
-      booking:bookings(id, quantity, total_amount)
+      booking:bookings(id, quantity, total_amount),
+      user:profiles!user_id(id, full_name, email)
     `
     )
     .eq('id', id)
@@ -188,60 +189,119 @@ export async function getTicketById(id: string) {
 }
 
 // Validate and check-in a ticket (for hosts)
-export async function validateTicket(ticketNumber: string, checkedInBy: string) {
-  // Find ticket by ticket number
-  const { data: ticket, error: fetchError } = await supabase
-    .from('tickets')
-    .select(
+export async function validateTicket(ticketId: string, checkedInBy: string) {
+  try {
+    // Find ticket by ID with event details
+    const { data: ticket, error: fetchError } = await supabase
+      .from('tickets')
+      .select(
+        `
+        *,
+        event:events!inner(id, title, host_id, end_date, start_date),
+        user:profiles!user_id(id, full_name, email),
+        booking:bookings!inner(id, quantity, total_amount, status)
       `
-      *,
-      event:events(id, title, host_id, end_date)
-    `
-    )
-    .eq('ticket_number', ticketNumber)
-    .single();
+      )
+      .eq('id', ticketId)
+      .single();
 
-  if (fetchError) {
-    return { valid: false, message: 'Ticket not found' };
-  }
+    if (fetchError) {
+      console.error('Ticket fetch error:', fetchError);
+      return { valid: false, message: 'Ticket not found', ticket: null };
+    }
 
-  const ticketData = ticket;
-  const eventData = ticketData.event as Record<string, string>;
+    if (!ticket) {
+      return { valid: false, message: 'Ticket not found', ticket: null };
+    }
 
-  // Check if already used
-  if (ticketData.status === 'used') {
+    const eventData = ticket.event as unknown as {
+      id: string;
+      title: string;
+      host_id: string;
+      end_date: string;
+      start_date: string;
+    };
+    const bookingData = ticket.booking as unknown as {
+      id: string;
+      quantity: number;
+      total_amount: number;
+      status: string;
+    };
+
+    // Validate ticket status
+    if (ticket.status === 'used') {
+      return {
+        valid: false,
+        message: `Ticket already used on ${new Date(ticket.checked_in_at as string).toLocaleString()}`,
+        ticket,
+      };
+    }
+
+    if (ticket.status === 'cancelled') {
+      return { valid: false, message: 'Ticket has been cancelled', ticket };
+    }
+
+    if (ticket.status === 'expired') {
+      return { valid: false, message: 'Ticket has expired', ticket };
+    }
+
+    // Check if booking is valid
+    if (bookingData.status === 'cancelled') {
+      return { valid: false, message: 'Booking has been cancelled', ticket };
+    }
+
+    // Check if event has started
+    const now = new Date();
+    const eventStart = new Date(eventData.start_date);
+    const eventEnd = new Date(eventData.end_date);
+
+    if (now < eventStart) {
+      return {
+        valid: false,
+        message: `Event hasn't started yet. Starts on ${eventStart.toLocaleString()}`,
+        ticket,
+      };
+    }
+
+    if (now > eventEnd) {
+      // Automatically mark as expired
+      await supabase.from('tickets').update({ status: 'expired' }).eq('id', ticketId);
+      return { valid: false, message: 'Event has already ended', ticket };
+    }
+
+    // All checks passed - mark as used
+    const { error: updateError } = await supabase
+      .from('tickets')
+      .update({
+        status: 'used',
+        checked_in_at: new Date().toISOString(),
+        checked_in_by: checkedInBy,
+      })
+      .eq('id', ticketId);
+
+    if (updateError) {
+      console.error('Error updating ticket:', updateError);
+      return { valid: false, message: 'Failed to check in ticket', ticket };
+    }
+
+    return {
+      valid: true,
+      message: 'Ticket validated successfully! Welcome to the event.',
+      ticket: {
+        ...ticket,
+        status: 'used',
+        checked_in_at: new Date().toISOString(),
+        checked_in_by: checkedInBy,
+      },
+    };
+  } catch (error) {
+    console.error('Ticket validation error:', error);
     return {
       valid: false,
-      message: `Ticket already used at ${new Date(ticketData.checked_in_at as string).toLocaleString()}`,
-      ticket: ticketData,
+      message: error instanceof Error ? error.message : 'Unknown error occurred',
+      ticket: null,
     };
   }
-
-  // Check if cancelled
-  if (ticketData.status === 'cancelled') {
-    return { valid: false, message: 'Ticket has been cancelled', ticket: ticketData };
-  }
-
-  // Check if expired (event has ended)
-  if (new Date(eventData.end_date) < new Date()) {
-    return { valid: false, message: 'Event has already ended', ticket: ticketData };
-  }
-
-  // Mark as used
-  const { error: updateError } = await supabase
-    .from('tickets')
-    .update({
-      status: 'used',
-      checked_in_at: new Date().toISOString(),
-      checked_in_by: checkedInBy,
-    })
-    .eq('id', ticketData.id as string);
-
-  if (updateError) {
-    return { valid: false, message: 'Failed to check in ticket' };
-  }
-
-  return { valid: true, message: 'Ticket validated successfully', ticket: ticketData };
 }
 
 // Helper: Add user to event group

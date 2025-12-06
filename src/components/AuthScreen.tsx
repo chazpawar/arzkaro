@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/colors';
 import { Spacing, Typography, BorderRadius } from '../constants/styles';
-import { useAuth } from '../contexts/auth-context';
 
 interface AuthScreenProps {
   onSignInSuccess?: () => void;
@@ -13,7 +12,6 @@ interface AuthScreenProps {
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signInAsAdmin } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
@@ -29,19 +27,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
       } else {
         onSignInSuccess?.();
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdminSignIn = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      await signInAsAdmin?.();
-      onSignInSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -95,15 +80,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
           <Text style={styles.googleButtonText}>
             {loading ? 'Signing in...' : 'Sign in with Google'}
           </Text>
-        </Pressable>
-
-        {/* Admin Sign In Button (Dev) */}
-        <Pressable
-          style={({ pressed }) => [styles.adminButton, pressed && styles.buttonPressed]}
-          onPress={handleAdminSignIn}
-          disabled={loading}
-        >
-          <Text style={styles.adminButtonText}>Sign in as Admin (Dev)</Text>
         </Pressable>
 
         {/* Terms and Privacy */}
@@ -189,7 +165,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     paddingVertical: Spacing.md + 2,
     paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   googleIconContainer: {
     width: 24,
@@ -207,21 +183,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
-  },
-  adminButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.text,
-    borderRadius: BorderRadius.xl,
-    paddingVertical: Spacing.md + 2,
-    paddingHorizontal: Spacing.xl,
-    marginBottom: Spacing.lg,
-  },
-  adminButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textInverse,
   },
   buttonPressed: {
     opacity: 0.9,

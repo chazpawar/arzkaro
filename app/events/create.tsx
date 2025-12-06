@@ -97,11 +97,40 @@ export default function CreateEventScreen() {
 
   const validateStep2 = () => {
     const newErrors: Record<string, string> = {};
+    
+    // Check presence
     if (!locationName.trim()) newErrors.locationName = 'Location name is required';
     if (!startDate.trim()) newErrors.startDate = 'Start date is required';
     if (!startTime.trim()) newErrors.startTime = 'Start time is required';
     if (!endDate.trim()) newErrors.endDate = 'End date is required';
     if (!endTime.trim()) newErrors.endTime = 'End time is required';
+    
+    // Validate date/time format and logic
+    if (startDate && startTime) {
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      if (isNaN(startDateTime.getTime())) {
+        newErrors.startDate = 'Invalid date/time format';
+      } else if (startDateTime < new Date()) {
+        newErrors.startDate = 'Start date must be in the future';
+      }
+    }
+    
+    if (endDate && endTime) {
+      const endDateTime = new Date(`${endDate}T${endTime}`);
+      if (isNaN(endDateTime.getTime())) {
+        newErrors.endDate = 'Invalid date/time format';
+      }
+    }
+    
+    // Check if end date is after start date
+    if (startDate && startTime && endDate && endTime && !newErrors.startDate && !newErrors.endDate) {
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      const endDateTime = new Date(`${endDate}T${endTime}`);
+      if (endDateTime <= startDateTime) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -119,9 +148,16 @@ export default function CreateEventScreen() {
 
     setLoading(true);
     try {
-      // Combine date and time
-      const startDateTime = new Date(`${startDate}T${startTime}`).toISOString();
-      const endDateTime = new Date(`${endDate}T${endTime}`).toISOString();
+      // Combine date and time and validate
+      const startDateTime = new Date(`${startDate}T${startTime}`);
+      const endDateTime = new Date(`${endDate}T${endTime}`);
+      
+      // Final validation check
+      if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
+        Alert.alert('Invalid Date', 'Please check your date and time inputs');
+        setLoading(false);
+        return;
+      }
 
       const eventData = {
         type: eventType,
@@ -130,11 +166,14 @@ export default function CreateEventScreen() {
         category,
         location_name: locationName.trim(),
         location_address: locationAddress.trim() || undefined,
-        start_date: startDateTime,
-        end_date: endDateTime,
+        start_date: startDateTime.toISOString(),
+        end_date: endDateTime.toISOString(),
         max_capacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
         price: parseFloat(price) || 0,
         currency: 'INR',
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        images: [],
+        tags: [],
       };
 
       const event = await EventService.createEvent(eventData, user.id);
@@ -285,7 +324,7 @@ export default function CreateEventScreen() {
                   <View style={styles.halfInput}>
                     <Input
                       label="Start Date"
-                      placeholder="YYYY-MM-DD"
+                      placeholder="YYYY-MM-DD (e.g. 2025-12-25)"
                       value={startDate}
                       onChangeText={setStartDate}
                       error={errors.startDate}
@@ -294,7 +333,7 @@ export default function CreateEventScreen() {
                   <View style={styles.halfInput}>
                     <Input
                       label="Start Time"
-                      placeholder="HH:MM"
+                      placeholder="HH:MM (e.g. 14:30)"
                       value={startTime}
                       onChangeText={setStartTime}
                       error={errors.startTime}
@@ -306,7 +345,7 @@ export default function CreateEventScreen() {
                   <View style={styles.halfInput}>
                     <Input
                       label="End Date"
-                      placeholder="YYYY-MM-DD"
+                      placeholder="YYYY-MM-DD (e.g. 2025-12-25)"
                       value={endDate}
                       onChangeText={setEndDate}
                       error={errors.endDate}
@@ -315,7 +354,7 @@ export default function CreateEventScreen() {
                   <View style={styles.halfInput}>
                     <Input
                       label="End Time"
-                      placeholder="HH:MM"
+                      placeholder="HH:MM (e.g. 18:00)"
                       value={endTime}
                       onChangeText={setEndTime}
                       error={errors.endTime}

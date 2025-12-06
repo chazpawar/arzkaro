@@ -42,10 +42,22 @@ export default function ProfileTab() {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
+      const oldRole = role;
       await refreshProfile();
-      console.log('Profile refreshed! Current role:', role, 'isAdmin:', isAdmin, 'isHost:', isHost);
+      
+      // Show alert if role changed
+      if (role !== oldRole) {
+        Alert.alert(
+          '🎉 Role Updated!',
+          `Your role has been changed to: ${role.toUpperCase()}`,
+          [{ text: 'OK' }]
+        );
+      }
+      
+      console.log('✅ Profile refreshed! Current role:', role, 'isAdmin:', isAdmin, 'isHost:', isHost);
     } catch (error) {
       console.error('Error refreshing profile:', error);
+      Alert.alert('Error', 'Failed to refresh profile. Please try again.');
     } finally {
       setRefreshing(false);
     }
