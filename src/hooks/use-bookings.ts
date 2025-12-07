@@ -115,10 +115,41 @@ export function useTickets(userId: string | undefined) {
     fetchTickets();
   }, [fetchTickets]);
 
-  // Filter tickets by status
-  const validTickets = tickets.filter((t) => t.status === 'valid');
+  // Filter tickets by status and check event end date for expiration
+  const now = new Date();
+
+  const validTickets = tickets.filter((t) => {
+    // Check if ticket status is valid
+    if (t.status !== 'valid') return false;
+
+    // Check if event has ended (expired)
+    if (t.event?.end_date) {
+      const eventEndDate = new Date(t.event.end_date);
+      if (now > eventEndDate) {
+        // Event has ended, ticket should be considered expired
+        return false;
+      }
+    }
+
+    return true;
+  });
+
   const usedTickets = tickets.filter((t) => t.status === 'used');
-  const expiredTickets = tickets.filter((t) => t.status === 'expired' || t.status === 'cancelled');
+
+  const expiredTickets = tickets.filter((t) => {
+    // Explicitly marked as expired or cancelled
+    if (t.status === 'expired' || t.status === 'cancelled') return true;
+
+    // Check if event has ended (but ticket status is still 'valid')
+    if (t.status === 'valid' && t.event?.end_date) {
+      const eventEndDate = new Date(t.event.end_date);
+      if (now > eventEndDate) {
+        return true; // Event ended, consider as expired
+      }
+    }
+
+    return false;
+  });
 
   return {
     tickets,

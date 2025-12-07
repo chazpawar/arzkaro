@@ -7,9 +7,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
@@ -26,18 +28,59 @@ const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] = [
   { value: 'trip', label: 'Trip', emoji: '🏔️' },
 ];
 
-const CATEGORIES = [
-  'Music',
-  'Sports',
-  'Art',
-  'Food & Drink',
-  'Tech',
-  'Business',
-  'Health & Wellness',
-  'Education',
-  'Entertainment',
+// Type-specific categories
+const EVENT_CATEGORIES = [
+  'Concert',
+  'Festival',
+  'Conference',
+  'Workshop',
+  'Seminar',
+  'Networking',
+  'Sports Event',
+  'Exhibition',
+  'Party',
   'Other',
 ];
+
+const EXPERIENCE_CATEGORIES = [
+  'Adventure',
+  'Food & Dining',
+  'Art & Culture',
+  'Wellness & Spa',
+  'Learning',
+  'Entertainment',
+  'Photography',
+  'Wine Tasting',
+  'Outdoor Activity',
+  'Other',
+];
+
+const TRIP_CATEGORIES = [
+  'Beach Trip',
+  'Mountain Trek',
+  'City Tour',
+  'Road Trip',
+  'Camping',
+  'Safari',
+  'Cruise',
+  'Historical Tour',
+  'Pilgrimage',
+  'Other',
+];
+
+// Helper function to get categories based on event type
+const getCategoriesForType = (type: EventType): string[] => {
+  switch (type) {
+    case 'event':
+      return EVENT_CATEGORIES;
+    case 'experience':
+      return EXPERIENCE_CATEGORIES;
+    case 'trip':
+      return TRIP_CATEGORIES;
+    default:
+      return EVENT_CATEGORIES;
+  }
+};
 
 export default function CreateEventScreen() {
   const router = useRouter();
@@ -97,14 +140,14 @@ export default function CreateEventScreen() {
 
   const validateStep2 = () => {
     const newErrors: Record<string, string> = {};
-    
+
     // Check presence
     if (!locationName.trim()) newErrors.locationName = 'Location name is required';
     if (!startDate.trim()) newErrors.startDate = 'Start date is required';
     if (!startTime.trim()) newErrors.startTime = 'Start time is required';
     if (!endDate.trim()) newErrors.endDate = 'End date is required';
     if (!endTime.trim()) newErrors.endTime = 'End time is required';
-    
+
     // Validate date/time format and logic
     if (startDate && startTime) {
       const startDateTime = new Date(`${startDate}T${startTime}`);
@@ -114,23 +157,30 @@ export default function CreateEventScreen() {
         newErrors.startDate = 'Start date must be in the future';
       }
     }
-    
+
     if (endDate && endTime) {
       const endDateTime = new Date(`${endDate}T${endTime}`);
       if (isNaN(endDateTime.getTime())) {
         newErrors.endDate = 'Invalid date/time format';
       }
     }
-    
+
     // Check if end date is after start date
-    if (startDate && startTime && endDate && endTime && !newErrors.startDate && !newErrors.endDate) {
+    if (
+      startDate &&
+      startTime &&
+      endDate &&
+      endTime &&
+      !newErrors.startDate &&
+      !newErrors.endDate
+    ) {
       const startDateTime = new Date(`${startDate}T${startTime}`);
       const endDateTime = new Date(`${endDate}T${endTime}`);
       if (endDateTime <= startDateTime) {
         newErrors.endDate = 'End date must be after start date';
       }
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -143,6 +193,61 @@ export default function CreateEventScreen() {
     }
   };
 
+  // Helper function to calculate duration
+  const calculateDuration = (sDate: string, sTime: string, eDate: string, eTime: string) => {
+    try {
+      const start = new Date(`${sDate}T${sTime}`);
+      const end = new Date(`${eDate}T${eTime}`);
+      const diffMs = end.getTime() - start.getTime();
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+      if (diffHours < 24) {
+        return `${diffHours}h ${diffMins}m`;
+      } else {
+        const days = Math.floor(diffHours / 24);
+        const hours = diffHours % 24;
+        return `${days}d ${hours}h`;
+      }
+    } catch {
+      return '';
+    }
+  };
+
+  // Quick date templates
+  const fillTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toISOString().split('T')[0];
+    setStartDate(dateStr);
+    setEndDate(dateStr);
+    setStartTime('10:00');
+    setEndTime('18:00');
+  };
+
+  const fillNextWeekend = () => {
+    const today = new Date();
+    const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7;
+    const saturday = new Date(today);
+    saturday.setDate(today.getDate() + daysUntilSaturday);
+    const dateStr = saturday.toISOString().split('T')[0];
+    setStartDate(dateStr);
+    setEndDate(dateStr);
+    setStartTime('10:00');
+    setEndTime('18:00');
+  };
+
+  const fillNextMonth = () => {
+    const nextMonth = new Date();
+    nextMonth.setMonth(nextMonth.getMonth() + 1);
+    nextMonth.setDate(1);
+    const dateStr = nextMonth.toISOString().split('T')[0];
+    setStartDate(dateStr);
+    setEndDate(dateStr);
+    setStartTime('10:00');
+    setEndTime('18:00');
+  };
+
   const handleCreateEvent = async () => {
     if (!user?.id) return;
 
@@ -151,7 +256,7 @@ export default function CreateEventScreen() {
       // Combine date and time and validate
       const startDateTime = new Date(`${startDate}T${startTime}`);
       const endDateTime = new Date(`${endDate}T${endTime}`);
-      
+
       // Final validation check
       if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
         Alert.alert('Invalid Date', 'Please check your date and time inputs');
@@ -239,7 +344,10 @@ export default function CreateEventScreen() {
                     <Card
                       key={type.value}
                       style={[styles.typeCard, eventType === type.value && styles.typeCardSelected]}
-                      onPress={() => setEventType(type.value)}
+                      onPress={() => {
+                        setEventType(type.value);
+                        setCategory(''); // Reset category when type changes
+                      }}
                     >
                       <Text style={styles.typeEmoji}>{type.emoji}</Text>
                       <Text
@@ -278,7 +386,7 @@ export default function CreateEventScreen() {
                   showsHorizontalScrollIndicator={false}
                   style={styles.categoryScroll}
                 >
-                  {CATEGORIES.map((cat) => (
+                  {getCategoriesForType(eventType).map((cat) => (
                     <Card
                       key={cat}
                       style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
@@ -305,64 +413,130 @@ export default function CreateEventScreen() {
                 <Text style={styles.stepTitle}>Location & Time</Text>
                 <Text style={styles.stepDescription}>When and where is it happening?</Text>
 
-                <Input
-                  label="Venue Name"
-                  placeholder="e.g., The Grand Hall"
-                  value={locationName}
-                  onChangeText={setLocationName}
-                  error={errors.locationName}
-                />
-
-                <Input
-                  label="Address (Optional)"
-                  placeholder="Full address for directions"
-                  value={locationAddress}
-                  onChangeText={setLocationAddress}
-                />
-
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <Input
-                      label="Start Date"
-                      placeholder="YYYY-MM-DD (e.g. 2025-12-25)"
-                      value={startDate}
-                      onChangeText={setStartDate}
-                      error={errors.startDate}
-                    />
+                {/* Location Section */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="location" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Location Details</Text>
                   </View>
-                  <View style={styles.halfInput}>
-                    <Input
-                      label="Start Time"
-                      placeholder="HH:MM (e.g. 14:30)"
-                      value={startTime}
-                      onChangeText={setStartTime}
-                      error={errors.startTime}
-                    />
-                  </View>
+
+                  <Input
+                    label="Venue Name"
+                    placeholder="e.g., The Grand Hall, Central Park"
+                    value={locationName}
+                    onChangeText={setLocationName}
+                    error={errors.locationName}
+                  />
+
+                  <Input
+                    label="Address (Optional)"
+                    placeholder="Full address for attendees"
+                    value={locationAddress}
+                    onChangeText={setLocationAddress}
+                    multiline
+                    numberOfLines={2}
+                  />
                 </View>
 
-                <View style={styles.row}>
-                  <View style={styles.halfInput}>
-                    <Input
-                      label="End Date"
-                      placeholder="YYYY-MM-DD (e.g. 2025-12-25)"
-                      value={endDate}
-                      onChangeText={setEndDate}
-                      error={errors.endDate}
-                    />
+                {/* Date & Time Section */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="calendar" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Date & Time</Text>
                   </View>
-                  <View style={styles.halfInput}>
-                    <Input
-                      label="End Time"
-                      placeholder="HH:MM (e.g. 18:00)"
-                      value={endTime}
-                      onChangeText={setEndTime}
-                      error={errors.endTime}
-                    />
+
+                  {/* Start Date/Time */}
+                  <Text style={styles.subsectionLabel}>Start</Text>
+                  <View style={styles.dateTimeRow}>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Date</Text>
+                      <Input
+                        placeholder="YYYY-MM-DD"
+                        value={startDate}
+                        onChangeText={setStartDate}
+                        error={errors.startDate}
+                      />
+                      <Text style={styles.dateExample}>e.g., 2025-12-25</Text>
+                    </View>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Time</Text>
+                      <Input
+                        placeholder="HH:MM"
+                        value={startTime}
+                        onChangeText={setStartTime}
+                        error={errors.startTime}
+                      />
+                      <Text style={styles.dateExample}>e.g., 14:30</Text>
+                    </View>
                   </View>
+
+                  {/* End Date/Time */}
+                  <Text style={styles.subsectionLabel}>End</Text>
+                  <View style={styles.dateTimeRow}>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Date</Text>
+                      <Input
+                        placeholder="YYYY-MM-DD"
+                        value={endDate}
+                        onChangeText={setEndDate}
+                        error={errors.endDate}
+                      />
+                      <Text style={styles.dateExample}>e.g., 2025-12-25</Text>
+                    </View>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Time</Text>
+                      <Input
+                        placeholder="HH:MM"
+                        value={endTime}
+                        onChangeText={setEndTime}
+                        error={errors.endTime}
+                      />
+                      <Text style={styles.dateExample}>e.g., 18:00</Text>
+                    </View>
+                  </View>
+
+                  {/* Helper Info */}
+                  <View style={styles.helperCard}>
+                    <Ionicons name="information-circle" size={16} color={Colors.info} />
+                    <Text style={styles.helperCardText}>
+                      Use 24-hour format. Times are in your local timezone.
+                    </Text>
+                  </View>
+
+                  {/* Duration Preview */}
+                  {startDate &&
+                    startTime &&
+                    endDate &&
+                    endTime &&
+                    !errors.startDate &&
+                    !errors.endDate && (
+                      <View style={styles.durationPreview}>
+                        <Ionicons name="time" size={16} color={Colors.success} />
+                        <Text style={styles.durationText}>
+                          Duration: {calculateDuration(startDate, startTime, endDate, endTime)}
+                        </Text>
+                      </View>
+                    )}
                 </View>
 
-                <Text style={styles.helperText}>Use 24-hour format (e.g., 14:30 for 2:30 PM)</Text>
+                {/* Quick Date Templates */}
+                <View style={styles.templateSection}>
+                  <Text style={styles.templateTitle}>Quick Templates</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                    <Pressable style={styles.templateChip} onPress={() => fillTomorrow()}>
+                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
+                      <Text style={styles.templateChipText}>Tomorrow</Text>
+                    </Pressable>
+                    <Pressable style={styles.templateChip} onPress={() => fillNextWeekend()}>
+                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
+                      <Text style={styles.templateChipText}>Next Weekend</Text>
+                    </Pressable>
+                    <Pressable style={styles.templateChip} onPress={() => fillNextMonth()}>
+                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
+                      <Text style={styles.templateChipText}>Next Month</Text>
+                    </Pressable>
+                  </ScrollView>
+                </View>
               </View>
             )}
 
@@ -642,5 +816,103 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xl,
+  },
+  // New Step 2 styles
+  sectionCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  sectionHeaderText: {
+    ...Typography.h4,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  subsectionLabel: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
+    fontWeight: '600',
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+  },
+  dateTimeRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  dateTimeInput: {
+    flex: 1,
+  },
+  dateTimeLabel: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+    fontWeight: '500',
+  },
+  dateExample: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  helperCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.infoLight,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  helperCardText: {
+    ...Typography.caption,
+    color: Colors.info,
+    flex: 1,
+  },
+  durationPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.successLight,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+  },
+  durationText: {
+    ...Typography.bodySmall,
+    color: Colors.success,
+    fontWeight: '600',
+  },
+  templateSection: {
+    marginTop: Spacing.md,
+  },
+  templateTitle: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  templateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    marginRight: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.xs,
+  },
+  templateChipText: {
+    ...Typography.bodySmall,
+    color: Colors.primary,
+    fontWeight: '500',
   },
 });

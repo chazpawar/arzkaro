@@ -56,9 +56,38 @@ This error means the database tables haven't been created yet. Follow these step
    - Copy the "Reference ID"
 
 4. **Run Migrations**
-   ```bash
-   supabase db push
+    ```bash
+    supabase db push
+    ```
+
+## Migrations
+
+The following migrations are available in `supabase/migrations/`:
+
+1. **001_initial_schema.sql** - Core database schema (events, profiles, bookings, tickets, etc.)
+2. **002_fix_event_groups_rls.sql** - Fixes RLS policies for event groups
+3. **003_add_ticket_auto_generation.sql** - Auto-generates tickets on booking confirmation
+4. **004_fix_admin_profile_update.sql** - Allows admins to approve host requests
+5. **005_auto_delete_expired_event_groups.sql** - Auto-deletes event group chats when events end
+
+### Setting Up Auto-Delete for Expired Event Groups
+
+Migration 005 creates a function to delete expired event group chats. To enable automatic daily cleanup:
+
+1. **Enable pg_cron extension** (Supabase Dashboard → Database → Extensions)
+2. **Run this SQL** (Dashboard → SQL Editor):
+   ```sql
+   SELECT cron.schedule(
+     'delete-expired-event-groups',
+     '0 2 * * *', -- Run daily at 2 AM UTC
+     $$SELECT delete_expired_event_groups()$$
+   );
    ```
+
+To manually trigger cleanup at any time:
+```sql
+SELECT delete_expired_event_groups();
+```
 
 ## Option 3: Manual Table Creation
 

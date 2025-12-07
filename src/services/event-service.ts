@@ -24,6 +24,7 @@ export async function getEvents(filters?: EventFilters, page = 1, pageSize = 20)
     )
     .eq('is_published', true)
     .eq('is_cancelled', false)
+    .gte('end_date', new Date().toISOString()) // Hide expired events
     .order('start_date', { ascending: true });
 
   // Apply filters
@@ -252,6 +253,7 @@ export async function searchEvents(query: string, limit = 20) {
     )
     .eq('is_published', true)
     .eq('is_cancelled', false)
+    .gte('end_date', new Date().toISOString()) // Hide expired events
     .or(`title.ilike.%${query}%,description.ilike.%${query}%,location_name.ilike.%${query}%`)
     .order('start_date', { ascending: true })
     .limit(limit);

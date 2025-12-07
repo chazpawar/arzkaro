@@ -44,17 +44,22 @@ export default function ProfileTab() {
     try {
       const oldRole = role;
       await refreshProfile();
-      
+
       // Show alert if role changed
       if (role !== oldRole) {
-        Alert.alert(
-          '🎉 Role Updated!',
-          `Your role has been changed to: ${role.toUpperCase()}`,
-          [{ text: 'OK' }]
-        );
+        Alert.alert('🎉 Role Updated!', `Your role has been changed to: ${role.toUpperCase()}`, [
+          { text: 'OK' },
+        ]);
       }
-      
-      console.log('✅ Profile refreshed! Current role:', role, 'isAdmin:', isAdmin, 'isHost:', isHost);
+
+      console.log(
+        '✅ Profile refreshed! Current role:',
+        role,
+        'isAdmin:',
+        isAdmin,
+        'isHost:',
+        isHost
+      );
     } catch (error) {
       console.error('Error refreshing profile:', error);
       Alert.alert('Error', 'Failed to refresh profile. Please try again.');
@@ -103,17 +108,6 @@ export default function ProfileTab() {
     { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
   ];
 
-  // DEBUG: Add debug screen (remove after debugging)
-  if (__DEV__) {
-    menuItems.unshift({
-      icon: 'bug-outline',
-      label: '🐛 Debug Profile',
-      route: '/debug-profile',
-      badge: 'DEV',
-      showArrow: true,
-    });
-  }
-
   // Add admin panel if user is admin
   if (isAdmin) {
     menuItems.splice(2, 0, {
@@ -152,7 +146,6 @@ export default function ProfileTab() {
                 | `/support`
                 | `/admin/dashboard`
                 | `/host/dashboard`
-                | `/debug-profile`
             )
           : item.action?.()
       }

@@ -23,9 +23,10 @@ export default function TicketsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
 
   // Fetch tickets from backend
-  const { validTickets, refresh } = useTickets(user?.id);
+  const { validTickets, usedTickets, expiredTickets, refresh } = useTickets(user?.id);
   const [refreshing, setRefreshing] = useState(false);
 
   // Refresh on focus
@@ -43,7 +44,21 @@ export default function TicketsTab() {
     setRefreshing(false);
   };
 
-  const filteredTickets = validTickets.filter((ticket) =>
+  // Get current tickets based on active tab
+  const getCurrentTickets = () => {
+    switch (activeTab) {
+      case 'valid':
+        return validTickets;
+      case 'used':
+        return usedTickets;
+      case 'expired':
+        return expiredTickets;
+      default:
+        return validTickets;
+    }
+  };
+
+  const filteredTickets = getCurrentTickets().filter((ticket) =>
     ticket.event?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -65,7 +80,7 @@ export default function TicketsTab() {
           </View>
           <Text style={styles.emptyTitle}>Sign In to View Tickets</Text>
           <Text style={styles.emptyText}>
-            Sign in to access your tickets and get QR codes for event entry.
+            Sign in to access your tickets and manage your event bookings.
           </Text>
           <Pressable style={styles.signInButton} onPress={() => router.push('/')}>
             <Text style={styles.signInButtonText}>Sign In</Text>
@@ -99,8 +114,30 @@ export default function TicketsTab() {
     const event = item.event;
     if (!event) return null;
 
+    // Status badge
+    const getStatusBadge = () => {
+      switch (item.status) {
+        case 'used':
+          return { text: 'Used', color: Colors.success };
+        case 'expired':
+        case 'cancelled':
+          return { text: 'Expired', color: Colors.error };
+        default:
+          return null;
+      }
+    };
+
+    const statusBadge = getStatusBadge();
+
     return (
       <View style={styles.ticketCard}>
+        {/* Status Badge */}
+        {statusBadge && (
+          <View style={[styles.statusBadge, { backgroundColor: statusBadge.color }]}>
+            <Text style={styles.statusBadgeText}>{statusBadge.text}</Text>
+          </View>
+        )}
+
         {/* Card Header - Event Info */}
         <View style={styles.ticketHeader}>
           <Text style={styles.ticketTitle}>{event.title}</Text>
@@ -164,6 +201,49 @@ export default function TicketsTab() {
         </View>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabsContainer}>
+        <Pressable
+          style={[styles.tab, activeTab === 'valid' && styles.tabActive]}
+          onPress={() => setActiveTab('valid')}
+        >
+          <Text style={[styles.tabText, activeTab === 'valid' && styles.tabTextActive]}>
+            Active
+          </Text>
+          {validTickets.length > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{validTickets.length}</Text>
+            </View>
+          )}
+        </Pressable>
+
+        <Pressable
+          style={[styles.tab, activeTab === 'used' && styles.tabActive]}
+          onPress={() => setActiveTab('used')}
+        >
+          <Text style={[styles.tabText, activeTab === 'used' && styles.tabTextActive]}>Used</Text>
+          {usedTickets.length > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{usedTickets.length}</Text>
+            </View>
+          )}
+        </Pressable>
+
+        <Pressable
+          style={[styles.tab, activeTab === 'expired' && styles.tabActive]}
+          onPress={() => setActiveTab('expired')}
+        >
+          <Text style={[styles.tabText, activeTab === 'expired' && styles.tabTextActive]}>
+            Expired
+          </Text>
+          {expiredTickets.length > 0 && (
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>{expiredTickets.length}</Text>
+            </View>
+          )}
+        </Pressable>
+      </View>
+
       {/* Tickets List */}
       <FlatList
         data={filteredTickets}
@@ -183,14 +263,25 @@ export default function TicketsTab() {
             <View style={styles.emptyIconContainer}>
               <Ionicons name="ticket-outline" size={48} color={Colors.textTertiary} />
             </View>
-            <Text style={styles.emptyTitle}>No Tickets Yet</Text>
-            <Text style={styles.emptyText}>
-              Book an event to get your digital tickets here. Your QR code tickets will appear on
-              this screen.
+            <Text style={styles.emptyTitle}>
+              {activeTab === 'valid' && 'No Active Tickets'}
+              {activeTab === 'used' && 'No Used Tickets'}
+              {activeTab === 'expired' && 'No Expired Tickets'}
             </Text>
-            <Pressable style={styles.exploreButton} onPress={() => router.push('/(tabs)/explore')}>
-              <Text style={styles.exploreButtonText}>Explore Events</Text>
-            </Pressable>
+            <Text style={styles.emptyText}>
+              {activeTab === 'valid' &&
+                'Book an event to get your digital tickets here. Your tickets will appear on this screen.'}
+              {activeTab === 'used' && 'Tickets you have used for events will appear here.'}
+              {activeTab === 'expired' && 'Cancelled or expired tickets will appear here.'}
+            </Text>
+            {activeTab === 'valid' && (
+              <Pressable
+                style={styles.exploreButton}
+                onPress={() => router.push('/(tabs)/explore')}
+              >
+                <Text style={styles.exploreButtonText}>Explore Events</Text>
+              </Pressable>
+            )}
           </View>
         }
       />
@@ -244,6 +335,48 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
   },
+  tabsContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surfaceSecondary,
+    gap: Spacing.xs,
+  },
+  tabActive: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  tabTextActive: {
+    color: Colors.textInverse,
+  },
+  tabBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    minWidth: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textInverse,
+  },
   ticketsList: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xxl,
@@ -253,6 +386,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     overflow: 'hidden',
     marginBottom: Spacing.lg,
+    position: 'relative',
     ...Platform.select({
       ios: {
         shadowColor: Colors.primary,
@@ -264,6 +398,22 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
+  },
+  statusBadge: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+    zIndex: 10,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textInverse,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   ticketHeader: {
     padding: Spacing.md,

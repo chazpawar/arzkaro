@@ -149,8 +149,11 @@ export async function getUserTickets(userId: string) {
     .select(
       `
       *,
-      event:events(id, title, cover_image_url, start_date, end_date, location_name, location_address),
-      ticket_type:ticket_types(id, name, description)
+      event:events(id, title, cover_image_url, start_date, end_date, location_name, location_address,
+        host:profiles!host_id(id, full_name)
+      ),
+      ticket_type:ticket_types(id, name, description),
+      booking:bookings!inner(id, quantity, total_amount)
     `
     )
     .eq('user_id', userId)

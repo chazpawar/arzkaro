@@ -246,7 +246,7 @@ export async function approveHostRequest(
 
   const now = new Date().toISOString();
 
-  // Update the request
+  // Update the request - remove .single() to avoid coercion error
   const { data: updatedRequest, error: requestError } = await supabase
     .from('host_requests')
     .update({
@@ -256,15 +256,14 @@ export async function approveHostRequest(
       admin_notes: adminNotes || null,
     })
     .eq('id', requestId)
-    .select()
-    .single();
+    .select();
 
   if (requestError) {
     throw new Error(requestError.message);
   }
 
-  // Update the user's profile to make them a host
-  const { error: profileError } = await supabase
+  // Update the user's profile to make them a host - add .select() to verify update
+  const { data: updatedProfile, error: profileError } = await supabase
     .from('profiles')
     .update({
       role: 'host',
@@ -272,13 +271,19 @@ export async function approveHostRequest(
       host_approved_at: now,
       updated_at: now,
     })
-    .eq('id', (request as Record<string, string>).user_id);
+    .eq('id', (request as Record<string, string>).user_id)
+    .select();
 
   if (profileError) {
     throw new Error(profileError.message);
   }
 
-  return updatedRequest as HostRequest;
+  if (!updatedProfile || updatedProfile.length === 0) {
+    throw new Error('Failed to update user profile');
+  }
+
+  // Return the first (and only) updated request
+  return (updatedRequest && updatedRequest[0]) as HostRequest;
 }
 
 // Reject host request
@@ -296,14 +301,17 @@ export async function rejectHostRequest(
       admin_notes: adminNotes || null,
     })
     .eq('id', requestId)
-    .select()
-    .single();
+    .select();
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return data as HostRequest;
+  if (!data || data.length === 0) {
+    throw new Error('Host request not found or could not be updated');
+  }
+
+  return data[0] as HostRequest;
 }
 
 // Get recent activity (bookings, new users, etc.)

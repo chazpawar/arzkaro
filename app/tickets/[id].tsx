@@ -115,13 +115,17 @@ export default function TicketDetailsScreen() {
               <View style={styles.dashedCircleRight} />
             </View>
 
-            {/* Ticket Number Section */}
+            {/* Ticket ID Section */}
             <View style={styles.qrSection}>
               <View style={styles.ticketNumberContainer}>
-                <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
+                <Ionicons name="ticket" size={80} color={Colors.primary} />
               </View>
-              <Text style={styles.ticketCode}>{ticket.ticket_number}</Text>
-              <Text style={styles.qrHint}>Show this ticket number at the venue entrance</Text>
+              <Text style={styles.sectionTitle}>Your Ticket</Text>
+              <Text style={styles.ticketIdLabel}>TICKET ID</Text>
+              <Text style={styles.ticketCode}>{ticket.id}</Text>
+              <Text style={styles.qrHint}>
+                Show this Ticket ID at the venue entrance for verification
+              </Text>
             </View>
 
             {/* Dashed Line Separator */}
@@ -182,7 +186,8 @@ export default function TicketDetailsScreen() {
           <View style={styles.infoNote}>
             <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
             <Text style={styles.infoNoteText}>
-              Screenshot this ticket for offline access. Keep it handy for entry!
+              Screenshot this ticket for offline access. Show your Ticket ID to event staff for
+              entry verification.
             </Text>
           </View>
         </ScrollView>
@@ -288,7 +293,7 @@ const styles = StyleSheet.create({
   },
   qrSection: {
     alignItems: 'center',
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },
   ticketNumberContainer: {
@@ -297,22 +302,39 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     borderWidth: 2,
     borderColor: Colors.primary,
-    borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: Spacing.md,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  ticketIdLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textTertiary,
+    letterSpacing: 1,
+    marginBottom: Spacing.xs,
   },
   ticketCode: {
-    marginTop: Spacing.md,
-    fontSize: 16,
+    marginBottom: Spacing.sm,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
-    letterSpacing: 2,
+    letterSpacing: 1,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    textAlign: 'center',
+    paddingHorizontal: Spacing.md,
   },
   qrHint: {
     marginTop: Spacing.xs,
     fontSize: 13,
     color: Colors.textSecondary,
+    textAlign: 'center',
+    lineHeight: 18,
   },
   detailsSection: {
     padding: Spacing.lg,
