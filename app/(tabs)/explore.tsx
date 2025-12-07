@@ -76,21 +76,30 @@ export default function ExploreTab() {
     if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
-    // Category filter (for now, show all events regardless of category)
-    // You can add event_type or category field to events table later
+
+    // Category filter - map category to event type
+    const typeMap: Record<string, string> = {
+      events: 'event',
+      experiences: 'experience',
+      trips: 'trip',
+    };
+
+    const eventType = typeMap[selectedCategory];
+    if (eventType && event.type !== eventType) {
+      return false;
+    }
+
     return true;
   });
 
   const renderCategoryTab = (category: (typeof CATEGORIES)[0]) => {
     const isSelected = selectedCategory === category.id;
-    const isTrips = category.id === 'trips';
 
     return (
       <Pressable
         key={category.id}
         style={[styles.categoryTab, isSelected && styles.categoryTabSelected]}
-        onPress={() => !isTrips && setSelectedCategory(category.id)}
-        disabled={isTrips}
+        onPress={() => setSelectedCategory(category.id)}
       >
         <View
           style={[styles.categoryIconContainer, isSelected && styles.categoryIconContainerSelected]}
@@ -104,11 +113,6 @@ export default function ExploreTab() {
         <Text style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}>
           {category.label}
         </Text>
-        {isTrips && (
-          <View style={styles.comingSoonBadge}>
-            <Text style={styles.comingSoonText}>Soon</Text>
-          </View>
-        )}
       </Pressable>
     );
   };
@@ -363,20 +367,6 @@ const styles = StyleSheet.create({
   categoryLabelSelected: {
     color: Colors.text,
     fontWeight: '600',
-  },
-  comingSoonBadge: {
-    position: 'absolute',
-    top: 0,
-    right: -8,
-    backgroundColor: Colors.textTertiary,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  comingSoonText: {
-    fontSize: 9,
-    fontWeight: '600',
-    color: Colors.textInverse,
   },
   categoryDivider: {
     height: 1,

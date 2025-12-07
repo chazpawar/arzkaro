@@ -8,10 +8,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
@@ -19,6 +21,7 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as EventService from '../../src/services/event-service';
+import { HOST_TYPE_LABELS } from '../../src/services/host-service';
 
 type EventType = 'event' | 'experience' | 'trip';
 
@@ -84,8 +87,14 @@ const getCategoriesForType = (type: EventType): string[] => {
 
 export default function CreateEventScreen() {
   const router = useRouter();
-  const { user, isHost, isAdmin } = useAuth();
+  const { user, profile, isHost, isAdmin } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [checkingPermissions, setCheckingPermissions] = useState(true);
+  const [permissions, setPermissions] = useState<{
+    canCreateEvents: boolean;
+    canCreateTrips: boolean;
+    canCreateExperiences: boolean;
+  } | null>(null);
   const [step, setStep] = useState(1);
 
   // Form state
@@ -102,8 +111,42 @@ export default function CreateEventScreen() {
   const [maxCapacity, setMaxCapacity] = useState('');
   const [price, setPrice] = useState('0');
 
+  // Date picker state
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showStartTimePicker, setShowStartTimePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [showEndTimePicker, setShowEndTimePicker] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState(new Date());
+  const [tempEndDate, setTempEndDate] = useState(new Date());
+
   // Validation
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Load permissions on mount
+  React.useEffect(() => {
+    async function checkPermissions() {
+      if (!user?.id || (!isHost && !isAdmin)) {
+        setCheckingPermissions(false);
+        return;
+      }
+
+      try {
+        const perms = await EventService.getUserHostPermissions(user.id);
+        setPermissions(perms);
+      } catch (error) {
+        console.error('Error checking permissions:', error);
+        setPermissions({
+          canCreateEvents: false,
+          canCreateTrips: false,
+          canCreateExperiences: false,
+        });
+      } finally {
+        setCheckingPermissions(false);
+      }
+    }
+
+    checkPermissions();
+  }, [user?.id, isHost, isAdmin]);
 
   // Redirect non-hosts
   if (!isHost && !isAdmin) {
@@ -113,11 +156,7 @@ export default function CreateEventScreen() {
           <Text style={styles.notHostIcon}>🚫</Text>
           <Text style={styles.notHostTitle}>Host Access Required</Text>
           <Text style={styles.notHostText}>You need to be an approved host to create events.</Text>
-          <Button
-            title="Apply to Become a Host"
-            onPress={() => router.push('/host/request')}
-            variant="primary"
-          />
+          <Button title="View Profile" onPress={() => router.push('/profile')} variant="primary" />
           <Button
             title="Go Back"
             onPress={() => router.back()}
@@ -128,6 +167,99 @@ export default function CreateEventScreen() {
       </SafeAreaView>
     );
   }
+
+  // Loading permissions
+  if (checkingPermissions) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.notHostContainer}>
+          <Text style={styles.notHostText}>Checking permissions...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Date picker handlers
+  const handleStartDateChange = (event: any, selectedDate?: Date) => {
+    setShowStartDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setTempStartDate(selectedDate);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      setStartDate(dateStr);
+      // Clear error when date is selected
+      if (errors.startDate) {
+        setErrors({ ...errors, startDate: '' });
+      }
+    }
+  };
+
+  const handleStartTimeChange = (event: any, selectedTime?: Date) => {
+    setShowStartTimePicker(Platform.OS === 'ios');
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, '0');
+      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+      setStartTime(timeStr);
+      // Clear error when time is selected
+      if (errors.startTime) {
+        setErrors({ ...errors, startTime: '' });
+      }
+    }
+  };
+
+  const handleEndDateChange = (event: any, selectedDate?: Date) => {
+    setShowEndDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setTempEndDate(selectedDate);
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      setEndDate(dateStr);
+      // Clear error when date is selected
+      if (errors.endDate) {
+        setErrors({ ...errors, endDate: '' });
+      }
+    }
+  };
+
+  const handleEndTimeChange = (event: any, selectedTime?: Date) => {
+    setShowEndTimePicker(Platform.OS === 'ios');
+    if (selectedTime) {
+      const hours = selectedTime.getHours().toString().padStart(2, '0');
+      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+      const timeStr = `${hours}:${minutes}`;
+      setEndTime(timeStr);
+      // Clear error when time is selected
+      if (errors.endTime) {
+        setErrors({ ...errors, endTime: '' });
+      }
+    }
+  };
+
+  // Check specific event type permissions
+  const canCreateEventType = (type: EventType): boolean => {
+    if (isAdmin) return true;
+    if (!permissions) return false;
+
+    switch (type) {
+      case 'event':
+        return permissions.canCreateEvents;
+      case 'trip':
+        return permissions.canCreateTrips;
+      case 'experience':
+        return permissions.canCreateExperiences;
+      default:
+        return false;
+    }
+  };
+
+  const getPermissionMessage = (): string => {
+    if (isAdmin) return '';
+
+    const hostType = profile?.host_type;
+    if (hostType === 'activity') {
+      return 'As an Activity Host, you can only create Experiences. Upgrade to Full Host for Events and Trips.';
+    }
+    return '';
+  };
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -251,6 +383,16 @@ export default function CreateEventScreen() {
   const handleCreateEvent = async () => {
     if (!user?.id) return;
 
+    // Check permission before creating
+    if (!canCreateEventType(eventType)) {
+      Alert.alert(
+        'Permission Denied',
+        `You don't have permission to create ${eventType}s. ${getPermissionMessage()}`,
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+
     setLoading(true);
     try {
       // Combine date and time and validate
@@ -338,28 +480,61 @@ export default function CreateEventScreen() {
                 <Text style={styles.stepTitle}>Basic Information</Text>
                 <Text style={styles.stepDescription}>Tell us about your {eventType}</Text>
 
+                {/* Host Type Badge */}
+                {!isAdmin && profile?.host_type && (
+                  <Card style={styles.hostTypeBadgeCard} variant="outlined">
+                    <Text style={styles.hostTypeBadgeText}>
+                      Your Host Type: {HOST_TYPE_LABELS[profile.host_type]}
+                    </Text>
+                    {getPermissionMessage() && (
+                      <Text style={styles.permissionMessage}>{getPermissionMessage()}</Text>
+                    )}
+                  </Card>
+                )}
+
                 {/* Event Type Selection */}
                 <View style={styles.typeSelector}>
-                  {EVENT_TYPES.map((type) => (
-                    <Card
-                      key={type.value}
-                      style={[styles.typeCard, eventType === type.value && styles.typeCardSelected]}
-                      onPress={() => {
-                        setEventType(type.value);
-                        setCategory(''); // Reset category when type changes
-                      }}
-                    >
-                      <Text style={styles.typeEmoji}>{type.emoji}</Text>
-                      <Text
+                  {EVENT_TYPES.map((type) => {
+                    const hasPermission = canCreateEventType(type.value);
+                    return (
+                      <Card
+                        key={type.value}
                         style={[
-                          styles.typeLabel,
-                          eventType === type.value && styles.typeLabelSelected,
+                          styles.typeCard,
+                          eventType === type.value && styles.typeCardSelected,
+                          !hasPermission && styles.typeCardDisabled,
                         ]}
+                        onPress={() => {
+                          if (!hasPermission) {
+                            Alert.alert(
+                              'Permission Required',
+                              `You need Full Host access to create ${type.label}s.`,
+                              [{ text: 'OK' }]
+                            );
+                            return;
+                          }
+                          setEventType(type.value);
+                          setCategory(''); // Reset category when type changes
+                        }}
                       >
-                        {type.label}
-                      </Text>
-                    </Card>
-                  ))}
+                        <Text
+                          style={[styles.typeEmoji, !hasPermission && styles.typeEmojiDisabled]}
+                        >
+                          {type.emoji}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.typeLabel,
+                            eventType === type.value && styles.typeLabelSelected,
+                            !hasPermission && styles.typeLabelDisabled,
+                          ]}
+                        >
+                          {type.label}
+                        </Text>
+                        {!hasPermission && <Text style={styles.typeLockedIcon}>🔒</Text>}
+                      </Card>
+                    );
+                  })}
                 </View>
 
                 <Input
@@ -450,23 +625,45 @@ export default function CreateEventScreen() {
                   <View style={styles.dateTimeRow}>
                     <View style={styles.dateTimeInput}>
                       <Text style={styles.dateTimeLabel}>Date</Text>
-                      <Input
-                        placeholder="YYYY-MM-DD"
-                        value={startDate}
-                        onChangeText={setStartDate}
-                        error={errors.startDate}
-                      />
-                      <Text style={styles.dateExample}>e.g., 2025-12-25</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.datePickerButton,
+                          errors.startDate && styles.datePickerError,
+                        ]}
+                        onPress={() => setShowStartDatePicker(true)}
+                      >
+                        <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                        <Text
+                          style={[
+                            styles.datePickerText,
+                            !startDate && styles.datePickerPlaceholder,
+                          ]}
+                        >
+                          {startDate || 'Select Date'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
                     </View>
                     <View style={styles.dateTimeInput}>
                       <Text style={styles.dateTimeLabel}>Time</Text>
-                      <Input
-                        placeholder="HH:MM"
-                        value={startTime}
-                        onChangeText={setStartTime}
-                        error={errors.startTime}
-                      />
-                      <Text style={styles.dateExample}>e.g., 14:30</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.datePickerButton,
+                          errors.startTime && styles.datePickerError,
+                        ]}
+                        onPress={() => setShowStartTimePicker(true)}
+                      >
+                        <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                        <Text
+                          style={[
+                            styles.datePickerText,
+                            !startTime && styles.datePickerPlaceholder,
+                          ]}
+                        >
+                          {startTime || 'Select Time'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
                     </View>
                   </View>
 
@@ -475,25 +672,71 @@ export default function CreateEventScreen() {
                   <View style={styles.dateTimeRow}>
                     <View style={styles.dateTimeInput}>
                       <Text style={styles.dateTimeLabel}>Date</Text>
-                      <Input
-                        placeholder="YYYY-MM-DD"
-                        value={endDate}
-                        onChangeText={setEndDate}
-                        error={errors.endDate}
-                      />
-                      <Text style={styles.dateExample}>e.g., 2025-12-25</Text>
+                      <TouchableOpacity
+                        style={[styles.datePickerButton, errors.endDate && styles.datePickerError]}
+                        onPress={() => setShowEndDatePicker(true)}
+                      >
+                        <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                        <Text
+                          style={[styles.datePickerText, !endDate && styles.datePickerPlaceholder]}
+                        >
+                          {endDate || 'Select Date'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
                     </View>
                     <View style={styles.dateTimeInput}>
                       <Text style={styles.dateTimeLabel}>Time</Text>
-                      <Input
-                        placeholder="HH:MM"
-                        value={endTime}
-                        onChangeText={setEndTime}
-                        error={errors.endTime}
-                      />
-                      <Text style={styles.dateExample}>e.g., 18:00</Text>
+                      <TouchableOpacity
+                        style={[styles.datePickerButton, errors.endTime && styles.datePickerError]}
+                        onPress={() => setShowEndTimePicker(true)}
+                      >
+                        <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                        <Text
+                          style={[styles.datePickerText, !endTime && styles.datePickerPlaceholder]}
+                        >
+                          {endTime || 'Select Time'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.endTime && <Text style={styles.errorText}>{errors.endTime}</Text>}
                     </View>
                   </View>
+
+                  {/* Date Time Pickers */}
+                  {showStartDatePicker && (
+                    <DateTimePicker
+                      value={tempStartDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleStartDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                  {showStartTimePicker && (
+                    <DateTimePicker
+                      value={tempStartDate}
+                      mode="time"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleStartTimeChange}
+                    />
+                  )}
+                  {showEndDatePicker && (
+                    <DateTimePicker
+                      value={tempEndDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleEndDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                  {showEndTimePicker && (
+                    <DateTimePicker
+                      value={tempEndDate}
+                      mode="time"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleEndTimeChange}
+                    />
+                  )}
 
                   {/* Helper Info */}
                   <View style={styles.helperCard}>
@@ -688,9 +931,16 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     backgroundColor: Colors.primaryLight,
   },
+  typeCardDisabled: {
+    opacity: 0.5,
+    backgroundColor: Colors.surfaceSecondary,
+  },
   typeEmoji: {
     fontSize: 28,
     marginBottom: Spacing.xs,
+  },
+  typeEmojiDisabled: {
+    opacity: 0.4,
   },
   typeLabel: {
     ...Typography.bodySmall,
@@ -699,6 +949,29 @@ const styles = StyleSheet.create({
   typeLabelSelected: {
     color: Colors.primary,
     fontWeight: '600',
+  },
+  typeLabelDisabled: {
+    color: Colors.textTertiary,
+  },
+  typeLockedIcon: {
+    fontSize: 16,
+    marginTop: Spacing.xs,
+  },
+  hostTypeBadgeCard: {
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    backgroundColor: Colors.infoLight,
+    borderColor: Colors.info,
+  },
+  hostTypeBadgeText: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  permissionMessage: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
   },
   inputLabel: {
     ...Typography.bodyMedium,
@@ -855,6 +1128,27 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
     fontWeight: '500',
+  },
+  datePickerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  datePickerError: {
+    borderColor: Colors.error,
+  },
+  datePickerText: {
+    ...Typography.body,
+    color: Colors.text,
+    flex: 1,
+  },
+  datePickerPlaceholder: {
+    color: Colors.textTertiary,
   },
   dateExample: {
     ...Typography.caption,

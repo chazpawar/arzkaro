@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   RefreshControl,
   Pressable,
   Image,
@@ -20,29 +21,10 @@ import { Colors } from '../../src/constants/colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
+import { HOST_TYPE_LABELS } from '../../src/services/host-service';
+import type { HostRequestWithUser } from '../../src/types/host.types';
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
-
-interface HostRequestWithUser {
-  id: string;
-  user_id: string;
-  reason: string;
-  business_name: string | null;
-  business_type: string | null;
-  status: 'pending' | 'approved' | 'rejected';
-  reviewed_by: string | null;
-  reviewed_at: string | null;
-  admin_notes: string | null;
-  created_at: string;
-  user?: {
-    id: string;
-    full_name: string | null;
-    email: string;
-    avatar_url: string | null;
-    username: string | null;
-    created_at: string;
-  };
-}
 
 export default function HostRequestsPage() {
   const { user } = useAuth();
@@ -142,19 +124,25 @@ export default function HostRequestsPage() {
     if (!selectedRequest || !user?.id) return;
 
     if (!adminNotes.trim()) {
-      Alert.alert('Required', 'Please provide a reason for rejection');
+      Alert.alert('Required', 'Please provide a rejection reason');
       return;
     }
 
     setActionLoading(true);
     try {
-      await AdminService.rejectHostRequest(selectedRequest.id, user.id, adminNotes);
+      // Use adminNotes as rejection_reason
+      await AdminService.rejectHostRequest(selectedRequest.id, user.id, adminNotes, adminNotes);
 
       // Update local state
       setRequests((prev) =>
         prev.map((r) =>
           r.id === selectedRequest.id
-            ? { ...r, status: 'rejected' as const, admin_notes: adminNotes }
+            ? {
+                ...r,
+                status: 'rejected' as const,
+                rejection_reason: adminNotes,
+                admin_notes: adminNotes,
+              }
             : r
         )
       );
@@ -233,21 +221,18 @@ export default function HostRequestsPage() {
           </View>
         </View>
 
-        {item.business_name && (
-          <View style={styles.businessInfo}>
-            <Text style={styles.businessLabel}>Business</Text>
-            <Text style={styles.businessValue}>
-              {item.business_name}
-              {item.business_type ? ` (${item.business_type})` : ''}
+        {/* Host Type Badge */}
+        <View style={styles.hostTypeContainer}>
+          <View style={styles.hostTypeBadge}>
+            <Text style={styles.hostTypeText}>
+              {item.requested_host_type ? HOST_TYPE_LABELS[item.requested_host_type] : 'Host'}
             </Text>
           </View>
-        )}
-
-        <View style={styles.reasonSection}>
-          <Text style={styles.reasonLabel}>Reason for Application</Text>
-          <Text style={styles.reasonText} numberOfLines={3}>
-            {item.reason}
-          </Text>
+          {item.organizer_name && (
+            <Text style={styles.organizerName} numberOfLines={1}>
+              {item.organizer_name}
+            </Text>
+          )}
         </View>
 
         <View style={styles.requestFooter}>
@@ -366,7 +351,11 @@ export default function HostRequestsPage() {
           </View>
 
           {selectedRequest && (
-            <View style={styles.modalContent}>
+            <ScrollView
+              style={styles.modalContent}
+              contentContainerStyle={styles.modalContentContainer}
+              showsVerticalScrollIndicator={false}
+            >
               {/* Applicant Info */}
               <View style={styles.applicantSection}>
                 {selectedRequest.user?.avatar_url ? (
@@ -392,32 +381,132 @@ export default function HostRequestsPage() {
                 )}
               </View>
 
-              {/* Business Info */}
-              {selectedRequest.business_name && (
+              {/* Host Type */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Host Type</Text>
+                <View style={[styles.hostTypeBadge, styles.hostTypeBadgeLarge]}>
+                  <Text style={[styles.hostTypeText, styles.hostTypeTextLarge]}>
+                    {selectedRequest.requested_host_type
+                      ? HOST_TYPE_LABELS[selectedRequest.requested_host_type]
+                      : 'Host'}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Personal Info */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Personal Information</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Organizer Name:</Text>
+                  <Text style={styles.infoValue}>{selectedRequest.organizer_name}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Contact:</Text>
+                  <Text style={styles.infoValue}>{selectedRequest.contact_number}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Email:</Text>
+                  <Text style={styles.infoValue}>{selectedRequest.email}</Text>
+                </View>
+              </View>
+
+              {/* Address */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Address</Text>
+                <Text style={styles.modalSectionText}>
+                  {selectedRequest.street_address}, {selectedRequest.city},{'\n'}
+                  {selectedRequest.state} - {selectedRequest.pin_code}
+                </Text>
+              </View>
+
+              {/* KYC Documents */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>KYC Documents</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>PAN Number:</Text>
+                  <Text style={[styles.infoValue, styles.infoValueBold]}>
+                    {selectedRequest.pan_number}
+                  </Text>
+                </View>
+                {selectedRequest.pan_card_photo_url && (
+                  <Pressable
+                    onPress={() =>
+                      Alert.alert('PAN Card', selectedRequest.pan_card_photo_url || '')
+                    }
+                  >
+                    <Text style={styles.linkText}>View PAN Card Photo →</Text>
+                  </Pressable>
+                )}
+                {selectedRequest.gstin && (
+                  <>
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>GSTIN:</Text>
+                      <Text style={[styles.infoValue, styles.infoValueBold]}>
+                        {selectedRequest.gstin}
+                      </Text>
+                    </View>
+                    {selectedRequest.gst_certificate_url && (
+                      <Pressable
+                        onPress={() =>
+                          Alert.alert('GST Certificate', selectedRequest.gst_certificate_url || '')
+                        }
+                      >
+                        <Text style={styles.linkText}>View GST Certificate →</Text>
+                      </Pressable>
+                    )}
+                  </>
+                )}
+              </View>
+
+              {/* Bank Details */}
+              <View style={styles.modalSection}>
+                <Text style={styles.modalSectionTitle}>Bank Details</Text>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Account Holder:</Text>
+                  <Text style={styles.infoValue}>{selectedRequest.account_holder_name}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Beneficiary:</Text>
+                  <Text style={styles.infoValue}>{selectedRequest.beneficiary_name}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>Account Number:</Text>
+                  <Text style={[styles.infoValue, styles.infoValueBold]}>
+                    {selectedRequest.account_number}
+                  </Text>
+                </View>
+                <View style={styles.infoRow}>
+                  <Text style={styles.infoLabel}>IFSC Code:</Text>
+                  <Text style={[styles.infoValue, styles.infoValueBold]}>
+                    {selectedRequest.ifsc_code}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Rejection Reason (if rejected) */}
+              {selectedRequest.status === 'rejected' && selectedRequest.rejection_reason && (
                 <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>Business Information</Text>
-                  <Text style={styles.modalSectionText}>
-                    {selectedRequest.business_name}
-                    {selectedRequest.business_type ? ` (${selectedRequest.business_type})` : ''}
+                  <Text style={styles.modalSectionTitle}>Rejection Reason</Text>
+                  <Text style={[styles.modalSectionText, { color: Colors.error }]}>
+                    {selectedRequest.rejection_reason}
                   </Text>
                 </View>
               )}
 
-              {/* Reason */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Reason for Application</Text>
-                <Text style={styles.modalSectionText}>{selectedRequest.reason}</Text>
-              </View>
-
-              {/* Admin Notes */}
+              {/* Admin Notes / Rejection Reason */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>
-                  Admin Notes{' '}
-                  {selectedRequest.status === 'pending' ? '(optional for approval)' : ''}
+                  {selectedRequest.status === 'pending'
+                    ? 'Admin Notes / Rejection Reason'
+                    : 'Admin Notes'}
                 </Text>
                 <TextInput
                   style={styles.notesInput}
-                  placeholder="Add notes about this application..."
+                  placeholder={
+                    selectedRequest.status === 'pending'
+                      ? 'Optional for approval. Required for rejection.'
+                      : 'Notes about this application...'
+                  }
                   placeholderTextColor={Colors.textSecondary}
                   value={adminNotes}
                   onChangeText={setAdminNotes}
@@ -459,7 +548,7 @@ export default function HostRequestsPage() {
                   </Text>
                 </View>
               )}
-            </View>
+            </ScrollView>
           )}
         </SafeAreaView>
       </Modal>
@@ -587,6 +676,59 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.text,
   },
+  hostTypeContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    gap: Spacing.sm,
+  },
+  hostTypeBadge: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.sm,
+  },
+  hostTypeBadgeLarge: {
+    alignSelf: 'flex-start',
+  },
+  hostTypeText: {
+    ...Typography.caption,
+    color: Colors.textInverse,
+    fontWeight: '600',
+  },
+  hostTypeTextLarge: {
+    ...Typography.bodySmall,
+  },
+  organizerName: {
+    ...Typography.bodySmall,
+    color: Colors.text,
+    flex: 1,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    marginBottom: Spacing.xs,
+  },
+  infoLabel: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    width: 140,
+  },
+  infoValue: {
+    ...Typography.bodySmall,
+    color: Colors.text,
+    flex: 1,
+  },
+  infoValueBold: {
+    fontWeight: '600',
+    fontFamily: 'monospace',
+  },
+  linkText: {
+    ...Typography.bodySmall,
+    color: Colors.primary,
+    textDecorationLine: 'underline',
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
+  },
   requestFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -665,7 +807,10 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     flex: 1,
+  },
+  modalContentContainer: {
     padding: Spacing.lg,
+    paddingBottom: Spacing.xl * 2, // Extra padding at bottom for action buttons
   },
   applicantSection: {
     alignItems: 'center',

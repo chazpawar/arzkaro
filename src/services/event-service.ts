@@ -7,10 +7,142 @@ import type {
   TicketType,
   CreateTicketType,
 } from '../types';
+import type { EventCreationPermission } from '../types/host.types';
 
 /**
  * Event Service - Handles all event-related database operations
  */
+
+// ========================================
+// PERMISSION CHECKING FUNCTIONS
+// ========================================
+
+/**
+ * Check if user can create a specific event type
+ */
+export async function canUserCreateEventType(
+  userId: string,
+  eventType: 'event' | 'trip' | 'experience'
+): Promise<EventCreationPermission> {
+  // Call database function for permission check
+  const { data, error } = await supabase.rpc('can_user_create_event_type', {
+    p_user_id: userId,
+    p_event_type: eventType,
+  });
+
+  if (error) {
+    return {
+      canCreate: false,
+      reason: 'Failed to check permissions',
+      suggestedAction: 'Please try again or contact support',
+    };
+  }
+
+  const canCreate = data as boolean;
+
+  if (canCreate) {
+    return { canCreate: true };
+  }
+
+  // Get user's profile to provide specific error message
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, host_type, is_host_approved')
+    .eq('id', userId)
+    .single();
+
+  if (!profile) {
+    return {
+      canCreate: false,
+      reason: 'User profile not found',
+      suggestedAction: 'Please sign in again',
+    };
+  }
+
+  const { role, host_type, is_host_approved } = profile as {
+    role: string;
+    host_type: string | null;
+    is_host_approved: boolean;
+  };
+
+  // Provide specific feedback based on user's current status
+  if (role === 'user') {
+    return {
+      canCreate: false,
+      reason: 'You need host access to create events',
+      suggestedAction: 'Apply for host access from your profile',
+    };
+  }
+
+  if (role === 'host' && !is_host_approved) {
+    return {
+      canCreate: false,
+      reason: 'Your host request is pending approval',
+      suggestedAction: 'Please wait for admin approval',
+    };
+  }
+
+  if (role === 'host' && host_type === 'activity' && eventType !== 'experience') {
+    return {
+      canCreate: false,
+      reason: 'Activity hosts can only create activities',
+      suggestedAction:
+        eventType === 'event'
+          ? 'Apply for Full Host access to create Events'
+          : 'Apply for Full Host access to create Trips',
+    };
+  }
+
+  return {
+    canCreate: false,
+    reason: 'Insufficient permissions',
+    suggestedAction: 'Contact support for assistance',
+  };
+}
+
+/**
+ * Get user's host permissions summary
+ */
+export async function getUserHostPermissions(userId: string) {
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, host_type, is_host_approved')
+    .eq('id', userId)
+    .single();
+
+  if (!profile) {
+    return {
+      canCreateEvents: false,
+      canCreateTrips: false,
+      canCreateExperiences: false,
+      hostType: null,
+      isApproved: false,
+    };
+  }
+
+  const { role, host_type, is_host_approved } = profile as {
+    role: string;
+    host_type: string | null;
+    is_host_approved: boolean;
+  };
+
+  const isAdmin = role === 'admin';
+  const isFullHost = role === 'host' && host_type === 'full' && is_host_approved;
+  const isActivityHost = role === 'host' && host_type === 'activity' && is_host_approved;
+
+  return {
+    canCreateEvents: isAdmin || isFullHost,
+    canCreateTrips: isAdmin || isFullHost,
+    canCreateExperiences: isAdmin || isFullHost || isActivityHost,
+    hostType: host_type,
+    isApproved: is_host_approved,
+    role,
+  };
+}
+
+// ========================================
+// EVENT CRUD OPERATIONS
+// ========================================
 
 // Fetch published events with optional filters
 export async function getEvents(filters?: EventFilters, page = 1, pageSize = 20) {

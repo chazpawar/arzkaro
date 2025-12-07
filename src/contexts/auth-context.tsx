@@ -120,6 +120,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               username: user.user_metadata?.preferred_username || user.email?.split('@')[0] || null,
               avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
               role: 'user' as UserRole,
+              host_type: null,
               is_host_approved: false,
               is_public: true,
             };

@@ -1,6 +1,7 @@
 // User and Profile Types
 
 export type UserRole = 'user' | 'host' | 'admin';
+export type HostType = 'full' | 'activity';
 
 export interface Profile {
   id: string;
@@ -11,6 +12,7 @@ export interface Profile {
   avatar_url: string | null;
   phone: string | null;
   role: UserRole;
+  host_type: HostType | null;
   is_host_approved: boolean;
   host_requested_at: string | null;
   host_approved_at: string | null;

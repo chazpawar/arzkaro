@@ -1,5 +1,9 @@
 import { supabase } from '../../backend/supabase';
-import type { Profile, HostRequest } from '../types/user.types';
+import type { Profile } from '../types/user.types';
+import type {
+  HostRequest,
+  HostRequestWithUser as HostRequestWithUserType,
+} from '../types/host.types';
 
 /**
  * Admin Service - Handles admin-specific operations
@@ -24,9 +28,8 @@ export interface UserWithDetails extends Profile {
   };
 }
 
-export interface HostRequestWithUser extends HostRequest {
-  user?: Profile;
-}
+// Re-export for backward compatibility
+export type HostRequestWithUser = HostRequestWithUserType;
 
 // Check if user is admin
 export async function isAdmin(userId: string): Promise<boolean> {
@@ -227,91 +230,80 @@ export async function getHostRequests(options: {
   };
 }
 
-// Approve host request
+// Approve host request (UPDATED for multi-tier host system)
 export async function approveHostRequest(
   requestId: string,
   adminId: string,
   adminNotes?: string
 ): Promise<HostRequest> {
-  // Get the request first to find the user
-  const { data: request, error: fetchError } = await supabase
-    .from('host_requests')
-    .select('user_id')
-    .eq('id', requestId)
-    .single();
-
-  if (fetchError || !request) {
-    throw new Error('Host request not found');
-  }
-
-  const now = new Date().toISOString();
-
-  // Update the request - remove .single() to avoid coercion error
-  const { data: updatedRequest, error: requestError } = await supabase
-    .from('host_requests')
-    .update({
-      status: 'approved',
-      reviewed_by: adminId,
-      reviewed_at: now,
-      admin_notes: adminNotes || null,
-    })
-    .eq('id', requestId)
-    .select();
-
-  if (requestError) {
-    throw new Error(requestError.message);
-  }
-
-  // Update the user's profile to make them a host - add .select() to verify update
-  const { data: updatedProfile, error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      role: 'host',
-      is_host_approved: true,
-      host_approved_at: now,
-      updated_at: now,
-    })
-    .eq('id', (request as Record<string, string>).user_id)
-    .select();
-
-  if (profileError) {
-    throw new Error(profileError.message);
-  }
-
-  if (!updatedProfile || updatedProfile.length === 0) {
-    throw new Error('Failed to update user profile');
-  }
-
-  // Return the first (and only) updated request
-  return (updatedRequest && updatedRequest[0]) as HostRequest;
-}
-
-// Reject host request
-export async function rejectHostRequest(
-  requestId: string,
-  adminId: string,
-  adminNotes?: string
-): Promise<HostRequest> {
-  const { data, error } = await supabase
-    .from('host_requests')
-    .update({
-      status: 'rejected',
-      reviewed_by: adminId,
-      reviewed_at: new Date().toISOString(),
-      admin_notes: adminNotes || null,
-    })
-    .eq('id', requestId)
-    .select();
+  // Use database function for atomic approval
+  const { data, error } = await supabase.rpc('approve_host_request', {
+    p_request_id: requestId,
+    p_admin_id: adminId,
+    p_admin_notes: adminNotes || null,
+  });
 
   if (error) {
     throw new Error(error.message);
   }
 
-  if (!data || data.length === 0) {
-    throw new Error('Host request not found or could not be updated');
+  // Check if approval succeeded
+  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  if (!result || result.length === 0 || !result[0].success) {
+    throw new Error(result?.[0]?.message || 'Failed to approve host request');
   }
 
-  return data[0] as HostRequest;
+  // Fetch and return the updated request
+  const { data: request, error: fetchError } = await supabase
+    .from('host_requests')
+    .select('*')
+    .eq('id', requestId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  return request as HostRequest;
+}
+
+// Reject host request (UPDATED for multi-tier host system)
+export async function rejectHostRequest(
+  requestId: string,
+  adminId: string,
+  rejectionReason: string,
+  adminNotes?: string
+): Promise<HostRequest> {
+  // Use database function for rejection
+  const { data, error } = await supabase.rpc('reject_host_request', {
+    p_request_id: requestId,
+    p_admin_id: adminId,
+    p_rejection_reason: rejectionReason,
+    p_admin_notes: adminNotes || null,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  // Check if rejection succeeded
+  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  if (!result || result.length === 0 || !result[0].success) {
+    throw new Error(result?.[0]?.message || 'Failed to reject host request');
+  }
+
+  // Fetch and return the updated request
+  const { data: request, error: fetchError } = await supabase
+    .from('host_requests')
+    .select('*')
+    .eq('id', requestId)
+    .single();
+
+  if (fetchError) {
+    throw new Error(fetchError.message);
+  }
+
+  return request as HostRequest;
 }
 
 // Get recent activity (bookings, new users, etc.)
