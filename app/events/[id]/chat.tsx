@@ -16,9 +16,9 @@ import { Ionicons } from '@expo/vector-icons';
 import MessageBubble from '../../../src/components/chat/message-bubble';
 import ChatInput from '../../../src/components/chat/chat-input';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
-import Button from '../../../src/components/ui/button';
-import { Colors } from '../../../src/constants/colors';
-import { Spacing, Typography, BorderRadius } from '../../../src/constants/styles';
+import EmptyState from '../../../src/components/ui/empty-state';
+import { Colors } from '../../../src/constants/Colors';
+import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import { useGroupChat } from '../../../src/hooks/use-chat';
 import * as ChatService from '../../../src/services/chat-service';
@@ -119,12 +119,15 @@ export default function EventChatScreen() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>🔒</Text>
-          <Text style={styles.emptyTitle}>Sign In Required</Text>
-          <Text style={styles.emptyText}>Please sign in to access the group chat.</Text>
-          <Button title="Sign In" onPress={() => router.push('/')} variant="primary" />
-        </View>
+        <EmptyState
+          title="Sign In Required"
+          emoji="🔒"
+          message="Please sign in to access the group chat."
+          action={{
+            label: 'Sign In',
+            onPress: () => router.push('/'),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -138,12 +141,15 @@ export default function EventChatScreen() {
   if (!groupId) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyIcon}>💬</Text>
-          <Text style={styles.emptyTitle}>Chat Not Available</Text>
-          <Text style={styles.emptyText}>The group chat for this event is not available yet.</Text>
-          <Button title="Go Back" onPress={() => router.back()} variant="secondary" />
-        </View>
+        <EmptyState
+          title="Chat Not Available"
+          emoji="💬"
+          message="The group chat for this event is not available yet."
+          action={{
+            label: 'Go Back',
+            onPress: () => router.back(),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -159,20 +165,15 @@ export default function EventChatScreen() {
           }}
         />
         <SafeAreaView style={styles.container}>
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>🎟️</Text>
-            <Text style={styles.emptyTitle}>Join to Chat</Text>
-            <Text style={styles.emptyText}>
-              Book a ticket for this event to join the group chat and connect with other attendees.
-            </Text>
-            <Button
-              title="Book Tickets"
-              onPress={() => router.push(`/events/${eventId}/book`)}
-              variant="primary"
-              style={{ marginBottom: Spacing.md }}
-            />
-            <Button title="Go Back" onPress={() => router.back()} variant="ghost" />
-          </View>
+          <EmptyState
+            title="Join to Chat"
+            emoji="🎟️"
+            message="Book a ticket for this event to join the group chat and connect with other attendees."
+            action={{
+              label: 'Book Tickets',
+              onPress: () => router.push(`/events/${eventId}/book`),
+            }}
+          />
         </SafeAreaView>
       </>
     );
@@ -229,10 +230,11 @@ export default function EventChatScreen() {
 
           {/* Messages List */}
           {messages.length === 0 ? (
-            <View style={styles.emptyMessagesContainer}>
-              <Text style={styles.emptyMessagesIcon}>👋</Text>
-              <Text style={styles.emptyMessagesText}>Be the first to say hello!</Text>
-            </View>
+            <EmptyState
+              title="No Messages Yet"
+              emoji="👋"
+              message="Be the first to say hello! Start a conversation with other event attendees."
+            />
           ) : (
             <FlatList
               ref={flatListRef}
@@ -315,39 +317,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-  },
-  emptyIcon: {
-    fontSize: 64,
-    marginBottom: Spacing.lg,
-  },
-  emptyTitle: {
-    ...Typography.h2,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
-  },
-  emptyMessagesContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  emptyMessagesIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyMessagesText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
 });

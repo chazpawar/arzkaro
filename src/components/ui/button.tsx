@@ -8,8 +8,8 @@ import {
   TextStyle,
   StyleProp,
 } from 'react-native';
-import { Colors } from '@/constants/colors';
-import { BorderRadius, Spacing } from '@/constants/styles';
+import { Colors } from '@/constants/Colors';
+import { BorderRadius, Spacing } from '@/constants/Styles';
 
 interface ButtonProps {
   title: string;

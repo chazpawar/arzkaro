@@ -248,7 +248,7 @@ export async function approveHostRequest(
   }
 
   // Check if approval succeeded
-  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  const result = data as unknown as { success: boolean; message: string }[];
   if (!result || result.length === 0 || !result[0].success) {
     throw new Error(result?.[0]?.message || 'Failed to approve host request');
   }
@@ -287,7 +287,7 @@ export async function rejectHostRequest(
   }
 
   // Check if rejection succeeded
-  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  const result = data as unknown as { success: boolean; message: string }[];
   if (!result || result.length === 0 || !result[0].success) {
     throw new Error(result?.[0]?.message || 'Failed to reject host request');
   }

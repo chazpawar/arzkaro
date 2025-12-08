@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Colors } from '../../src/constants/colors';
+import { Colors } from '../../src/constants/Colors';
 import { useAuth } from '../../src/contexts/auth-context';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 

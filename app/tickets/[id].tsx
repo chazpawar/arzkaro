@@ -12,8 +12,8 @@ import {
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useTicket } from '../../src/hooks/use-bookings';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 

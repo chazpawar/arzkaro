@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, ActivityIndicator, Text, StyleSheet, ViewStyle } from 'react-native';
-import { Colors } from '@/constants/colors';
-import { Spacing, Typography } from '@/constants/styles';
+import { Colors } from '@/constants/Colors';
+import { Spacing, Typography } from '@/constants/Styles';
 
 interface LoadingSpinnerProps {
   size?: 'small' | 'large';

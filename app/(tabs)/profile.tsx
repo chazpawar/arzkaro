@@ -12,8 +12,8 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useBookings, useTickets } from '../../src/hooks/use-bookings';
 

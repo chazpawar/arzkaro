@@ -14,8 +14,9 @@ import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../../src/components/ui/card';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
+import EmptyState from '../../src/components/ui/empty-state';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import * as AdminService from '../../src/services/admin-service';
 import type { Profile } from '../../src/types/user.types';
 
@@ -246,10 +247,11 @@ export default function UsersPage() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>👥</Text>
-            <Text style={styles.emptyText}>No users found</Text>
-          </View>
+          <EmptyState
+            title="No Users Found"
+            message="No users match your search criteria."
+            emoji="👥"
+          />
         }
         ListFooterComponent={
           loadingMore ? (
@@ -404,18 +406,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.primary,
     fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,

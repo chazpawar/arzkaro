@@ -3,10 +3,10 @@ import { View, Text, StyleSheet, ScrollView, RefreshControl, Pressable, Image } 
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../../src/components/ui/card';
-import Button from '../../src/components/ui/button';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/styles';
+import EmptyState from '../../src/components/ui/empty-state';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
 import type { Event } from '../../src/types';
@@ -69,19 +69,15 @@ export default function HostDashboard() {
   if (!isHost && !isAdmin) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.notHostContainer}>
-          <Text style={styles.notHostIcon}>🎭</Text>
-          <Text style={styles.notHostTitle}>Become a Host</Text>
-          <Text style={styles.notHostText}>
-            Apply to become a host and start creating amazing events for your community.
-          </Text>
-          <Button
-            title="Apply Now"
-            onPress={() => router.push('/host/request')}
-            variant="primary"
-            size="large"
-          />
-        </View>
+        <EmptyState
+          title="Become a Host"
+          emoji="🎭"
+          message="Apply to become a host and start creating amazing events for your community."
+          action={{
+            label: 'Apply Now',
+            onPress: () => router.push('/host/request'),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -170,16 +166,15 @@ export default function HostDashboard() {
           </View>
 
           {recentEvents.length === 0 ? (
-            <Card style={styles.emptyCard} variant="outlined">
-              <Text style={styles.emptyIcon}>📅</Text>
-              <Text style={styles.emptyText}>No events yet</Text>
-              <Button
-                title="Create Your First Event"
-                onPress={() => router.push('/events/create')}
-                variant="primary"
-                size="small"
-              />
-            </Card>
+            <EmptyState
+              title="No Events Yet"
+              emoji="📅"
+              message="Start creating events to showcase your amazing offerings to the community."
+              action={{
+                label: 'Create Your First Event',
+                onPress: () => router.push('/events/create'),
+              }}
+            />
           ) : (
             recentEvents.map((event) => (
               <Card
@@ -333,19 +328,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600',
   },
-  emptyCard: {
-    padding: Spacing.xl,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-  },
   eventCard: {
     marginBottom: Spacing.sm,
     padding: Spacing.md,
@@ -410,27 +392,5 @@ const styles = StyleSheet.create({
   eventDate: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-  },
-  notHostContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: Spacing.xl,
-  },
-  notHostIcon: {
-    fontSize: 64,
-    marginBottom: Spacing.lg,
-  },
-  notHostTitle: {
-    ...Typography.h2,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  notHostText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    marginBottom: Spacing.xl,
   },
 });

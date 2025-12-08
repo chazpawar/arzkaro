@@ -8,18 +8,19 @@ import {
   Pressable,
   Image,
   Platform,
-  TextInput,
   Dimensions,
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useEvents } from '../../src/hooks/use-events';
 import { useAuth } from '../../src/contexts/auth-context';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import TabHeader from '../../src/components/TabHeader';
+import EmptyState from '../../src/components/ui/empty-state';
 import type { Event } from '../../src/types';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -30,6 +31,27 @@ const CATEGORIES = [
   { id: 'experiences', label: 'Experiences', icon: 'compass-outline' },
   { id: 'trips', label: 'Trips', icon: 'airplane-outline' },
 ];
+
+const EMPTY_STATE_CONFIG = {
+  events: {
+    title: 'No Events Found',
+    message: 'No events available at the moment.',
+    icon: 'calendar-outline' as const,
+    createLabel: 'Create Event',
+  },
+  experiences: {
+    title: 'No Experiences Found',
+    message: 'Discover amazing experiences.',
+    icon: 'compass-outline' as const,
+    createLabel: 'Create Experience',
+  },
+  trips: {
+    title: 'No Trips Found',
+    message: 'Start planning your next adventure.',
+    icon: 'airplane-outline' as const,
+    createLabel: 'Create Trip',
+  },
+};
 
 export default function ExploreTab() {
   const router = useRouter();
@@ -165,16 +187,58 @@ export default function ExploreTab() {
     </Pressable>
   );
 
+  const renderEmptyState = () => {
+    const config = EMPTY_STATE_CONFIG[selectedCategory as keyof typeof EMPTY_STATE_CONFIG];
+
+    if (error) {
+      const isDbError = error.includes('Database not set up');
+      return (
+        <EmptyState
+          title={isDbError ? 'Database Not Set Up' : 'Error Loading Data'}
+          message={
+            isDbError
+              ? 'Please run database migrations. Check SETUP_DATABASE.md in the project root for instructions.'
+              : error
+          }
+          icon={isDbError ? 'alert-circle-outline' : 'warning-outline'}
+        />
+      );
+    }
+
+    return (
+      <EmptyState
+        title={config.title}
+        message={config.message}
+        icon={config.icon}
+        action={
+          isHost || isAdmin
+            ? {
+                label: config.createLabel,
+                icon: 'add-circle-outline',
+                onPress: () => router.push('/events/create'),
+              }
+            : undefined
+        }
+      />
+    );
+  };
+
   if (loading && events.length === 0) {
     return <LoadingSpinner fullScreen text="Loading events..." />;
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header with Search - Outside ScrollView */}
+      <TabHeader
+        searchPlaceholder="Search events, experiences..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
+
       <ScrollView
         style={styles.scrollView}
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[0]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -184,28 +248,6 @@ export default function ExploreTab() {
           />
         }
       >
-        {/* Header with Logo */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>arz</Text>
-            <Text style={styles.logoDot}>.</Text>
-          </View>
-        </View>
-
-        {/* Search Bar */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color={Colors.textTertiary} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search events, experiences..."
-              placeholderTextColor={Colors.textTertiary}
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-          </View>
-        </View>
-
         {/* Category Tabs */}
         <View style={styles.categorySection}>
           <View style={styles.categoryTabs}>{CATEGORIES.map(renderCategoryTab)}</View>
@@ -250,30 +292,7 @@ export default function ExploreTab() {
             </View>
           </>
         ) : (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="calendar-outline" size={64} color={Colors.textTertiary} />
-            <Text style={styles.emptyTitle}>
-              {error && error.includes('Database not set up')
-                ? 'Database Not Set Up'
-                : 'No Events Found'}
-            </Text>
-            <Text style={styles.emptyText}>
-              {error
-                ? error.includes('Database not set up')
-                  ? 'Please run database migrations. Check SETUP_DATABASE.md in the project root for instructions.'
-                  : error
-                : 'No events available at the moment. Check back soon for exciting events!'}
-            </Text>
-            {(isHost || isAdmin) && !error && (
-              <Pressable
-                style={styles.createEventButton}
-                onPress={() => router.push('/events/create')}
-              >
-                <Ionicons name="add-circle-outline" size={20} color={Colors.textInverse} />
-                <Text style={styles.createEventButtonText}>Create Event</Text>
-              </Pressable>
-            )}
-          </View>
+          renderEmptyState()
         )}
 
         {/* Bottom spacing */}
@@ -287,51 +306,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+    flexDirection: 'column',
   },
   scrollView: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.text,
-    letterSpacing: -1,
-  },
-  logoDot: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginLeft: -2,
-  },
-  searchSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-    fontSize: 15,
-    color: Colors.text,
   },
   categorySection: {
     paddingTop: Spacing.sm,
@@ -500,41 +478,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxl * 2,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  emptyText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Spacing.lg,
-  },
-  createEventButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-    marginTop: Spacing.md,
-  },
-  createEventButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textInverse,
   },
 });

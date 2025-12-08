@@ -7,16 +7,17 @@ import {
   Image,
   RefreshControl,
   Pressable,
-  TextInput,
   Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTickets } from '../../src/hooks/use-bookings';
+import TabHeader from '../../src/components/TabHeader';
+import EmptyState from '../../src/components/ui/empty-state';
 import type { TicketWithDetails } from '../../src/types';
 
 export default function TicketsTab() {
@@ -74,18 +75,15 @@ export default function TicketsTab() {
           </View>
         </View>
 
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="ticket-outline" size={48} color={Colors.textTertiary} />
-          </View>
-          <Text style={styles.emptyTitle}>Sign In to View Tickets</Text>
-          <Text style={styles.emptyText}>
-            Sign in to access your tickets and manage your event bookings.
-          </Text>
-          <Pressable style={styles.signInButton} onPress={() => router.push('/')}>
-            <Text style={styles.signInButtonText}>Sign In</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          title="Sign In to View Tickets"
+          message="Sign in to access your tickets and manage your event bookings."
+          icon="ticket-outline"
+          action={{
+            label: 'Sign In',
+            onPress: () => router.push('/'),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -179,27 +177,12 @@ export default function TicketsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>arz</Text>
-          <Text style={styles.logoDot}>.</Text>
-        </View>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={Colors.textTertiary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search tickets..."
-            placeholderTextColor={Colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
+      {/* Header with Search */}
+      <TabHeader
+        searchPlaceholder="Search tickets..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Tabs */}
       <View style={styles.tabsContainer}>
@@ -259,30 +242,32 @@ export default function TicketsTab() {
           />
         }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="ticket-outline" size={48} color={Colors.textTertiary} />
-            </View>
-            <Text style={styles.emptyTitle}>
-              {activeTab === 'valid' && 'No Active Tickets'}
-              {activeTab === 'used' && 'No Used Tickets'}
-              {activeTab === 'expired' && 'No Expired Tickets'}
-            </Text>
-            <Text style={styles.emptyText}>
-              {activeTab === 'valid' &&
-                'Book an event to get your digital tickets here. Your tickets will appear on this screen.'}
-              {activeTab === 'used' && 'Tickets you have used for events will appear here.'}
-              {activeTab === 'expired' && 'Cancelled or expired tickets will appear here.'}
-            </Text>
-            {activeTab === 'valid' && (
-              <Pressable
-                style={styles.exploreButton}
-                onPress={() => router.push('/(tabs)/explore')}
-              >
-                <Text style={styles.exploreButtonText}>Explore Events</Text>
-              </Pressable>
-            )}
-          </View>
+          <EmptyState
+            title={
+              activeTab === 'valid'
+                ? 'No Active Tickets'
+                : activeTab === 'used'
+                  ? 'No Used Tickets'
+                  : 'No Expired Tickets'
+            }
+            message={
+              activeTab === 'valid'
+                ? 'Your tickets will appear on this screen.'
+                : activeTab === 'used'
+                  ? 'Tickets you have used for events will appear here.'
+                  : 'Cancelled or expired tickets will appear here.'
+            }
+            icon="ticket-outline"
+            action={
+              activeTab === 'valid'
+                ? {
+                    label: 'Explore Events',
+                    icon: 'search-outline',
+                    onPress: () => router.push('/(tabs)/explore'),
+                  }
+                : undefined
+            }
+          />
         }
       />
     </SafeAreaView>
@@ -293,47 +278,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.text,
-    letterSpacing: -1,
-  },
-  logoDot: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginLeft: -2,
-  },
-  searchSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-    fontSize: 15,
-    color: Colors.text,
+    flexDirection: 'column',
   },
   tabsContainer: {
     flexDirection: 'row',
@@ -477,57 +422,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxl,
-  },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  emptyText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Spacing.lg,
-  },
-  signInButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-  },
-  signInButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textInverse,
-  },
-  exploreButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-  },
-  exploreButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textInverse,
   },
 });

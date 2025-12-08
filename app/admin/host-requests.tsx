@@ -17,8 +17,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Card from '../../src/components/ui/card';
 import Button from '../../src/components/ui/button';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
-import { Colors } from '../../src/constants/colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
+import EmptyState from '../../src/components/ui/empty-state';
+import { Colors } from '../../src/constants/Colors';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
 import { HOST_TYPE_LABELS } from '../../src/services/host-service';
@@ -297,14 +298,19 @@ export default function HostRequestsPage() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📝</Text>
-            <Text style={styles.emptyText}>
-              {statusFilter === 'pending'
-                ? 'No pending requests'
-                : `No ${statusFilter} requests found`}
-            </Text>
-          </View>
+          <EmptyState
+            title={
+              statusFilter === 'pending'
+                ? 'No Pending Requests'
+                : `No ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Requests`
+            }
+            message={
+              statusFilter === 'pending'
+                ? 'All host requests have been reviewed.'
+                : `No ${statusFilter} host requests at the moment.`
+            }
+            emoji="📝"
+          />
         }
         ListFooterComponent={
           loadingMore ? (
@@ -745,18 +751,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.primary,
     fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,

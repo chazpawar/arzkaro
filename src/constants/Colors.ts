@@ -2,11 +2,11 @@
 // Modern Minimal Light Theme with Orange Accents (arz. branding)
 
 export const Colors = {
-  // Primary colors (Orange - matching arz. brand)
-  primary: '#F97316', // Vibrant orange
-  primaryDark: '#EA580C',
-  primaryLight: '#FDBA74',
-  primarySoft: '#FFF7ED', // Very light orange background
+  // Primary colors (Orange - matching arz. brand) - #ff785a
+  primary: '#ff785a', // Vibrant orange accent
+  primaryDark: '#e85a3b',
+  primaryLight: '#ffb399',
+  primarySoft: '#fff5f2', // Very light orange background
 
   // Secondary colors (Neutral/Soft)
   secondary: '#64748B',
@@ -51,14 +51,14 @@ export const Colors = {
   facebook: '#4267B2',
 
   // Card colors (for event cards with orange gradient)
-  cardOrange: '#F97316',
-  cardOrangeLight: '#FB923C',
+  cardOrange: '#ff785a',
+  cardOrangeLight: '#ffb399',
 
   // Transparent
   transparent: 'transparent',
 
   // Badge colors
-  badgeUnread: '#F97316',
+  badgeUnread: '#ff785a',
 };
 
 // Export type for type safety
