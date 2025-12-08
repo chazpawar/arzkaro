@@ -162,11 +162,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Refresh profile data
   const refreshProfile = useCallback(async () => {
     console.log('🔄 [AUTH] Refreshing profile...');
-    if (user?.id) {
-      const profileData = await fetchProfile(user.id);
-      console.log('📋 [AUTH] Setting profile state with role:', profileData?.role);
-      setProfile(profileData);
+    if (!user?.id) {
+      console.warn('⚠️ [AUTH] Cannot refresh profile - no user ID');
+      return;
     }
+    
+    const startTime = Date.now();
+    const profileData = await fetchProfile(user.id);
+    const elapsed = Date.now() - startTime;
+    
+    console.log(`📋 [AUTH] Profile refreshed in ${elapsed}ms. Role:`, profileData?.role);
+    setProfile(profileData);
   }, [user?.id, fetchProfile]);
 
   // Update profile
@@ -199,16 +205,20 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Sign out
   const signOut = useCallback(async () => {
     try {
+      console.log('🚪 [AUTH] Signing out...');
+      
+      // Clear state first (before API call to avoid race conditions)
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+      
+      // Then sign out from Supabase
       await supabase.auth.signOut();
-      setSession(null);
-      setUser(null);
-      setProfile(null);
+      
+      console.log('✅ [AUTH] Sign out complete');
     } catch (error) {
-      console.error('Error signing out:', error);
-      // Force clear state even if sign out fails
-      setSession(null);
-      setUser(null);
-      setProfile(null);
+      console.error('❌ [AUTH] Error signing out:', error);
+      // State already cleared above, so just log the error
     }
   }, []);
 
@@ -276,15 +286,30 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
+      console.log('🔔 [AUTH] Auth state changed:', event, 'User:', session?.user?.id);
+
+      // Handle sign out - clear all state immediately
+      if (event === 'SIGNED_OUT') {
+        console.log('👋 [AUTH] User signed out, clearing all state');
+        setSession(null);
+        setUser(null);
+        setProfile(null);
+        setLoading(false);
+        return;
+      }
+
+      // Handle sign in or token refresh
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        console.log('👤 [AUTH] Fetching profile for new session:', session.user.id);
         const profileData = await fetchProfile(session.user.id);
         if (isMounted) {
+          console.log('✅ [AUTH] Profile loaded with role:', profileData?.role);
           setProfile(profileData);
         }
       } else {
@@ -302,6 +327,52 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       subscription.unsubscribe();
     };
   }, [fetchProfile]);
+
+  // Real-time profile updates subscription
+  useEffect(() => {
+    if (!user?.id) {
+      console.log('⏸️ [AUTH] Skipping real-time subscription - no user');
+      return;
+    }
+
+    console.log('🔄 [AUTH] Setting up real-time profile subscription for user:', user.id);
+
+    // Subscribe to profile changes for current user
+    const profileSubscription = supabase
+      .channel(`profile-${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log('🔔 [AUTH] Profile updated via real-time:', payload.new);
+          const updatedProfile = payload.new as Profile;
+
+          // Update profile state with new data
+          setProfile(updatedProfile);
+
+          console.log('✅ [AUTH] Profile state updated. New role:', updatedProfile.role);
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ [AUTH] Real-time subscription active');
+        } else if (status === 'CLOSED') {
+          console.log('🔌 [AUTH] Real-time subscription closed');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ [AUTH] Real-time subscription error');
+        }
+      });
+
+    return () => {
+      console.log('🔌 [AUTH] Unsubscribing from profile updates');
+      profileSubscription.unsubscribe();
+    };
+  }, [user?.id]);
 
   // Computed values
   const isAuthenticated = !!user && !!session;

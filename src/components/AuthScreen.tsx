@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/colors';
 import { Spacing, Typography, BorderRadius } from '../constants/styles';
+import GoogleLogo from './GoogleLogo';
 
 interface AuthScreenProps {
   onSignInSuccess?: () => void;
@@ -75,7 +76,7 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
           disabled={loading}
         >
           <View style={styles.googleIconContainer}>
-            <Text style={styles.googleIcon}>G</Text>
+            <GoogleLogo size={20} />
           </View>
           <Text style={styles.googleButtonText}>
             {loading ? 'Signing in...' : 'Sign in with Google'}
@@ -174,11 +175,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  googleIcon: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.google,
-  },
   googleButtonText: {
     fontSize: 16,
     fontWeight: '600',
@@ -201,13 +197,5 @@ const styles = StyleSheet.create({
   termsLink: {
     textDecorationLine: 'underline',
     fontWeight: '500',
-  },
-  googleLogo: {
-    width: 20,
-    height: 20,
-  },
-  googleG: {
-    fontSize: 16,
-    fontWeight: '700',
   },
 });

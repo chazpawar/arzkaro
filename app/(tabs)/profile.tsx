@@ -43,30 +43,31 @@ export default function ProfileTab() {
     setRefreshing(true);
     try {
       const oldRole = role;
+      console.log('🔄 [PROFILE] Refreshing profile... Current role:', oldRole);
+      
       await refreshProfile();
-
-      // Show alert if role changed
-      if (role !== oldRole) {
-        Alert.alert('🎉 Role Updated!', `Your role has been changed to: ${role.toUpperCase()}`, [
-          { text: 'OK' },
-        ]);
-      }
-
-      console.log(
-        '✅ Profile refreshed! Current role:',
-        role,
-        'isAdmin:',
-        isAdmin,
-        'isHost:',
-        isHost
-      );
+      
+      // Use a small delay to ensure state has updated
+      setTimeout(() => {
+        const newRole = profile?.role || 'user';
+        console.log('✅ [PROFILE] Refresh complete. Old role:', oldRole, 'New role:', newRole);
+        
+        // Show alert if role changed
+        if (newRole !== oldRole) {
+          Alert.alert(
+            'Role Updated!',
+            `Your role has been changed to: ${newRole.toUpperCase()}`,
+            [{ text: 'OK' }]
+          );
+        }
+      }, 100);
     } catch (error) {
-      console.error('Error refreshing profile:', error);
+      console.error('❌ [PROFILE] Error refreshing profile:', error);
       Alert.alert('Error', 'Failed to refresh profile. Please try again.');
     } finally {
       setRefreshing(false);
     }
-  }, [refreshProfile, role, isAdmin, isHost]);
+  }, [refreshProfile, role, profile?.role]);
 
   // Calculate stats
   const uniqueEvents = new Set(bookings.map((b) => b.event_id)).size;

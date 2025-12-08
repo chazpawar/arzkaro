@@ -8,6 +8,9 @@ This project is set up with React Native, Expo, and local EAS builds using **pnp
 
 - [**Development Workflow**](./docs/DEVELOPMENT_WORKFLOW.md): Daily guide, troubleshooting, and tips.
 - [**iOS Build Setup**](./docs/planios.md): Detailed EAS and Xcode setup.
+- [**Admin Setup Guide**](./docs/ADMIN_SETUP.md): How to set up your first admin user.
+- [**Database Migrations**](./supabase/migrations/README.md): Database schema and migration guide.
+- [**Host System Spec**](./docs/HOST_SYSTEM_SPEC.md): Multi-tier host system documentation.
 
 ## Prerequisites
 

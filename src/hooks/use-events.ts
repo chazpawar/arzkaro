@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import * as EventService from '../services/event-service';
 import type { Event, EventFilters, TicketType } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
+import { useAuth } from '../contexts/auth-context';
 
 /**
  * Hook for fetching and managing events
@@ -12,8 +13,9 @@ export function useEvents(initialFilters?: EventFilters) {
   const [error, setError] = useState<string | null>(null);
   const [filters] = useState<EventFilters>(initialFilters || {});
   const [hasMore, setHasMore] = useState(false);
+  const { user } = useAuth(); // Get user from auth context to detect changes
 
-  // Initial fetch only
+  // Initial fetch and re-fetch when user changes
   useEffect(() => {
     let mounted = true;
     let timeoutId: ReturnType<typeof setTimeout>;
@@ -33,6 +35,8 @@ export function useEvents(initialFilters?: EventFilters) {
         setLoading(true);
         setError(null);
 
+        console.log('🔍 [EVENTS] Fetching events for user:', user?.id || 'anonymous');
+
         // Set a timeout to prevent infinite loading (10 seconds)
         const fetchPromise = EventService.getEvents(filters, 1);
         const timeoutPromise = new Promise<never>((_, reject) => {
@@ -42,6 +46,7 @@ export function useEvents(initialFilters?: EventFilters) {
         const result = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (mounted) {
+          console.log('✅ [EVENTS] Fetched', result.data?.length || 0, 'events');
           setEvents(result.data || []);
           setHasMore(result.hasMore || false);
         }
@@ -56,11 +61,11 @@ export function useEvents(initialFilters?: EventFilters) {
 
           // Don't show timeout as an error - just show empty state
           if (errorMessage.includes('Request timeout')) {
-            console.warn('Events fetch timed out - showing empty state');
+            console.warn('⏱️ [EVENTS] Fetch timed out - showing empty state');
             setError(null);
             setEvents([]);
           } else {
-            console.error('Error fetching events:', errorMessage);
+            console.error('❌ [EVENTS] Error fetching events:', errorMessage);
             setError(errorMessage);
             setEvents([]);
           }
@@ -83,8 +88,9 @@ export function useEvents(initialFilters?: EventFilters) {
         clearTimeout(timeoutId);
       }
     };
+    // Re-fetch when user changes (account switch) or filters change
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, [user?.id]); // Run when user ID changes (account switch)
 
   const refresh = useCallback(async () => {
     if (!hasValidCredentials) {
@@ -94,13 +100,16 @@ export function useEvents(initialFilters?: EventFilters) {
     }
 
     try {
+      console.log('🔄 [EVENTS] Refreshing events...');
       setLoading(true);
       setError(null);
       const result = await EventService.getEvents(filters, 1);
+      console.log('✅ [EVENTS] Refresh complete. Events:', result.data?.length || 0);
       setEvents(result.data || []);
       setHasMore(result.hasMore || false);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch events';
+      console.error('❌ [EVENTS] Refresh error:', errorMessage);
       setError(errorMessage);
       setEvents([]);
     } finally {
