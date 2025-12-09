@@ -15,7 +15,7 @@ export default function HostLayout() {
       <Stack.Screen
         name="dashboard"
         options={{
-          title: 'Host Dashboard',
+          title: '',
         }}
       />
       <Stack.Screen

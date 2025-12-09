@@ -95,16 +95,6 @@ export default function ProfileTab() {
   };
 
   const menuItems: MenuItemType[] = [
-    { icon: 'person-outline', label: 'Edit Profile', route: '/profile', showArrow: true },
-    { icon: 'ticket-outline', label: 'My Tickets', route: '/(tabs)/tickets', showArrow: true },
-    { icon: 'heart-outline', label: 'Saved Events', route: '/saved', showArrow: true },
-    {
-      icon: 'notifications-outline',
-      label: 'Notifications',
-      route: '/notifications',
-      showArrow: true,
-    },
-    { icon: 'settings-outline', label: 'Settings', route: '/settings', showArrow: true },
     { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
   ];
 
@@ -179,7 +169,7 @@ export default function ProfileTab() {
       >
         {/* Profile Header */}
         <View style={styles.header}>
-          <Pressable style={styles.avatarContainer} onPress={() => router.push('/profile')}>
+          <View style={styles.avatarContainer}>
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
             ) : (
@@ -187,20 +177,10 @@ export default function ProfileTab() {
                 <Text style={styles.avatarText}>{avatarLetter}</Text>
               </View>
             )}
-            <View style={styles.editBadge}>
-              <Ionicons name="pencil" size={12} color={Colors.textInverse} />
-            </View>
-          </Pressable>
+          </View>
 
           <Text style={styles.displayName}>{displayName}</Text>
           <Text style={styles.email}>{user?.email}</Text>
-
-          {/* Debug: Show current role */}
-          {__DEV__ && (
-            <Text style={styles.debugRole}>
-              Role: {role} | Admin: {isAdmin ? 'Yes' : 'No'} | Host: {isHost ? 'Yes' : 'No'}
-            </Text>
-          )}
 
           {/* Role Badges */}
           <View style={styles.badgesContainer}>

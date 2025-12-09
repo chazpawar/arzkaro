@@ -4,11 +4,9 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  FlatList,
   Pressable,
   Image,
   Platform,
-  Dimensions,
   RefreshControl,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
@@ -22,9 +20,6 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
 import type { Event } from '../../src/types';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.75;
 
 const CATEGORIES = [
   { id: 'events', label: 'Events', icon: 'calendar-outline' },
@@ -139,50 +134,25 @@ export default function ExploreTab() {
     );
   };
 
-  const renderPopularEventCard = ({ item, index }: { item: Event; index: number }) => (
-    <Pressable
-      style={[styles.popularCard, { marginLeft: index === 0 ? Spacing.lg : Spacing.md }]}
-      onPress={() => router.push(`/events/${item.id}`)}
-    >
-      <View style={styles.popularCardContent}>
-        <Text style={styles.popularCardTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <Text style={styles.popularCardMeta}>
-          {item.category || 'Event'} | {formatDate(item.start_date)}
-        </Text>
-        <View style={styles.popularCardImageContainer}>
-          {item.cover_image_url ? (
-            <Image source={{ uri: item.cover_image_url }} style={styles.popularCardImage} />
-          ) : (
-            <View style={styles.popularCardImagePlaceholder}>
-              <Ionicons name="image-outline" size={40} color={Colors.textInverse} />
-            </View>
-          )}
-        </View>
-      </View>
-    </Pressable>
-  );
-
-  const renderOtherEventCard = ({ item }: { item: Event }) => (
-    <Pressable style={styles.otherCard} onPress={() => router.push(`/events/${item.id}`)}>
-      <View style={styles.otherCardImageContainer}>
+  const renderSimpleCard = ({ item }: { item: Event }) => (
+    <Pressable style={styles.simpleCard} onPress={() => router.push(`/events/${item.id}`)}>
+      <View style={styles.simpleCardImageContainer}>
         {item.cover_image_url ? (
-          <Image source={{ uri: item.cover_image_url }} style={styles.otherCardImage} />
+          <Image source={{ uri: item.cover_image_url }} style={styles.simpleCardImage} />
         ) : (
-          <View style={styles.otherCardImagePlaceholder}>
-            <Ionicons name="image-outline" size={24} color={Colors.textSecondary} />
+          <View style={styles.simpleCardImagePlaceholder}>
+            <Ionicons name="image-outline" size={32} color={Colors.textSecondary} />
           </View>
         )}
       </View>
-      <View style={styles.otherCardContent}>
-        <Text style={styles.otherCardTitle} numberOfLines={2}>
+      <View style={styles.simpleCardContent}>
+        <Text style={styles.simpleCardTitle} numberOfLines={2}>
           {item.title}
         </Text>
-        <Text style={styles.otherCardMeta}>
-          {formatDate(item.start_date)} | {item.location_name || 'TBA'}
+        <Text style={styles.simpleCardMeta}>
+          {formatDate(item.start_date)} • {item.location_name || 'TBA'}
         </Text>
-        <Text style={styles.otherCardPrice}>{formatPrice(item.price)}</Text>
+        <Text style={styles.simpleCardPrice}>{formatPrice(item.price)}</Text>
       </View>
     </Pressable>
   );
@@ -254,43 +224,22 @@ export default function ExploreTab() {
           <View style={styles.categoryDivider} />
         </View>
 
-        {/* Popular Events Section */}
+        {/* All Events Section */}
         {filteredEvents.length > 0 ? (
-          <>
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Popular Events</Text>
-                <Text style={styles.sectionSubtitle}>Trending events loved by everyone</Text>
-              </View>
-
-              <FlatList
-                data={filteredEvents.slice(0, 3)}
-                renderItem={renderPopularEventCard}
-                keyExtractor={(item) => item.id}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.popularList}
-                snapToInterval={CARD_WIDTH + Spacing.md}
-                decelerationRate="fast"
-              />
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                All {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
+              </Text>
+              <Text style={styles.sectionSubtitle}>Discover amazing {selectedCategory}</Text>
             </View>
 
-            {/* Other Events Section */}
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Other Events</Text>
-                <Text style={styles.sectionSubtitle}>
-                  Unique experiences, exclusively on our platform
-                </Text>
-              </View>
-
-              <View style={styles.otherEventsList}>
-                {filteredEvents.slice(0, 4).map((item) => (
-                  <View key={item.id}>{renderOtherEventCard({ item })}</View>
-                ))}
-              </View>
+            <View style={styles.allEventsList}>
+              {filteredEvents.map((item) => (
+                <View key={item.id}>{renderSimpleCard({ item })}</View>
+              ))}
             </View>
-          </>
+          </View>
         ) : (
           renderEmptyState()
         )}
@@ -369,66 +318,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
   },
-  popularList: {
-    paddingRight: Spacing.lg,
-  },
-  popularCard: {
-    width: CARD_WIDTH,
-    height: 320,
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.xl,
-    overflow: 'hidden',
-    ...Platform.select({
-      ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
-      },
-      android: {
-        elevation: 8,
-      },
-    }),
-  },
-  popularCardContent: {
-    flex: 1,
-    padding: Spacing.md,
-  },
-  popularCardTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.textInverse,
-    marginBottom: Spacing.xs,
-  },
-  popularCardMeta: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: Spacing.md,
-  },
-  popularCardImageContainer: {
-    flex: 1,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-  },
-  popularCardImage: {
-    width: '100%',
-    height: '100%',
-  },
-  popularCardImagePlaceholder: {
-    flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: BorderRadius.lg,
-  },
-  otherEventsList: {
+  allEventsList: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.md,
+    paddingBottom: Spacing.xl,
   },
-  otherCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.background,
+  simpleCard: {
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.md,
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: Colors.border,
@@ -444,38 +341,36 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  otherCardImageContainer: {
-    width: 100,
-    height: 100,
+  simpleCardImageContainer: {
+    width: '100%',
+    height: 180,
   },
-  otherCardImage: {
+  simpleCardImage: {
     width: '100%',
     height: '100%',
   },
-  otherCardImagePlaceholder: {
+  simpleCardImagePlaceholder: {
     flex: 1,
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  otherCardContent: {
-    flex: 1,
+  simpleCardContent: {
     padding: Spacing.md,
-    justifyContent: 'center',
   },
-  otherCardTitle: {
-    fontSize: 16,
+  simpleCardTitle: {
+    fontSize: 18,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
   },
-  otherCardMeta: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  otherCardPrice: {
+  simpleCardMeta: {
     fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  simpleCardPrice: {
+    fontSize: 16,
     fontWeight: '600',
     color: Colors.primary,
   },

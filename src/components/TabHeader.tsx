@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
@@ -15,8 +16,10 @@ export default function TabHeader({
   searchQuery,
   onSearchChange,
 }: TabHeaderProps) {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : Spacing.md }]}>
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={Colors.textTertiary} />
         <TextInput
@@ -34,7 +37,7 @@ export default function TabHeader({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingBottom: Spacing.md,
     backgroundColor: Colors.background,
     zIndex: 10,
   },

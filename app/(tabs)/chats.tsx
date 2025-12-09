@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
@@ -21,6 +21,7 @@ const FILTERS: { id: FilterType; label: string }[] = [
 export default function ChatsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -72,7 +73,7 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>arz</Text>
             <Text style={styles.logoDot}>.</Text>
@@ -294,5 +295,24 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.borderLight,
     marginLeft: 78,
+  },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: Colors.background,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  logoDot: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.primary,
   },
 });

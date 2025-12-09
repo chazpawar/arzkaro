@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
@@ -23,6 +23,7 @@ import type { TicketWithDetails } from '../../src/types';
 export default function TicketsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
 
@@ -66,9 +67,9 @@ export default function TicketsTab() {
   // Not authenticated
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={styles.container} edges={['bottom']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>arz</Text>
             <Text style={styles.logoDot}>.</Text>
@@ -108,70 +109,75 @@ export default function TicketsTab() {
     });
   };
 
+  const getStatusDisplay = (status?: TicketWithDetails['status']) => {
+    switch (status) {
+      case 'used':
+        return { label: 'Used', text: Colors.success, bg: Colors.successLight };
+      case 'expired':
+      case 'cancelled':
+        return { label: 'Expired', text: Colors.error, bg: Colors.errorLight };
+      default:
+        return { label: 'Active', text: Colors.primaryDark, bg: Colors.primarySoft };
+    }
+  };
+
   const renderTicketCard = ({ item }: { item: TicketWithDetails }) => {
     const event = item.event;
     if (!event) return null;
 
-    // Status badge
-    const getStatusBadge = () => {
-      switch (item.status) {
-        case 'used':
-          return { text: 'Used', color: Colors.success };
-        case 'expired':
-        case 'cancelled':
-          return { text: 'Expired', color: Colors.error };
-        default:
-          return null;
-      }
-    };
-
-    const statusBadge = getStatusBadge();
+    const statusBadge = getStatusDisplay(item.status);
+    const totalPaid = item.booking.total_amount || 0;
 
     return (
-      <View style={styles.ticketCard}>
-        {/* Status Badge */}
-        {statusBadge && (
-          <View style={[styles.statusBadge, { backgroundColor: statusBadge.color }]}>
-            <Text style={styles.statusBadgeText}>{statusBadge.text}</Text>
-          </View>
-        )}
-
-        {/* Card Header - Event Info */}
-        <View style={styles.ticketHeader}>
-          <Text style={styles.ticketTitle}>{event.title}</Text>
-          <Text style={styles.ticketMeta}>
-            {formatDate(event.start_date)} | {formatTime(event.start_date)}
-          </Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.8)" />
-            <Text style={styles.ticketLocation}>{event.location_name || 'TBA'}</Text>
-          </View>
-        </View>
-
-        {/* Card Image */}
-        <View style={styles.ticketImageContainer}>
+      <Pressable style={styles.ticketCard} onPress={() => router.push(`/tickets/${item.id}`)}>
+        <View style={styles.cardImageWrapper}>
           {event.cover_image_url ? (
-            <Image source={{ uri: event.cover_image_url }} style={styles.ticketImage} />
+            <Image source={{ uri: event.cover_image_url }} style={styles.cardImage} />
           ) : (
-            <View style={styles.ticketImagePlaceholder}>
-              <Ionicons name="image-outline" size={40} color={Colors.textInverse} />
+            <View style={styles.cardImagePlaceholder}>
+              <Ionicons name="image-outline" size={36} color={Colors.textSecondary} />
+            </View>
+          )}
+          {statusBadge && (
+            <View style={[styles.statusPill, { backgroundColor: statusBadge.bg }]}>
+              <Text style={[styles.statusPillText, { color: statusBadge.text }]}>
+                {statusBadge.label}
+              </Text>
             </View>
           )}
         </View>
 
-        {/* Card Footer - Price and Action */}
-        <View style={styles.ticketFooter}>
-          <Text style={styles.ticketPrice}>
-            Rs.{(item.booking.total_amount || 0).toLocaleString('en-IN')}
+        <View style={styles.cardContent}>
+          <Text style={styles.cardTitle} numberOfLines={2}>
+            {event.title}
           </Text>
-          <Pressable
-            style={styles.viewTicketButton}
-            onPress={() => router.push(`/tickets/${item.id}`)}
-          >
-            <Text style={styles.viewTicketButtonText}>View Ticket</Text>
-          </Pressable>
+
+          <View style={styles.metaRow}>
+            <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.metaText}>
+              {formatDate(event.start_date)} · {formatTime(event.start_date)}
+            </Text>
+          </View>
+
+          <View style={styles.metaRow}>
+            <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
+            <Text style={styles.metaText}>{event.location_name || 'TBA'}</Text>
+          </View>
+
+          <View style={styles.cardFooter}>
+            <View>
+              <Text style={styles.priceLabel}>Paid</Text>
+              <Text style={styles.ticketPrice}>
+                {totalPaid === 0 ? 'Free' : `Rs.${totalPaid.toLocaleString('en-IN')}`}
+              </Text>
+            </View>
+            <View style={styles.viewTicketCta}>
+              <Text style={styles.viewTicketText}>View ticket</Text>
+              <Ionicons name="chevron-forward" size={18} color={Colors.primary} />
+            </View>
+          </View>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -280,6 +286,25 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     flexDirection: 'column',
   },
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: Colors.background,
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  logoDot: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
@@ -325,100 +350,98 @@ const styles = StyleSheet.create({
   ticketsList: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xxl,
+    gap: Spacing.lg,
   },
   ticketCard: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.background,
     borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
     overflow: 'hidden',
-    marginBottom: Spacing.lg,
-    position: 'relative',
     ...Platform.select({
       ios: {
-        shadowColor: Colors.primary,
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.3,
-        shadowRadius: 16,
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: 6 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 8,
+        elevation: 4,
       },
     }),
   },
-  statusBadge: {
-    position: 'absolute',
-    top: Spacing.md,
-    right: Spacing.md,
-    zIndex: 10,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-  },
-  statusBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Colors.textInverse,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  ticketHeader: {
-    padding: Spacing.md,
-    paddingBottom: Spacing.sm,
-  },
-  ticketTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.textInverse,
-    marginBottom: 4,
-  },
-  ticketMeta: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.85)',
-    marginBottom: 4,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ticketLocation: {
-    fontSize: 14,
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  ticketImageContainer: {
-    marginHorizontal: Spacing.md,
+  cardImageWrapper: {
+    width: '100%',
     height: 180,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
+    position: 'relative',
   },
-  ticketImage: {
+  cardImage: {
     width: '100%',
     height: '100%',
   },
-  ticketImagePlaceholder: {
+  cardImagePlaceholder: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ticketFooter: {
+  statusPill: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  statusPillText: {
+    fontSize: 12,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  cardContent: {
+    padding: Spacing.md,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: 6,
+  },
+  metaText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  cardFooter: {
+    marginTop: Spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
-    paddingTop: Spacing.sm,
+  },
+  priceLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   ticketPrice: {
     fontSize: 18,
     fontWeight: '700',
-    color: Colors.textInverse,
+    color: Colors.primary,
   },
-  viewTicketButton: {
-    backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
+  viewTicketCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
-  viewTicketButtonText: {
+  viewTicketText: {
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,

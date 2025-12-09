@@ -9,10 +9,11 @@ import {
   TextInput,
   Image,
   Alert,
+  StatusBar,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../src/components/ui/card';
+import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
@@ -23,6 +24,7 @@ import type { Profile } from '../../src/types/user.types';
 type RoleFilter = 'all' | 'user' | 'host' | 'admin';
 
 export default function UsersPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
@@ -121,9 +123,9 @@ export default function UsersPage() {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'admin':
-        return { backgroundColor: Colors.error + '20', color: Colors.error };
+        return { backgroundColor: Colors.error + '10', color: Colors.error };
       case 'host':
-        return { backgroundColor: Colors.primary + '20', color: Colors.primary };
+        return { backgroundColor: Colors.primary + '10', color: Colors.primary };
       default:
         return { backgroundColor: Colors.surfaceSecondary, color: Colors.textSecondary };
     }
@@ -141,7 +143,7 @@ export default function UsersPage() {
     const roleStyle = getRoleBadgeStyle(item.role);
 
     return (
-      <Card style={styles.userCard} variant="outlined">
+      <View style={styles.userCard}>
         <View style={styles.userRow}>
           {item.avatar_url ? (
             <Image source={{ uri: item.avatar_url }} style={styles.avatar} />
@@ -153,73 +155,74 @@ export default function UsersPage() {
             </View>
           )}
           <View style={styles.userInfo}>
-            <Text style={styles.userName} numberOfLines={1}>
-              {item.full_name || 'No Name'}
-            </Text>
+            <View style={styles.nameRow}>
+              <Text style={styles.userName} numberOfLines={1}>
+                {item.full_name || 'No Name'}
+              </Text>
+              <View style={[styles.roleBadge, { backgroundColor: roleStyle.backgroundColor }]}>
+                <Text style={[styles.roleText, { color: roleStyle.color }]}>{item.role}</Text>
+              </View>
+            </View>
             <Text style={styles.userEmail} numberOfLines={1}>
               {item.email}
             </Text>
             <Text style={styles.userDate}>Joined {formatDate(item.created_at)}</Text>
           </View>
-          <View style={styles.userActions}>
-            <View style={[styles.roleBadge, { backgroundColor: roleStyle.backgroundColor }]}>
-              <Text style={[styles.roleText, { color: roleStyle.color }]}>{item.role}</Text>
-            </View>
-            <Pressable
-              style={styles.changeRoleButton}
-              onPress={() => handleRoleChange(item.id, item.role)}
-            >
-              <Text style={styles.changeRoleText}>Change</Text>
-            </Pressable>
-          </View>
+          <Pressable style={styles.moreButton} onPress={() => handleRoleChange(item.id, item.role)}>
+            <Ionicons name="ellipsis-vertical" size={20} color={Colors.textSecondary} />
+          </Pressable>
         </View>
-      </Card>
+      </View>
     );
   };
 
   const renderHeader = () => (
-    <>
+    <View style={styles.headerContent}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color={Colors.textTertiary} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search by name or email..."
-          placeholderTextColor={Colors.textSecondary}
+          placeholder="Search users..."
+          placeholderTextColor={Colors.textTertiary}
           value={search}
           onChangeText={setSearch}
           onSubmitEditing={onSearch}
           returnKeyType="search"
         />
-        <Pressable style={styles.searchButton} onPress={onSearch}>
-          <Text style={styles.searchButtonText}>Search</Text>
-        </Pressable>
       </View>
 
       {/* Role Filter */}
-      <View style={styles.filterContainer}>
-        {(['all', 'user', 'host', 'admin'] as RoleFilter[]).map((filter) => (
-          <Pressable
-            key={filter}
-            style={[styles.filterButton, roleFilter === filter && styles.filterButtonActive]}
-            onPress={() => setRoleFilter(filter)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                roleFilter === filter && styles.filterButtonTextActive,
-              ]}
+      <View style={styles.filterWrapper}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={['all', 'user', 'host', 'admin'] as RoleFilter[]}
+          contentContainerStyle={styles.filterContainer}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <Pressable
+              style={[styles.filterButton, roleFilter === item && styles.filterButtonActive]}
+              onPress={() => setRoleFilter(item)}
             >
-              {filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  roleFilter === item && styles.filterButtonTextActive,
+                ]}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </Text>
+            </Pressable>
+          )}
+        />
       </View>
 
       {/* Results Count */}
       <Text style={styles.resultsCount}>
         {total} user{total !== 1 ? 's' : ''} found
       </Text>
-    </>
+    </View>
   );
 
   if (loading && users.length === 0) {
@@ -229,6 +232,13 @@ export default function UsersPage() {
   if (error && users.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Users</Text>
+          <View style={{ width: 32 }} />
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <Pressable style={styles.retryButton} onPress={() => fetchUsers(true)}>
@@ -240,40 +250,53 @@ export default function UsersPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <FlatList
-        data={users}
-        renderItem={renderUserItem}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={
-          <EmptyState
-            title="No Users Found"
-            message="No users match your search criteria."
-            emoji="👥"
-          />
-        }
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={styles.loadingMore}>
-              <LoadingSpinner size="small" />
-            </View>
-          ) : null
-        }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.3}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
-          />
-        }
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Custom Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+          <View style={styles.headerActionPlaceholder} />
+        </View>
+
+        <FlatList
+          data={users}
+          renderItem={renderUserItem}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={
+            <EmptyState
+              title="No Users Found"
+              message="No users match your search criteria."
+              emoji="👥"
+            />
+          }
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadingMore}>
+                <LoadingSpinner size="small" />
+              </View>
+            ) : (
+              <View style={{ height: Spacing.xl }} />
+            )
+          }
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -282,130 +305,167 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  backButton: {
+    padding: Spacing.xs,
+    marginLeft: -Spacing.xs,
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    ...Typography.bodyLarge,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerSubtitle: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+  },
+  headerActionPlaceholder: {
+    width: 32,
+  },
   listContent: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  headerContent: {
+    paddingVertical: Spacing.md,
   },
   searchContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
     marginBottom: Spacing.md,
-    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    height: 44,
+  },
+  searchIcon: {
+    marginRight: Spacing.sm,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
     ...Typography.body,
     color: Colors.text,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    height: '100%',
   },
-  searchButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    justifyContent: 'center',
-  },
-  searchButtonText: {
-    ...Typography.bodyMedium,
-    color: Colors.textInverse,
+  filterWrapper: {
+    marginBottom: Spacing.md,
   },
   filterContainer: {
-    flexDirection: 'row',
-    marginBottom: Spacing.md,
     gap: Spacing.sm,
+    paddingRight: Spacing.lg,
   },
   filterButton: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingVertical: 6,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   filterButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
   },
   filterButtonText: {
-    ...Typography.bodySmall,
+    ...Typography.caption,
     color: Colors.textSecondary,
+    fontWeight: '500',
   },
   filterButtonTextActive: {
     color: Colors.textInverse,
-    fontWeight: '600',
   },
   resultsCount: {
     ...Typography.caption,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
+    color: Colors.textTertiary,
+    marginBottom: Spacing.sm,
   },
   userCard: {
+    backgroundColor: Colors.surface,
     marginBottom: Spacing.sm,
     padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   userRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surfaceSecondary,
   },
   avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary + '20',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    ...Typography.h3,
+    ...Typography.bodyMedium,
     color: Colors.primary,
+    fontWeight: '600',
   },
   userInfo: {
     flex: 1,
     marginLeft: Spacing.md,
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: 2,
+  },
   userName: {
-    ...Typography.bodyMedium,
+    ...Typography.bodySmall,
     color: Colors.text,
+    fontWeight: '600',
+    flexShrink: 1,
   },
   userEmail: {
     ...Typography.caption,
     color: Colors.textSecondary,
+    marginBottom: 2,
   },
   userDate: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: Colors.textTertiary,
     fontSize: 10,
   },
-  userActions: {
-    alignItems: 'flex-end',
-  },
   roleBadge: {
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-    marginBottom: Spacing.xs,
+    borderRadius: 4,
   },
   roleText: {
     ...Typography.caption,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    fontWeight: '700',
+    fontSize: 9,
+    textTransform: 'uppercase',
   },
-  changeRoleButton: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-  },
-  changeRoleText: {
-    ...Typography.caption,
-    color: Colors.primary,
-    fontWeight: '600',
+  moreButton: {
+    padding: Spacing.sm,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,
@@ -424,13 +484,15 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   retryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   retryButtonText: {
     ...Typography.bodyMedium,
-    color: Colors.textInverse,
+    color: Colors.text,
   },
 });
