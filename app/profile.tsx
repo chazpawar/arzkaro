@@ -6,7 +6,7 @@ import Button from '../src/components/ui/button';
 import Card from '../src/components/ui/card';
 import Modal from '../src/components/ui/modal';
 import HostApplicationForm from '../src/components/host/host-application-form';
-import { Colors } from '../src/constants/colors';
+import { Colors } from '../src/constants/Colors';
 import { BorderRadius, Spacing, Typography } from '../src/constants/styles';
 import { useAuth } from '../src/contexts/auth-context';
 import {
@@ -18,7 +18,7 @@ import type { HostRequest } from '../src/types/host.types';
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, profile, isHost, isAdmin, refreshProfile } = useAuth();
+  const { user, profile, isHost, isAdmin, signOut } = useAuth();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showHostApplicationModal, setShowHostApplicationModal] = useState(false);
   const [hostRequest, setHostRequest] = useState<HostRequest | null>(null);
@@ -81,9 +81,6 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             setIsLoggingOut(true);
-            const { signOut } = await import('../src/contexts/auth-context').then((m) => ({
-              signOut: useAuth().signOut,
-            }));
             await signOut();
             router.replace('/');
           } catch (error) {
@@ -135,12 +132,7 @@ export default function ProfileScreen() {
           )}
           <Text style={styles.userName}>{fullName}</Text>
           {getHostStatusBadge() && (
-            <View
-              style={[
-                styles.badge,
-                { backgroundColor: getHostStatusBadge()!.bgColor },
-              ]}
-            >
+            <View style={[styles.badge, { backgroundColor: getHostStatusBadge()!.bgColor }]}>
               <Text style={[styles.badgeText, { color: getHostStatusBadge()!.color }]}>
                 {getHostStatusBadge()!.label}
               </Text>
@@ -213,16 +205,14 @@ export default function ProfileScreen() {
 
                 {hostRequest.status === 'pending' && (
                   <Text style={styles.hostRequestInfo}>
-                    Your application is being reviewed. You'll be notified within 2-3 business
+                    Your application is being reviewed. You&apos;ll be notified within 2-3 business
                     days.
                   </Text>
                 )}
 
                 {hostRequest.status === 'rejected' && (
                   <>
-                    <Text style={styles.hostRequestInfo}>
-                      Your application was not approved.
-                    </Text>
+                    <Text style={styles.hostRequestInfo}>Your application was not approved.</Text>
                     {hostRequest.rejection_reason && (
                       <Text style={styles.rejectionReason}>
                         Reason: {hostRequest.rejection_reason}

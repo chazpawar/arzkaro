@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
-import Card from '../../../src/components/ui/card';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
-import { Colors } from '../../../src/constants/colors';
+import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/styles';
 import { useEvent } from '../../../src/hooks/use-events';
 import { useCreateBooking } from '../../../src/hooks/use-bookings';
@@ -141,150 +141,120 @@ export default function BookEventScreen() {
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {/* Event Summary */}
-          <Card style={styles.eventSummary} variant="outlined">
-            <View style={styles.eventRow}>
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+          <View style={styles.summaryCard}>
+            <View style={styles.summaryMedia}>
               {event.cover_image_url ? (
-                <Image source={{ uri: event.cover_image_url }} style={styles.eventImage} />
+                <Image source={{ uri: event.cover_image_url }} style={styles.summaryImage} />
               ) : (
-                <View style={styles.eventImagePlaceholder}>
-                  <Text style={styles.eventImagePlaceholderText}>
-                    {event.type === 'event' ? '🎉' : event.type === 'experience' ? '✨' : '🏔️'}
+                <Text style={styles.summaryEmoji}>
+                  {event.type === 'event' ? '🎉' : event.type === 'experience' ? '✨' : '🏟️'}
+                </Text>
+              )}
+            </View>
+            <View style={styles.summaryInfo}>
+              <Text style={styles.summaryTitle} numberOfLines={2}>
+                {event.title}
+              </Text>
+              <Text style={styles.summaryMeta}>
+                {formatDate(event.start_date)} · {formatTime(event.start_date)}
+              </Text>
+              {event.location_name && (
+                <View style={styles.summaryLocation}>
+                  <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
+                  <Text style={styles.summaryLocationText} numberOfLines={1}>
+                    {event.location_name}
                   </Text>
                 </View>
               )}
-              <View style={styles.eventInfo}>
-                <Text style={styles.eventTitle} numberOfLines={2}>
-                  {event.title}
-                </Text>
-                <Text style={styles.eventDate}>
-                  {formatDate(event.start_date)} at {formatTime(event.start_date)}
-                </Text>
-                {event.location_name && (
-                  <Text style={styles.eventLocation} numberOfLines={1}>
-                    📍 {event.location_name}
-                  </Text>
-                )}
-              </View>
             </View>
-          </Card>
+          </View>
 
-          {/* Ticket Type Selection */}
           {ticketTypes.length > 0 && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Select Ticket Type</Text>
-              {ticketTypes.map((ticket: TicketType) => {
-                const available = ticket.quantity_available - ticket.quantity_sold;
-                const isSelected = selectedTicketType?.id === ticket.id;
-                const isSoldOut = available <= 0;
+              <Text style={styles.sectionLabel}>Ticket Type</Text>
+              <View style={styles.ticketList}>
+                {ticketTypes.map((ticket: TicketType) => {
+                  const available = ticket.quantity_available - ticket.quantity_sold;
+                  const isSelected = selectedTicketType?.id === ticket.id;
+                  const isSoldOut = available <= 0;
 
-                return (
-                  <Pressable
-                    key={ticket.id}
-                    onPress={() => !isSoldOut && setSelectedTicketType(ticket)}
-                    disabled={isSoldOut}
-                  >
-                    <Card
+                  return (
+                    <Pressable
+                      key={ticket.id}
+                      onPress={() => !isSoldOut && setSelectedTicketType(ticket)}
+                      disabled={isSoldOut}
                       style={[
-                        styles.ticketTypeCard,
-                        isSelected && styles.ticketTypeCardSelected,
-                        isSoldOut && styles.ticketTypeCardDisabled,
+                        styles.ticketOption,
+                        isSelected && styles.ticketOptionSelected,
+                        isSoldOut && styles.ticketOptionDisabled,
                       ]}
-                      variant="outlined"
                     >
-                      <View style={styles.ticketTypeHeader}>
-                        <View style={styles.ticketTypeInfo}>
-                          <View style={styles.ticketTypeNameRow}>
-                            {isSelected && (
-                              <View style={styles.checkmark}>
-                                <Text style={styles.checkmarkText}>✓</Text>
-                              </View>
-                            )}
-                            <Text
-                              style={[
-                                styles.ticketTypeName,
-                                isSoldOut && styles.ticketTypeNameDisabled,
-                              ]}
-                            >
-                              {ticket.name}
-                            </Text>
-                          </View>
-                          {ticket.description && (
-                            <Text style={styles.ticketTypeDescription}>{ticket.description}</Text>
-                          )}
-                          <Text
-                            style={[styles.ticketTypeAvailability, isSoldOut && styles.soldOutText]}
-                          >
-                            {isSoldOut ? 'Sold Out' : `${available} available`}
-                          </Text>
-                        </View>
+                      <View style={styles.ticketOptionHeader}>
                         <Text
                           style={[
-                            styles.ticketTypePrice,
-                            isSoldOut && styles.ticketTypePriceDisabled,
+                            styles.ticketOptionName,
+                            isSoldOut && styles.ticketOptionNameDisabled,
+                          ]}
+                        >
+                          {ticket.name}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.ticketOptionPrice,
+                            isSoldOut && styles.ticketOptionPriceDisabled,
                           ]}
                         >
                           {formatPrice(ticket.price)}
                         </Text>
                       </View>
-                    </Card>
-                  </Pressable>
-                );
-              })}
+                      {ticket.description && (
+                        <Text style={styles.ticketOptionDescription}>{ticket.description}</Text>
+                      )}
+                      <Text style={[styles.ticketAvailability, isSoldOut && styles.soldOutText]}>
+                        {isSoldOut ? 'Sold Out' : `${available} left`}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
             </View>
           )}
 
-          {/* Quantity Selection */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Quantity</Text>
-            <Card style={styles.quantityCard} variant="outlined">
-              <View style={styles.quantityRow}>
-                <Pressable
-                  style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
-                  onPress={() => handleQuantityChange(-1)}
-                  disabled={quantity <= 1}
-                >
-                  <Text
-                    style={[
-                      styles.quantityButtonText,
-                      quantity <= 1 && styles.quantityButtonTextDisabled,
-                    ]}
-                  >
-                    -
-                  </Text>
-                </Pressable>
+            <Text style={styles.sectionLabel}>Quantity</Text>
+            <View style={styles.quantityCard}>
+              <Pressable
+                style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
+                onPress={() => handleQuantityChange(-1)}
+                disabled={quantity <= 1}
+              >
+                <Text style={styles.quantityButtonSymbol}>-</Text>
+              </Pressable>
+              <View style={styles.quantityValueBubble}>
                 <Text style={styles.quantityValue}>{quantity}</Text>
-                <Pressable
-                  style={[
-                    styles.quantityButton,
-                    quantity >= maxQuantity && styles.quantityButtonDisabled,
-                  ]}
-                  onPress={() => handleQuantityChange(1)}
-                  disabled={quantity >= maxQuantity}
-                >
-                  <Text
-                    style={[
-                      styles.quantityButtonText,
-                      quantity >= maxQuantity && styles.quantityButtonTextDisabled,
-                    ]}
-                  >
-                    +
-                  </Text>
-                </Pressable>
               </View>
-              {maxQuantity < 10 && (
-                <Text style={styles.maxQuantityNote}>
-                  Maximum {maxQuantity} ticket{maxQuantity !== 1 ? 's' : ''} available
-                </Text>
-              )}
-            </Card>
+              <Pressable
+                style={[
+                  styles.quantityButton,
+                  quantity >= maxQuantity && styles.quantityButtonDisabled,
+                ]}
+                onPress={() => handleQuantityChange(1)}
+                disabled={quantity >= maxQuantity}
+              >
+                <Text style={styles.quantityButtonSymbol}>+</Text>
+              </Pressable>
+            </View>
+            {maxQuantity < 10 && (
+              <Text style={styles.quantityHint}>
+                Maximum {maxQuantity} ticket{maxQuantity !== 1 ? 's' : ''} available
+              </Text>
+            )}
           </View>
 
-          {/* Price Summary */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Price Summary</Text>
-            <Card style={styles.priceSummaryCard} variant="outlined">
+            <Text style={styles.sectionLabel}>Price Summary</Text>
+            <View style={styles.priceCard}>
               <View style={styles.priceRow}>
                 <Text style={styles.priceLabel}>
                   {selectedTicketType?.name || 'Ticket'} x {quantity}
@@ -294,34 +264,32 @@ export default function BookEventScreen() {
               <View style={styles.priceDivider} />
               <View style={styles.priceRow}>
                 <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>{formatPrice(totalAmount)}</Text>
+                <Text style={styles.totalValue}>
+                  {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
+                </Text>
               </View>
-              {totalAmount === 0 && (
-                <View style={styles.freeEventBadge}>
-                  <Text style={styles.freeEventText}>🎉 Free Event!</Text>
-                </View>
-              )}
-            </Card>
+              {totalAmount === 0 && <Text style={styles.freeTag}>This one&apos;s on us 🎉</Text>}
+            </View>
           </View>
 
-          {/* Info Note */}
-          <View style={styles.infoNote}>
-            <Text style={styles.infoNoteIcon}>ℹ️</Text>
-            <Text style={styles.infoNoteText}>
-              You&apos;ll receive digital tickets with QR codes after booking. You&apos;ll also be
-              added to the event group chat automatically.
-            </Text>
+          <View style={styles.infoBanner}>
+            <View style={styles.infoIcon}>
+              <Ionicons name="ticket-outline" size={18} color={Colors.primaryDark} />
+            </View>
+            <View style={styles.infoCopy}>
+              <Text style={styles.infoBannerTitle}>Instant digital tickets</Text>
+              <Text style={styles.infoBannerText}>
+                You&apos;ll get QR code tickets and access to the event chat as soon as the booking
+                goes through.
+              </Text>
+            </View>
           </View>
-
-          {/* Spacer for footer */}
-          <View style={{ height: 100 }} />
         </ScrollView>
 
-        {/* Confirm Booking Footer */}
         <View style={styles.footer}>
-          <View style={styles.footerPrice}>
-            <Text style={styles.footerPriceLabel}>Total</Text>
-            <Text style={styles.footerPriceValue}>
+          <View>
+            <Text style={styles.footerLabel}>Total</Text>
+            <Text style={styles.footerValue}>
               {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
             </Text>
           </View>
@@ -343,7 +311,13 @@ export default function BookEventScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
+  },
+  content: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.xxxl,
+    gap: Spacing.lg,
   },
   errorContainer: {
     flex: 1,
@@ -366,181 +340,179 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: Spacing.xl,
   },
-  eventSummary: {
-    margin: Spacing.lg,
-    marginBottom: 0,
-  },
-  eventRow: {
+  summaryCard: {
     flexDirection: 'row',
-  },
-  eventImage: {
-    width: 80,
-    height: 80,
-    borderRadius: BorderRadius.md,
-  },
-  eventImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: 'center',
     alignItems: 'center',
+    padding: Spacing.lg,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    shadowColor: '#0f172a',
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 6,
   },
-  eventImagePlaceholderText: {
+  summaryMedia: {
+    width: 72,
+    height: 72,
+    borderRadius: BorderRadius.lg,
+    marginRight: Spacing.md,
+    overflow: 'hidden',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primarySoft,
+  },
+  summaryImage: {
+    width: '100%',
+    height: '100%',
+  },
+  summaryEmoji: {
     fontSize: 32,
   },
-  eventInfo: {
+  summaryInfo: {
     flex: 1,
-    marginLeft: Spacing.md,
-    justifyContent: 'center',
   },
-  eventTitle: {
-    ...Typography.bodyMedium,
+  summaryTitle: {
+    ...Typography.h3,
     color: Colors.text,
     marginBottom: 4,
   },
-  eventDate: {
+  summaryMeta: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 6,
   },
-  eventLocation: {
+  summaryLocation: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  summaryLocationText: {
     ...Typography.caption,
-    color: Colors.textTertiary,
+    color: Colors.textSecondary,
   },
   section: {
+    gap: Spacing.sm,
+  },
+  sectionLabel: {
+    ...Typography.bodySmallMedium,
+    color: Colors.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  ticketList: {
+    gap: Spacing.md,
+  },
+  ticketOption: {
     padding: Spacing.lg,
-    paddingBottom: 0,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
-  sectionTitle: {
-    ...Typography.h4,
-    color: Colors.text,
-    marginBottom: Spacing.md,
-  },
-  ticketTypeCard: {
-    marginBottom: Spacing.sm,
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  ticketTypeCardSelected: {
+  ticketOptionSelected: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: Colors.primarySoft,
   },
-  ticketTypeCardDisabled: {
+  ticketOptionDisabled: {
     opacity: 0.5,
   },
-  ticketTypeHeader: {
+  ticketOptionHeader: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
   },
-  ticketTypeInfo: {
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  ticketTypeNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  checkmark: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.sm,
-  },
-  checkmarkText: {
-    color: Colors.textInverse,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  ticketTypeName: {
+  ticketOptionName: {
     ...Typography.bodyMedium,
     color: Colors.text,
   },
-  ticketTypeNameDisabled: {
+  ticketOptionNameDisabled: {
     color: Colors.textTertiary,
   },
-  ticketTypeDescription: {
+  ticketOptionPrice: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
+  },
+  ticketOptionPriceDisabled: {
+    color: Colors.textTertiary,
+  },
+  ticketOptionDescription: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
   },
-  ticketTypeAvailability: {
+  ticketAvailability: {
     ...Typography.caption,
     color: Colors.success,
   },
   soldOutText: {
     color: Colors.error,
   },
-  ticketTypePrice: {
-    ...Typography.h4,
-    color: Colors.primary,
-  },
-  ticketTypePriceDisabled: {
-    color: Colors.textTertiary,
-  },
   quantityCard: {
-    padding: Spacing.md,
-  },
-  quantityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    backgroundColor: Colors.background,
   },
   quantityButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   quantityButtonDisabled: {
-    backgroundColor: Colors.surfaceSecondary,
-    borderColor: Colors.surfaceSecondary,
+    opacity: 0.4,
   },
-  quantityButtonText: {
-    fontSize: 24,
-    color: Colors.text,
+  quantityButtonSymbol: {
+    fontSize: 28,
     fontWeight: '500',
+    color: Colors.text,
   },
-  quantityButtonTextDisabled: {
-    color: Colors.textTertiary,
+  quantityValueBubble: {
+    minWidth: 72,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surface,
   },
   quantityValue: {
-    ...Typography.h2,
+    ...Typography.h3,
     color: Colors.text,
-    minWidth: 60,
     textAlign: 'center',
-    marginHorizontal: Spacing.lg,
   },
-  maxQuantityNote: {
+  quantityHint: {
     ...Typography.caption,
     color: Colors.textSecondary,
     textAlign: 'center',
-    marginTop: Spacing.sm,
   },
-  priceSummaryCard: {
-    padding: Spacing.md,
+  priceCard: {
+    padding: Spacing.lg,
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   priceRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    justifyContent: 'space-between',
+    paddingVertical: Spacing.xs,
   },
   priceLabel: {
     ...Typography.body,
     color: Colors.textSecondary,
   },
   priceValue: {
-    ...Typography.body,
+    ...Typography.bodyMedium,
     color: Colors.text,
   },
   priceDivider: {
@@ -553,62 +525,63 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   totalValue: {
-    ...Typography.h3,
+    ...Typography.h2,
     color: Colors.primary,
   },
-  freeEventBadge: {
-    backgroundColor: Colors.successLight,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderRadius: BorderRadius.md,
+  freeTag: {
     marginTop: Spacing.sm,
-    alignItems: 'center',
+    textAlign: 'center',
+    ...Typography.bodySmall,
+    color: Colors.primaryDark,
   },
-  freeEventText: {
-    ...Typography.bodyMedium,
-    color: Colors.success,
-  },
-  infoNote: {
+  infoBanner: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     padding: Spacing.lg,
-    backgroundColor: Colors.surfaceSecondary,
-    margin: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primarySoft,
+    borderRadius: BorderRadius.xl,
+    gap: Spacing.md,
   },
-  infoNoteIcon: {
-    fontSize: 16,
-    marginRight: Spacing.sm,
+  infoIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  infoNoteText: {
+  infoCopy: {
+    flex: 1,
+  },
+  infoBannerTitle: {
+    ...Typography.bodyMedium,
+    color: Colors.primaryDark,
+    marginBottom: 4,
+  },
+  infoBannerText: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-    flex: 1,
     lineHeight: 20,
   },
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: Spacing.lg,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.background,
   },
-  footerPrice: {
-    flex: 1,
-  },
-  footerPriceLabel: {
+  footerLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
   },
-  footerPriceValue: {
-    ...Typography.h3,
+  footerValue: {
+    ...Typography.h2,
     color: Colors.text,
   },
   confirmButton: {
-    minWidth: 160,
+    marginLeft: Spacing.md,
+    flex: 1,
   },
 });

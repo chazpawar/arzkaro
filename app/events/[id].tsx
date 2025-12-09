@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useEvent } from '../../src/hooks/use-events';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -11,7 +11,6 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const [isSaved, setIsSaved] = useState(false);
 
   // Fetch event from backend
   const { event, ticketTypes, loading, error } = useEvent(id);
@@ -74,15 +73,6 @@ export default function EventDetailsScreen() {
               <Ionicons name="arrow-back" size={24} color={Colors.text} />
             </Pressable>
           ),
-          headerRight: () => (
-            <Pressable style={styles.headerButton} onPress={() => setIsSaved(!isSaved)}>
-              <Ionicons
-                name={isSaved ? 'heart' : 'heart-outline'}
-                size={24}
-                color={isSaved ? Colors.error : Colors.text}
-              />
-            </Pressable>
-          ),
         }}
       />
       <View style={styles.container}>
@@ -116,21 +106,27 @@ export default function EventDetailsScreen() {
             {/* Quick Info Cards */}
             <View style={styles.quickInfoContainer}>
               <View style={styles.quickInfoCard}>
-                <View style={styles.quickInfoIcon}>
-                  <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
-                </View>
+                <Ionicons
+                  name="calendar-outline"
+                  size={22}
+                  color={Colors.primary}
+                  style={styles.quickInfoIcon}
+                />
                 <View>
-                  <Text style={styles.quickInfoLabel}>Date</Text>
+                  <Text style={styles.quickInfoLabel}>DATE</Text>
                   <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
                 </View>
               </View>
 
               <View style={styles.quickInfoCard}>
-                <View style={styles.quickInfoIcon}>
-                  <Ionicons name="time-outline" size={20} color={Colors.primary} />
-                </View>
+                <Ionicons
+                  name="time-outline"
+                  size={22}
+                  color={Colors.primary}
+                  style={styles.quickInfoIcon}
+                />
                 <View>
-                  <Text style={styles.quickInfoLabel}>Time</Text>
+                  <Text style={styles.quickInfoLabel}>TIME</Text>
                   <Text style={styles.quickInfoValue}>
                     {formatTime(event.start_date)} - {formatTime(event.end_date)}
                   </Text>
@@ -138,11 +134,14 @@ export default function EventDetailsScreen() {
               </View>
 
               <View style={styles.quickInfoCard}>
-                <View style={styles.quickInfoIcon}>
-                  <Ionicons name="location-outline" size={20} color={Colors.primary} />
-                </View>
+                <Ionicons
+                  name="location-outline"
+                  size={22}
+                  color={Colors.primary}
+                  style={styles.quickInfoIcon}
+                />
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.quickInfoLabel}>Venue</Text>
+                  <Text style={styles.quickInfoLabel}>VENUE</Text>
                   <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
                   {event.location_address && (
                     <Text style={styles.quickInfoSubValue}>{event.location_address}</Text>
@@ -286,7 +285,7 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 280,
+    height: 300,
   },
   coverImage: {
     width: '100%',
@@ -301,7 +300,7 @@ const styles = StyleSheet.create({
   },
   imageOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.2)',
+    backgroundColor: 'rgba(0,0,0,0.1)',
   },
   categoryBadge: {
     position: 'absolute',
@@ -313,65 +312,61 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   categoryText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.textInverse,
-    textTransform: 'capitalize',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   content: {
     padding: Spacing.lg,
   },
   titleSection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   title: {
-    fontSize: 26,
+    fontSize: 28,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.xs,
+    marginBottom: Spacing.sm,
+    letterSpacing: -0.5,
   },
   price: {
-    fontSize: 20,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     color: Colors.primary,
   },
   quickInfoContainer: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
   },
   quickInfoCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: Spacing.md,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.lg,
   },
   quickInfoIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginRight: Spacing.md,
+    marginTop: 2,
   },
   quickInfoLabel: {
-    fontSize: 12,
+    fontSize: 11,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   quickInfoValue: {
-    fontSize: 15,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '500',
     color: Colors.text,
   },
   quickInfoSubValue: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.textSecondary,
     marginTop: 2,
   },
   availabilitySection: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   availabilityBar: {
     height: 6,
@@ -400,29 +395,30 @@ const styles = StyleSheet.create({
   hostSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.xl,
   },
   hostAvatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
   },
   hostAvatarImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   hostAvatarText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '600',
-    color: Colors.textInverse,
+    color: Colors.text,
   },
   hostInfo: {
     flex: 1,
@@ -441,7 +437,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.xl,
   },
   sectionTitle: {
     fontSize: 18,
@@ -450,18 +446,17 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   description: {
-    fontSize: 15,
+    fontSize: 16,
     color: Colors.textSecondary,
-    lineHeight: 24,
+    lineHeight: 26,
   },
   ticketTypeCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   ticketTypeInfo: {
     flex: 1,
@@ -470,13 +465,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
+    marginBottom: 2,
   },
   ticketTypeAvailable: {
     fontSize: 13,
     color: Colors.textTertiary,
   },
   ticketTypePrice: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.primary,
   },
@@ -528,18 +524,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.md,
+    padding: Spacing.lg,
   },
   footerPrice: {
     flex: 1,
   },
   footerPriceLabel: {
-    fontSize: 13,
+    fontSize: 12,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   footerPriceValue: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: '700',
     color: Colors.text,
   },

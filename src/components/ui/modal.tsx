@@ -8,7 +8,7 @@ import {
   TouchableWithoutFeedback,
   ViewStyle,
 } from 'react-native';
-import { Colors } from '@/constants/colors';
+import { Colors } from '@/constants/Colors';
 import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/styles';
 
 interface ModalProps {

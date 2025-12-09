@@ -1,18 +1,9 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Image,
-  Share,
-  Pressable,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform } from 'react-native';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useTicket } from '../../src/hooks/use-bookings';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -23,19 +14,6 @@ export default function TicketDetailsScreen() {
 
   // Fetch ticket from backend
   const { ticket, loading, error } = useTicket(id);
-
-  const handleShare = async () => {
-    if (!ticket || !ticket.event) return;
-
-    try {
-      await Share.share({
-        message: `I'm going to ${ticket.event.title} on ${formatDate(ticket.event.start_date)}!`,
-        title: ticket.event.title,
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
-  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -76,13 +54,8 @@ export default function TicketDetailsScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Ticket Details',
+          title: '',
           headerBackTitle: 'Back',
-          headerRight: () => (
-            <Pressable onPress={handleShare} style={styles.headerButton}>
-              <Ionicons name="share-outline" size={24} color={Colors.text} />
-            </Pressable>
-          ),
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>

@@ -204,7 +204,8 @@ export async function getUserHostRequests(userId: string): Promise<NewHostReques
     throw new Error(error.message);
   }
 
-  return data as NewHostRequest[];
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return data as unknown as NewHostRequest[];
 }
 
 /**
@@ -227,7 +228,8 @@ export async function getLatestHostRequest(userId: string): Promise<NewHostReque
     throw new Error(error.message);
   }
 
-  return data as NewHostRequest;
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return data as unknown as NewHostRequest;
 }
 
 /**
@@ -259,7 +261,7 @@ export async function submitHostRequest(data: HostRequestData): Promise<NewHostR
     state: data.state.trim(),
     pin_code: data.pin_code.trim(),
     pan_number: data.pan_number.trim().toUpperCase(),
-    gstin: data.gstin?.trim().toUpperCase() || null,
+    gstin: ('gstin' in data ? data.gstin?.trim().toUpperCase() : null) || null,
     account_holder_name: data.account_holder_name.trim(),
     beneficiary_name: data.beneficiary_name.trim(),
     account_number: data.account_number.trim(),
@@ -272,7 +274,7 @@ export async function submitHostRequest(data: HostRequestData): Promise<NewHostR
   // 4. Insert into database
   const { data: request, error } = await supabase
     .from('host_requests')
-    .insert(insertData)
+    .insert(insertData as any) // Type assertion needed due to database schema mismatch
     .select()
     .single();
 
@@ -280,7 +282,8 @@ export async function submitHostRequest(data: HostRequestData): Promise<NewHostR
     throw new Error(`Failed to submit host request: ${error.message}`);
   }
 
-  return request as NewHostRequest;
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return request as unknown as NewHostRequest;
 }
 
 /**
@@ -300,7 +303,8 @@ export async function getHostRequestById(requestId: string): Promise<NewHostRequ
     throw new Error(error.message);
   }
 
-  return data as NewHostRequest;
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return data as unknown as NewHostRequest;
 }
 
 /**

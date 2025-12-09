@@ -1,21 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import Input from '../ui/input';
 import Button from '../ui/button';
 import Card from '../ui/card';
-import { Colors } from '@/constants/colors';
+import { Colors } from '@/constants/Colors';
 import { BorderRadius, Spacing, Typography } from '@/constants/styles';
-import {
-  HostRequestFormData,
-  HOST_TYPE_LABELS,
-} from '@/types/host.types';
+import { HostRequestFormData, HOST_TYPE_LABELS } from '@/types/host.types';
 import { submitHostRequest, validateHostRequest } from '@/services/host-service';
 
 interface HostApplicationFormProps {
@@ -31,7 +21,7 @@ export default function HostApplicationForm({
 }: HostApplicationFormProps) {
   const [hostType, setHostType] = useState<'full' | 'activity' | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   const [formData, setFormData] = useState<HostRequestFormData>({
     host_type: 'activity',
     organizer_name: '',
@@ -103,10 +93,7 @@ export default function HostApplicationForm({
     const validation = validateHostRequest(requestData as any);
     if (!validation.isValid) {
       setErrors(validation.errors);
-      Alert.alert(
-        'Validation Error',
-        'Please fix the errors in the form before submitting.'
-      );
+      Alert.alert('Validation Error', 'Please fix the errors in the form before submitting.');
       return;
     }
 
@@ -120,10 +107,7 @@ export default function HostApplicationForm({
       );
     } catch (error: any) {
       console.error('Submit host request error:', error);
-      Alert.alert(
-        'Error',
-        error.message || 'Failed to submit host application. Please try again.'
-      );
+      Alert.alert('Error', error.message || 'Failed to submit host application. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -134,9 +118,7 @@ export default function HostApplicationForm({
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Apply to Become a Host</Text>
-        <Text style={styles.subtitle}>
-          Choose the type of host you'd like to become
-        </Text>
+        <Text style={styles.subtitle}>Choose the type of host you&apos;d like to become</Text>
 
         <TouchableOpacity
           style={styles.hostTypeCard}
@@ -157,10 +139,7 @@ export default function HostApplicationForm({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.hostTypeCard}
-          onPress={() => handleHostTypeSelect('full')}
-        >
+        <TouchableOpacity style={styles.hostTypeCard} onPress={() => handleHostTypeSelect('full')}>
           <View style={styles.hostTypeHeader}>
             <Text style={styles.hostTypeTitle}>Full Host</Text>
             <Text style={[styles.hostTypeBadge, styles.hostTypeBadgePremium]}>Complete Access</Text>
@@ -176,14 +155,7 @@ export default function HostApplicationForm({
           </View>
         </TouchableOpacity>
 
-        {onCancel && (
-          <Button
-            title="Cancel"
-            onPress={onCancel}
-            variant="ghost"
-            fullWidth
-          />
-        )}
+        {onCancel && <Button title="Cancel" onPress={onCancel} variant="ghost" fullWidth />}
       </View>
     );
   }
@@ -192,9 +164,7 @@ export default function HostApplicationForm({
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>
-          {HOST_TYPE_LABELS[hostType]} Application
-        </Text>
+        <Text style={styles.title}>{HOST_TYPE_LABELS[hostType]} Application</Text>
         <TouchableOpacity onPress={() => setHostType(null)}>
           <Text style={styles.changeLink}>Change Type</Text>
         </TouchableOpacity>
@@ -202,7 +172,7 @@ export default function HostApplicationForm({
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-        
+
         <Input
           label="Organizer/Business Name"
           value={formData.organizer_name}
@@ -236,7 +206,7 @@ export default function HostApplicationForm({
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Address</Text>
-        
+
         <Input
           label="Street Address"
           value={formData.street_address}
@@ -278,7 +248,7 @@ export default function HostApplicationForm({
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>KYC Documents</Text>
-        
+
         <Input
           label="PAN Number"
           value={formData.pan_number}
@@ -328,10 +298,8 @@ export default function HostApplicationForm({
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Bank Details</Text>
-        <Text style={styles.sectionHint}>
-          For receiving payments from bookings
-        </Text>
-        
+        <Text style={styles.sectionHint}>For receiving payments from bookings</Text>
+
         <Input
           label="Account Holder Name"
           value={formData.account_holder_name}

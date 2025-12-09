@@ -25,6 +25,8 @@ export async function canUserCreateEventType(
   eventType: 'event' | 'trip' | 'experience'
 ): Promise<EventCreationPermission> {
   // Call database function for permission check
+  // NOTE: RPC function may not exist in type definitions but exists in database
+  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('can_user_create_event_type', {
     p_user_id: userId,
     p_event_type: eventType,
@@ -59,7 +61,8 @@ export async function canUserCreateEventType(
     };
   }
 
-  const { role, host_type, is_host_approved } = profile as {
+  // NOTE: host_type may not exist in current database schema but will be added in migrations
+  const { role, host_type, is_host_approved } = profile as unknown as {
     role: string;
     host_type: string | null;
     is_host_approved: boolean;
@@ -120,7 +123,8 @@ export async function getUserHostPermissions(userId: string) {
     };
   }
 
-  const { role, host_type, is_host_approved } = profile as {
+  // NOTE: host_type may not exist in current database schema but will be added in migrations
+  const { role, host_type, is_host_approved } = profile as unknown as {
     role: string;
     host_type: string | null;
     is_host_approved: boolean;

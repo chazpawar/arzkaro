@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { View, TextInput, StyleSheet, Pressable, Keyboard, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../constants/colors';
+import { Colors } from '../../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../constants/styles';
 
 interface ChatInputProps {

@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/contexts/auth-context';
-import { Colors } from '../src/constants/colors';
+import { Colors } from '../src/constants/Colors';
 
 export default function RootLayout() {
   return (

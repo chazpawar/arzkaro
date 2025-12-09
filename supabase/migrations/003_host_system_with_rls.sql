@@ -1,9 +1,18 @@
--- Migration: Multi-Tier Host System with Complete KYC
--- This migration implements a two-tier host system with comprehensive KYC fields
--- Host Types: 'full' (events + trips + activities) and 'activity' (activities only)
+-- =====================================================
+-- Migration 003: Multi-Tier Host System with Complete KYC and RLS
+-- =====================================================
+-- This migration implements a comprehensive two-tier host system with:
+-- - Host Types: 'full' (events + trips + activities) and 'activity' (activities only)
+-- - Complete KYC fields for host verification
+-- - RPC functions for host request approval/rejection
+-- - Permission checks and triggers
+-- - Row Level Security (RLS) policies
+-- 
+-- Combines previous migrations: 006 + 007
+-- =====================================================
 
 -- =====================================================
--- 1. CREATE HOST_TYPE ENUM
+-- SECTION 1: CREATE HOST_TYPE ENUM
 -- =====================================================
 
 DROP TYPE IF EXISTS host_type CASCADE;
@@ -13,7 +22,7 @@ COMMENT ON TYPE host_type IS
   'Host access levels: full (can create events/trips/activities), activity (activities only)';
 
 -- =====================================================
--- 2. UPDATE PROFILES TABLE - ADD HOST_TYPE COLUMN
+-- SECTION 2: UPDATE PROFILES TABLE - ADD HOST_TYPE COLUMN
 -- =====================================================
 
 -- Add host_type column to profiles
@@ -24,14 +33,14 @@ COMMENT ON COLUMN profiles.host_type IS
   'Type of host access: full or activity. NULL for regular users.';
 
 -- =====================================================
--- 3. DROP OLD HOST_REQUESTS TABLE
+-- SECTION 3: DROP OLD HOST_REQUESTS TABLE
 -- =====================================================
 
 -- Drop existing table and recreate with comprehensive KYC fields
 DROP TABLE IF EXISTS host_requests CASCADE;
 
 -- =====================================================
--- 4. CREATE NEW HOST_REQUESTS TABLE WITH FULL KYC
+-- SECTION 4: CREATE NEW HOST_REQUESTS TABLE WITH FULL KYC
 -- =====================================================
 
 CREATE TABLE host_requests (
@@ -110,7 +119,64 @@ COMMENT ON COLUMN host_requests.gst_certificate_url IS
   'Google Drive or cloud storage link to GST certificate (optional)';
 
 -- =====================================================
--- 5. CREATE FUNCTION: APPROVE HOST REQUEST
+-- SECTION 5: CREATE RLS POLICIES FOR HOST_REQUESTS
+-- =====================================================
+
+-- Enable RLS on host_requests table
+ALTER TABLE host_requests ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if any
+DROP POLICY IF EXISTS "Users can view own requests" ON host_requests;
+DROP POLICY IF EXISTS "Users can create requests" ON host_requests;
+DROP POLICY IF EXISTS "Admins can view all requests" ON host_requests;
+DROP POLICY IF EXISTS "Admins can update requests" ON host_requests;
+
+-- Policy 1: Users can view their own requests
+CREATE POLICY "Users can view own requests"
+  ON host_requests FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+-- Policy 2: Users can insert their own requests
+CREATE POLICY "Users can create requests"
+  ON host_requests FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+-- Policy 3: Admins can view all requests
+CREATE POLICY "Admins can view all requests"
+  ON host_requests FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- Policy 4: Admins can update requests
+CREATE POLICY "Admins can update requests"
+  ON host_requests FOR UPDATE
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  )
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles 
+      WHERE id = auth.uid() AND role = 'admin'
+    )
+  );
+
+-- Grant necessary table permissions to authenticated users
+GRANT SELECT, INSERT ON host_requests TO authenticated;
+GRANT UPDATE ON host_requests TO authenticated;
+
+-- =====================================================
+-- SECTION 6: CREATE FUNCTION: APPROVE HOST REQUEST
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION approve_host_request(
@@ -176,7 +242,7 @@ COMMENT ON FUNCTION approve_host_request IS
   'Atomically approves a host request and updates user profile with host access';
 
 -- =====================================================
--- 6. CREATE FUNCTION: REJECT HOST REQUEST
+-- SECTION 7: CREATE FUNCTION: REJECT HOST REQUEST
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION reject_host_request(
@@ -231,7 +297,7 @@ COMMENT ON FUNCTION reject_host_request IS
   'Rejects a host request with a specified reason';
 
 -- =====================================================
--- 7. CREATE TRIGGER: CHECK EVENT CREATION PERMISSION
+-- SECTION 8: CREATE TRIGGER: CHECK EVENT CREATION PERMISSION
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION check_event_creation_permission()
@@ -293,56 +359,7 @@ COMMENT ON TRIGGER enforce_event_creation_permission ON events IS
   'Enforces event creation permissions at database level';
 
 -- =====================================================
--- 8. CREATE RLS POLICIES FOR HOST_REQUESTS
--- =====================================================
-
--- Enable RLS on host_requests table
-ALTER TABLE host_requests ENABLE ROW LEVEL SECURITY;
-
--- Drop existing policies if any
-DROP POLICY IF EXISTS "Users can view own requests" ON host_requests;
-DROP POLICY IF EXISTS "Users can create requests" ON host_requests;
-DROP POLICY IF EXISTS "Admins can view all requests" ON host_requests;
-DROP POLICY IF EXISTS "Admins can update requests" ON host_requests;
-
--- Policy 1: Users can view their own requests
-CREATE POLICY "Users can view own requests"
-  ON host_requests FOR SELECT
-  USING (auth.uid() = user_id);
-
--- Policy 2: Users can create their own requests (but only if no pending request exists)
-CREATE POLICY "Users can create requests"
-  ON host_requests FOR INSERT
-  WITH CHECK (
-    auth.uid() = user_id 
-    AND NOT EXISTS (
-      SELECT 1 FROM host_requests 
-      WHERE user_id = auth.uid() AND status = 'pending'
-    )
-  );
-
--- Policy 3: Admins can view all requests
-CREATE POLICY "Admins can view all requests"
-  ON host_requests FOR SELECT
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
-
--- Policy 4: Admins can update requests (for approval/rejection)
-CREATE POLICY "Admins can update requests"
-  ON host_requests FOR UPDATE
-  USING (
-    EXISTS (
-      SELECT 1 FROM profiles 
-      WHERE id = auth.uid() AND role = 'admin'
-    )
-  );
-
--- =====================================================
--- 9. CREATE HELPER FUNCTION: GET PENDING HOST REQUESTS COUNT
+-- SECTION 9: CREATE HELPER FUNCTION: GET PENDING HOST REQUESTS COUNT
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION get_pending_host_requests_count()
@@ -359,7 +376,7 @@ COMMENT ON FUNCTION get_pending_host_requests_count IS
 GRANT EXECUTE ON FUNCTION get_pending_host_requests_count() TO authenticated;
 
 -- =====================================================
--- 10. CREATE HELPER FUNCTION: CAN USER CREATE EVENT TYPE
+-- SECTION 10: CREATE HELPER FUNCTION: CAN USER CREATE EVENT TYPE
 -- =====================================================
 
 CREATE OR REPLACE FUNCTION can_user_create_event_type(
@@ -415,7 +432,7 @@ COMMENT ON FUNCTION can_user_create_event_type IS
 GRANT EXECUTE ON FUNCTION can_user_create_event_type(UUID, event_type) TO authenticated;
 
 -- =====================================================
--- 11. GRANT PERMISSIONS TO FUNCTIONS
+-- SECTION 11: GRANT PERMISSIONS TO FUNCTIONS
 -- =====================================================
 
 -- Grant execute permission on approval/rejection functions to authenticated users
@@ -424,7 +441,7 @@ GRANT EXECUTE ON FUNCTION approve_host_request(UUID, UUID, TEXT) TO authenticate
 GRANT EXECUTE ON FUNCTION reject_host_request(UUID, UUID, TEXT, TEXT) TO authenticated;
 
 -- =====================================================
--- 12. UPDATE EXISTING DATA (IF ANY)
+-- SECTION 12: UPDATE EXISTING DATA (IF ANY)
 -- =====================================================
 
 -- Set all existing hosts to 'full' type by default
@@ -434,7 +451,7 @@ SET host_type = 'full'
 WHERE role = 'host' AND host_type IS NULL;
 
 -- =====================================================
--- 13. ADD UPDATED_AT TRIGGER FOR HOST_REQUESTS
+-- SECTION 13: ADD UPDATED_AT TRIGGER FOR HOST_REQUESTS
 -- =====================================================
 
 -- Create trigger to auto-update updated_at timestamp
@@ -454,41 +471,10 @@ CREATE TRIGGER update_host_request_timestamp
   EXECUTE FUNCTION update_host_request_updated_at();
 
 -- =====================================================
--- VERIFICATION QUERIES (RUN THESE TO TEST)
+-- END OF MIGRATION
 -- =====================================================
 
--- Check if host_type enum was created
+-- VERIFICATION QUERIES (for testing):
 -- SELECT unnest(enum_range(NULL::host_type));
-
--- Check if profiles has host_type column
--- SELECT column_name, data_type FROM information_schema.columns 
--- WHERE table_name = 'profiles' AND column_name = 'host_type';
-
--- Check if host_requests table was created
--- SELECT column_name, data_type FROM information_schema.columns 
--- WHERE table_name = 'host_requests' ORDER BY ordinal_position;
-
--- Check if functions were created
--- SELECT proname FROM pg_proc WHERE proname LIKE '%host%';
-
--- Check if triggers were created
--- SELECT trigger_name FROM information_schema.triggers WHERE event_object_table = 'events';
-
--- =====================================================
--- ROLLBACK SCRIPT (IF NEEDED)
--- =====================================================
-
--- To rollback this migration, run:
-/*
-DROP TRIGGER IF EXISTS enforce_event_creation_permission ON events;
-DROP TRIGGER IF EXISTS update_host_request_timestamp ON host_requests;
-DROP FUNCTION IF EXISTS check_event_creation_permission();
-DROP FUNCTION IF EXISTS update_host_request_updated_at();
-DROP FUNCTION IF EXISTS approve_host_request(UUID, UUID, TEXT);
-DROP FUNCTION IF EXISTS reject_host_request(UUID, UUID, TEXT, TEXT);
-DROP FUNCTION IF EXISTS get_pending_host_requests_count();
-DROP FUNCTION IF EXISTS can_user_create_event_type(UUID, event_type);
-DROP TABLE IF EXISTS host_requests CASCADE;
-ALTER TABLE profiles DROP COLUMN IF EXISTS host_type;
-DROP TYPE IF EXISTS host_type CASCADE;
-*/
+-- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'profiles' AND column_name = 'host_type';
+-- SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'host_requests' ORDER BY ordinal_position;

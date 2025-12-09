@@ -1,21 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Colors } from '../../src/constants/colors';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useUserGroups } from '../../src/hooks/use-chat';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import TabHeader from '../../src/components/TabHeader';
+import EmptyState from '../../src/components/ui/empty-state';
 
 type FilterType = 'all' | 'unread';
 
@@ -27,6 +21,7 @@ const FILTERS: { id: FilterType; label: string }[] = [
 export default function ChatsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
+  const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -78,25 +73,22 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>arz</Text>
             <Text style={styles.logoDot}>.</Text>
           </View>
         </View>
 
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconContainer}>
-            <Ionicons name="chatbubbles-outline" size={48} color={Colors.textTertiary} />
-          </View>
-          <Text style={styles.emptyTitle}>Sign In to Chat</Text>
-          <Text style={styles.emptyText}>
-            Sign in to access your event group chats and connect with other attendees.
-          </Text>
-          <Pressable style={styles.signInButton} onPress={() => router.push('/')}>
-            <Text style={styles.signInButtonText}>Sign In</Text>
-          </Pressable>
-        </View>
+        <EmptyState
+          title="Sign In to Chat"
+          message="Sign in to access your event group chats and connect with other attendees."
+          icon="chatbubbles-outline"
+          action={{
+            label: 'Sign In',
+            onPress: () => router.push('/'),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -171,27 +163,12 @@ export default function ChatsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logoText}>arz</Text>
-          <Text style={styles.logoDot}>.</Text>
-        </View>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchSection}>
-        <View style={styles.searchContainer}>
-          <Ionicons name="search-outline" size={20} color={Colors.textTertiary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search conversations..."
-            placeholderTextColor={Colors.textTertiary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-        </View>
-      </View>
+      {/* Header with Search */}
+      <TabHeader
+        searchPlaceholder="Search conversations..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Filter Chips */}
       <View style={styles.filterSection}>{FILTERS.map(renderFilterChip)}</View>
@@ -212,17 +189,15 @@ export default function ChatsTab() {
         }
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconContainer}>
-              <Ionicons name="chatbubbles-outline" size={48} color={Colors.textTertiary} />
-            </View>
-            <Text style={styles.emptyTitle}>No Chats Yet</Text>
-            <Text style={styles.emptyText}>
-              {activeFilter === 'unread'
+          <EmptyState
+            title="No Chats Yet"
+            message={
+              activeFilter === 'unread'
                 ? "You're all caught up! No unread messages."
-                : "When you book events, you'll be added to their group chats."}
-            </Text>
-          </View>
+                : "When you book events, you'll be added."
+            }
+            icon="chatbubbles-outline"
+          />
         }
       />
     </SafeAreaView>
@@ -233,47 +208,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    alignItems: 'center',
-  },
-  logoContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-  },
-  logoText: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.text,
-    letterSpacing: -1,
-  },
-  logoDot: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginLeft: -2,
-  },
-  searchSection: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm + 2,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-    fontSize: 15,
-    color: Colors.text,
+    flexDirection: 'column',
   },
   filterSection: {
     flexDirection: 'row',
@@ -361,45 +296,23 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.borderLight,
     marginLeft: 78,
   },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xxl,
+  header: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    backgroundColor: Colors.background,
   },
-  emptyIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surfaceSecondary,
+  logoContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.lg,
   },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '600',
+  logoText: {
+    fontSize: 28,
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
   },
-  emptyText: {
-    fontSize: 15,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: Spacing.lg,
-  },
-  signInButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-  },
-  signInButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.textInverse,
+  logoDot: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: Colors.primary,
   },
 });

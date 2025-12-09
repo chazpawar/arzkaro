@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTicketValidation } from '../../src/hooks/use-bookings';
-import { Colors } from '../../src/constants/colors';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 
 export default function HostScannerScreen() {

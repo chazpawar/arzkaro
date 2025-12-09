@@ -53,6 +53,11 @@ export const Typography = {
     fontWeight: '400' as const,
     lineHeight: 24,
   },
+  bodyLarge: {
+    fontSize: 18,
+    fontWeight: '400' as const,
+    lineHeight: 26,
+  },
   bodyMedium: {
     fontSize: 16,
     fontWeight: '500' as const,
@@ -100,6 +105,13 @@ export const Shadows = StyleSheet.create({
     shadowOpacity: 0,
     shadowRadius: 0,
     elevation: 0,
+  },
+  sm: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 1,
+    elevation: 1,
   },
   small: {
     shadowColor: '#000',

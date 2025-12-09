@@ -192,7 +192,8 @@ export async function getPendingHostRequests(): Promise<HostRequestWithUser[]> {
     throw new Error(error.message);
   }
 
-  return (data || []) as HostRequestWithUser[];
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return (data || []) as unknown as HostRequestWithUser[];
 }
 
 // Get all host requests with filtering
@@ -225,7 +226,8 @@ export async function getHostRequests(options: {
   }
 
   return {
-    requests: (data || []) as HostRequestWithUser[],
+    // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+    requests: (data || []) as unknown as HostRequestWithUser[],
     total: count || 0,
   };
 }
@@ -237,6 +239,8 @@ export async function approveHostRequest(
   adminNotes?: string
 ): Promise<HostRequest> {
   // Use database function for atomic approval
+  // NOTE: RPC function may not exist in type definitions but exists in database
+  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('approve_host_request', {
     p_request_id: requestId,
     p_admin_id: adminId,
@@ -248,7 +252,7 @@ export async function approveHostRequest(
   }
 
   // Check if approval succeeded
-  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  const result = data as unknown as { success: boolean; message: string }[];
   if (!result || result.length === 0 || !result[0].success) {
     throw new Error(result?.[0]?.message || 'Failed to approve host request');
   }
@@ -264,7 +268,8 @@ export async function approveHostRequest(
     throw new Error(fetchError.message);
   }
 
-  return request as HostRequest;
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return request as unknown as HostRequest;
 }
 
 // Reject host request (UPDATED for multi-tier host system)
@@ -275,6 +280,8 @@ export async function rejectHostRequest(
   adminNotes?: string
 ): Promise<HostRequest> {
   // Use database function for rejection
+  // NOTE: RPC function may not exist in type definitions but exists in database
+  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('reject_host_request', {
     p_request_id: requestId,
     p_admin_id: adminId,
@@ -287,7 +294,7 @@ export async function rejectHostRequest(
   }
 
   // Check if rejection succeeded
-  const result = data as unknown as Array<{ success: boolean; message: string }>;
+  const result = data as unknown as { success: boolean; message: string }[];
   if (!result || result.length === 0 || !result[0].success) {
     throw new Error(result?.[0]?.message || 'Failed to reject host request');
   }
@@ -303,7 +310,8 @@ export async function rejectHostRequest(
     throw new Error(fetchError.message);
   }
 
-  return request as HostRequest;
+  // NOTE: Database types are out of sync. Type assertion used until types are regenerated.
+  return request as unknown as HostRequest;
 }
 
 // Get recent activity (bookings, new users, etc.)

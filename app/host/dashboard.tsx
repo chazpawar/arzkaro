@@ -1,15 +1,22 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, RefreshControl, Pressable, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  Pressable,
+  StatusBar,
+} from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../src/components/ui/card';
-import Button from '../../src/components/ui/button';
+import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
-import { Colors } from '../../src/constants/colors';
+import EmptyState from '../../src/components/ui/empty-state';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
-import type { Event } from '../../src/types';
 
 export default function HostDashboard() {
   const router = useRouter();
@@ -17,20 +24,15 @@ export default function HostDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<HostService.HostStats | null>(null);
-  const [recentEvents, setRecentEvents] = useState<Event[]>([]);
-  const [_error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
 
     try {
       setError(null);
-      const [statsData, eventsData] = await Promise.all([
-        HostService.getHostStats(user.id),
-        HostService.getHostEvents(user.id),
-      ]);
+      const statsData = await HostService.getHostStats(user.id);
       setStats(statsData);
-      setRecentEvents(eventsData.slice(0, 5)); // Show only recent 5
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load dashboard');
     } finally {
@@ -58,30 +60,19 @@ export default function HostDashboard() {
     }).format(amount);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-    });
-  };
-
   // Redirect non-hosts to the request page
   if (!isHost && !isAdmin) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.notHostContainer}>
-          <Text style={styles.notHostIcon}>🎭</Text>
-          <Text style={styles.notHostTitle}>Become a Host</Text>
-          <Text style={styles.notHostText}>
-            Apply to become a host and start creating amazing events for your community.
-          </Text>
-          <Button
-            title="Apply Now"
-            onPress={() => router.push('/host/request')}
-            variant="primary"
-            size="large"
-          />
-        </View>
+        <EmptyState
+          title="Become a Host"
+          emoji="🎭"
+          message="Apply to become a host and start creating amazing events for your community."
+          action={{
+            label: 'Apply Now',
+            onPress: () => router.push('/host/request'),
+          }}
+        />
       </SafeAreaView>
     );
   }
@@ -90,10 +81,26 @@ export default function HostDashboard() {
     return <LoadingSpinner fullScreen text="Loading dashboard..." />;
   }
 
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
+          <Text style={styles.errorText}>{error}</Text>
+          <Pressable style={styles.retryButton} onPress={fetchData}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
       <ScrollView
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -104,135 +111,124 @@ export default function HostDashboard() {
         }
       >
         {/* Welcome Section */}
-        <View style={styles.header}>
-          <Text style={styles.welcomeText}>Welcome back,</Text>
-          <Text style={styles.userName}>{profile?.full_name || 'Host'}</Text>
+        <View style={styles.welcomeSection}>
+          <Text style={styles.welcomeTitle}>
+            Hello, {profile?.full_name?.split(' ')[0] || 'Host'}
+          </Text>
+          <Text style={styles.welcomeSubtitle}>Here&apos;s your hosting overview.</Text>
         </View>
 
-        {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <Pressable style={styles.quickActionButton} onPress={() => router.push('/events/create')}>
-            <View style={styles.quickActionIcon}>
-              <Text style={styles.quickActionIconText}>+</Text>
-            </View>
-            <Text style={styles.quickActionText}>Create Event</Text>
-          </Pressable>
-
-          <Pressable style={styles.quickActionButton} onPress={() => router.push('/host/scanner')}>
-            <View style={[styles.quickActionIcon, styles.quickActionIconSecondary]}>
-              <Text style={styles.quickActionIconText}>📷</Text>
-            </View>
-            <Text style={styles.quickActionText}>Scan Tickets</Text>
-          </Pressable>
-
-          <Pressable style={styles.quickActionButton} onPress={() => router.push('/host/events')}>
-            <View style={[styles.quickActionIcon, styles.quickActionIconTertiary]}>
-              <Text style={styles.quickActionIconText}>📋</Text>
-            </View>
-            <Text style={styles.quickActionText}>My Events</Text>
-          </Pressable>
-        </View>
-
-        {/* Stats Cards */}
+        {/* Primary Stats */}
         {stats && (
-          <View style={styles.statsContainer}>
-            <Text style={styles.sectionTitle}>Overview</Text>
-            <View style={styles.statsGrid}>
-              <Card style={styles.statCard} variant="outlined">
-                <Text style={styles.statValue}>{stats.totalEvents}</Text>
-                <Text style={styles.statLabel}>Total Events</Text>
-              </Card>
-              <Card style={styles.statCard} variant="outlined">
-                <Text style={styles.statValue}>{stats.upcomingEvents}</Text>
-                <Text style={styles.statLabel}>Upcoming</Text>
-              </Card>
-              <Card style={styles.statCard} variant="outlined">
-                <Text style={styles.statValue}>{stats.totalBookings}</Text>
-                <Text style={styles.statLabel}>Bookings</Text>
-              </Card>
-              <Card style={styles.statCard} variant="outlined">
-                <Text style={[styles.statValue, styles.revenueValue]}>
-                  {formatCurrency(stats.totalRevenue)}
-                </Text>
-                <Text style={styles.statLabel}>Revenue</Text>
-              </Card>
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, styles.statCardPrimary]}>
+              <View style={styles.statIconContainer}>
+                <Ionicons name="wallet-outline" size={20} color={Colors.primary} />
+              </View>
+              <Text style={styles.statValue}>
+                {formatCurrency(stats.totalRevenue).replace('.00', '')}
+              </Text>
+              <Text style={styles.statLabel}>Total Revenue</Text>
+            </View>
+
+            <View style={styles.statCard}>
+              <View style={[styles.statIconContainer, { backgroundColor: Colors.infoLight }]}>
+                <Ionicons name="ticket-outline" size={20} color={Colors.info} />
+              </View>
+              <Text style={styles.statValue}>{stats.totalBookings}</Text>
+              <Text style={styles.statLabel}>Total Bookings</Text>
             </View>
           </View>
         )}
 
-        {/* Recent Events */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Events</Text>
-            <Pressable onPress={() => router.push('/host/events')}>
-              <Text style={styles.seeAllText}>See All →</Text>
+        {/* Detailed Stats Grid */}
+        {stats && (
+          <View style={styles.sectionContainer}>
+            <Text style={styles.sectionHeader}>Your Stats</Text>
+            <Text style={styles.sectionSubHeader}>Key performance indicators</Text>
+
+            <View style={styles.gridContainer}>
+              <View style={styles.gridItem}>
+                <Text style={styles.gridValue}>{stats.totalEvents}</Text>
+                <Text style={styles.gridLabel}>Events</Text>
+                <Text style={styles.gridSubText}>Created</Text>
+              </View>
+
+              <View style={styles.gridItem}>
+                <Text style={styles.gridValue}>{stats.upcomingEvents}</Text>
+                <Text style={styles.gridLabel}>Upcoming</Text>
+                <View style={[styles.trendIndicator, { backgroundColor: Colors.successLight }]}>
+                  <Ionicons name="time-outline" size={10} color={Colors.success} />
+                  <Text style={[styles.trendText, { color: Colors.success }]}>Active</Text>
+                </View>
+              </View>
+
+              <View style={styles.gridItem}>
+                <Text style={styles.gridValue}>{stats.totalBookings}</Text>
+                <Text style={styles.gridLabel}>Bookings</Text>
+                <Text style={styles.gridSubText}>All time</Text>
+              </View>
+
+              <View style={styles.gridItem}>
+                <Text style={styles.gridValue}>{stats.totalEvents - stats.upcomingEvents}</Text>
+                <Text style={styles.gridLabel}>Completed</Text>
+                <Text style={styles.gridSubText}>Events</Text>
+              </View>
+            </View>
+          </View>
+        )}
+
+        {/* Quick Actions */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionHeader}>Quick Actions</Text>
+          <Text style={styles.sectionSubHeader}>Manage your events</Text>
+
+          <View style={styles.menuList}>
+            <Pressable style={styles.menuItem} onPress={() => router.push('/events/create')}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.primarySoft }]}>
+                <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Create Event</Text>
+                <Text style={styles.menuSubtitle}>Launch a new event or experience</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
+            </Pressable>
+
+            <Pressable style={styles.menuItem} onPress={() => router.push('/host/scanner')}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
+                <Ionicons name="qr-code-outline" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Scan Tickets</Text>
+                <Text style={styles.menuSubtitle}>Validate attendee tickets</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
+            </Pressable>
+
+            <Pressable style={styles.menuItem} onPress={() => router.push('/host/events')}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
+                <Ionicons name="calendar-outline" size={20} color={Colors.text} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>My Events</Text>
+                <Text style={styles.menuSubtitle}>View and manage your events</Text>
+              </View>
+              {stats && stats.upcomingEvents > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>{stats.upcomingEvents}</Text>
+                </View>
+              )}
+              <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
             </Pressable>
           </View>
-
-          {recentEvents.length === 0 ? (
-            <Card style={styles.emptyCard} variant="outlined">
-              <Text style={styles.emptyIcon}>📅</Text>
-              <Text style={styles.emptyText}>No events yet</Text>
-              <Button
-                title="Create Your First Event"
-                onPress={() => router.push('/events/create')}
-                variant="primary"
-                size="small"
-              />
-            </Card>
-          ) : (
-            recentEvents.map((event) => (
-              <Card
-                key={event.id}
-                style={styles.eventCard}
-                variant="elevated"
-                onPress={() => router.push(`/events/${event.id}`)}
-              >
-                <View style={styles.eventRow}>
-                  {event.cover_image_url ? (
-                    <Image source={{ uri: event.cover_image_url }} style={styles.eventImage} />
-                  ) : (
-                    <View style={styles.eventImagePlaceholder}>
-                      <Text style={styles.eventImagePlaceholderText}>
-                        {event.type === 'event' ? '🎉' : event.type === 'experience' ? '✨' : '🏔️'}
-                      </Text>
-                    </View>
-                  )}
-                  <View style={styles.eventInfo}>
-                    <View style={styles.eventHeader}>
-                      <Text style={styles.eventTitle} numberOfLines={1}>
-                        {event.title}
-                      </Text>
-                      <View
-                        style={[
-                          styles.statusBadge,
-                          event.is_published ? styles.publishedBadge : styles.draftBadge,
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.statusText,
-                            event.is_published ? styles.publishedText : styles.draftText,
-                          ]}
-                        >
-                          {event.is_published ? 'Live' : 'Draft'}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text style={styles.eventDate}>
-                      {formatDate(event.start_date)} • {event.current_bookings || 0} booked
-                    </Text>
-                  </View>
-                </View>
-              </Card>
-            ))
-          )}
         </View>
 
-        {/* Bottom Padding */}
-        <View style={{ height: Spacing.xl }} />
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>ArzKaro Host v1.0</Text>
+        </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -241,196 +237,194 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  header: {
+  scrollContent: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.xl * 2,
   },
-  welcomeText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
+  welcomeSection: {
+    marginBottom: Spacing.xl,
   },
-  userName: {
-    ...Typography.h1,
-    color: Colors.text,
-  },
-  quickActions: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.lg,
-    gap: Spacing.md,
-  },
-  quickActionButton: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  quickActionIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: Colors.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-    ...Shadows.small,
-  },
-  quickActionIconSecondary: {
-    backgroundColor: Colors.secondary,
-  },
-  quickActionIconTertiary: {
-    backgroundColor: Colors.info,
-  },
-  quickActionIconText: {
-    fontSize: 24,
-    color: Colors.textInverse,
-  },
-  quickActionText: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-  statsContainer: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
-  },
-  statCard: {
-    width: '48%',
-    padding: Spacing.md,
-    alignItems: 'center',
-  },
-  statValue: {
+  welcomeTitle: {
     ...Typography.h2,
     color: Colors.text,
     marginBottom: 4,
   },
-  revenueValue: {
-    color: Colors.success,
-    fontSize: 20,
+  welcomeSubtitle: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    padding: Spacing.lg,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Shadows.sm,
+  },
+  statCardPrimary: {
+    backgroundColor: Colors.surface,
+    borderColor: Colors.primaryLight,
+  },
+  statIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primarySoft,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  statValue: {
+    ...Typography.h3,
+    color: Colors.text,
+    marginBottom: 4,
   },
   statLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
+    fontWeight: '500',
   },
-  section: {
-    paddingHorizontal: Spacing.lg,
+  sectionContainer: {
+    marginBottom: Spacing.xl,
   },
   sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
     ...Typography.h3,
     color: Colors.text,
-  },
-  seeAllText: {
-    ...Typography.bodySmall,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  emptyCard: {
-    padding: Spacing.xl,
-    alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-  },
-  eventCard: {
-    marginBottom: Spacing.sm,
-    padding: Spacing.md,
-  },
-  eventRow: {
-    flexDirection: 'row',
-  },
-  eventImage: {
-    width: 60,
-    height: 60,
-    borderRadius: BorderRadius.md,
-  },
-  eventImagePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  eventImagePlaceholderText: {
-    fontSize: 24,
-  },
-  eventInfo: {
-    flex: 1,
-    marginLeft: Spacing.md,
-    justifyContent: 'center',
-  },
-  eventHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 4,
   },
-  eventTitle: {
-    ...Typography.bodyMedium,
-    color: Colors.text,
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.sm,
-  },
-  publishedBadge: {
-    backgroundColor: Colors.successLight,
-  },
-  draftBadge: {
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  statusText: {
-    ...Typography.caption,
-    fontWeight: '600',
-  },
-  publishedText: {
-    color: Colors.success,
-  },
-  draftText: {
-    color: Colors.textSecondary,
-  },
-  eventDate: {
+  sectionSubHeader: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
+    marginBottom: Spacing.md,
   },
-  notHostContainer: {
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  gridItem: {
+    width: '47%',
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  gridValue: {
+    ...Typography.h2,
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  gridLabel: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  gridSubText: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+    fontSize: 11,
+  },
+  trendIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+    marginTop: 4,
+  },
+  trendText: {
+    ...Typography.caption,
+    fontSize: 10,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
+  menuList: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  menuIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.md,
+  },
+  menuContent: {
+    flex: 1,
+  },
+  menuTitle: {
+    ...Typography.bodyMedium,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  menuSubtitle: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+  },
+  badge: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: Spacing.sm,
+  },
+  badgeText: {
+    color: Colors.textInverse,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: Spacing.lg,
+  },
+  footerText: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+  },
+  errorContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     padding: Spacing.xl,
   },
-  notHostIcon: {
-    fontSize: 64,
-    marginBottom: Spacing.lg,
-  },
-  notHostTitle: {
-    ...Typography.h2,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    textAlign: 'center',
-  },
-  notHostText: {
+  errorText: {
     ...Typography.body,
-    color: Colors.textSecondary,
+    color: Colors.error,
     textAlign: 'center',
-    marginBottom: Spacing.xl,
+    marginVertical: Spacing.lg,
+  },
+  retryButton: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  retryButtonText: {
+    ...Typography.bodyMedium,
+    color: Colors.text,
   },
 });

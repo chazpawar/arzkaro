@@ -1,8 +1,8 @@
 import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { Colors } from '../../src/constants/colors';
 import { useAuth } from '../../src/contexts/auth-context';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import { Colors } from '../../src/constants/Colors';
 
 export default function AdminLayout() {
   const router = useRouter();
@@ -28,37 +28,15 @@ export default function AdminLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: {
-          backgroundColor: Colors.background,
-        },
-        headerTintColor: Colors.text,
-        headerBackTitle: 'Back',
+        headerShown: false,
+        contentStyle: { backgroundColor: Colors.background },
+        animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen
-        name="dashboard"
-        options={{
-          title: 'Admin Dashboard',
-        }}
-      />
-      <Stack.Screen
-        name="users"
-        options={{
-          title: 'User Management',
-        }}
-      />
-      <Stack.Screen
-        name="host-requests"
-        options={{
-          title: 'Host Requests',
-        }}
-      />
-      <Stack.Screen
-        name="events"
-        options={{
-          title: 'Event Management',
-        }}
-      />
+      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="users" />
+      <Stack.Screen name="host-requests" />
+      <Stack.Screen name="events" />
     </Stack>
   );
 }

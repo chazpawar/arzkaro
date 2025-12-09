@@ -11,13 +11,15 @@ import {
   Alert,
   TextInput,
   Modal,
+  StatusBar,
 } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Card from '../../src/components/ui/card';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
-import { Colors } from '../../src/constants/colors';
+import EmptyState from '../../src/components/ui/empty-state';
+import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
@@ -27,6 +29,7 @@ import type { HostRequestWithUser } from '../../src/types/host.types';
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
 export default function HostRequestsPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -192,9 +195,8 @@ export default function HostRequestsPage() {
     const statusStyle = getStatusStyle(item.status);
 
     return (
-      <Card
+      <Pressable
         style={styles.requestCard}
-        variant="outlined"
         onPress={() => {
           setSelectedRequest(item);
           setAdminNotes(item.admin_notes || '');
@@ -212,12 +214,18 @@ export default function HostRequestsPage() {
               </View>
             )}
             <View style={styles.userDetails}>
-              <Text style={styles.userName}>{item.user?.full_name || 'Unknown User'}</Text>
+              <View style={styles.nameRow}>
+                <Text style={styles.userName}>{item.user?.full_name || 'Unknown User'}</Text>
+                <View
+                  style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}
+                >
+                  <Text style={[styles.statusText, { color: statusStyle.color }]}>
+                    {item.status}
+                  </Text>
+                </View>
+              </View>
               <Text style={styles.userEmail}>{item.user?.email}</Text>
             </View>
-          </View>
-          <View style={[styles.statusBadge, { backgroundColor: statusStyle.backgroundColor }]}>
-            <Text style={[styles.statusText, { color: statusStyle.color }]}>{item.status}</Text>
           </View>
         </View>
 
@@ -237,39 +245,45 @@ export default function HostRequestsPage() {
 
         <View style={styles.requestFooter}>
           <Text style={styles.dateText}>Applied {formatTimeAgo(item.created_at)}</Text>
-          {item.status === 'pending' && <Text style={styles.tapText}>Tap to review →</Text>}
+          {item.status === 'pending' && <Text style={styles.tapText}>Review →</Text>}
         </View>
-      </Card>
+      </Pressable>
     );
   };
 
   const renderHeader = () => (
-    <>
+    <View style={styles.headerContent}>
       {/* Status Filter */}
-      <View style={styles.filterContainer}>
-        {(['pending', 'approved', 'rejected', 'all'] as StatusFilter[]).map((filter) => (
-          <Pressable
-            key={filter}
-            style={[styles.filterButton, statusFilter === filter && styles.filterButtonActive]}
-            onPress={() => setStatusFilter(filter)}
-          >
-            <Text
-              style={[
-                styles.filterButtonText,
-                statusFilter === filter && styles.filterButtonTextActive,
-              ]}
+      <View style={styles.filterWrapper}>
+        <FlatList
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          data={['pending', 'approved', 'rejected', 'all'] as StatusFilter[]}
+          contentContainerStyle={styles.filterContainer}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <Pressable
+              style={[styles.filterButton, statusFilter === item && styles.filterButtonActive]}
+              onPress={() => setStatusFilter(item)}
             >
-              {filter.charAt(0).toUpperCase() + filter.slice(1)}
-            </Text>
-          </Pressable>
-        ))}
+              <Text
+                style={[
+                  styles.filterButtonText,
+                  statusFilter === item && styles.filterButtonTextActive,
+                ]}
+              >
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </Text>
+            </Pressable>
+          )}
+        />
       </View>
 
       {/* Results Count */}
       <Text style={styles.resultsCount}>
         {total} request{total !== 1 ? 's' : ''} found
       </Text>
-    </>
+    </View>
   );
 
   if (loading && requests.length === 0) {
@@ -279,6 +293,13 @@ export default function HostRequestsPage() {
   if (error && requests.length === 0) {
     return (
       <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Host Requests</Text>
+          <View style={{ width: 32 }} />
+        </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
           <Pressable style={styles.retryButton} onPress={() => fetchRequests(true)}>
@@ -290,269 +311,229 @@ export default function HostRequestsPage() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
-      <FlatList
-        data={requests}
-        renderItem={renderRequestItem}
-        keyExtractor={(item) => item.id}
-        ListHeaderComponent={renderHeader}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyIcon}>📝</Text>
-            <Text style={styles.emptyText}>
-              {statusFilter === 'pending'
-                ? 'No pending requests'
-                : `No ${statusFilter} requests found`}
-            </Text>
-          </View>
-        }
-        ListFooterComponent={
-          loadingMore ? (
-            <View style={styles.loadingMore}>
-              <LoadingSpinner size="small" />
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Custom Header */}
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+          <View style={styles.headerActionPlaceholder} />
+        </View>
+
+        <FlatList
+          data={requests}
+          renderItem={renderRequestItem}
+          keyExtractor={(item) => item.id}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={
+            <EmptyState
+              title={
+                statusFilter === 'pending'
+                  ? 'No Pending Requests'
+                  : `No ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)} Requests`
+              }
+              message={
+                statusFilter === 'pending'
+                  ? 'All host requests have been reviewed.'
+                  : `No ${statusFilter} host requests at the moment.`
+              }
+              emoji="📝"
+            />
+          }
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={styles.loadingMore}>
+                <LoadingSpinner size="small" />
+              </View>
+            ) : (
+              <View style={{ height: Spacing.xl }} />
+            )
+          }
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.3}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              colors={[Colors.primary]}
+              tintColor={Colors.primary}
+            />
+          }
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* Review Modal */}
+        <Modal
+          visible={!!selectedRequest}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={() => {
+            setSelectedRequest(null);
+            setAdminNotes('');
+          }}
+        >
+          <SafeAreaView style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Application Details</Text>
+              <Pressable
+                onPress={() => {
+                  setSelectedRequest(null);
+                  setAdminNotes('');
+                }}
+                style={styles.modalCloseButton}
+              >
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </Pressable>
             </View>
-          ) : null
-        }
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.3}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[Colors.primary]}
-            tintColor={Colors.primary}
-          />
-        }
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-      />
 
-      {/* Review Modal */}
-      <Modal
-        visible={!!selectedRequest}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => {
-          setSelectedRequest(null);
-          setAdminNotes('');
-        }}
-      >
-        <SafeAreaView style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Review Application</Text>
-            <Pressable
-              onPress={() => {
-                setSelectedRequest(null);
-                setAdminNotes('');
-              }}
-            >
-              <Text style={styles.modalClose}>Close</Text>
-            </Pressable>
-          </View>
-
-          {selectedRequest && (
-            <ScrollView
-              style={styles.modalContent}
-              contentContainerStyle={styles.modalContentContainer}
-              showsVerticalScrollIndicator={false}
-            >
-              {/* Applicant Info */}
-              <View style={styles.applicantSection}>
-                {selectedRequest.user?.avatar_url ? (
-                  <Image
-                    source={{ uri: selectedRequest.user.avatar_url }}
-                    style={styles.modalAvatar}
-                  />
-                ) : (
-                  <View style={styles.modalAvatarPlaceholder}>
-                    <Text style={styles.modalAvatarText}>
-                      {(selectedRequest.user?.full_name || '?')[0].toUpperCase()}
-                    </Text>
-                  </View>
-                )}
-                <Text style={styles.applicantName}>
-                  {selectedRequest.user?.full_name || 'Unknown User'}
-                </Text>
-                <Text style={styles.applicantEmail}>{selectedRequest.user?.email}</Text>
-                {selectedRequest.user?.created_at && (
-                  <Text style={styles.applicantJoined}>
-                    Member since {formatDate(selectedRequest.user.created_at)}
-                  </Text>
-                )}
-              </View>
-
-              {/* Host Type */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Host Type</Text>
-                <View style={[styles.hostTypeBadge, styles.hostTypeBadgeLarge]}>
-                  <Text style={[styles.hostTypeText, styles.hostTypeTextLarge]}>
-                    {selectedRequest.requested_host_type
-                      ? HOST_TYPE_LABELS[selectedRequest.requested_host_type]
-                      : 'Host'}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Personal Info */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Personal Information</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Organizer Name:</Text>
-                  <Text style={styles.infoValue}>{selectedRequest.organizer_name}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Contact:</Text>
-                  <Text style={styles.infoValue}>{selectedRequest.contact_number}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Email:</Text>
-                  <Text style={styles.infoValue}>{selectedRequest.email}</Text>
-                </View>
-              </View>
-
-              {/* Address */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Address</Text>
-                <Text style={styles.modalSectionText}>
-                  {selectedRequest.street_address}, {selectedRequest.city},{'\n'}
-                  {selectedRequest.state} - {selectedRequest.pin_code}
-                </Text>
-              </View>
-
-              {/* KYC Documents */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>KYC Documents</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>PAN Number:</Text>
-                  <Text style={[styles.infoValue, styles.infoValueBold]}>
-                    {selectedRequest.pan_number}
-                  </Text>
-                </View>
-                {selectedRequest.pan_card_photo_url && (
-                  <Pressable
-                    onPress={() =>
-                      Alert.alert('PAN Card', selectedRequest.pan_card_photo_url || '')
-                    }
-                  >
-                    <Text style={styles.linkText}>View PAN Card Photo →</Text>
-                  </Pressable>
-                )}
-                {selectedRequest.gstin && (
-                  <>
-                    <View style={styles.infoRow}>
-                      <Text style={styles.infoLabel}>GSTIN:</Text>
-                      <Text style={[styles.infoValue, styles.infoValueBold]}>
-                        {selectedRequest.gstin}
+            {selectedRequest && (
+              <ScrollView
+                style={styles.modalContent}
+                contentContainerStyle={styles.modalContentContainer}
+                showsVerticalScrollIndicator={false}
+              >
+                {/* Applicant Info */}
+                <View style={styles.applicantSection}>
+                  {selectedRequest.user?.avatar_url ? (
+                    <Image
+                      source={{ uri: selectedRequest.user.avatar_url }}
+                      style={styles.modalAvatar}
+                    />
+                  ) : (
+                    <View style={styles.modalAvatarPlaceholder}>
+                      <Text style={styles.modalAvatarText}>
+                        {(selectedRequest.user?.full_name || '?')[0].toUpperCase()}
                       </Text>
                     </View>
-                    {selectedRequest.gst_certificate_url && (
-                      <Pressable
-                        onPress={() =>
-                          Alert.alert('GST Certificate', selectedRequest.gst_certificate_url || '')
-                        }
-                      >
-                        <Text style={styles.linkText}>View GST Certificate →</Text>
-                      </Pressable>
-                    )}
-                  </>
+                  )}
+                  <Text style={styles.applicantName}>
+                    {selectedRequest.user?.full_name || 'Unknown User'}
+                  </Text>
+                  <Text style={styles.applicantEmail}>{selectedRequest.user?.email}</Text>
+                  <View style={styles.statusChip}>
+                    <Text style={styles.statusChipText}>{selectedRequest.status}</Text>
+                  </View>
+                </View>
+
+                {/* Info Groups */}
+                <View style={styles.infoGroup}>
+                  <Text style={styles.groupTitle}>Host Details</Text>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Type</Text>
+                    <Text style={styles.infoValue}>
+                      {selectedRequest.requested_host_type
+                        ? HOST_TYPE_LABELS[selectedRequest.requested_host_type]
+                        : 'Host'}
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Organizer</Text>
+                    <Text style={styles.infoValue}>{selectedRequest.organizer_name}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Contact</Text>
+                    <Text style={styles.infoValue}>{selectedRequest.contact_number}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Email</Text>
+                    <Text style={styles.infoValue}>{selectedRequest.email}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.infoGroup}>
+                  <Text style={styles.groupTitle}>Address</Text>
+                  <Text style={styles.addressText}>
+                    {selectedRequest.street_address}
+                    {'\n'}
+                    {selectedRequest.city}, {selectedRequest.state}
+                    {'\n'}
+                    {selectedRequest.pin_code}
+                  </Text>
+                </View>
+
+                <View style={styles.infoGroup}>
+                  <Text style={styles.groupTitle}>KYC & Bank</Text>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>PAN</Text>
+                    <Text style={styles.infoValueMono}>{selectedRequest.pan_number}</Text>
+                  </View>
+                  {selectedRequest.gstin && (
+                    <View style={styles.infoRow}>
+                      <Text style={styles.infoLabel}>GSTIN</Text>
+                      <Text style={styles.infoValueMono}>{selectedRequest.gstin}</Text>
+                    </View>
+                  )}
+                  <View style={styles.separator} />
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Bank Acc.</Text>
+                    <Text style={styles.infoValueMono}>{selectedRequest.account_number}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>IFSC</Text>
+                    <Text style={styles.infoValueMono}>{selectedRequest.ifsc_code}</Text>
+                  </View>
+                </View>
+
+                {/* Admin Notes / Rejection Reason */}
+                <View style={styles.notesSection}>
+                  <Text style={styles.groupTitle}>
+                    {selectedRequest.status === 'pending' ? 'Admin Action' : 'Notes'}
+                  </Text>
+
+                  {selectedRequest.status === 'rejected' && (
+                    <View style={styles.rejectionBox}>
+                      <Text style={styles.rejectionTitle}>Rejection Reason:</Text>
+                      <Text style={styles.rejectionText}>{selectedRequest.rejection_reason}</Text>
+                    </View>
+                  )}
+
+                  <TextInput
+                    style={styles.notesInput}
+                    placeholder={
+                      selectedRequest.status === 'pending'
+                        ? 'Add notes (required for rejection)...'
+                        : 'No additional notes.'
+                    }
+                    placeholderTextColor={Colors.textTertiary}
+                    value={adminNotes}
+                    onChangeText={setAdminNotes}
+                    multiline
+                    numberOfLines={4}
+                    editable={selectedRequest.status === 'pending'}
+                  />
+                </View>
+
+                {/* Action Buttons */}
+                {selectedRequest.status === 'pending' && (
+                  <View style={styles.actionButtons}>
+                    <Button
+                      title="Reject"
+                      onPress={handleReject}
+                      variant="outline"
+                      loading={actionLoading}
+                      disabled={actionLoading}
+                      style={styles.rejectButton}
+                      textStyle={{ color: Colors.error }}
+                    />
+                    <Button
+                      title="Approve"
+                      onPress={handleApprove}
+                      variant="primary"
+                      loading={actionLoading}
+                      disabled={actionLoading}
+                      style={styles.approveButton}
+                    />
+                  </View>
                 )}
-              </View>
-
-              {/* Bank Details */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>Bank Details</Text>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Account Holder:</Text>
-                  <Text style={styles.infoValue}>{selectedRequest.account_holder_name}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Beneficiary:</Text>
-                  <Text style={styles.infoValue}>{selectedRequest.beneficiary_name}</Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Account Number:</Text>
-                  <Text style={[styles.infoValue, styles.infoValueBold]}>
-                    {selectedRequest.account_number}
-                  </Text>
-                </View>
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>IFSC Code:</Text>
-                  <Text style={[styles.infoValue, styles.infoValueBold]}>
-                    {selectedRequest.ifsc_code}
-                  </Text>
-                </View>
-              </View>
-
-              {/* Rejection Reason (if rejected) */}
-              {selectedRequest.status === 'rejected' && selectedRequest.rejection_reason && (
-                <View style={styles.modalSection}>
-                  <Text style={styles.modalSectionTitle}>Rejection Reason</Text>
-                  <Text style={[styles.modalSectionText, { color: Colors.error }]}>
-                    {selectedRequest.rejection_reason}
-                  </Text>
-                </View>
-              )}
-
-              {/* Admin Notes / Rejection Reason */}
-              <View style={styles.modalSection}>
-                <Text style={styles.modalSectionTitle}>
-                  {selectedRequest.status === 'pending'
-                    ? 'Admin Notes / Rejection Reason'
-                    : 'Admin Notes'}
-                </Text>
-                <TextInput
-                  style={styles.notesInput}
-                  placeholder={
-                    selectedRequest.status === 'pending'
-                      ? 'Optional for approval. Required for rejection.'
-                      : 'Notes about this application...'
-                  }
-                  placeholderTextColor={Colors.textSecondary}
-                  value={adminNotes}
-                  onChangeText={setAdminNotes}
-                  multiline
-                  numberOfLines={4}
-                  editable={selectedRequest.status === 'pending'}
-                />
-              </View>
-
-              {/* Action Buttons */}
-              {selectedRequest.status === 'pending' && (
-                <View style={styles.actionButtons}>
-                  <Button
-                    title="Reject"
-                    onPress={handleReject}
-                    variant="outline"
-                    loading={actionLoading}
-                    disabled={actionLoading}
-                    style={styles.rejectButton}
-                  />
-                  <Button
-                    title="Approve"
-                    onPress={handleApprove}
-                    variant="primary"
-                    loading={actionLoading}
-                    disabled={actionLoading}
-                    style={styles.approveButton}
-                  />
-                </View>
-              )}
-
-              {selectedRequest.status !== 'pending' && (
-                <View style={styles.reviewedInfo}>
-                  <Text style={styles.reviewedText}>
-                    {selectedRequest.status === 'approved' ? 'Approved' : 'Rejected'}
-                    {selectedRequest.reviewed_at
-                      ? ` on ${formatDate(selectedRequest.reviewed_at)}`
-                      : ''}
-                  </Text>
-                </View>
-              )}
-            </ScrollView>
-          )}
-        </SafeAreaView>
-      </Modal>
-    </SafeAreaView>
+              </ScrollView>
+            )}
+          </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    </View>
   );
 }
 
@@ -561,43 +542,84 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  safeArea: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  backButton: {
+    padding: Spacing.xs,
+    marginLeft: -Spacing.xs,
+  },
+  headerTextContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  headerTitle: {
+    ...Typography.bodyLarge,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerSubtitle: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+  },
+  headerActionPlaceholder: {
+    width: 32,
+  },
   listContent: {
-    padding: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  headerContent: {
+    paddingVertical: Spacing.md,
+  },
+  filterWrapper: {
+    marginBottom: Spacing.md,
   },
   filterContainer: {
-    flexDirection: 'row',
-    marginBottom: Spacing.md,
     gap: Spacing.sm,
+    paddingRight: Spacing.lg,
   },
   filterButton: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingVertical: 6,
     borderRadius: BorderRadius.full,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   filterButtonActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    backgroundColor: Colors.text,
+    borderColor: Colors.text,
   },
   filterButtonText: {
-    ...Typography.bodySmall,
+    ...Typography.caption,
     color: Colors.textSecondary,
+    fontWeight: '500',
   },
   filterButtonTextActive: {
     color: Colors.textInverse,
-    fontWeight: '600',
   },
   resultsCount: {
     ...Typography.caption,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
+    color: Colors.textTertiary,
+    marginBottom: Spacing.sm,
   },
   requestCard: {
-    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+    marginBottom: Spacing.sm,
     padding: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
   requestHeader: {
     flexDirection: 'row',
@@ -614,120 +636,76 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    backgroundColor: Colors.surfaceSecondary,
   },
   avatarPlaceholder: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
     ...Typography.h3,
     color: Colors.primary,
+    fontWeight: '600',
   },
   userDetails: {
-    marginLeft: Spacing.sm,
+    marginLeft: Spacing.md,
     flex: 1,
   },
   userName: {
     ...Typography.bodyMedium,
     color: Colors.text,
+    fontWeight: '600',
   },
   userEmail: {
     ...Typography.caption,
     color: Colors.textSecondary,
   },
   statusBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginLeft: Spacing.sm,
   },
   statusText: {
     ...Typography.caption,
-    fontWeight: '600',
-    textTransform: 'capitalize',
+    fontWeight: '700',
+    fontSize: 9,
+    textTransform: 'uppercase',
   },
-  businessInfo: {
-    marginBottom: Spacing.sm,
-    padding: Spacing.sm,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.sm,
-  },
-  businessLabel: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 2,
-  },
-  businessValue: {
-    ...Typography.bodySmall,
-    color: Colors.text,
-  },
-  reasonSection: {
-    marginBottom: Spacing.sm,
-  },
-  reasonLabel: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-  },
-  reasonText: {
-    ...Typography.body,
-    color: Colors.text,
   },
   hostTypeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
-    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surfaceSecondary,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
   },
   hostTypeBadge: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.sm,
+    backgroundColor: Colors.text,
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-  },
-  hostTypeBadgeLarge: {
-    alignSelf: 'flex-start',
+    borderRadius: 4,
+    marginRight: Spacing.sm,
   },
   hostTypeText: {
-    ...Typography.caption,
     color: Colors.textInverse,
+    fontSize: 10,
     fontWeight: '600',
-  },
-  hostTypeTextLarge: {
-    ...Typography.bodySmall,
+    textTransform: 'uppercase',
   },
   organizerName: {
-    ...Typography.bodySmall,
+    ...Typography.caption,
     color: Colors.text,
     flex: 1,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    marginBottom: Spacing.xs,
-  },
-  infoLabel: {
-    ...Typography.bodySmall,
-    color: Colors.textSecondary,
-    width: 140,
-  },
-  infoValue: {
-    ...Typography.bodySmall,
-    color: Colors.text,
-    flex: 1,
-  },
-  infoValueBold: {
-    fontWeight: '600',
-    fontFamily: 'monospace',
-  },
-  linkText: {
-    ...Typography.bodySmall,
-    color: Colors.primary,
-    textDecorationLine: 'underline',
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.sm,
   },
   requestFooter: {
     flexDirection: 'row',
@@ -735,28 +713,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    borderTopColor: Colors.borderLight,
   },
   dateText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
+    color: Colors.textTertiary,
   },
   tapText: {
     ...Typography.caption,
     color: Colors.primary,
     fontWeight: '600',
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xxl,
-  },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: Spacing.md,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,
@@ -775,15 +741,18 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   retryButton: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   retryButtonText: {
     ...Typography.bodyMedium,
-    color: Colors.textInverse,
+    color: Colors.text,
   },
+
   // Modal Styles
   modalContainer: {
     flex: 1,
@@ -793,43 +762,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: Colors.borderLight,
   },
   modalTitle: {
     ...Typography.h3,
     color: Colors.text,
   },
-  modalClose: {
-    ...Typography.bodyMedium,
-    color: Colors.primary,
+  modalCloseButton: {
+    padding: Spacing.xs,
   },
   modalContent: {
     flex: 1,
   },
   modalContentContainer: {
     padding: Spacing.lg,
-    paddingBottom: Spacing.xl * 2, // Extra padding at bottom for action buttons
+    paddingBottom: Spacing.xl * 2,
   },
   applicantSection: {
     alignItems: 'center',
     marginBottom: Spacing.xl,
-    paddingBottom: Spacing.lg,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
   },
   modalAvatar: {
     width: 80,
     height: 80,
     borderRadius: 40,
     marginBottom: Spacing.md,
+    backgroundColor: Colors.surfaceSecondary,
   },
   modalAvatarPlaceholder: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: Colors.primary + '20',
+    backgroundColor: Colors.primary + '10',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: Spacing.md,
@@ -840,35 +807,82 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   applicantName: {
-    ...Typography.h3,
+    ...Typography.h2,
     color: Colors.text,
     marginBottom: 4,
   },
   applicantEmail: {
     ...Typography.body,
     color: Colors.textSecondary,
-    marginBottom: 4,
+    marginBottom: Spacing.md,
   },
-  applicantJoined: {
+  statusChip: {
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+  },
+  statusChipText: {
     ...Typography.caption,
-    color: Colors.textSecondary,
-  },
-  modalSection: {
-    marginBottom: Spacing.lg,
-  },
-  modalSectionTitle: {
-    ...Typography.bodyMedium,
     color: Colors.text,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+  },
+  infoGroup: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  groupTitle: {
+    ...Typography.bodySmall,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: Spacing.sm,
   },
-  modalSectionText: {
+  infoLabel: {
     ...Typography.body,
     color: Colors.textSecondary,
+    flex: 1,
+  },
+  infoValue: {
+    ...Typography.body,
+    color: Colors.text,
+    flex: 1.5,
+    textAlign: 'right',
+  },
+  infoValueMono: {
+    ...Typography.body,
+    fontFamily: 'monospace',
+    color: Colors.text,
+    flex: 1.5,
+    textAlign: 'right',
+  },
+  addressText: {
+    ...Typography.body,
+    color: Colors.text,
     lineHeight: 22,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: Colors.borderLight,
+    marginVertical: Spacing.sm,
+  },
+  notesSection: {
+    marginBottom: Spacing.xl,
   },
   notesInput: {
     backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     ...Typography.body,
     color: Colors.text,
@@ -877,11 +891,26 @@ const styles = StyleSheet.create({
     minHeight: 100,
     textAlignVertical: 'top',
   },
+  rejectionBox: {
+    backgroundColor: Colors.error + '10',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginBottom: Spacing.md,
+  },
+  rejectionTitle: {
+    ...Typography.bodySmall,
+    fontWeight: '700',
+    color: Colors.error,
+    marginBottom: 4,
+  },
+  rejectionText: {
+    ...Typography.body,
+    color: Colors.error,
+  },
   actionButtons: {
     flexDirection: 'row',
     gap: Spacing.md,
-    marginTop: 'auto',
-    paddingTop: Spacing.lg,
+    marginTop: Spacing.md,
   },
   rejectButton: {
     flex: 1,
@@ -890,16 +919,5 @@ const styles = StyleSheet.create({
   approveButton: {
     flex: 1,
     backgroundColor: Colors.success,
-  },
-  reviewedInfo: {
-    marginTop: 'auto',
-    padding: Spacing.md,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.md,
-    alignItems: 'center',
-  },
-  reviewedText: {
-    ...Typography.body,
-    color: Colors.textSecondary,
   },
 });
