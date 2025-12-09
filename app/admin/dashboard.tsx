@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/styles';
+import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
 

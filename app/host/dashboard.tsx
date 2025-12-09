@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/styles';
+import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
 
