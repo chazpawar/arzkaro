@@ -3,8 +3,8 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase, hasValidCredentials } from '../../backend/supabase';
 import type { Profile, UserRole } from '../types';
 
-// Timeout for initial auth check (5 seconds)
-const AUTH_TIMEOUT_MS = 5000;
+// Timeout for initial auth check (3 seconds for faster loading)
+const AUTH_TIMEOUT_MS = 3000;
 
 interface AuthContextType {
   session: Session | null;

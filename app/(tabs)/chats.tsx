@@ -1,10 +1,10 @@
 import React, { useState, useCallback } from 'react';
 import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useUserGroups } from '../../src/hooks/use-chat';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -29,14 +29,13 @@ export default function ChatsTab() {
   // Fetch groups from backend
   const { groups, loading, refresh: refreshGroups } = useUserGroups(user?.id);
 
-  // Refresh on focus
-  useFocusEffect(
-    useCallback(() => {
-      if (user?.id) {
-        refreshGroups();
-      }
-    }, [user?.id, refreshGroups])
-  );
+  // Load data on component mount
+  React.useEffect(() => {
+    if (user?.id) {
+      refreshGroups();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

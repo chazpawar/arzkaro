@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,11 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTickets } from '../../src/hooks/use-bookings';
 import TabHeader from '../../src/components/TabHeader';
@@ -31,14 +31,8 @@ export default function TicketsTab() {
   const { validTickets, usedTickets, expiredTickets, refresh } = useTickets(user?.id);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Refresh on focus
-  useFocusEffect(
-    useCallback(() => {
-      if (user?.id) {
-        refresh();
-      }
-    }, [user?.id, refresh])
-  );
+  // Removed auto-refresh on focus for better performance
+  // Users can manually refresh with pull-to-refresh gesture
 
   const onRefresh = async () => {
     setRefreshing(true);

@@ -3,7 +3,7 @@ import * as BookingService from '../services/booking-service';
 import type { BookingWithDetails, TicketWithDetails, CreateBooking } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
 
-const FETCH_TIMEOUT = 10000; // Increased to 10 seconds
+const FETCH_TIMEOUT = 8000; // 8 seconds - fail faster for better UX
 
 /**
  * Hook for managing user's bookings

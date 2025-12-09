@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useBookings, useTickets } from '../../src/hooks/use-bookings';
 
@@ -30,13 +30,23 @@ export default function ProfileTab() {
   const router = useRouter();
   const { user, profile, isHost, isAdmin, role, refreshProfile, signOut } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
+  const [loadStats, setLoadStats] = useState(false);
 
-  // Fetch user stats
-  const { bookings } = useBookings(user?.id);
-  const { tickets } = useTickets(user?.id);
+  // Lazy load stats only when needed - NOT on initial render
+  const { bookings } = useBookings(loadStats ? user?.id : undefined);
+  const { tickets } = useTickets(loadStats ? user?.id : undefined);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
+
+  // Trigger stats loading after component mounts
+  React.useEffect(() => {
+    // Delay stats loading by 500ms to let the UI render first
+    const timer = setTimeout(() => {
+      setLoadStats(true);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Pull to refresh handler
   const onRefresh = useCallback(async () => {

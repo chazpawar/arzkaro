@@ -26,7 +26,7 @@ const placeholderUrl = 'https://placeholder.supabase.co';
 const placeholderKey =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
-// Create typed client with Database types
+// Create typed client with Database types with performance optimizations
 export const supabase = createClient<Database>(
   supabaseUrl || placeholderUrl,
   supabaseAnonKey || placeholderKey,
@@ -39,6 +39,20 @@ export const supabase = createClient<Database>(
       // Use PKCE flow for better security
       // AsyncStorage will persist code_verifier between app restarts
       flowType: 'pkce',
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'arzkaro-mobile',
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+    // Performance: Reduce timeout for faster failure feedback
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
     },
   }
 );

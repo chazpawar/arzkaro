@@ -9,13 +9,13 @@ import {
   StatusBar,
   Image,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import * as AdminService from '../../src/services/admin-service';
 import type { Event } from '../../src/types/event.types';
 
@@ -97,13 +97,12 @@ export default function EventsPage() {
     [page, activeTab]
   );
 
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      fetchItems(true);
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [activeTab])
-  );
+  // Load data on component mount and when activeTab changes
+  React.useEffect(() => {
+    setLoading(true);
+    fetchItems(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
 
   const onRefresh = async () => {
     setRefreshing(true);

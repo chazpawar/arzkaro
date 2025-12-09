@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,11 @@ import {
   Platform,
   RefreshControl,
 } from 'react-native';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, BorderRadius } from '../../src/constants/styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useEvents } from '../../src/hooks/use-events';
 import { useAuth } from '../../src/contexts/auth-context';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -58,12 +58,8 @@ export default function ExploreTab() {
   // Fetch events from backend
   const { events, loading, error, refresh } = useEvents();
 
-  // Refresh data on screen focus
-  useFocusEffect(
-    useCallback(() => {
-      refresh();
-    }, [refresh])
-  );
+  // Removed auto-refresh on focus for better performance
+  // Users can manually refresh with pull-to-refresh gesture
 
   const onRefresh = async () => {
     setRefreshing(true);

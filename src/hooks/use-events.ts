@@ -33,10 +33,10 @@ export function useEvents(initialFilters?: EventFilters) {
         setLoading(true);
         setError(null);
 
-        // Set a timeout to prevent infinite loading (10 seconds)
+        // Set a timeout to prevent infinite loading (8 seconds for faster UX)
         const fetchPromise = EventService.getEvents(filters, 1);
         const timeoutPromise = new Promise<never>((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 10000);
+          timeoutId = setTimeout(() => reject(new Error('Request timeout')), 8000);
         });
 
         const result = await Promise.race([fetchPromise, timeoutPromise]);
