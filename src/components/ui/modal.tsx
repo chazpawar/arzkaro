@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/styles';
+import { BorderRadius, Spacing, Typography, Shadows } from '@/constants/Styles';
 
 interface ModalProps {
   visible: boolean;

@@ -67,9 +67,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Fetch user profile from database with retry logic
   const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
-    const MAX_RETRIES = 3;
-    const RETRY_DELAY_MS = 1000;
-    const FETCH_TIMEOUT_MS = 5000; // 5 second timeout (reduced from 10)
+    const MAX_RETRIES = 2;
+    const RETRY_DELAY_MS = 1500;
+    const FETCH_TIMEOUT_MS = 15000; // 15 second timeout
 
     setProfileLoading(true);
     try {
@@ -86,7 +86,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const fetchPromise = supabase.from('profiles').select('*').eq('id', userId).single();
 
       const { data, error } = (await Promise.race([fetchPromise, timeoutPromise]).catch((err) => {
-        console.error('❌ [AUTH] Profile fetch timed out or errored:', err);
+        // Only log on final retry
+        if (retryCount >= MAX_RETRIES) {
+          console.error('❌ [AUTH] Profile fetch timed out or errored:', err);
+        }
         return { data: null, error: err };
       })) as any;
 
@@ -100,11 +103,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (error) {
         // Check for timeout
         if (error.message === 'Profile fetch timeout') {
-          console.error('⏱️  [AUTH] Profile fetch TIMED OUT after', FETCH_TIMEOUT_MS, 'ms');
-
           if (retryCount < MAX_RETRIES) {
             const delay = RETRY_DELAY_MS * Math.pow(2, retryCount);
-            console.log(`⏳ [AUTH] Retrying after timeout in ${delay}ms...`);
+            console.log(
+              `⏳ [AUTH] Retrying after timeout in ${delay}ms... (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`
+            );
             await new Promise((resolve) => setTimeout(resolve, delay));
             return fetchProfile(userId, retryCount + 1);
           }

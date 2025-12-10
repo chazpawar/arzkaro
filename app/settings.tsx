@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../src/constants/styles';
+import { Spacing, Typography, BorderRadius } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 
 export default function SettingsScreen() {
