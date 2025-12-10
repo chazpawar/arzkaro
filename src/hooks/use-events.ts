@@ -2,23 +2,31 @@ import { useState, useEffect, useCallback } from 'react';
 import * as EventService from '../services/event-service';
 import type { Event, EventFilters, TicketType } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
+import { useAuth } from '../contexts/auth-context';
 
 /**
  * Hook for fetching and managing events
  */
 export function useEvents(initialFilters?: EventFilters) {
+  const { user, isAuthReady } = useAuth(); // Check if auth is fully ready
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filters] = useState<EventFilters>(initialFilters || {});
   const [hasMore, setHasMore] = useState(false);
 
-  // Initial fetch only
+  // Fetch events - now runs when user changes AND auth is ready
   useEffect(() => {
     let mounted = true;
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const doFetch = async () => {
+      // Wait for auth to be fully ready before fetching
+      if (!isAuthReady) {
+        console.log('⏳ [EVENTS] Waiting for auth to be ready...');
+        return;
+      }
+
       // If no valid credentials, don't even try to fetch
       if (!hasValidCredentials) {
         if (mounted) {
@@ -33,6 +41,8 @@ export function useEvents(initialFilters?: EventFilters) {
         setLoading(true);
         setError(null);
 
+        console.log('🔄 [EVENTS] Fetching events...');
+
         // Set a timeout to prevent infinite loading (8 seconds for faster UX)
         const fetchPromise = EventService.getEvents(filters, 1);
         const timeoutPromise = new Promise<never>((_, reject) => {
@@ -42,6 +52,7 @@ export function useEvents(initialFilters?: EventFilters) {
         const result = await Promise.race([fetchPromise, timeoutPromise]);
 
         if (mounted) {
+          console.log(`✅ [EVENTS] Fetched ${result.data?.length || 0} events`);
           setEvents(result.data || []);
           setHasMore(result.hasMore || false);
         }
@@ -56,11 +67,11 @@ export function useEvents(initialFilters?: EventFilters) {
 
           // Don't show timeout as an error - just show empty state
           if (errorMessage.includes('Request timeout')) {
-            console.warn('Events fetch timed out - showing empty state');
+            console.warn('⚠️ [EVENTS] Events fetch timed out - showing empty state');
             setError(null);
             setEvents([]);
           } else {
-            console.error('Error fetching events:', errorMessage);
+            console.error('❌ [EVENTS] Error fetching events:', errorMessage);
             setError(errorMessage);
             setEvents([]);
           }
@@ -83,8 +94,7 @@ export function useEvents(initialFilters?: EventFilters) {
         clearTimeout(timeoutId);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+  }, [filters, user?.id, isAuthReady]); // Re-fetch when user changes OR auth becomes ready
 
   const refresh = useCallback(async () => {
     if (!hasValidCredentials) {

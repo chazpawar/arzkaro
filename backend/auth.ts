@@ -69,24 +69,30 @@ export const handleOAuthCallback = async (url: string) => {
     return null;
   }
 
-  console.log('Found authorization code, exchanging for session...');
+  console.log('📝 [OAUTH] Found authorization code, exchanging for session...');
 
   // Supabase client automatically exchanges the code for a session
   // using the stored code_verifier from AsyncStorage
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
   if (error) {
-    console.error('Error exchanging code for session:', error);
+    console.error('❌ [OAUTH] Error exchanging code for session:', error);
     throw error;
   }
 
-  console.log('Session created successfully!');
+  if (!data.session) {
+    console.error('❌ [OAUTH] No session returned from exchangeCodeForSession');
+    return null;
+  }
+
+  console.log('✅ [OAUTH] Session exchange completed');
   return data.session;
 };
 
 /**
  * Create an auth request for Google OAuth using Supabase
  * Uses PKCE flow for better security on native platforms
+ * Returns the session if successful so caller can fetch profile
  */
 export const signInWithGoogle = async () => {
   try {
@@ -121,7 +127,10 @@ export const signInWithGoogle = async () => {
       if (result.type === 'success') {
         const { url } = result;
         // Exchange the authorization code for a session
-        await handleOAuthCallback(url);
+        const session = await handleOAuthCallback(url);
+
+        // Return the session so caller can fetch profile
+        return { data: { session }, error: null };
       } else if (result.type === 'cancel') {
         console.log('User cancelled OAuth flow');
         return { data: null, error: new Error('User cancelled') };

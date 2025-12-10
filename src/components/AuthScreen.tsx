@@ -5,6 +5,7 @@ import { SvgXml } from 'react-native-svg';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
+import { useAuth } from '../contexts/auth-context';
 
 const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <path d="M9.82727273,24 C9.82727273,22.4757333 10.0804318,21.0144 10.5322727,19.6437333 L2.62345455,13.6042667 C1.08206818,16.7338667 0.213636364,20.2602667 0.213636364,24 C0.213636364,27.7365333 1.081,31.2608 2.62025,34.3882667 L10.5247955,28.3370667 C10.0772273,26.9728 9.82727273,25.5168 9.82727273,24" fill="#FBBC05"/>
@@ -20,20 +21,29 @@ interface AuthScreenProps {
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { refreshProfile } = useAuth();
 
   const handleGoogleSignIn = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const { error } = await signInWithGoogle();
+      const result = await signInWithGoogle();
 
-      if (error) {
+      if (result.error) {
         const errorMessage =
-          error instanceof Error ? error.message : 'Failed to sign in with Google';
+          result.error instanceof Error ? result.error.message : 'Failed to sign in with Google';
         setError(errorMessage);
-      } else {
+      } else if (result.data && 'session' in result.data && result.data.session?.user) {
+        // OAuth successful, now fetch the profile
+        // This is AFTER exchangeCodeForSession has fully completed
+        console.log('🔐 [AUTH_SCREEN] OAuth successful, fetching profile...');
+        const profile = await refreshProfile(result.data.session.user.id);
+        console.log('✅ [AUTH_SCREEN] Profile fetched:', profile?.role);
         onSignInSuccess?.();
+      } else {
+        // No session returned (user might have cancelled or other issue)
+        console.log('⚠️ [AUTH_SCREEN] No session returned from signInWithGoogle');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

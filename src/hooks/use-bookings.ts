@@ -52,6 +52,7 @@ export function useBookings(userId: string | undefined) {
     }
   }, [userId]);
 
+  // Re-fetch whenever userId changes (e.g., after sign in/out)
   useEffect(() => {
     fetchBookings();
   }, [fetchBookings]);
@@ -111,6 +112,7 @@ export function useTickets(userId: string | undefined) {
     }
   }, [userId]);
 
+  // Re-fetch whenever userId changes (e.g., after sign in/out)
   useEffect(() => {
     fetchTickets();
   }, [fetchTickets]);

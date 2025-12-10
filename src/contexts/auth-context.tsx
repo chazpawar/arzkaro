@@ -13,11 +13,12 @@ interface AuthContextType {
   loading: boolean;
   profileLoading: boolean;
   isAuthenticated: boolean;
+  isAuthReady: boolean; // New: indicates auth is fully initialized with profile
   isHost: boolean;
   isAdmin: boolean;
   role: UserRole;
   signOut: () => Promise<void>;
-  refreshProfile: () => Promise<void>;
+  refreshProfile: (userId?: string) => Promise<Profile | null>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
 }
 
@@ -28,15 +29,14 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   profileLoading: false,
   isAuthenticated: false,
+  isAuthReady: false,
   isHost: false,
   isAdmin: false,
   role: 'user',
   signOut: async () => {
     /* noop */
   },
-  refreshProfile: async () => {
-    /* noop */
-  },
+  refreshProfile: async () => null,
   updateProfile: async () => ({ error: null }),
 });
 
@@ -65,24 +65,70 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     loadingRef.current = loading;
   }, [loading]);
 
-  // Fetch user profile from database
-  const fetchProfile = useCallback(async (userId: string) => {
+  // Fetch user profile from database with retry logic
+  const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY_MS = 1000;
+    const FETCH_TIMEOUT_MS = 10000; // 10 second timeout
+
     setProfileLoading(true);
     try {
-      console.log('🔍 [AUTH] Fetching profile for user:', userId);
+      console.log(
+        `🔍 [AUTH] Fetching profile for user: ${userId} (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`
+      );
 
-      const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      // Create a timeout promise
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Profile fetch timeout')), FETCH_TIMEOUT_MS);
+      });
+
+      // Race between the actual fetch and the timeout
+      const fetchPromise = supabase.from('profiles').select('*').eq('id', userId).single();
+
+      const { data, error } = (await Promise.race([fetchPromise, timeoutPromise]).catch((err) => {
+        console.error('❌ [AUTH] Profile fetch timed out or errored:', err);
+        return { data: null, error: err };
+      })) as any;
 
       console.log('📥 [AUTH] Profile fetch response:', {
         data: data ? { ...data, id: '***' } : null,
         error: error ? error.message : null,
+        errorCode: error?.code,
+        timedOut: error?.message === 'Profile fetch timeout',
       });
 
       if (error) {
+        // Check for timeout
+        if (error.message === 'Profile fetch timeout') {
+          console.error('⏱️  [AUTH] Profile fetch TIMED OUT after', FETCH_TIMEOUT_MS, 'ms');
+
+          if (retryCount < MAX_RETRIES) {
+            const delay = RETRY_DELAY_MS * Math.pow(2, retryCount);
+            console.log(`⏳ [AUTH] Retrying after timeout in ${delay}ms...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return fetchProfile(userId, retryCount + 1);
+          }
+
+          console.error('❌ [AUTH] Max retries reached after timeout. Profile fetch failed.');
+          return null;
+        }
+
         // Check for missing table error
         if (error.code === 'PGRST205') {
           console.warn('Database setup incomplete: profiles table missing. Please run migrations.');
           return null;
+        }
+
+        // RETRY LOGIC: If query fails and we haven't exceeded retries, try again
+        // This handles cases where session hasn't fully propagated yet
+        if (
+          retryCount < MAX_RETRIES &&
+          (error.code === 'PGRST301' || error.message?.includes('JWT'))
+        ) {
+          const delay = RETRY_DELAY_MS * Math.pow(2, retryCount); // Exponential backoff
+          console.log(`⏳ [AUTH] Profile fetch failed, retrying in ${delay}ms...`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
+          return fetchProfile(userId, retryCount + 1);
         }
 
         // Check for profile not found error (PGRST116 - result contains 0 rows)
@@ -159,15 +205,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  // Refresh profile data
-  const refreshProfile = useCallback(async () => {
-    console.log('🔄 [AUTH] Refreshing profile...');
-    if (user?.id) {
-      const profileData = await fetchProfile(user.id);
-      console.log('📋 [AUTH] Setting profile state with role:', profileData?.role);
-      setProfile(profileData);
-    }
-  }, [user?.id, fetchProfile]);
+  // Refresh profile data - can optionally pass userId for cases where user state isn't set yet
+  const refreshProfile = useCallback(
+    async (userId?: string) => {
+      const targetUserId = userId || user?.id;
+      console.log('🔄 [AUTH] Refreshing profile for userId:', targetUserId);
+
+      if (targetUserId) {
+        const profileData = await fetchProfile(targetUserId);
+        console.log('📋 [AUTH] Setting profile state with role:', profileData?.role);
+        setProfile(profileData);
+        return profileData;
+      }
+      return null;
+    },
+    [user?.id, fetchProfile]
+  );
 
   // Update profile
   const updateProfile = useCallback(
@@ -199,12 +252,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   // Sign out
   const signOut = useCallback(async () => {
     try {
+      console.log('🚪 [AUTH] Signing out...');
       await supabase.auth.signOut();
+
+      // Force clear all state immediately
       setSession(null);
       setUser(null);
       setProfile(null);
+
+      console.log('✅ [AUTH] Sign out successful');
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('❌ [AUTH] Error signing out:', error);
       // Force clear state even if sign out fails
       setSession(null);
       setUser(null);
@@ -216,6 +274,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   useEffect(() => {
     let isMounted = true;
     let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isInitialLoad = true;
 
     // Set a timeout to prevent infinite loading - this runs regardless of credential check
     timeoutId = setTimeout(() => {
@@ -262,6 +321,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
 
           setLoading(false);
+          isInitialLoad = false;
         }
       } catch (err) {
         console.error('Error initializing auth:', err);
@@ -276,16 +336,57 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
+
+      console.log('🔐 [AUTH] Auth state changed:', event);
+
+      // Skip initial session event to avoid race condition with initAuth
+      if (isInitialLoad && event === 'INITIAL_SESSION') {
+        console.log('⏭️  [AUTH] Skipping INITIAL_SESSION event (already handled by initAuth)');
+        return;
+      }
+
+      // Mark as no longer initial load after first event
+      if (event === 'INITIAL_SESSION') {
+        isInitialLoad = false;
+      }
+
+      // Mark as no longer initial load after first event
+      if (event === 'INITIAL_SESSION') {
+        isInitialLoad = false;
+      }
 
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        if (isMounted) {
-          setProfile(profileData);
+        // CRITICAL FIX: Skip profile fetch for SIGNED_IN events
+        // The SIGNED_IN event fires DURING exchangeCodeForSession, not after
+        // The session hasn't fully propagated yet, so RLS queries timeout
+        // The callback screen will explicitly call refreshProfile() AFTER the exchange completes
+        if (event === 'SIGNED_IN') {
+          console.log(
+            '⏭️  [AUTH] SIGNED_IN detected - skipping profile fetch (will be done by callback)'
+          );
+          // Just set the basic state, profile will be fetched by callback screen
+          setLoading(false);
+          return;
+        }
+
+        try {
+          console.log(`📡 [AUTH] Fetching profile in ${event} handler for user:`, session.user.id);
+
+          const profileData = await fetchProfile(session.user.id);
+          if (isMounted) {
+            console.log(`✅ [AUTH] Profile loaded in ${event} handler, setting state`);
+            setProfile(profileData);
+          }
+        } catch (error) {
+          console.error(`❌ [AUTH] Error in ${event} profile fetch:`, error);
+          if (isMounted) {
+            setProfile(null);
+          }
         }
       } else {
         setProfile(null);
@@ -305,6 +406,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   // Computed values
   const isAuthenticated = !!user && !!session;
+  const isAuthReady = isAuthenticated ? !!profile : !loading; // Auth is ready when: logged in with profile OR logged out
   const role: UserRole = profile?.role ?? 'user';
   const isHost = role === 'host' || role === 'admin';
   const isAdmin = role === 'admin';
@@ -329,6 +431,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         loading,
         profileLoading,
         isAuthenticated,
+        isAuthReady,
         isHost,
         isAdmin,
         role,
