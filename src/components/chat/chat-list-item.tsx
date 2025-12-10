@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { Spacing, Typography } from '../../constants/Styles';
+import { Spacing, Typography } from '../../constants/styles';
 
 interface ChatListItemProps {
   id: string;

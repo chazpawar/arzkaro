@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
-import { Spacing, BorderRadius } from '@/constants/Styles';
+import { Spacing, BorderRadius } from '@/constants/styles';
 
 interface EmptyStateProps {
   /**

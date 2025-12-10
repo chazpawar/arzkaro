@@ -17,7 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 import * as AdminService from '../../src/services/admin-service';
 import type { Profile } from '../../src/types/user.types';
 

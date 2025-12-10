@@ -13,7 +13,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, BorderRadius } from '../../src/constants/Styles';
+import { Spacing, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTickets } from '../../src/hooks/use-bookings';
 import TabHeader from '../../src/components/TabHeader';

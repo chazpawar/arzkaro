@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 import { Colors } from '../constants/Colors';
-import { BorderRadius, Spacing, Shadows } from '../constants/Styles';
+import { BorderRadius, Spacing, Shadows } from '../constants/styles';
 
 interface CardProps {
   children: React.ReactNode;

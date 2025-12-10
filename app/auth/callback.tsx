@@ -44,6 +44,10 @@ export default function AuthCallback() {
           );
           console.log('✅ [CALLBACK] User:', existingSession.user.id);
 
+          // Wait a moment for session to propagate to Supabase RLS
+          console.log('⏳ [CALLBACK] Waiting 1000ms for session propagation...');
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
           // Fetch profile for the existing session
           console.log('📡 [CALLBACK] Fetching profile for existing session...');
           const profile = await refreshProfile(existingSession.user.id);
@@ -55,6 +59,11 @@ export default function AuthCallback() {
 
           if (session?.user?.id) {
             console.log('✅ [CALLBACK] OAuth callback completed successfully');
+            
+            // Wait a moment for session to propagate to Supabase RLS
+            console.log('⏳ [CALLBACK] Waiting 1000ms for session propagation...');
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            
             console.log('📡 [CALLBACK] Fetching profile now that session is ready...');
             const profile = await refreshProfile(session.user.id);
             console.log('✅ [CALLBACK] Profile fetch completed:', profile?.role);

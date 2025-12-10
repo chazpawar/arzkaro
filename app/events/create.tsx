@@ -18,7 +18,7 @@ import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as EventService from '../../src/services/event-service';
 import { HOST_TYPE_LABELS } from '../../src/services/host-service';

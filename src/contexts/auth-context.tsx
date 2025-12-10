@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
-    const FETCH_TIMEOUT_MS = 10000; // 10 second timeout
+    const FETCH_TIMEOUT_MS = 5000; // 5 second timeout (reduced from 10)
 
     setProfileLoading(true);
     try {
@@ -376,6 +376,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         try {
           console.log(`📡 [AUTH] Fetching profile in ${event} handler for user:`, session.user.id);
+
+          // CRITICAL FIX: For TOKEN_REFRESHED events, add a small delay
+          // to ensure the session has fully propagated to Supabase's RLS system
+          if (event === 'TOKEN_REFRESHED') {
+            console.log('⏳ [AUTH] TOKEN_REFRESHED - waiting 500ms for session propagation...');
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
 
           const profileData = await fetchProfile(session.user.id);
           if (isMounted) {

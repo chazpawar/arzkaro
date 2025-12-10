@@ -6,7 +6,7 @@ import Button from '../../src/components/ui/button';
 import HostApplicationForm from '../../src/components/host/host-application-form';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography } from '../../src/constants/Styles';
+import { Spacing, Typography } from '../../src/constants/styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
 import type { HostRequest } from '../../src/types/host.types';

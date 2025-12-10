@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import { Colors } from '../../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
+import { Spacing, Typography, BorderRadius } from '../../../src/constants/styles';
 import { useEvent } from '../../../src/hooks/use-events';
 import { useCreateBooking } from '../../../src/hooks/use-bookings';
 import { useAuth } from '../../../src/contexts/auth-context';
