@@ -392,6 +392,27 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         if (error) {
           console.error('Error getting session:', error);
+
+          // Check if it's a refresh token error - clear session and force sign out
+          if (
+            error.message?.includes('Refresh Token') ||
+            error.message?.includes('Invalid') ||
+            error.message?.includes('refresh_token') ||
+            error.name === 'AuthApiError'
+          ) {
+            console.log('🔄 [AUTH] Invalid/expired refresh token detected, clearing session...');
+            try {
+              await supabase.auth.signOut();
+              if (isMounted) {
+                setSession(null);
+                setUser(null);
+                setProfile(null);
+              }
+            } catch (signOutError) {
+              console.error('Error signing out after refresh token error:', signOutError);
+            }
+          }
+
           if (isMounted) {
             setLoading(false);
           }
@@ -430,6 +451,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
       console.log('🔐 [AUTH] Auth state changed:', event);
 
+      // Handle TOKEN_REFRESHED event errors (session will be null if refresh failed)
+      if (event === 'TOKEN_REFRESHED' && !session) {
+        console.error('🔄 [AUTH] Token refresh failed - session is null');
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
+          setLoading(false);
+        }
+        return;
+      }
+
       // Skip initial session event to avoid race condition with initAuth
       if (isInitialLoad && event === 'INITIAL_SESSION') {
         console.log('⏭️  [AUTH] Skipping INITIAL_SESSION event (already handled by initAuth)');
@@ -449,46 +482,74 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
-        // CRITICAL FIX: Skip profile fetch for SIGNED_IN events
-        // The SIGNED_IN event fires DURING exchangeCodeForSession, not after
-        // The session hasn't fully propagated yet, so RLS queries timeout
-        // The callback screen will explicitly call refreshProfile() AFTER the exchange completes
-        if (event === 'SIGNED_IN') {
-          console.log(
-            '⏭️  [AUTH] SIGNED_IN detected - skipping profile fetch (will be done by callback)'
-          );
-          // Just set the basic state, profile will be fetched by callback screen
+      try {
+        if (session?.user) {
+          // CRITICAL FIX: Skip profile fetch for SIGNED_IN events
+          // The SIGNED_IN event fires DURING exchangeCodeForSession, not after
+          // The session hasn't fully propagated yet, so RLS queries timeout
+          // The callback screen will explicitly call refreshProfile() AFTER the exchange completes
+          if (event === 'SIGNED_IN') {
+            console.log(
+              '⏭️  [AUTH] SIGNED_IN detected - skipping profile fetch (will be done by callback)'
+            );
+            // Just set the basic state, profile will be fetched by callback screen
+            setLoading(false);
+            return;
+          }
+
+          try {
+            console.log(
+              `📡 [AUTH] Fetching profile in ${event} handler for user:`,
+              session.user.id
+            );
+
+            // CRITICAL FIX: For TOKEN_REFRESHED events, add a delay
+            // to ensure the session has fully propagated to Supabase's RLS system
+            if (event === 'TOKEN_REFRESHED') {
+              console.log('⏳ [AUTH] TOKEN_REFRESHED - waiting 1500ms for session propagation...');
+              await new Promise((resolve) => setTimeout(resolve, 1500));
+            }
+
+            const profileData = await fetchProfile(session.user.id);
+            if (isMounted) {
+              console.log(`✅ [AUTH] Profile loaded in ${event} handler, setting state`);
+              setProfile(profileData);
+            }
+          } catch (error) {
+            console.error(`❌ [AUTH] Error in ${event} profile fetch:`, error);
+            if (isMounted) {
+              setProfile(null);
+            }
+          }
+        } else {
+          setProfile(null);
+        }
+
+        setLoading(false);
+      } catch (error: any) {
+        console.error(`❌ [AUTH] Unexpected error in ${event} handler:`, error);
+
+        // Check if it's a refresh token error
+        if (
+          error.message?.includes('Refresh Token') ||
+          error.message?.includes('Invalid') ||
+          error.message?.includes('refresh_token')
+        ) {
+          console.log('🔄 [AUTH] Refresh token error in auth state change, signing out...');
+          try {
+            await supabase.auth.signOut();
+          } catch (signOutError) {
+            console.error('Error signing out:', signOutError);
+          }
+        }
+
+        if (isMounted) {
+          setSession(null);
+          setUser(null);
+          setProfile(null);
           setLoading(false);
-          return;
         }
-
-        try {
-          console.log(`📡 [AUTH] Fetching profile in ${event} handler for user:`, session.user.id);
-
-          // CRITICAL FIX: For TOKEN_REFRESHED events, add a delay
-          // to ensure the session has fully propagated to Supabase's RLS system
-          if (event === 'TOKEN_REFRESHED') {
-            console.log('⏳ [AUTH] TOKEN_REFRESHED - waiting 1500ms for session propagation...');
-            await new Promise((resolve) => setTimeout(resolve, 1500));
-          }
-
-          const profileData = await fetchProfile(session.user.id);
-          if (isMounted) {
-            console.log(`✅ [AUTH] Profile loaded in ${event} handler, setting state`);
-            setProfile(profileData);
-          }
-        } catch (error) {
-          console.error(`❌ [AUTH] Error in ${event} profile fetch:`, error);
-          if (isMounted) {
-            setProfile(null);
-          }
-        }
-      } else {
-        setProfile(null);
       }
-
-      setLoading(false);
     });
 
     return () => {
