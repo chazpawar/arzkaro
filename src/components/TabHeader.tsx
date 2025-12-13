@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, TextInput } from 'react-native';
+import { View, StyleSheet, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
@@ -20,6 +20,16 @@ export default function TabHeader({
 
   return (
     <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : Spacing.md }]}>
+      {/* Logo */}
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../../assets/arz.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </View>
+
+      {/* Search Bar */}
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color={Colors.textTertiary} />
         <TextInput
@@ -40,6 +50,14 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.md,
     backgroundColor: Colors.background,
     zIndex: 10,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  logo: {
+    width: 120,
+    height: 60,
   },
   searchContainer: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform, Dimensions } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -76,31 +76,38 @@ export default function EventDetailsScreen() {
         }}
       />
       <View style={styles.container}>
+        {/* Sticky Cover Image */}
+        <View style={styles.imageContainer}>
+          {event.cover_image_url ? (
+            <Image 
+              source={{ uri: event.cover_image_url }} 
+              style={styles.coverImage}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="musical-notes" size={64} color={Colors.textTertiary} />
+            </View>
+          )}
+          <View style={styles.imageOverlay} />
+        </View>
+
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}
+          style={styles.scrollView}
         >
-          {/* Cover Image */}
-          <View style={styles.imageContainer}>
-            {event.cover_image_url ? (
-              <Image source={{ uri: event.cover_image_url }} style={styles.coverImage} />
-            ) : (
-              <View style={styles.imagePlaceholder}>
-                <Ionicons name="musical-notes" size={64} color={Colors.textTertiary} />
-              </View>
-            )}
-            <View style={styles.imageOverlay} />
-            <View style={styles.categoryBadge}>
-              <Text style={styles.categoryText}>{event.category || 'Event'}</Text>
-            </View>
-          </View>
-
           {/* Content */}
           <View style={styles.content}>
             {/* Title & Price */}
             <View style={styles.titleSection}>
+              {/* Category Tag */}
+              {event.category && (
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryText}>{event.category}</Text>
+                </View>
+              )}
               <Text style={styles.title}>{event.title}</Text>
-              <Text style={styles.price}>From {formatPrice(event.price)}</Text>
             </View>
 
             {/* Quick Info Cards */}
@@ -261,7 +268,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  scrollView: {
+    flex: 1,
+  },
   scrollContent: {
+    paddingTop: Dimensions.get('window').height * 0.75, // Start content below image
     paddingBottom: 100,
   },
   headerButton: {
@@ -284,8 +295,16 @@ const styles = StyleSheet.create({
     }),
   },
   imageContainer: {
-    position: 'relative',
-    height: 300,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    width: '100%',
+    height: Dimensions.get('window').height * 0.75, // 75% of screen height to show full image
+    backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 0, // Behind content
   },
   coverImage: {
     width: '100%',
@@ -303,13 +322,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.1)',
   },
   categoryBadge: {
-    position: 'absolute',
-    bottom: Spacing.lg,
-    left: Spacing.lg,
+    alignSelf: 'flex-start',
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
+    marginBottom: Spacing.sm,
   },
   categoryText: {
     fontSize: 12,
@@ -320,6 +338,12 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Spacing.lg,
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    marginTop: -Spacing.xl, // Overlap with image for smooth transition
+    zIndex: 2,
+    minHeight: Dimensions.get('window').height, // Ensure content is scrollable
   },
   titleSection: {
     marginBottom: Spacing.xl,

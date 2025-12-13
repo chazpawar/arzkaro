@@ -69,7 +69,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const fetchProfile = useCallback(async (userId: string, retryCount = 0) => {
     const MAX_RETRIES = 3;
     const RETRY_DELAY_MS = 1000;
-    const FETCH_TIMEOUT_MS = 5000; // 5 second timeout (reduced from 10)
+    const FETCH_TIMEOUT_MS = 8000; // 8 second timeout for slow networks
 
     setProfileLoading(true);
     try {
@@ -77,29 +77,90 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         `🔍 [AUTH] Fetching profile for user: ${userId} (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`
       );
 
-      // Create a timeout promise
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Profile fetch timeout')), FETCH_TIMEOUT_MS);
+      // Check if session exists before making request
+      const {
+        data: { session: currentSession },
+      } = await supabase.auth.getSession();
+
+      if (!currentSession) {
+        console.error('❌ [AUTH] No session found when trying to fetch profile');
+        return null;
+      }
+
+      console.log('✅ [AUTH] Session exists, proceeding with profile fetch');
+      console.log('🔑 [AUTH] Session details:', {
+        userId: currentSession.user?.id,
+        accessToken: currentSession.access_token
+          ? `${currentSession.access_token.substring(0, 20)}...`
+          : 'none',
+        expiresAt: currentSession.expires_at,
+        refreshToken: currentSession.refresh_token ? 'present' : 'missing',
       });
 
-      // Race between the actual fetch and the timeout
+      // Create a promise that rejects after timeout
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Request timeout'));
+        }, FETCH_TIMEOUT_MS);
+      });
+
+      // Test connectivity with a simple count query first (on first attempt only)
+      if (retryCount === 0) {
+        try {
+          console.log('🧪 [AUTH] Testing database connectivity with count query...');
+          const testStartTime = Date.now();
+          const { error: countError } = await Promise.race([
+            supabase.from('profiles').select('*', { count: 'exact', head: true }),
+            new Promise<any>((_, reject) =>
+              setTimeout(() => reject(new Error('Test timeout')), 3000)
+            ),
+          ]);
+          const testDuration = Date.now() - testStartTime;
+          console.log(
+            `✅ [AUTH] Connectivity test completed in ${testDuration}ms, error:`,
+            countError?.message || 'none'
+          );
+        } catch (testError: any) {
+          console.error('⚠️ [AUTH] Connectivity test failed:', testError.message);
+        }
+      }
+
+      // Race the fetch against the timeout
+      console.log('🚀 [AUTH] Starting profile query for ID:', userId);
+      const fetchStartTime = Date.now();
       const fetchPromise = supabase.from('profiles').select('*').eq('id', userId).single();
 
-      const { data, error } = (await Promise.race([fetchPromise, timeoutPromise]).catch((err) => {
-        console.error('❌ [AUTH] Profile fetch timed out or errored:', err);
-        return { data: null, error: err };
-      })) as any;
+      let data: any = null;
+      let error: any = null;
+
+      try {
+        const result = await Promise.race([fetchPromise, timeoutPromise]);
+        const fetchDuration = Date.now() - fetchStartTime;
+        console.log(`⏱️ [AUTH] Query completed in ${fetchDuration}ms`);
+        data = (result as any).data;
+        error = (result as any).error;
+      } catch (timeoutError: any) {
+        const fetchDuration = Date.now() - fetchStartTime;
+        console.log(`⏱️ [AUTH] Query timed out after ${fetchDuration}ms`);
+        // Timeout occurred
+        if (timeoutError.message === 'Request timeout') {
+          error = { message: 'Request timeout', code: 'TIMEOUT' };
+        } else {
+          throw timeoutError;
+        }
+      }
 
       console.log('📥 [AUTH] Profile fetch response:', {
         data: data ? { ...data, id: '***' } : null,
         error: error ? error.message : null,
         errorCode: error?.code,
-        timedOut: error?.message === 'Profile fetch timeout',
+        errorDetails: error?.details,
+        errorHint: error?.hint,
       });
 
       if (error) {
         // Check for timeout
-        if (error.message === 'Profile fetch timeout') {
+        if (error.code === 'TIMEOUT' || error.message?.includes('timeout')) {
           console.error('⏱️  [AUTH] Profile fetch TIMED OUT after', FETCH_TIMEOUT_MS, 'ms');
 
           if (retryCount < MAX_RETRIES) {
@@ -110,6 +171,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
 
           console.error('❌ [AUTH] Max retries reached after timeout. Profile fetch failed.');
+
+          // Fallback: Create a temporary profile from session metadata
+          console.log('🔄 [AUTH] Creating fallback profile from session user metadata...');
+          const user = currentSession?.user;
+          if (user && user.email) {
+            const fallbackProfile: Profile = {
+              id: user.id,
+              email: user.email,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              username: user.user_metadata?.preferred_username || user.email?.split('@')[0] || null,
+              avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+              role: 'user' as UserRole,
+              host_type: null,
+              is_host_approved: false,
+              is_public: true,
+              bio: null,
+              phone: null,
+              host_requested_at: null,
+              host_approved_at: null,
+              location: null,
+              website: null,
+              created_at: user.created_at || new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            };
+            console.log('✅ [AUTH] Using fallback profile from session metadata');
+            return fallbackProfile;
+          }
+
           return null;
         }
 
@@ -198,7 +287,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log('✅ [AUTH] Profile fetched successfully. Role:', data?.role);
       return data as Profile;
     } catch (err) {
-      console.error('Error fetching profile:', err);
+      console.error('❌ [AUTH] Error in fetchProfile:', err);
       return null;
     } finally {
       setProfileLoading(false);
@@ -377,11 +466,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         try {
           console.log(`📡 [AUTH] Fetching profile in ${event} handler for user:`, session.user.id);
 
-          // CRITICAL FIX: For TOKEN_REFRESHED events, add a small delay
+          // CRITICAL FIX: For TOKEN_REFRESHED events, add a delay
           // to ensure the session has fully propagated to Supabase's RLS system
           if (event === 'TOKEN_REFRESHED') {
-            console.log('⏳ [AUTH] TOKEN_REFRESHED - waiting 500ms for session propagation...');
-            await new Promise((resolve) => setTimeout(resolve, 500));
+            console.log('⏳ [AUTH] TOKEN_REFRESHED - waiting 1500ms for session propagation...');
+            await new Promise((resolve) => setTimeout(resolve, 1500));
           }
 
           const profileData = await fetchProfile(session.user.id);

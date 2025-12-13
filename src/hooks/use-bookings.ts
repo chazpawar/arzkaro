@@ -2,6 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import * as BookingService from '../services/booking-service';
 import type { BookingWithDetails, TicketWithDetails, CreateBooking } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
+import { mockTickets } from '../data/mock-tickets';
+
+// TEMPORARY: Set to true to use mock data for UI development
+const USE_MOCK_DATA = true;
 
 const FETCH_TIMEOUT = 8000; // 8 seconds - fail faster for better UX
 
@@ -74,6 +78,18 @@ export function useTickets(userId: string | undefined) {
   const [error, setError] = useState<string | null>(null);
 
   const fetchTickets = useCallback(async () => {
+    // TEMPORARY: Use mock data for UI development
+    if (USE_MOCK_DATA) {
+      // Simulate loading delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      // Return mock tickets (filtered by userId if needed)
+      setTickets(mockTickets);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     if (!userId || !hasValidCredentials) {
       setLoading(false);
       setTickets([]);
@@ -214,6 +230,25 @@ export function useTicket(ticketId: string | undefined) {
 
   const fetchTicket = useCallback(async () => {
     if (!ticketId) return;
+
+    // TEMPORARY: Use mock data for UI development
+    if (USE_MOCK_DATA) {
+      // Simulate loading delay
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      
+      // Find ticket in mock data
+      const foundTicket = mockTickets.find((t) => t.id === ticketId);
+      
+      if (foundTicket) {
+        setTicket(foundTicket);
+        setError(null);
+      } else {
+        setError('Ticket not found');
+        setTicket(null);
+      }
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);

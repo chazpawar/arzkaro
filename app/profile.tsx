@@ -122,23 +122,36 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.avatarContainer}>
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
-          ) : (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{fullName.charAt(0).toUpperCase()}</Text>
+        {/* Profile Card with Avatar and Name */}
+        <Card style={styles.profileCard}>
+          <View style={styles.profileContent}>
+            {avatarUrl ? (
+              <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+            ) : (
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{fullName.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+            <View style={styles.profileInfo}>
+              <Text style={styles.userName}>{fullName}</Text>
+              <Text style={styles.userEmail}>{email}</Text>
+              {getHostStatusBadge() && !isAdmin && (
+                <View style={[styles.badge, { backgroundColor: getHostStatusBadge()!.bgColor }]}>
+                  <Text style={[styles.badgeText, { color: getHostStatusBadge()!.color }]}>
+                    {getHostStatusBadge()!.label}
+                  </Text>
+                </View>
+              )}
+              {isAdmin && (
+                <View style={[styles.badge, { backgroundColor: Colors.errorLight }]}>
+                  <Text style={[styles.badgeText, { color: Colors.error }]}>
+                    Admin
+                  </Text>
+                </View>
+              )}
             </View>
-          )}
-          <Text style={styles.userName}>{fullName}</Text>
-          {getHostStatusBadge() && (
-            <View style={[styles.badge, { backgroundColor: getHostStatusBadge()!.bgColor }]}>
-              <Text style={[styles.badgeText, { color: getHostStatusBadge()!.color }]}>
-                {getHostStatusBadge()!.label}
-              </Text>
-            </View>
-          )}
-        </View>
+          </View>
+        </Card>
 
         <Card style={styles.card}>
           <Text style={styles.label}>Email</Text>
@@ -289,27 +302,38 @@ const styles = StyleSheet.create({
   scrollContent: {
     padding: Spacing.lg,
   },
-  avatarContainer: {
-    alignItems: 'center',
+  profileCard: {
     marginBottom: Spacing.xl,
+    alignItems: 'center',
+  },
+  profileContent: {
+    alignItems: 'center',
+    width: '100%',
+  },
+  profileInfo: {
+    alignItems: 'center',
+    marginTop: Spacing.md,
+    width: '100%',
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: Colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: Spacing.md,
+    borderWidth: 3,
+    borderColor: Colors.primaryLight,
   },
   avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: Spacing.md,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 3,
+    borderColor: Colors.primaryLight,
   },
   avatarText: {
-    fontSize: 60,
+    fontSize: 48,
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
@@ -317,6 +341,12 @@ const styles = StyleSheet.create({
     ...Typography.h2,
     color: Colors.text,
     fontWeight: 'bold',
+    marginBottom: Spacing.xs,
+  },
+  userEmail: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   card: {
     marginBottom: Spacing.md,

@@ -130,9 +130,20 @@ export default function ExploreTab() {
     );
   };
 
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+  };
+
   const renderSimpleCard = ({ item }: { item: Event }) => (
     <Pressable style={styles.simpleCard} onPress={() => router.push(`/events/${item.id}`)}>
-      <View style={styles.simpleCardImageContainer}>
+      {/* Image with padding inside card */}
+      <View style={styles.simpleCardImageWrapper}>
         {item.cover_image_url ? (
           <Image source={{ uri: item.cover_image_url }} style={styles.simpleCardImage} />
         ) : (
@@ -141,14 +152,32 @@ export default function ExploreTab() {
           </View>
         )}
       </View>
+      
+      {/* Content below image */}
       <View style={styles.simpleCardContent}>
+        {/* Title */}
         <Text style={styles.simpleCardTitle} numberOfLines={2}>
           {item.title}
         </Text>
-        <Text style={styles.simpleCardMeta}>
-          {formatDate(item.start_date)} • {item.location_name || 'TBA'}
-        </Text>
-        <Text style={styles.simpleCardPrice}>{formatPrice(item.price)}</Text>
+        
+        {/* Location and Time on same row */}
+        <View style={styles.cardDetailsRow}>
+          {/* Location - Left */}
+          <View style={[styles.cardDetailItem, styles.cardDetailLeft]}>
+            <Ionicons name="location" size={16} color="#FF3B30" />
+            <Text style={styles.cardDetailText} numberOfLines={1}>
+              {item.location_name || 'TBA'}
+            </Text>
+          </View>
+          
+          {/* Time - Right */}
+          <View style={[styles.cardDetailItem, styles.cardDetailRight]}>
+            <Ionicons name="time-outline" size={16} color={Colors.text} />
+            <Text style={styles.cardDetailText}>
+              {formatTime(item.start_date)}
+            </Text>
+          </View>
+        </View>
       </View>
     </Pressable>
   );
@@ -222,19 +251,12 @@ export default function ExploreTab() {
 
         {/* All Events Section */}
         {filteredEvents.length > 0 ? (
-          <View style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>
-                All {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-              </Text>
-              <Text style={styles.sectionSubtitle}>Discover amazing {selectedCategory}</Text>
-            </View>
-
-            <View style={styles.allEventsList}>
-              {filteredEvents.map((item) => (
-                <View key={item.id}>{renderSimpleCard({ item })}</View>
-              ))}
-            </View>
+          <View style={styles.allEventsList}>
+            {filteredEvents.map((item) => (
+              <View key={item.id} style={styles.cardWrapper}>
+                {renderSimpleCard({ item })}
+              </View>
+            ))}
           </View>
         ) : (
           renderEmptyState()
@@ -315,35 +337,47 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   allEventsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
     paddingBottom: Spacing.xl,
+    justifyContent: 'space-between',
+    gap: Spacing.sm,
+  },
+  cardWrapper: {
+    width: '48%',
+    marginBottom: Spacing.md,
   },
   simpleCard: {
-    backgroundColor: Colors.surface,
+    backgroundColor: '#FFFFFF', // White background
     borderRadius: BorderRadius.lg,
+    padding: Spacing.sm, // Padding inside the card
     marginBottom: Spacing.md,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: Colors.border,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
+        shadowOpacity: 0.1,
         shadowRadius: 8,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
     }),
   },
-  simpleCardImageContainer: {
+  simpleCardImageWrapper: {
     width: '100%',
     height: 180,
+    marginBottom: Spacing.sm,
+    borderRadius: BorderRadius.md, // Rounded corners for image
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceSecondary,
   },
   simpleCardImage: {
     width: '100%',
     height: '100%',
+    resizeMode: 'cover',
   },
   simpleCardImagePlaceholder: {
     flex: 1,
@@ -352,22 +386,36 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   simpleCardContent: {
-    padding: Spacing.md,
+    paddingHorizontal: 0, // No horizontal padding here as per screenshot
   },
   simpleCardTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  simpleCardMeta: {
-    fontSize: 14,
-    color: Colors.textSecondary,
     marginBottom: Spacing.sm,
+    lineHeight: 22,
   },
-  simpleCardPrice: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
+  cardDetailsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between', // For left-right alignment
+    width: '100%',
+  },
+  cardDetailItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  cardDetailLeft: {
+    flex: 1, // Takes up remaining space on the left
+    justifyContent: 'flex-start',
+  },
+  cardDetailRight: {
+    justifyContent: 'flex-end', // Aligns to the right
+  },
+  cardDetailText: {
+    fontSize: 13,
+    color: Colors.text,
+    flexShrink: 1,
   },
 });

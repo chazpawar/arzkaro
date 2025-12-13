@@ -12,6 +12,7 @@ import {
   TextInput,
   Modal,
   StatusBar,
+  Linking,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,7 +43,8 @@ export default function HostRequestsPage() {
 
   // Modal state
   const [selectedRequest, setSelectedRequest] = useState<HostRequestWithUser | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [approving, setApproving] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
 
   const LIMIT = 20;
@@ -100,7 +102,7 @@ export default function HostRequestsPage() {
   const handleApprove = async () => {
     if (!selectedRequest || !user?.id) return;
 
-    setActionLoading(true);
+    setApproving(true);
     try {
       await AdminService.approveHostRequest(selectedRequest.id, user.id, adminNotes || undefined);
 
@@ -119,7 +121,7 @@ export default function HostRequestsPage() {
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to approve request');
     } finally {
-      setActionLoading(false);
+      setApproving(false);
     }
   };
 
@@ -131,7 +133,7 @@ export default function HostRequestsPage() {
       return;
     }
 
-    setActionLoading(true);
+    setRejecting(true);
     try {
       // Use adminNotes as rejection_reason
       await AdminService.rejectHostRequest(selectedRequest.id, user.id, adminNotes, adminNotes);
@@ -156,7 +158,7 @@ export default function HostRequestsPage() {
     } catch (err) {
       Alert.alert('Error', err instanceof Error ? err.message : 'Failed to reject request');
     } finally {
-      setActionLoading(false);
+      setRejecting(false);
     }
   };
 
@@ -468,6 +470,14 @@ export default function HostRequestsPage() {
                   )}
                   <View style={styles.separator} />
                   <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Account Holder</Text>
+                    <Text style={styles.infoValue}>{selectedRequest.account_holder_name}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Beneficiary</Text>
+                    <Text style={styles.infoValue}>{selectedRequest.beneficiary_name}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
                     <Text style={styles.infoLabel}>Bank Acc.</Text>
                     <Text style={styles.infoValueMono}>{selectedRequest.account_number}</Text>
                   </View>
@@ -475,6 +485,111 @@ export default function HostRequestsPage() {
                     <Text style={styles.infoLabel}>IFSC</Text>
                     <Text style={styles.infoValueMono}>{selectedRequest.ifsc_code}</Text>
                   </View>
+                </View>
+
+                {/* Documents Section */}
+                <View style={styles.infoGroup}>
+                  <Text style={styles.groupTitle}>Verification Documents</Text>
+                  
+                  {/* Check if document fields exist (new schema) */}
+                  {selectedRequest.pan_card_photo_url ? (
+                    <>
+                      {/* PAN Card Document */}
+                      <View style={styles.documentRow}>
+                        <View style={styles.documentInfo}>
+                          <View style={styles.documentHeader}>
+                            <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
+                            <Text style={styles.documentTitle}>PAN Card Photo</Text>
+                          </View>
+                          <Text style={styles.documentUrl} numberOfLines={1}>
+                            {selectedRequest.pan_card_photo_url}
+                          </Text>
+                        </View>
+                      <Pressable
+                        style={styles.viewDocButton}
+                        onPress={async () => {
+                          // Open URL in browser
+                          if (selectedRequest.pan_card_photo_url) {
+                            try {
+                              const canOpen = await Linking.canOpenURL(selectedRequest.pan_card_photo_url);
+                              if (canOpen) {
+                                await Linking.openURL(selectedRequest.pan_card_photo_url);
+                              } else {
+                                Alert.alert('Error', 'Cannot open this URL. Please check the link is valid.');
+                              }
+                            } catch (error) {
+                              Alert.alert('Error', 'Failed to open document URL');
+                              console.error('Error opening URL:', error);
+                            }
+                          }
+                        }}
+                      >
+                        <Ionicons name="open-outline" size={18} color={Colors.primary} />
+                        <Text style={styles.viewDocText}>View</Text>
+                      </Pressable>
+                      </View>
+
+                      {/* GST Certificate Document (if provided) */}
+                      {selectedRequest.gst_certificate_url && (
+                        <View style={styles.documentRow}>
+                          <View style={styles.documentInfo}>
+                            <View style={styles.documentHeader}>
+                              <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
+                              <Text style={styles.documentTitle}>GST Certificate</Text>
+                            </View>
+                            <Text style={styles.documentUrl} numberOfLines={1}>
+                              {selectedRequest.gst_certificate_url}
+                            </Text>
+                          </View>
+                        <Pressable
+                          style={styles.viewDocButton}
+                          onPress={async () => {
+                            if (selectedRequest.gst_certificate_url) {
+                              try {
+                                const canOpen = await Linking.canOpenURL(selectedRequest.gst_certificate_url);
+                                if (canOpen) {
+                                  await Linking.openURL(selectedRequest.gst_certificate_url);
+                                } else {
+                                  Alert.alert('Error', 'Cannot open this URL. Please check the link is valid.');
+                                }
+                              } catch (error) {
+                                Alert.alert('Error', 'Failed to open document URL');
+                                console.error('Error opening GST URL:', error);
+                              }
+                            }
+                          }}
+                        >
+                          <Ionicons name="open-outline" size={18} color={Colors.primary} />
+                          <Text style={styles.viewDocText}>View</Text>
+                        </Pressable>
+                        </View>
+                      )}
+                      
+                      {!selectedRequest.gst_certificate_url && selectedRequest.requested_host_type === 'full' && (
+                        <View style={styles.documentNote}>
+                          <Ionicons name="information-circle-outline" size={16} color={Colors.textSecondary} />
+                          <Text style={styles.documentNoteText}>No GST certificate provided</Text>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* Warning: Old schema or missing documents */}
+                      <View style={styles.warningBox}>
+                        <Ionicons name="warning-outline" size={24} color={Colors.warning} />
+                        <View style={styles.warningContent}>
+                          <Text style={styles.warningTitle}>Documents Not Available</Text>
+                          <Text style={styles.warningText}>
+                            This host request was created with the old application system.
+                            Document URLs (PAN card photo, GST certificate) are not available.
+                          </Text>
+                          <Text style={styles.warningHint}>
+                            To fix: Apply database migration 003_host_system_with_rls.sql
+                          </Text>
+                        </View>
+                      </View>
+                    </>
+                  )}
                 </View>
 
                 {/* Admin Notes / Rejection Reason */}
@@ -513,8 +628,8 @@ export default function HostRequestsPage() {
                       title="Reject"
                       onPress={handleReject}
                       variant="outline"
-                      loading={actionLoading}
-                      disabled={actionLoading}
+                      loading={rejecting}
+                      disabled={rejecting || approving}
                       style={styles.rejectButton}
                       textStyle={{ color: Colors.error }}
                     />
@@ -522,8 +637,8 @@ export default function HostRequestsPage() {
                       title="Approve"
                       onPress={handleApprove}
                       variant="primary"
-                      loading={actionLoading}
-                      disabled={actionLoading}
+                      loading={approving}
+                      disabled={rejecting || approving}
                       style={styles.approveButton}
                     />
                   </View>
@@ -919,5 +1034,94 @@ const styles = StyleSheet.create({
   approveButton: {
     flex: 1,
     backgroundColor: Colors.success,
+  },
+  
+  // Document Styles
+  documentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.md,
+    padding: Spacing.sm,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: BorderRadius.md,
+  },
+  documentInfo: {
+    flex: 1,
+    marginRight: Spacing.md,
+  },
+  documentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: Spacing.xs,
+  },
+  documentTitle: {
+    ...Typography.bodySmall,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  documentUrl: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontFamily: 'monospace',
+    fontSize: 11,
+  },
+  viewDocButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 6,
+    backgroundColor: Colors.primarySoft,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
+  },
+  viewDocText: {
+    ...Typography.caption,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  documentNote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingVertical: Spacing.xs,
+  },
+  documentNoteText: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  warningBox: {
+    flexDirection: 'row',
+    padding: Spacing.md,
+    backgroundColor: Colors.warningLight,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.warning + '30',
+    gap: Spacing.md,
+  },
+  warningContent: {
+    flex: 1,
+  },
+  warningTitle: {
+    ...Typography.bodySmall,
+    fontWeight: '700',
+    color: Colors.warning,
+    marginBottom: 4,
+  },
+  warningText: {
+    ...Typography.caption,
+    color: Colors.text,
+    lineHeight: 18,
+    marginBottom: Spacing.xs,
+  },
+  warningHint: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+    fontSize: 11,
   },
 });

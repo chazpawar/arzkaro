@@ -15,7 +15,6 @@ function TabIcon({ name, focused, color }: TabIconProps) {
   return (
     <View style={styles.iconContainer}>
       <Ionicons name={name} size={24} color={color} />
-      {focused && <View style={styles.activeDot} />}
     </View>
   );
 }
@@ -100,13 +99,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-  },
-  activeDot: {
-    position: 'absolute',
-    bottom: -8,
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: Colors.primary,
   },
 });

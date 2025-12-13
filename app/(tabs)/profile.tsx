@@ -177,35 +177,38 @@ export default function ProfileTab() {
           />
         }
       >
-        {/* Profile Header */}
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>{avatarLetter}</Text>
-              </View>
-            )}
-          </View>
+        {/* Profile Card */}
+        <View style={styles.profileCardContainer}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatarContainer}>
+              {profile?.avatar_url ? (
+                <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarText}>{avatarLetter}</Text>
+                </View>
+              )}
+            </View>
 
-          <Text style={styles.displayName}>{displayName}</Text>
-          <Text style={styles.email}>{user?.email}</Text>
+            <View style={styles.profileInfo}>
+              <Text style={styles.displayName}>{displayName}</Text>
+              <Text style={styles.email}>{user?.email}</Text>
 
-          {/* Role Badges */}
-          <View style={styles.badgesContainer}>
-            {isAdmin && (
-              <View style={[styles.roleBadge, styles.adminBadge]}>
-                <Ionicons name="shield-checkmark" size={14} color={Colors.textInverse} />
-                <Text style={styles.roleBadgeText}>Admin</Text>
+              {/* Role Badges */}
+              <View style={styles.badgesContainer}>
+                {isAdmin ? (
+                  <View style={[styles.roleBadge, styles.adminBadge]}>
+                   
+                    <Text style={styles.roleBadgeText}>Admin</Text>
+                  </View>
+                ) : isHost ? (
+                  <View style={[styles.roleBadge, styles.hostBadge]}>
+                    <Ionicons name="star" size={14} color={Colors.textInverse} />
+                    <Text style={styles.roleBadgeText}>Host</Text>
+                  </View>
+                ) : null}
               </View>
-            )}
-            {isHost && (
-              <View style={[styles.roleBadge, styles.hostBadge]}>
-                <Ionicons name="star" size={14} color={Colors.textInverse} />
-                <Text style={styles.roleBadgeText}>Host</Text>
-              </View>
-            )}
+            </View>
           </View>
         </View>
 
@@ -278,11 +281,24 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: Spacing.xxl,
   },
-  header: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
+  profileCardContainer: {
     paddingHorizontal: Spacing.lg,
-    backgroundColor: Colors.background,
+    paddingTop: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  profileCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
   },
   avatarContainer: {
     position: 'relative',
@@ -307,6 +323,10 @@ const styles = StyleSheet.create({
     fontSize: 40,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  profileInfo: {
+    alignItems: 'center',
+    width: '100%',
   },
   editBadge: {
     position: 'absolute',

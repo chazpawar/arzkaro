@@ -3,6 +3,10 @@ import * as EventService from '../services/event-service';
 import type { Event, EventFilters, TicketType } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
 import { useAuth } from '../contexts/auth-context';
+import { mockEvents } from '../data/mock-events';
+
+// TEMPORARY: Set to true to use mock data for UI development
+const USE_MOCK_DATA = true;
 
 /**
  * Hook for fetching and managing events
@@ -21,6 +25,39 @@ export function useEvents(initialFilters?: EventFilters) {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const doFetch = async () => {
+      // TEMPORARY: Use mock data for UI development
+      if (USE_MOCK_DATA) {
+        // Simulate loading delay
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        
+        if (mounted) {
+          // Filter mock events based on filters
+          let filtered = [...mockEvents];
+          
+          // Apply type filter
+          if (filters.type) {
+            filtered = filtered.filter((e) => e.type === filters.type);
+          }
+          
+          // Apply search filter
+          if (filters.search) {
+            const searchLower = filters.search.toLowerCase();
+            filtered = filtered.filter(
+              (e) =>
+                e.title.toLowerCase().includes(searchLower) ||
+                e.description?.toLowerCase().includes(searchLower) ||
+                e.category?.toLowerCase().includes(searchLower)
+            );
+          }
+          
+          setEvents(filtered);
+          setLoading(false);
+          setError(null);
+          setHasMore(false);
+        }
+        return;
+      }
+
       // Wait for auth to be fully ready before fetching
       if (!isAuthReady) {
         console.log('⏳ [EVENTS] Waiting for auth to be ready...');
@@ -97,6 +134,35 @@ export function useEvents(initialFilters?: EventFilters) {
   }, [filters, user?.id, isAuthReady]); // Re-fetch when user changes OR auth becomes ready
 
   const refresh = useCallback(async () => {
+    // TEMPORARY: Use mock data for UI development
+    if (USE_MOCK_DATA) {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      // Filter mock events based on filters
+      let filtered = [...mockEvents];
+      
+      if (filters.type) {
+        filtered = filtered.filter((e) => e.type === filters.type);
+      }
+      
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filtered = filtered.filter(
+          (e) =>
+            e.title.toLowerCase().includes(searchLower) ||
+            e.description?.toLowerCase().includes(searchLower) ||
+            e.category?.toLowerCase().includes(searchLower)
+        );
+      }
+      
+      setEvents(filtered);
+      setLoading(false);
+      setError(null);
+      setHasMore(false);
+      return;
+    }
+
     if (!hasValidCredentials) {
       setEvents([]);
       setLoading(false);
@@ -149,6 +215,41 @@ export function useEvent(eventId: string | undefined) {
 
   const fetchEvent = useCallback(async () => {
     if (!eventId) return;
+
+    // TEMPORARY: Use mock data for UI development
+    if (USE_MOCK_DATA) {
+      // Simulate loading delay
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      
+      // Find event in mock data
+      const foundEvent = mockEvents.find((e) => e.id === eventId);
+      
+      if (foundEvent) {
+        setEvent(foundEvent);
+        // Mock ticket types
+        setTicketTypes([
+          {
+            id: 'ticket-1',
+            event_id: foundEvent.id,
+            name: 'General Admission',
+            description: 'Standard entry ticket',
+            price: foundEvent.price,
+            quantity_available: foundEvent.max_capacity ? foundEvent.max_capacity - foundEvent.current_bookings : 100,
+            quantity_sold: foundEvent.current_bookings,
+            max_per_order: 10,
+            sale_start_date: null,
+            sale_end_date: null,
+            created_at: foundEvent.created_at,
+          },
+        ]);
+        setError(null);
+      } else {
+        setError('Event not found');
+        setEvent(null);
+      }
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
