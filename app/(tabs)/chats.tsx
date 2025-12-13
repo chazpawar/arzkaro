@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { useUserGroups } from '../../src/hooks/use-chat';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
+import { mockEventGroups, mockDMConversations } from '../../src/data/mock-chats';
 
 type FilterType = 'all' | 'unread';
 
@@ -26,12 +27,19 @@ export default function ChatsTab() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
 
+  // TEMPORARY: Set to true to use mock data for UI development
+  const USE_MOCK_DATA = true;
+
   // Fetch groups from backend
-  const { groups, loading, refresh: refreshGroups } = useUserGroups(user?.id);
+  const {
+    groups,
+    loading,
+    refresh: refreshGroups,
+  } = useUserGroups(USE_MOCK_DATA ? undefined : user?.id);
 
   // Load data on component mount
   React.useEffect(() => {
-    if (user?.id) {
+    if (!USE_MOCK_DATA && user?.id) {
       refreshGroups();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -39,21 +47,63 @@ export default function ChatsTab() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refreshGroups();
+    if (!USE_MOCK_DATA) {
+      await refreshGroups();
+    } else {
+      // Simulate refresh delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
+    }
     setRefreshing(false);
-  }, [refreshGroups]);
+  }, [refreshGroups, USE_MOCK_DATA]);
 
   // Map groups for display
-  const allChats = groups.map((group) => ({
+  const allGroups = USE_MOCK_DATA ? mockEventGroups : groups;
+  const allDMs = USE_MOCK_DATA ? mockDMConversations : [];
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
+
+    if (diffInHours < 24) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (diffInHours < 48) {
+      return 'Yesterday';
+    } else {
+      return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+  };
+
+  // Map groups for display
+  const groupChats = allGroups.map((group) => ({
     id: group.id,
-    name: group.event?.title || 'Event Group',
+    name: group.event?.title || group.name || 'Event Group',
     type: 'group' as const,
     icon: 'people',
-    lastMessage: 'Group chat',
-    time: new Date(group.created_at).toLocaleString(),
-    unreadCount: 0, // TODO: Implement unread count
-    avatar: null,
+    lastMessage: group.last_message?.content || 'No messages yet',
+    time: group.last_message?.created_at || group.created_at,
+    unreadCount: group.unread_count || 0,
+    avatar: group.event?.cover_image_url || null,
+    eventId: group.event_id,
   }));
+
+  // Map DMs for display
+  const directMessages = allDMs.map((dm) => ({
+    id: dm.id,
+    name: dm.other_user?.full_name || 'Unknown User',
+    type: 'dm' as const,
+    icon: 'person',
+    lastMessage: dm.last_message?.content || 'No messages yet',
+    time: dm.last_message?.created_at || dm.updated_at,
+    unreadCount: dm.unread_count || 0,
+    avatar: dm.other_user?.avatar_url || null,
+    userId: dm.other_user?.id,
+  }));
+
+  // Combine all chats
+  const allChats = [...groupChats, ...directMessages].sort((a, b) => {
+    return new Date(b.time).getTime() - new Date(a.time).getTime();
+  });
 
   // Filter chats based on active filter
   const filteredChats = allChats.filter((chat) => {
@@ -92,7 +142,7 @@ export default function ChatsTab() {
     );
   }
 
-  if (loading) {
+  if (loading && !USE_MOCK_DATA) {
     return <LoadingSpinner fullScreen text="Loading chats..." />;
   }
 
@@ -130,16 +180,21 @@ export default function ChatsTab() {
     <Pressable
       style={({ pressed }) => [styles.chatItem, pressed && styles.chatItemPressed]}
       onPress={() => {
-        // Navigate to event chat
+        // Navigate to event chat or DM
         if (item.type === 'group') {
-          // You would need to get the event_id from the group
-          // For now just show the group_id
-          router.push(`/events/${item.id}/chat`);
+          router.push(`/events/${item.eventId || item.id}/chat`);
+        } else if (item.type === 'dm') {
+          // TODO: Navigate to DM conversation
+          // router.push(`/chats/dm/${item.id}`);
         }
       }}
     >
       <View style={styles.chatAvatar}>
-        <Ionicons name={getIconForChat(item.icon)} size={24} color={Colors.textSecondary} />
+        {item.avatar ? (
+          <Image source={{ uri: item.avatar }} style={styles.chatAvatarImage} />
+        ) : (
+          <Ionicons name={getIconForChat(item.icon)} size={24} color={Colors.textSecondary} />
+        )}
       </View>
 
       <View style={styles.chatContent}>
@@ -147,13 +202,19 @@ export default function ChatsTab() {
           <Text style={styles.chatName} numberOfLines={1}>
             {item.name}
           </Text>
-          {item.unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadBadgeText}>{item.unreadCount}</Text>
-            </View>
-          )}
+          <View style={styles.chatHeaderRight}>
+            <Text style={styles.chatTime}>{formatTime(item.time)}</Text>
+            {item.unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>{item.unreadCount}</Text>
+              </View>
+            )}
+          </View>
         </View>
-        <Text style={styles.chatLastMessage} numberOfLines={1}>
+        <Text
+          style={[styles.chatLastMessage, item.unreadCount > 0 && styles.chatLastMessageUnread]}
+          numberOfLines={1}
+        >
           {item.lastMessage}
         </Text>
       </View>
@@ -255,6 +316,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Spacing.md,
+    overflow: 'hidden',
+  },
+  chatAvatarImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   chatContent: {
     flex: 1,
@@ -265,12 +332,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 4,
   },
+  chatHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
   chatName: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
     flex: 1,
     marginRight: Spacing.sm,
+  },
+  chatTime: {
+    fontSize: 12,
+    color: Colors.textTertiary,
   },
   unreadBadge: {
     backgroundColor: Colors.primary,
@@ -289,6 +365,10 @@ const styles = StyleSheet.create({
   chatLastMessage: {
     fontSize: 14,
     color: Colors.textSecondary,
+  },
+  chatLastMessageUnread: {
+    fontWeight: '600',
+    color: Colors.text,
   },
   separator: {
     height: 1,

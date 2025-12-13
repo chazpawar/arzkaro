@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Alert } from 'react-native';
-import { Stack } from 'expo-router';
+import { View, Text, StyleSheet, TextInput, Alert, Pressable } from 'react-native';
+import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
@@ -10,6 +10,7 @@ import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
 
 export default function HostScannerScreen() {
+  const router = useRouter();
   const { user } = useAuth();
   const { validateTicket, validating, result } = useTicketValidation();
   const [ticketId, setTicketId] = useState('');
@@ -44,7 +45,15 @@ export default function HostScannerScreen() {
           headerBackTitle: 'Back',
         }}
       />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        {/* Back Button */}
+        <Pressable
+          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        </Pressable>
+
         <View style={styles.content}>
           <View style={styles.iconContainer}>
             <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
@@ -103,6 +112,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  backButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+  },
+  backButtonPressed: {
+    opacity: 0.6,
   },
   content: {
     flex: 1,

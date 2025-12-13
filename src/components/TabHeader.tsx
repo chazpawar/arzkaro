@@ -19,7 +19,7 @@ export default function TabHeader({
   const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : Spacing.md }]}>
+    <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top - 40 : 0 }]}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../../assets/arz.png')} style={styles.logo} resizeMode="contain" />
@@ -52,8 +52,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   searchContainer: {
     flexDirection: 'row',

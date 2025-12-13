@@ -43,7 +43,7 @@ export default function EventDetailsScreen() {
 
   const formatPrice = (price: number | null | undefined) => {
     if (price === null || price === undefined) return 'Free';
-    return `Rs.${price.toLocaleString('en-IN')}`;
+    return `₹${price.toLocaleString('en-IN')}`;
   };
 
   const handleBookNow = () => {
@@ -253,18 +253,19 @@ export default function EventDetailsScreen() {
 
         {/* Book Now Footer */}
         <SafeAreaView edges={['bottom']} style={styles.footer}>
-          <View style={styles.footerContent}>
-            <View style={styles.footerPrice}>
-              <Text style={styles.footerPriceLabel}>From</Text>
+          <View style={styles.footerContainer}>
+            <View style={styles.footerPillContainer}>
               <Text style={styles.footerPriceValue}>{formatPrice(event.price)}</Text>
+              <Pressable
+                style={[styles.bookButtonNested, isSoldOut && styles.bookButtonDisabled]}
+                onPress={handleBookNow}
+                disabled={isSoldOut}
+              >
+                <Text style={styles.bookButtonNestedText}>
+                  {isSoldOut ? 'Sold Out' : 'Book Ticket'}
+                </Text>
+              </Pressable>
             </View>
-            <Pressable
-              style={[styles.bookButton, isSoldOut && styles.bookButtonDisabled]}
-              onPress={handleBookNow}
-              disabled={isSoldOut}
-            >
-              <Text style={styles.bookButtonText}>{isSoldOut ? 'Sold Out' : 'Book Now'}</Text>
-            </Pressable>
           </View>
         </SafeAreaView>
       </View>
@@ -549,46 +550,46 @@ const styles = StyleSheet.create({
     color: Colors.textInverse,
   },
   footer: {
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
+    paddingTop: Spacing.md,
+    paddingBottom: 0,
   },
-  footerContent: {
+  footerContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+  },
+  footerPillContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: Spacing.lg,
-  },
-  footerPrice: {
-    flex: 1,
-  },
-  footerPriceLabel: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    textTransform: 'uppercase',
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    minHeight: 56,
   },
   footerPriceValue: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: '700',
-    color: Colors.text,
+    color: Colors.textInverse,
+    flex: 1,
   },
-  bookButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.md,
+  bookButtonNested: {
+    backgroundColor: Colors.textInverse,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm + 2,
     borderRadius: BorderRadius.full,
-    minWidth: 140,
+    minWidth: 120,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   bookButtonDisabled: {
     backgroundColor: Colors.textTertiary,
+    opacity: 0.6,
   },
-  bookButtonText: {
-    fontSize: 16,
+  bookButtonNestedText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: Colors.textInverse,
+    color: Colors.text,
   },
 });

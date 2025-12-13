@@ -217,25 +217,25 @@ export default function ProfileTab() {
                   </View>
                 ) : null}
               </View>
-            </View>
-          </View>
-        </View>
 
-        {/* Stats Row */}
-        <View style={styles.statsContainer}>
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{uniqueEvents}</Text>
-            <Text style={styles.statLabel}>Events</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>{ticketCount}</Text>
-            <Text style={styles.statLabel}>Tickets</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statValue}>0</Text>
-            <Text style={styles.statLabel}>Saved</Text>
+              {/* Stats Row */}
+              <View style={styles.statsContainer}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{uniqueEvents}</Text>
+                  <Text style={styles.statLabel}>Events</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{ticketCount}</Text>
+                  <Text style={styles.statLabel}>Tickets</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>0</Text>
+                  <Text style={styles.statLabel}>Saved</Text>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
@@ -374,8 +374,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: Spacing.lg,
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
+    marginTop: Spacing.lg,
+    width: '100%',
     backgroundColor: Colors.surfaceSecondary,
     borderRadius: BorderRadius.lg,
   },
