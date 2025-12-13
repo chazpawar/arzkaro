@@ -82,7 +82,7 @@ export function useTickets(userId: string | undefined) {
     if (USE_MOCK_DATA) {
       // Simulate loading delay
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Return mock tickets (filtered by userId if needed)
       setTickets(mockTickets);
       setLoading(false);
@@ -235,10 +235,10 @@ export function useTicket(ticketId: string | undefined) {
     if (USE_MOCK_DATA) {
       // Simulate loading delay
       await new Promise((resolve) => setTimeout(resolve, 300));
-      
+
       // Find ticket in mock data
       const foundTicket = mockTickets.find((t) => t.id === ticketId);
-      
+
       if (foundTicket) {
         setTicket(foundTicket);
         setError(null);

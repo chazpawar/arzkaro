@@ -29,16 +29,16 @@ export function useEvents(initialFilters?: EventFilters) {
       if (USE_MOCK_DATA) {
         // Simulate loading delay
         await new Promise((resolve) => setTimeout(resolve, 500));
-        
+
         if (mounted) {
           // Filter mock events based on filters
           let filtered = [...mockEvents];
-          
+
           // Apply type filter
           if (filters.type) {
             filtered = filtered.filter((e) => e.type === filters.type);
           }
-          
+
           // Apply search filter
           if (filters.search) {
             const searchLower = filters.search.toLowerCase();
@@ -49,7 +49,7 @@ export function useEvents(initialFilters?: EventFilters) {
                 e.category?.toLowerCase().includes(searchLower)
             );
           }
-          
+
           setEvents(filtered);
           setLoading(false);
           setError(null);
@@ -138,14 +138,14 @@ export function useEvents(initialFilters?: EventFilters) {
     if (USE_MOCK_DATA) {
       setLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Filter mock events based on filters
       let filtered = [...mockEvents];
-      
+
       if (filters.type) {
         filtered = filtered.filter((e) => e.type === filters.type);
       }
-      
+
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         filtered = filtered.filter(
@@ -155,7 +155,7 @@ export function useEvents(initialFilters?: EventFilters) {
             e.category?.toLowerCase().includes(searchLower)
         );
       }
-      
+
       setEvents(filtered);
       setLoading(false);
       setError(null);
@@ -220,10 +220,10 @@ export function useEvent(eventId: string | undefined) {
     if (USE_MOCK_DATA) {
       // Simulate loading delay
       await new Promise((resolve) => setTimeout(resolve, 300));
-      
+
       // Find event in mock data
       const foundEvent = mockEvents.find((e) => e.id === eventId);
-      
+
       if (foundEvent) {
         setEvent(foundEvent);
         // Mock ticket types
@@ -234,7 +234,9 @@ export function useEvent(eventId: string | undefined) {
             name: 'General Admission',
             description: 'Standard entry ticket',
             price: foundEvent.price,
-            quantity_available: foundEvent.max_capacity ? foundEvent.max_capacity - foundEvent.current_bookings : 100,
+            quantity_available: foundEvent.max_capacity
+              ? foundEvent.max_capacity - foundEvent.current_bookings
+              : 100,
             quantity_sold: foundEvent.current_bookings,
             max_per_order: 10,
             sale_start_date: null,

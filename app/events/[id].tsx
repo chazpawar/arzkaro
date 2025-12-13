@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform, Dimensions } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Pressable,
+  Platform,
+  Dimensions,
+} from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,8 +88,8 @@ export default function EventDetailsScreen() {
         {/* Sticky Cover Image */}
         <View style={styles.imageContainer}>
           {event.cover_image_url ? (
-            <Image 
-              source={{ uri: event.cover_image_url }} 
+            <Image
+              source={{ uri: event.cover_image_url }}
               style={styles.coverImage}
               resizeMode="contain"
             />

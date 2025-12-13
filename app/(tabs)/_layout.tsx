@@ -11,7 +11,7 @@ interface TabIconProps {
   color: string;
 }
 
-function TabIcon({ name, focused, color }: TabIconProps) {
+function TabIcon({ name, focused: _focused, color }: TabIconProps) {
   return (
     <View style={styles.iconContainer}>
       <Ionicons name={name} size={24} color={color} />

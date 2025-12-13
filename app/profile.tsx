@@ -144,9 +144,7 @@ export default function ProfileScreen() {
               )}
               {isAdmin && (
                 <View style={[styles.badge, { backgroundColor: Colors.errorLight }]}>
-                  <Text style={[styles.badgeText, { color: Colors.error }]}>
-                    Admin
-                  </Text>
+                  <Text style={[styles.badgeText, { color: Colors.error }]}>Admin</Text>
                 </View>
               )}
             </View>

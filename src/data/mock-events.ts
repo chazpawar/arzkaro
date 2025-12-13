@@ -6,11 +6,11 @@ import type { Event } from '../types';
  * for testing the UI without database connection
  */
 
-const generateId = () => {
+const _generateId = () => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-const generateDate = (daysFromNow: number, hour: number = 10) => {
+const generateDate = (daysFromNow: number, hour = 10) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromNow);
   date.setHours(hour, 0, 0, 0);
@@ -26,7 +26,8 @@ export const mockEvents: Event[] = [
     description:
       'Join us for the biggest music festival of the year! Featuring top artists, amazing food, and unforgettable experiences. Get ready for 3 days of non-stop entertainment.',
     short_description: '3-day music festival with top artists',
-    cover_image_url: 'https://marketplace.canva.com/EAGPCwbGzbU/2/0/1131w/canva-school-is-cool-retro-groovy-positive-quote-illustrated-colorful-poster-k2DDIEC4h3c.jpg',
+    cover_image_url:
+      'https://marketplace.canva.com/EAGPCwbGzbU/2/0/1131w/canva-school-is-cool-retro-groovy-positive-quote-illustrated-colorful-poster-k2DDIEC4h3c.jpg',
     images: [],
     location_name: 'Mumbai Grounds',
     location_address: 'Bandra Kurla Complex, Mumbai, Maharashtra',
@@ -55,7 +56,8 @@ export const mockEvents: Event[] = [
     description:
       'Network with entrepreneurs, investors, and innovators. Learn from industry leaders, pitch your ideas, and discover the next big thing in tech.',
     short_description: 'Connect with tech entrepreneurs and investors',
-    cover_image_url: 'https://d1csarkz8obe9u.cloudfront.net/themedlandingpages/tlp_hero_cool-posters-e2b967a0744ce61fa470e8619dc67ea3.jpg?ts%20=%201754367941',
+    cover_image_url:
+      'https://d1csarkz8obe9u.cloudfront.net/themedlandingpages/tlp_hero_cool-posters-e2b967a0744ce61fa470e8619dc67ea3.jpg?ts%20=%201754367941',
     images: [],
     location_name: 'Convention Center',
     location_address: 'Andheri East, Mumbai, Maharashtra',
@@ -84,7 +86,8 @@ export const mockEvents: Event[] = [
     description:
       'Float above the clouds and watch the sunrise from a hot air balloon. Experience breathtaking views of the countryside and create memories that last a lifetime.',
     short_description: 'Magical sunrise from a hot air balloon',
-    cover_image_url: 'https://images-cdn.ubuy.co.in/6466130ce3259873f74b6b58-surfing-poster-hawaii-aloha-paradise.jpg',
+    cover_image_url:
+      'https://images-cdn.ubuy.co.in/6466130ce3259873f74b6b58-surfing-poster-hawaii-aloha-paradise.jpg',
     images: [],
     location_name: 'Jaipur Balloon Park',
     location_address: 'Amber Road, Jaipur, Rajasthan',
@@ -112,13 +115,14 @@ export const mockEvents: Event[] = [
     title: 'Photography Walk - Old Delhi',
     description:
       'Capture the essence of Old Delhi through your lens. Guided photography walk through historic lanes, markets, and monuments with a professional photographer.',
-    short_description: 'Capture Old Delhi\'s charm',
-    cover_image_url: 'https://img.freepik.com/free-photo/revolution-still-life-design_23-2149061100.jpg?semt=ais_hybrid&w=740&q=80',
+    short_description: "Capture Old Delhi's charm",
+    cover_image_url:
+      'https://img.freepik.com/free-photo/revolution-still-life-design_23-2149061100.jpg?semt=ais_hybrid&w=740&q=80',
     images: [],
     location_name: 'Chandni Chowk',
     location_address: 'Old Delhi, Delhi',
     location_lat: 28.6562,
-    location_lng: 77.2410,
+    location_lng: 77.241,
     start_date: generateDate(25, 8),
     end_date: generateDate(25, 12),
     timezone: 'Asia/Kolkata',
@@ -142,7 +146,8 @@ export const mockEvents: Event[] = [
     description:
       'Savor premium wines from around the world. Learn about wine pairing, tasting techniques, and enjoy gourmet snacks in an elegant setting.',
     short_description: 'Discover fine wines and perfect pairings',
-    cover_image_url: 'https://ih1.redbubble.net/image.672935128.9185/flat,750x,075,f-pad,750x1000,f8f8f8.u2.jpg',
+    cover_image_url:
+      'https://ih1.redbubble.net/image.672935128.9185/flat,750x,075,f-pad,750x1000,f8f8f8.u2.jpg',
     images: [],
     location_name: 'Vineyard Lounge',
     location_address: 'Pune, Maharashtra',
@@ -171,12 +176,13 @@ export const mockEvents: Event[] = [
     description:
       'A day dedicated to your well-being. Learn yoga techniques, meditation practices, and holistic wellness from certified instructors.',
     short_description: 'Transform your mind and body',
-    cover_image_url: 'https://media.istockphoto.com/id/1366748354/vector/people-silhouettes-doing-yoga-poses-vector-paper-cut-illustration-yoga-class-studio-poster.jpg?s=612x612&w=0&k=20&c=MusBKL6FR93MfiYUP7IZXbP9HcGs6FYVoXqn-QQGfr0=',
+    cover_image_url:
+      'https://media.istockphoto.com/id/1366748354/vector/people-silhouettes-doing-yoga-poses-vector-paper-cut-illustration-yoga-class-studio-poster.jpg?s=612x612&w=0&k=20&c=MusBKL6FR93MfiYUP7IZXbP9HcGs6FYVoXqn-QQGfr0=',
     images: [],
     location_name: 'Peace Garden',
     location_address: 'Goa, India',
     location_lat: 15.2993,
-    location_lng: 74.1240,
+    location_lng: 74.124,
     start_date: generateDate(10, 8),
     end_date: generateDate(10, 12),
     timezone: 'Asia/Kolkata',
@@ -198,13 +204,13 @@ export const mockEvents: Event[] = [
     type: 'event',
     title: 'Comedy Night Special',
     description:
-      'Laugh your heart out with India\'s top comedians. An evening of non-stop laughter, great food, and amazing vibes.',
+      "Laugh your heart out with India's top comedians. An evening of non-stop laughter, great food, and amazing vibes.",
     short_description: 'An evening of laughter with top comedians',
     cover_image_url: 'https://i.pinimg.com/474x/48/59/01/485901f83486b55c952c40b3f44f1b95.jpg',
     images: [],
     location_name: 'Comedy Club',
     location_address: 'Mumbai, Maharashtra',
-    location_lat: 19.0760,
+    location_lat: 19.076,
     location_lng: 72.8777,
     start_date: generateDate(12, 20),
     end_date: generateDate(12, 23),
@@ -248,7 +254,7 @@ export const mockEvents: Event[] = [
     tags: ['cooking', 'indian', 'culinary'],
     created_at: generateDate(-14),
     updated_at: generateDate(-2),
-    host: { id: 'host-8', full_name: 'Chef\'s Kitchen', avatar_url: null },
+    host: { id: 'host-8', full_name: "Chef's Kitchen", avatar_url: null },
   },
   {
     id: 'event-9',
@@ -258,12 +264,13 @@ export const mockEvents: Event[] = [
     description:
       'Escape to pristine beaches for a relaxing weekend. Enjoy water sports, beachside dining, and stunning sunsets.',
     short_description: 'Relaxing beach weekend escape',
-    cover_image_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8ctH_QyOXkRMK9OMtgUiQW00pcBeHY2m_IQ&s',
+    cover_image_url:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8ctH_QyOXkRMK9OMtgUiQW00pcBeHY2m_IQ&s',
     images: [],
     location_name: 'Beach Resort',
     location_address: 'Goa, India',
     location_lat: 15.2993,
-    location_lng: 74.1240,
+    location_lng: 74.124,
     start_date: generateDate(22, 14),
     end_date: generateDate(24, 18),
     timezone: 'Asia/Kolkata',

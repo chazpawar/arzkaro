@@ -490,7 +490,7 @@ export default function HostRequestsPage() {
                 {/* Documents Section */}
                 <View style={styles.infoGroup}>
                   <Text style={styles.groupTitle}>Verification Documents</Text>
-                  
+
                   {/* Check if document fields exist (new schema) */}
                   {selectedRequest.pan_card_photo_url ? (
                     <>
@@ -498,63 +498,37 @@ export default function HostRequestsPage() {
                       <View style={styles.documentRow}>
                         <View style={styles.documentInfo}>
                           <View style={styles.documentHeader}>
-                            <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
+                            <Ionicons
+                              name="document-text-outline"
+                              size={20}
+                              color={Colors.primary}
+                            />
                             <Text style={styles.documentTitle}>PAN Card Photo</Text>
                           </View>
                           <Text style={styles.documentUrl} numberOfLines={1}>
                             {selectedRequest.pan_card_photo_url}
                           </Text>
                         </View>
-                      <Pressable
-                        style={styles.viewDocButton}
-                        onPress={async () => {
-                          // Open URL in browser
-                          if (selectedRequest.pan_card_photo_url) {
-                            try {
-                              const canOpen = await Linking.canOpenURL(selectedRequest.pan_card_photo_url);
-                              if (canOpen) {
-                                await Linking.openURL(selectedRequest.pan_card_photo_url);
-                              } else {
-                                Alert.alert('Error', 'Cannot open this URL. Please check the link is valid.');
-                              }
-                            } catch (error) {
-                              Alert.alert('Error', 'Failed to open document URL');
-                              console.error('Error opening URL:', error);
-                            }
-                          }
-                        }}
-                      >
-                        <Ionicons name="open-outline" size={18} color={Colors.primary} />
-                        <Text style={styles.viewDocText}>View</Text>
-                      </Pressable>
-                      </View>
-
-                      {/* GST Certificate Document (if provided) */}
-                      {selectedRequest.gst_certificate_url && (
-                        <View style={styles.documentRow}>
-                          <View style={styles.documentInfo}>
-                            <View style={styles.documentHeader}>
-                              <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
-                              <Text style={styles.documentTitle}>GST Certificate</Text>
-                            </View>
-                            <Text style={styles.documentUrl} numberOfLines={1}>
-                              {selectedRequest.gst_certificate_url}
-                            </Text>
-                          </View>
                         <Pressable
                           style={styles.viewDocButton}
                           onPress={async () => {
-                            if (selectedRequest.gst_certificate_url) {
+                            // Open URL in browser
+                            if (selectedRequest.pan_card_photo_url) {
                               try {
-                                const canOpen = await Linking.canOpenURL(selectedRequest.gst_certificate_url);
+                                const canOpen = await Linking.canOpenURL(
+                                  selectedRequest.pan_card_photo_url
+                                );
                                 if (canOpen) {
-                                  await Linking.openURL(selectedRequest.gst_certificate_url);
+                                  await Linking.openURL(selectedRequest.pan_card_photo_url);
                                 } else {
-                                  Alert.alert('Error', 'Cannot open this URL. Please check the link is valid.');
+                                  Alert.alert(
+                                    'Error',
+                                    'Cannot open this URL. Please check the link is valid.'
+                                  );
                                 }
                               } catch (error) {
                                 Alert.alert('Error', 'Failed to open document URL');
-                                console.error('Error opening GST URL:', error);
+                                console.error('Error opening URL:', error);
                               }
                             }
                           }}
@@ -562,15 +536,63 @@ export default function HostRequestsPage() {
                           <Ionicons name="open-outline" size={18} color={Colors.primary} />
                           <Text style={styles.viewDocText}>View</Text>
                         </Pressable>
+                      </View>
+
+                      {/* GST Certificate Document (if provided) */}
+                      {selectedRequest.gst_certificate_url && (
+                        <View style={styles.documentRow}>
+                          <View style={styles.documentInfo}>
+                            <View style={styles.documentHeader}>
+                              <Ionicons
+                                name="document-text-outline"
+                                size={20}
+                                color={Colors.primary}
+                              />
+                              <Text style={styles.documentTitle}>GST Certificate</Text>
+                            </View>
+                            <Text style={styles.documentUrl} numberOfLines={1}>
+                              {selectedRequest.gst_certificate_url}
+                            </Text>
+                          </View>
+                          <Pressable
+                            style={styles.viewDocButton}
+                            onPress={async () => {
+                              if (selectedRequest.gst_certificate_url) {
+                                try {
+                                  const canOpen = await Linking.canOpenURL(
+                                    selectedRequest.gst_certificate_url
+                                  );
+                                  if (canOpen) {
+                                    await Linking.openURL(selectedRequest.gst_certificate_url);
+                                  } else {
+                                    Alert.alert(
+                                      'Error',
+                                      'Cannot open this URL. Please check the link is valid.'
+                                    );
+                                  }
+                                } catch (error) {
+                                  Alert.alert('Error', 'Failed to open document URL');
+                                  console.error('Error opening GST URL:', error);
+                                }
+                              }
+                            }}
+                          >
+                            <Ionicons name="open-outline" size={18} color={Colors.primary} />
+                            <Text style={styles.viewDocText}>View</Text>
+                          </Pressable>
                         </View>
                       )}
-                      
-                      {!selectedRequest.gst_certificate_url && selectedRequest.requested_host_type === 'full' && (
-                        <View style={styles.documentNote}>
-                          <Ionicons name="information-circle-outline" size={16} color={Colors.textSecondary} />
-                          <Text style={styles.documentNoteText}>No GST certificate provided</Text>
-                        </View>
-                      )}
+                      {!selectedRequest.gst_certificate_url &&
+                        selectedRequest.requested_host_type === 'full' && (
+                          <View style={styles.documentNote}>
+                            <Ionicons
+                              name="information-circle-outline"
+                              size={16}
+                              color={Colors.textSecondary}
+                            />
+                            <Text style={styles.documentNoteText}>No GST certificate provided</Text>
+                          </View>
+                        )}
                     </>
                   ) : (
                     <>
@@ -580,8 +602,8 @@ export default function HostRequestsPage() {
                         <View style={styles.warningContent}>
                           <Text style={styles.warningTitle}>Documents Not Available</Text>
                           <Text style={styles.warningText}>
-                            This host request was created with the old application system.
-                            Document URLs (PAN card photo, GST certificate) are not available.
+                            This host request was created with the old application system. Document
+                            URLs (PAN card photo, GST certificate) are not available.
                           </Text>
                           <Text style={styles.warningHint}>
                             To fix: Apply database migration 003_host_system_with_rls.sql
@@ -1035,7 +1057,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.success,
   },
-  
+
   // Document Styles
   documentRow: {
     flexDirection: 'row',

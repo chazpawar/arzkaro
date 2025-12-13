@@ -108,6 +108,16 @@ export default function ProfileTab() {
     { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
   ];
 
+  // Add "Become a Host" for normal users (not hosts, not admins)
+  if (!isHost && !isAdmin) {
+    menuItems.push({
+      icon: 'rocket-outline',
+      label: 'Become a Host',
+      action: handleBecomeHost,
+      showArrow: true,
+    });
+  }
+
   // Add admin panel if user is admin
   if (isAdmin) {
     menuItems.splice(2, 0, {
@@ -198,7 +208,6 @@ export default function ProfileTab() {
               <View style={styles.badgesContainer}>
                 {isAdmin ? (
                   <View style={[styles.roleBadge, styles.adminBadge]}>
-                   
                     <Text style={styles.roleBadgeText}>Admin</Text>
                   </View>
                 ) : isHost ? (
@@ -211,30 +220,6 @@ export default function ProfileTab() {
             </View>
           </View>
         </View>
-
-        {/* Become a Host Section */}
-        {!isHost && (
-          <Pressable
-            style={({ pressed }) => [
-              styles.becomeHostCard,
-              pressed && styles.becomeHostCardPressed,
-            ]}
-            onPress={handleBecomeHost}
-          >
-            <View style={styles.becomeHostContent}>
-              <View style={styles.becomeHostIconContainer}>
-                <Ionicons name="rocket-outline" size={28} color={Colors.primary} />
-              </View>
-              <View style={styles.becomeHostText}>
-                <Text style={styles.becomeHostTitle}>Become a Host</Text>
-                <Text style={styles.becomeHostDescription}>
-                  Start hosting events and earn money
-                </Text>
-              </View>
-            </View>
-            <Ionicons name="chevron-forward" size={24} color={Colors.primary} />
-          </Pressable>
-        )}
 
         {/* Stats Row */}
         <View style={styles.statsContainer}>
@@ -384,47 +369,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textInverse,
-  },
-  becomeHostCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginHorizontal: Spacing.lg,
-    marginBottom: Spacing.lg,
-    padding: Spacing.md,
-    backgroundColor: Colors.primarySoft,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.primaryLight,
-  },
-  becomeHostCardPressed: {
-    opacity: 0.8,
-  },
-  becomeHostContent: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  becomeHostIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: Spacing.md,
-  },
-  becomeHostText: {
-    flex: 1,
-  },
-  becomeHostTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  becomeHostDescription: {
-    fontSize: 13,
-    color: Colors.textSecondary,
   },
   statsContainer: {
     flexDirection: 'row',

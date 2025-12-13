@@ -13,7 +13,7 @@ const generateBookingId = () => {
   return `booking-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-const generateDate = (daysFromNow: number, hour: number = 10) => {
+const generateDate = (daysFromNow: number, hour = 10) => {
   const date = new Date();
   date.setDate(date.getDate() + daysFromNow);
   date.setHours(hour, 0, 0, 0);
@@ -25,7 +25,8 @@ const mockEvents = [
   {
     id: 'event-1',
     title: 'Mumbai Music Festival 2025',
-    cover_image_url: 'https://marketplace.canva.com/EAGPCwbGzbU/2/0/1131w/canva-school-is-cool-retro-groovy-positive-quote-illustrated-colorful-poster-k2DDIEC4h3c.jpg',
+    cover_image_url:
+      'https://marketplace.canva.com/EAGPCwbGzbU/2/0/1131w/canva-school-is-cool-retro-groovy-positive-quote-illustrated-colorful-poster-k2DDIEC4h3c.jpg',
     start_date: generateDate(15, 18),
     end_date: generateDate(17, 22),
     location_name: 'Mumbai Grounds',
@@ -38,7 +39,8 @@ const mockEvents = [
   {
     id: 'event-2',
     title: 'Tech Startup Summit',
-    cover_image_url: 'https://d1csarkz8obe9u.cloudfront.net/themedlandingpages/tlp_hero_cool-posters-e2b967a0744ce61fa470e8619dc67ea3.jpg?ts%20=%201754367941',
+    cover_image_url:
+      'https://d1csarkz8obe9u.cloudfront.net/themedlandingpages/tlp_hero_cool-posters-e2b967a0744ce61fa470e8619dc67ea3.jpg?ts%20=%201754367941',
     start_date: generateDate(20, 9),
     end_date: generateDate(20, 18),
     location_name: 'Convention Center',
@@ -51,7 +53,8 @@ const mockEvents = [
   {
     id: 'event-3',
     title: 'Sunrise Hot Air Balloon Ride',
-    cover_image_url: 'https://images-cdn.ubuy.co.in/6466130ce3259873f74b6b58-surfing-poster-hawaii-aloha-paradise.jpg',
+    cover_image_url:
+      'https://images-cdn.ubuy.co.in/6466130ce3259873f74b6b58-surfing-poster-hawaii-aloha-paradise.jpg',
     start_date: generateDate(5, 6),
     end_date: generateDate(5, 9),
     location_name: 'Jaipur Balloon Park',
@@ -64,7 +67,8 @@ const mockEvents = [
   {
     id: 'event-4',
     title: 'Photography Walk - Old Delhi',
-    cover_image_url: 'https://img.freepik.com/free-photo/revolution-still-life-design_23-2149061100.jpg?semt=ais_hybrid&w=740&q=80',
+    cover_image_url:
+      'https://img.freepik.com/free-photo/revolution-still-life-design_23-2149061100.jpg?semt=ais_hybrid&w=740&q=80',
     start_date: generateDate(25, 8),
     end_date: generateDate(25, 12),
     location_name: 'Chandni Chowk',
@@ -77,7 +81,8 @@ const mockEvents = [
   {
     id: 'event-5',
     title: 'Wine Tasting Experience',
-    cover_image_url: 'https://ih1.redbubble.net/image.672935128.9185/flat,750x,075,f-pad,750x1000,f8f8f8.u2.jpg',
+    cover_image_url:
+      'https://ih1.redbubble.net/image.672935128.9185/flat,750x,075,f-pad,750x1000,f8f8f8.u2.jpg',
     start_date: generateDate(30, 19),
     end_date: generateDate(30, 22),
     location_name: 'Vineyard Lounge',
@@ -90,7 +95,8 @@ const mockEvents = [
   {
     id: 'event-6',
     title: 'Yoga & Wellness Retreat',
-    cover_image_url: 'https://media.istockphoto.com/id/1366748354/vector/people-silhouettes-doing-yoga-poses-vector-paper-cut-illustration-yoga-class-studio-poster.jpg?s=612x612&w=0&k=20&c=MusBKL6FR93MfiYUP7IZXbP9HcGs6FYVoXqn-QQGfr0=',
+    cover_image_url:
+      'https://media.istockphoto.com/id/1366748354/vector/people-silhouettes-doing-yoga-poses-vector-paper-cut-illustration-yoga-class-studio-poster.jpg?s=612x612&w=0&k=20&c=MusBKL6FR93MfiYUP7IZXbP9HcGs6FYVoXqn-QQGfr0=',
     start_date: generateDate(-5, 8), // Past event
     end_date: generateDate(-5, 12),
     location_name: 'Peace Garden',

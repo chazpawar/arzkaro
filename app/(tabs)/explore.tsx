@@ -67,22 +67,6 @@ export default function ExploreTab() {
     setRefreshing(false);
   };
 
-  const formatPrice = (price: number | null | undefined) => {
-    if (price === null || price === undefined) return 'Free';
-    return price === 0 ? 'Free' : `Rs.${price.toLocaleString('en-IN')}`;
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date
-      .toLocaleDateString('en-US', {
-        month: '2-digit',
-        day: '2-digit',
-        year: 'numeric',
-      })
-      .replace(/\//g, '.');
-  };
-
   // Filter events based on search and category
   const filteredEvents = events.filter((event) => {
     // Search filter
@@ -152,14 +136,14 @@ export default function ExploreTab() {
           </View>
         )}
       </View>
-      
+
       {/* Content below image */}
       <View style={styles.simpleCardContent}>
         {/* Title */}
         <Text style={styles.simpleCardTitle} numberOfLines={2}>
           {item.title}
         </Text>
-        
+
         {/* Location and Time on same row */}
         <View style={styles.cardDetailsRow}>
           {/* Location - Left */}
@@ -169,13 +153,11 @@ export default function ExploreTab() {
               {item.location_name || 'TBA'}
             </Text>
           </View>
-          
+
           {/* Time - Right */}
           <View style={[styles.cardDetailItem, styles.cardDetailRight]}>
             <Ionicons name="time-outline" size={16} color={Colors.text} />
-            <Text style={styles.cardDetailText}>
-              {formatTime(item.start_date)}
-            </Text>
+            <Text style={styles.cardDetailText}>{formatTime(item.start_date)}</Text>
           </View>
         </View>
       </View>

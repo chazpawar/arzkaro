@@ -22,11 +22,7 @@ export default function TabHeader({
     <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top + 8 : Spacing.md }]}>
       {/* Logo */}
       <View style={styles.logoContainer}>
-        <Image
-          source={require('../../assets/arz.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
+        <Image source={require('../../assets/arz.png')} style={styles.logo} resizeMode="contain" />
       </View>
 
       {/* Search Bar */}
