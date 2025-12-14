@@ -4,7 +4,7 @@ import Input from '../ui/input';
 import Button from '../ui/button';
 import Card from '../ui/card';
 import { Colors } from '@/constants/Colors';
-import { BorderRadius, Spacing, Typography } from '@/constants/styles';
+import { BorderRadius, Spacing, Typography } from '@/constants/Styles';
 import { HostRequestFormData, HOST_TYPE_LABELS } from '@/types/host.types';
 import { submitHostRequest, validateHostRequest } from '@/services/host-service';
 

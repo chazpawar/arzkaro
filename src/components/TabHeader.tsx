@@ -3,7 +3,7 @@ import { View, StyleSheet, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
-import { Spacing, BorderRadius } from '../constants/styles';
+import { Spacing, BorderRadius } from '../constants/Styles';
 
 interface TabHeaderProps {
   searchPlaceholder?: string;

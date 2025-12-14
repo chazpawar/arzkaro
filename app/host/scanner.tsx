@@ -7,7 +7,7 @@ import Button from '../../src/components/ui/button';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTicketValidation } from '../../src/hooks/use-bookings';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 
 export default function HostScannerScreen() {
   const router = useRouter();

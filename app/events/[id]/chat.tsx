@@ -18,11 +18,10 @@ import ChatInput from '../../../src/components/chat/chat-input';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../../src/constants/styles';
+import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import { useGroupChat } from '../../../src/hooks/use-chat';
 import * as ChatService from '../../../src/services/chat-service';
-import type { Message } from '../../../src/types';
 
 export default function EventChatScreen() {
   const { id: eventId } = useLocalSearchParams<{ id: string }>();
@@ -37,23 +36,39 @@ export default function EventChatScreen() {
   // Load group ID from event
   useEffect(() => {
     async function loadGroup() {
-      if (!eventId) return;
+      if (!eventId) {
+        console.log('[CHAT SCREEN] No eventId provided');
+        setLoadingGroup(false);
+        return;
+      }
+
+      console.log('[CHAT SCREEN] Loading group for event:', eventId);
 
       try {
         setLoadingGroup(true);
         const group = await ChatService.getGroupByEventId(eventId);
+
+        console.log('[CHAT SCREEN] Group found:', group ? group.id : 'none');
 
         if (group) {
           setGroupId(group.id);
 
           // Check membership
           if (user?.id) {
+            console.log('[CHAT SCREEN] Checking membership for user:', user.id);
             const memberStatus = await ChatService.isGroupMember(group.id, user.id);
+            console.log('[CHAT SCREEN] Member status:', memberStatus);
             setIsMember(memberStatus);
+          } else {
+            setIsMember(false);
           }
+        } else {
+          console.log('[CHAT SCREEN] No group found for event');
+          setIsMember(false);
         }
-      } catch (_error) {
-        console.error('Failed to load group:', _error);
+      } catch (error) {
+        console.error('[CHAT SCREEN] Error loading group:', error);
+        setIsMember(false);
       } finally {
         setLoadingGroup(false);
       }
@@ -62,21 +77,52 @@ export default function EventChatScreen() {
     loadGroup();
   }, [eventId, user?.id]);
 
-  const { group, messages, members, loading, sending, sendMessage } = useGroupChat(
-    groupId || undefined
-  );
+  const {
+    group,
+    messages,
+    members,
+    loading,
+    sending,
+    typingUsers,
+    isConnected,
+    sendMessage,
+    retryMessage,
+    startTyping,
+    stopTyping,
+  } = useGroupChat(groupId || undefined, user?.id);
 
   const handleSend = useCallback(
     async (content: string) => {
-      if (!user?.id) return;
-      await sendMessage(content, user.id);
+      if (!user?.id || !user?.email) return;
+
+      const userName = user.email.split('@')[0] || 'User';
+      await sendMessage(content, user.id, userName, user.user_metadata?.avatar_url);
 
       // Scroll to bottom after sending
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true });
       }, 100);
     },
-    [user?.id, sendMessage]
+    [user, sendMessage]
+  );
+
+  const handleTyping = useCallback(() => {
+    if (!user?.email) return;
+    const userName = user.email.split('@')[0] || 'User';
+    startTyping(userName, user.user_metadata?.avatar_url);
+  }, [user, startTyping]);
+
+  const handleStopTyping = useCallback(() => {
+    stopTyping();
+  }, [stopTyping]);
+
+  const handleRetry = useCallback(
+    (messageId: string) => {
+      if (!user?.id || !user?.email) return;
+      const userName = user.email.split('@')[0] || 'User';
+      retryMessage(messageId, user.id, userName, user.user_metadata?.avatar_url);
+    },
+    [user, retryMessage]
   );
 
   const handleMemberPress = useCallback(
@@ -98,21 +144,40 @@ export default function EventChatScreen() {
   }, [groupId, user?.id]);
 
   const renderMessage = useCallback(
-    ({ item, index }: { item: Message; index: number }) => {
+    ({ item, index }: { item: any; index: number }) => {
       const isOwn = item.user_id === user?.id;
       const prevMessage = index > 0 ? messages[index - 1] : null;
       const showAvatar = !prevMessage || prevMessage.user_id !== item.user_id;
 
       return (
-        <MessageBubble
-          message={item}
-          isOwn={isOwn}
-          showAvatar={showAvatar}
-          onAvatarPress={handleMemberPress}
-        />
+        <View>
+          <MessageBubble
+            message={item}
+            isOwn={isOwn}
+            showAvatar={showAvatar}
+            onAvatarPress={handleMemberPress}
+          />
+          {/* Show delivery status for own messages */}
+          {isOwn && item.status && (
+            <View style={styles.messageStatus}>
+              {item.status === 'sending' && (
+                <Text style={styles.messageStatusText}>Sending...</Text>
+              )}
+              {item.status === 'sent' && (
+                <Ionicons name="checkmark" size={12} color={Colors.textTertiary} />
+              )}
+              {item.status === 'failed' && (
+                <Pressable onPress={() => handleRetry(item.id)} style={styles.retryButton}>
+                  <Ionicons name="alert-circle" size={14} color={Colors.error} />
+                  <Text style={styles.retryText}>Tap to retry</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
+        </View>
       );
     },
-    [user?.id, messages, handleMemberPress]
+    [user?.id, messages, handleMemberPress, handleRetry]
   );
 
   // Not authenticated
@@ -140,17 +205,25 @@ export default function EventChatScreen() {
   // No group found
   if (!groupId) {
     return (
-      <SafeAreaView style={styles.container}>
-        <EmptyState
-          title="Chat Not Available"
-          emoji="💬"
-          message="The group chat for this event is not available yet."
-          action={{
-            label: 'Go Back',
-            onPress: () => router.back(),
+      <>
+        <Stack.Screen
+          options={{
+            title: 'Event Chat',
+            headerBackTitle: 'Event',
           }}
         />
-      </SafeAreaView>
+        <SafeAreaView style={styles.container}>
+          <EmptyState
+            title="Chat Not Available"
+            emoji="💬"
+            message="The group chat for this event hasn't been created yet. This event may not be published or may not have a chat group."
+            action={{
+              label: 'Go Back',
+              onPress: () => router.back(),
+            }}
+          />
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -181,7 +254,17 @@ export default function EventChatScreen() {
 
   // Loading chat
   if (loading) {
-    return <LoadingSpinner fullScreen text="Loading messages..." />;
+    return (
+      <>
+        <Stack.Screen
+          options={{
+            title: 'Event Chat',
+            headerBackTitle: 'Event',
+          }}
+        />
+        <LoadingSpinner fullScreen text="Loading messages..." />
+      </>
+    );
   }
 
   return (
@@ -228,6 +311,14 @@ export default function EventChatScreen() {
             </Pressable>
           )}
 
+          {/* Connection Status */}
+          {!isConnected && (
+            <View style={styles.connectionBanner}>
+              <Ionicons name="warning" size={16} color={Colors.warning} />
+              <Text style={styles.connectionText}>Connecting...</Text>
+            </View>
+          )}
+
           {/* Messages List */}
           {messages.length === 0 ? (
             <EmptyState
@@ -250,8 +341,25 @@ export default function EventChatScreen() {
             />
           )}
 
+          {/* Typing Indicator */}
+          {typingUsers.length > 0 && (
+            <View style={styles.typingIndicator}>
+              <Text style={styles.typingText}>
+                {typingUsers.length === 1
+                  ? `${typingUsers[0].user_name} is typing...`
+                  : `${typingUsers.length} people are typing...`}
+              </Text>
+            </View>
+          )}
+
           {/* Chat Input */}
-          <ChatInput onSend={handleSend} placeholder="Message the group..." sending={sending} />
+          <ChatInput
+            onSend={handleSend}
+            placeholder="Message the group..."
+            sending={sending}
+            onTyping={handleTyping}
+            onStopTyping={handleStopTyping}
+          />
         </KeyboardAvoidingView>
       </SafeAreaView>
     </>
@@ -268,6 +376,20 @@ const styles = StyleSheet.create({
   },
   headerButton: {
     padding: Spacing.sm,
+  },
+  connectionBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    padding: Spacing.xs,
+    backgroundColor: Colors.warningLight || '#FFF3CD',
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+    justifyContent: 'center',
+  },
+  connectionText: {
+    ...Typography.caption,
+    color: Colors.warning,
   },
   groupBanner: {
     flexDirection: 'row',
@@ -304,6 +426,39 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     paddingVertical: Spacing.md,
+  },
+  messageStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.xs,
+    gap: Spacing.xs,
+  },
+  messageStatusText: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+    fontSize: 10,
+  },
+  retryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  retryText: {
+    ...Typography.caption,
+    color: Colors.error,
+    fontSize: 10,
+  },
+  typingIndicator: {
+    padding: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    backgroundColor: Colors.surface,
+  },
+  typingText: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
   },
   dateHeader: {
     alignItems: 'center',

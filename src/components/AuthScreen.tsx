@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../constants/styles';
+import { Spacing, Typography, BorderRadius } from '../constants/Styles';
 import { useAuth } from '../contexts/auth-context';
 
 const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg">

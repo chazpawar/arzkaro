@@ -7,7 +7,7 @@ import Card from '../src/components/ui/card';
 import Modal from '../src/components/ui/modal';
 import HostApplicationForm from '../src/components/host/host-application-form';
 import { Colors } from '../src/constants/Colors';
-import { BorderRadius, Spacing, Typography } from '../src/constants/styles';
+import { BorderRadius, Spacing, Typography } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 import {
   getLatestHostRequest,

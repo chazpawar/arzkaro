@@ -9,7 +9,7 @@ import {
   StyleProp,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { BorderRadius, Spacing } from '@/constants/styles';
+import { BorderRadius, Spacing } from '@/constants/Styles';
 
 interface ButtonProps {
   title: string;

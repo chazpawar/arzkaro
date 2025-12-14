@@ -2,13 +2,15 @@ import React, { useState, useCallback } from 'react';
 import { View, TextInput, StyleSheet, Pressable, Keyboard, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../constants/styles';
+import { Spacing, Typography, BorderRadius } from '../../constants/Styles';
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;
   placeholder?: string;
   disabled?: boolean;
   sending?: boolean;
+  onTyping?: () => void;
+  onStopTyping?: () => void;
 }
 
 export default function ChatInput({
@@ -16,14 +18,54 @@ export default function ChatInput({
   placeholder = 'Type a message...',
   disabled = false,
   sending = false,
+  onTyping,
+  onStopTyping,
 }: ChatInputProps) {
   const [message, setMessage] = useState('');
+  const typingTimeoutRef = React.useRef<any>(null);
+
+  const handleChangeText = useCallback(
+    (text: string) => {
+      setMessage(text);
+
+      // Trigger typing indicator
+      if (text.trim() && onTyping) {
+        onTyping();
+
+        // Clear previous timeout
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        // Stop typing after 2 seconds of inactivity
+        typingTimeoutRef.current = setTimeout(() => {
+          if (onStopTyping) {
+            onStopTyping();
+          }
+        }, 2000);
+      } else if (!text.trim() && onStopTyping) {
+        // Stop typing if input is empty
+        onStopTyping();
+      }
+    },
+    [onTyping, onStopTyping]
+  );
 
   const handleSend = useCallback(async () => {
     const trimmedMessage = message.trim();
     if (!trimmedMessage || disabled || sending) return;
 
     try {
+      // Stop typing indicator
+      if (onStopTyping) {
+        onStopTyping();
+      }
+
+      // Clear typing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
       await onSend(trimmedMessage);
       setMessage('');
       Keyboard.dismiss();
@@ -31,7 +73,7 @@ export default function ChatInput({
       // Error handling is done in parent component
       console.error('Failed to send message:', error);
     }
-  }, [message, disabled, sending, onSend]);
+  }, [message, disabled, sending, onSend, onStopTyping]);
 
   const canSend = message.trim().length > 0 && !disabled && !sending;
 
@@ -41,7 +83,7 @@ export default function ChatInput({
         <TextInput
           style={styles.input}
           value={message}
-          onChangeText={setMessage}
+          onChangeText={handleChangeText}
           placeholder={placeholder}
           placeholderTextColor={Colors.textTertiary}
           multiline

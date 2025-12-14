@@ -54,26 +54,31 @@ export async function getGroupById(groupId: string) {
 
 // Get group by Event ID
 export async function getGroupByEventId(eventId: string) {
-  const { data, error } = await supabase
-    .from('event_groups')
-    .select(
+  console.log('[CHAT SERVICE] Fetching group for event:', eventId);
+
+  try {
+    const { data, error } = await supabase
+      .from('event_groups')
+      .select(
+        `
+        *,
+        event:events(id, title, cover_image_url, host_id)
       `
-      *,
-      event:events(id, title, cover_image_url, host_id)
-    `
-    )
-    .eq('event_id', eventId)
-    .single();
+      )
+      .eq('event_id', eventId)
+      .maybeSingle();
 
-  if (error) {
-    if (error.code === 'PGRST116') {
-      // Not found
-      return null;
+    if (error) {
+      console.error('[CHAT SERVICE] Error fetching group:', error);
+      throw new Error(error.message);
     }
-    throw new Error(error.message);
-  }
 
-  return data as EventGroup;
+    console.log('[CHAT SERVICE] Group result:', data ? data.id : 'not found');
+    return data as EventGroup | null;
+  } catch (err) {
+    console.error('[CHAT SERVICE] Exception fetching group:', err);
+    throw err;
+  }
 }
 
 // Check if user is a member of a group
