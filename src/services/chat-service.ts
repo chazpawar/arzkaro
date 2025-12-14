@@ -7,9 +7,10 @@ import type { EventGroup, GroupMember, Message, CreateMessage } from '../types';
 
 // ============= GROUP CHAT =============
 
-// Get user's event groups
+// Get user's event groups with last message
 export async function getUserGroups(userId: string) {
-  const { data, error } = await supabase
+  // Get groups the user is a member of
+  const { data: memberData, error: memberError } = await supabase
     .from('group_members')
     .select(
       `
@@ -25,11 +26,40 @@ export async function getUserGroups(userId: string) {
     )
     .eq('user_id', userId);
 
-  if (error) {
-    throw new Error(error.message);
+  if (memberError) {
+    throw new Error(memberError.message);
   }
 
-  return (data as any[]).map((d) => d.group).filter(Boolean) as EventGroup[];
+  const groups = (memberData as any[]).map((d) => d.group).filter(Boolean);
+
+  // For each group, fetch the last message
+  const groupsWithMessages = await Promise.all(
+    groups.map(async (group) => {
+      const { data: lastMessage } = await supabase
+        .from('messages')
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id,
+          user:profiles!user_id(id, full_name)
+        `
+        )
+        .eq('group_id', group.id)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      return {
+        ...group,
+        last_message: lastMessage || null,
+      };
+    })
+  );
+
+  return groupsWithMessages as EventGroup[];
 }
 
 // Get group by ID

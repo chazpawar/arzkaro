@@ -116,29 +116,26 @@ export function useGroupChat(groupId: string | undefined, currentUserId?: string
         async (payload) => {
           console.log('[CHAT] New message received:', payload.new.id);
 
-          // Skip if this is our optimistic message (already in state)
+          // First, check if this is replacing our optimistic message
+          let wasOptimistic = false;
           setMessages((prev) => {
             const existingOptimistic = prev.find(
-              (m) => m.isOptimistic && m.content === payload.new.content
+              (m) =>
+                m.isOptimistic &&
+                m.user_id === payload.new.user_id &&
+                m.content === payload.new.content
             );
             if (existingOptimistic) {
-              // Replace optimistic message with real one
-              return prev.map((m) =>
-                m.id === existingOptimistic.id
-                  ? ({
-                      ...payload.new,
-                      status: 'sent' as MessageStatus,
-                      isOptimistic: false,
-                    } as OptimisticMessage)
-                  : m
-              );
+              wasOptimistic = true;
+              // Replace optimistic message with real one (we'll fetch full data below)
+              return prev.filter((m) => m.id !== existingOptimistic.id);
             }
             return prev;
           });
 
-          // Fetch the full message with user info if not optimistic
+          // Fetch the full message with user info
           try {
-            const { data: newMessage } = await supabase
+            const { data: newMessage, error: fetchError } = await supabase
               .from('messages')
               .select(
                 `
@@ -149,17 +146,29 @@ export function useGroupChat(groupId: string | undefined, currentUserId?: string
               .eq('id', payload.new.id)
               .single();
 
+            if (fetchError) {
+              console.error('[CHAT] Error fetching new message:', fetchError);
+              return;
+            }
+
             if (newMessage) {
+              console.log('[CHAT] Adding message to state:', {
+                id: newMessage.id,
+                content: newMessage.content.substring(0, 20),
+                wasOptimistic,
+              });
+
               setMessages((prev) => {
-                // Check if message already exists (from optimistic update)
+                // Double-check it doesn't already exist
                 if (prev.some((m) => m.id === newMessage.id)) {
+                  console.log('[CHAT] Message already exists, skipping');
                   return prev;
                 }
                 return [...prev, { ...newMessage, status: 'sent' as MessageStatus }];
               });
             }
           } catch (err) {
-            console.error('[CHAT] Error fetching new message:', err);
+            console.error('[CHAT] Error processing new message:', err);
           }
         }
       )
