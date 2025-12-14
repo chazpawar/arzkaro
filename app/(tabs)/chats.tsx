@@ -10,7 +10,6 @@ import { useUserGroups } from '../../src/hooks/use-chat';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
-import { mockEventGroups, mockDMConversations } from '../../src/data/mock-chats';
 
 type FilterType = 'all' | 'unread';
 
@@ -27,19 +26,12 @@ export default function ChatsTab() {
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // TEMPORARY: Set to true to use mock data for UI development
-  const USE_MOCK_DATA = true;
-
   // Fetch groups from backend
-  const {
-    groups,
-    loading,
-    refresh: refreshGroups,
-  } = useUserGroups(USE_MOCK_DATA ? undefined : user?.id);
+  const { groups, loading, refresh: refreshGroups } = useUserGroups(user?.id);
 
   // Load data on component mount
   React.useEffect(() => {
-    if (!USE_MOCK_DATA && user?.id) {
+    if (user?.id) {
       refreshGroups();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -47,18 +39,13 @@ export default function ChatsTab() {
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    if (!USE_MOCK_DATA) {
-      await refreshGroups();
-    } else {
-      // Simulate refresh delay
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
+    await refreshGroups();
     setRefreshing(false);
-  }, [refreshGroups, USE_MOCK_DATA]);
+  }, [refreshGroups]);
 
   // Map groups for display
-  const allGroups = USE_MOCK_DATA ? mockEventGroups : groups;
-  const allDMs = USE_MOCK_DATA ? mockDMConversations : [];
+  const allGroups = groups;
+  const allDMs: any[] = [];
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -142,7 +129,7 @@ export default function ChatsTab() {
     );
   }
 
-  if (loading && !USE_MOCK_DATA) {
+  if (loading) {
     return <LoadingSpinner fullScreen text="Loading chats..." />;
   }
 
