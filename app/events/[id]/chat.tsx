@@ -91,6 +91,20 @@ export default function EventChatScreen() {
     stopTyping,
   } = useGroupChat(groupId || undefined, user?.id);
 
+  // Mark messages as read when user views the chat
+  useEffect(() => {
+    if (groupId && user?.id && isMember && messages.length > 0) {
+      // Mark as read after a short delay (user has time to see the messages)
+      const timer = setTimeout(() => {
+        ChatService.markGroupAsRead(groupId, user.id).catch((err) => {
+          console.error('[CHAT SCREEN] Failed to mark as read:', err);
+        });
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [groupId, user?.id, isMember, messages.length]);
+
   const handleSend = useCallback(
     async (content: string) => {
       if (!user?.id || !user?.email) return;

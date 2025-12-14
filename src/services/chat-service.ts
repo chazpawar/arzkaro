@@ -7,7 +7,7 @@ import type { EventGroup, GroupMember, Message, CreateMessage } from '../types';
 
 // ============= GROUP CHAT =============
 
-// Get user's event groups with last message
+// Get user's event groups with last message and unread count
 export async function getUserGroups(userId: string) {
   // Get groups the user is a member of
   const { data: memberData, error: memberError } = await supabase
@@ -32,9 +32,10 @@ export async function getUserGroups(userId: string) {
 
   const groups = (memberData as any[]).map((d) => d.group).filter(Boolean);
 
-  // For each group, fetch the last message
+  // For each group, fetch the last message and unread count
   const groupsWithMessages = await Promise.all(
     groups.map(async (group) => {
+      // Fetch last message
       const { data: lastMessage } = await supabase
         .from('messages')
         .select(
@@ -52,14 +53,34 @@ export async function getUserGroups(userId: string) {
         .limit(1)
         .maybeSingle();
 
+      // Get unread count using RPC function
+      const { data: unreadCount } = await (supabase.rpc as any)('get_unread_count', {
+        p_group_id: group.id,
+        p_user_id: userId,
+      });
+
       return {
         ...group,
         last_message: lastMessage || null,
+        unread_count: unreadCount || 0,
       };
     })
   );
 
   return groupsWithMessages as EventGroup[];
+}
+
+// Mark group messages as read
+export async function markGroupAsRead(groupId: string, userId: string) {
+  const { error } = await (supabase.rpc as any)('mark_group_as_read', {
+    p_group_id: groupId,
+    p_user_id: userId,
+  });
+
+  if (error) {
+    console.error('[CHAT SERVICE] Error marking group as read:', error);
+    throw new Error(error.message);
+  }
 }
 
 // Get group by ID

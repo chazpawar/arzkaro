@@ -436,12 +436,13 @@ export function useGroupChat(groupId: string | undefined, currentUserId?: string
 }
 
 /**
- * Hook for user's event groups
+ * Hook for user's event groups with realtime updates
  */
 export function useUserGroups(userId: string | undefined) {
   const [groups, setGroups] = useState<EventGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
 
   const fetchGroups = useCallback(async () => {
     if (!userId || !hasValidCredentials) {
@@ -482,9 +483,98 @@ export function useUserGroups(userId: string | undefined) {
     }
   }, [userId]);
 
+  // Setup realtime subscription for message updates
   useEffect(() => {
+    if (!userId || !hasValidCredentials) {
+      return;
+    }
+
+    // Initial fetch
     fetchGroups();
-  }, [fetchGroups]);
+
+    // Subscribe to all messages for groups the user is in
+    const channel = supabase
+      .channel('user-groups-messages')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          console.log('[CHAT LIST] New message received:', payload.new.id);
+
+          // Update the last message and increment unread count for the affected group
+          setGroups((prevGroups) => {
+            return prevGroups.map((group) => {
+              if (group.id === payload.new.group_id) {
+                console.log('[CHAT LIST] Updating last message for group:', group.name);
+
+                // Only increment unread if message is from another user
+                const shouldIncrementUnread = payload.new.user_id !== userId;
+
+                return {
+                  ...group,
+                  last_message: {
+                    id: payload.new.id,
+                    content: payload.new.content,
+                    created_at: payload.new.created_at,
+                    user_id: payload.new.user_id,
+                    group_id: payload.new.group_id,
+                    message_type: payload.new.message_type,
+                    is_deleted: false,
+                  } as Message,
+                  unread_count: shouldIncrementUnread
+                    ? (group.unread_count || 0) + 1
+                    : group.unread_count || 0,
+                };
+              }
+              return group;
+            });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'group_members',
+        },
+        async (payload) => {
+          // Listen for last_read_at updates to reset unread count
+          if (payload.new.user_id === userId && payload.new.last_read_at) {
+            console.log('[CHAT LIST] User read messages in group:', payload.new.group_id);
+
+            setGroups((prevGroups) => {
+              return prevGroups.map((group) => {
+                if (group.id === payload.new.group_id) {
+                  return {
+                    ...group,
+                    unread_count: 0,
+                  };
+                }
+                return group;
+              });
+            });
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[CHAT LIST] Realtime subscription status:', status);
+      });
+
+    channelRef.current = channel;
+
+    // Cleanup
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [userId, fetchGroups]);
 
   return {
     groups,
