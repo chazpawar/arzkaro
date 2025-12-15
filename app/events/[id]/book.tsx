@@ -4,12 +4,10 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
-import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
-import { useEvent } from '../../../src/hooks/use-events';
-import { useCreateBooking } from '../../../src/hooks/use-bookings';
 import { useAuth } from '../../../src/contexts/auth-context';
+import { mockEvents, mockTicketTypes } from '../../../src/data/mock-events';
 
 interface TicketType {
   id: string;
@@ -24,8 +22,12 @@ export default function BookEventScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
-  const { event, ticketTypes, loading, error } = useEvent(id);
-  const { createBooking, loading: bookingLoading, error: bookingError } = useCreateBooking();
+
+  // Use mock data for UI development
+  const event = mockEvents.find((e) => e.id === id) || null;
+  const ticketTypes = mockTicketTypes[id as string] || [];
+  const error = null;
+  const bookingLoading = false;
 
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -90,34 +92,15 @@ export default function BookEventScreen() {
   const handleConfirmBooking = async () => {
     if (!user?.id || !event?.id) return;
 
-    try {
-      await createBooking(
-        {
-          event_id: event.id,
-          ticket_type_id: selectedTicketType?.id,
-          quantity,
-        },
-        user.id
-      );
-
-      // Navigate to tickets tab after successful booking
-      Alert.alert(
-        'Booking Confirmed!',
-        'Your booking has been confirmed. Check your tickets tab.',
-        [{ text: 'OK', onPress: () => router.replace('/(tabs)/tickets') }]
-      );
-    } catch (_err) {
-      Alert.alert(
-        'Booking Failed',
-        bookingError || 'Unable to complete your booking. Please try again.',
-        [{ text: 'OK' }]
-      );
-    }
+    // Mock booking confirmation
+    Alert.alert(
+      'Booking Confirmed! (Mock)',
+      'This is a mock booking. In production, your booking would be saved to the database.',
+      [{ text: 'OK', onPress: () => router.replace('/(tabs)/tickets') }]
+    );
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen text="Loading event..." />;
-  }
+  // Removed loading spinner since we're using mock data
 
   if (error || !event) {
     return (

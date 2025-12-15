@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
-import { useRouter } from 'expo-router';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Alert,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../src/components/ui/button';
 import Card from '../src/components/ui/card';
 import Modal from '../src/components/ui/modal';
@@ -15,10 +25,18 @@ import {
   HOST_TYPE_LABELS,
 } from '../src/services/host-service';
 import type { HostRequest } from '../src/types/host.types';
+import type { Profile } from '../src/types/user.types';
+import { mockHostProfiles, mockEvents } from '../src/data/mock-events';
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { userId } = useLocalSearchParams<{ userId?: string }>();
   const { user, profile, isHost, isAdmin, signOut } = useAuth();
+
+  // Check if viewing another user's profile
+  const isViewingOtherProfile = userId && userId !== user?.id;
+  const [viewedProfile, setViewedProfile] = useState<Profile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showHostApplicationModal, setShowHostApplicationModal] = useState(false);
   const [hostRequest, setHostRequest] = useState<HostRequest | null>(null);
@@ -32,10 +50,43 @@ export default function ProfileScreen() {
   const avatarUrl = userMetadata?.avatar_url || userMetadata?.picture;
   const provider = user?.app_metadata?.provider || 'email';
 
+  // Load host profile if viewing another user
+  useEffect(() => {
+    if (isViewingOtherProfile && userId) {
+      setLoadingProfile(true);
+      // Simulate fetching host profile from mock data
+      setTimeout(() => {
+        const hostProfile = mockHostProfiles[userId];
+        if (hostProfile) {
+          setViewedProfile({
+            id: hostProfile.id,
+            email: '',
+            full_name: hostProfile.full_name,
+            username: null,
+            bio: hostProfile.bio,
+            avatar_url: hostProfile.avatar_url,
+            phone: null,
+            role: 'host',
+            host_type: hostProfile.host_type,
+            is_host_approved: true,
+            host_requested_at: null,
+            host_approved_at: null,
+            is_public: true,
+            location: null,
+            website: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          } as Profile);
+        }
+        setLoadingProfile(false);
+      }, 300);
+    }
+  }, [isViewingOtherProfile, userId]);
+
   // Load host request status
   useEffect(() => {
     async function loadHostRequestStatus() {
-      if (!user?.id) return;
+      if (!user?.id || isViewingOtherProfile) return;
 
       try {
         setLoadingHostRequest(true);
@@ -54,7 +105,7 @@ export default function ProfileScreen() {
     }
 
     loadHostRequestStatus();
-  }, [user?.id]);
+  }, [user?.id, isViewingOtherProfile]);
 
   const handleHostApplicationSuccess = async () => {
     setShowHostApplicationModal(false);
@@ -119,6 +170,107 @@ export default function ProfileScreen() {
     return statusMap[hostRequest.status];
   };
 
+  // Render host profile view
+  if (isViewingOtherProfile) {
+    if (loadingProfile) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Loading profile...</Text>
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    if (!viewedProfile) {
+      return (
+        <SafeAreaView style={styles.container}>
+          <View style={styles.loadingContainer}>
+            <Ionicons name="alert-circle-outline" size={64} color={Colors.textSecondary} />
+            <Text style={styles.errorText}>Host profile not found</Text>
+            <Button title="Go Back" onPress={() => router.back()} variant="primary" size="medium" />
+          </View>
+        </SafeAreaView>
+      );
+    }
+
+    // Get host's events
+    const hostEvents = mockEvents.filter((event) => event.host_id === userId);
+
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          {/* Back Button */}
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            <Text style={styles.backButtonText}>Back</Text>
+          </TouchableOpacity>
+
+          {/* Host Profile Card */}
+          <Card style={styles.profileCard}>
+            <View style={styles.profileContent}>
+              {viewedProfile.avatar_url ? (
+                <Image source={{ uri: viewedProfile.avatar_url }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>
+                    {viewedProfile.full_name?.charAt(0).toUpperCase() || 'H'}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.profileInfo}>
+                <Text style={styles.userName}>{viewedProfile.full_name}</Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* Bio Section */}
+          {viewedProfile.bio && (
+            <Card style={styles.card}>
+              <Text style={styles.label}>About</Text>
+              <Text style={styles.value}>{viewedProfile.bio}</Text>
+            </Card>
+          )}
+
+          {/* Hosted Events Section */}
+          <Card style={styles.card}>
+            <Text style={styles.sectionTitle}>Hosted Events ({hostEvents.length})</Text>
+            {hostEvents.length === 0 ? (
+              <Text style={styles.emptyText}>No events hosted yet</Text>
+            ) : (
+              <View style={styles.eventsContainer}>
+                {hostEvents.map((event) => (
+                  <TouchableOpacity
+                    key={event.id}
+                    style={styles.eventItem}
+                    onPress={() => router.push(`/events/${event.id}`)}
+                  >
+                    {event.cover_image_url ? (
+                      <Image source={{ uri: event.cover_image_url }} style={styles.eventImage} />
+                    ) : (
+                      <View style={[styles.eventImage, { backgroundColor: Colors.surface }]} />
+                    )}
+                    <View style={styles.eventDetails}>
+                      <Text style={styles.eventTitle} numberOfLines={2}>
+                        {event.title}
+                      </Text>
+                      <View style={styles.eventTypeBadge}>
+                        <Text style={styles.eventTypeText}>{event.type.toUpperCase()}</Text>
+                      </View>
+                      <Text style={styles.eventPrice}>₹{event.price.toLocaleString()}</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </Card>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Render own profile view
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -439,5 +591,89 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     marginTop: Spacing.md,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.xl,
+  },
+  loadingText: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+  },
+  errorText: {
+    ...Typography.h3,
+    color: Colors.textSecondary,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.xl,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  backButtonText: {
+    ...Typography.body,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  sectionTitle: {
+    ...Typography.h3,
+    color: Colors.text,
+    fontWeight: 'bold',
+    marginBottom: Spacing.md,
+  },
+  emptyText: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    fontStyle: 'italic',
+  },
+  eventsContainer: {
+    gap: Spacing.md,
+  },
+  eventItem: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    padding: Spacing.sm,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  eventImage: {
+    width: 80,
+    height: 80,
+    borderRadius: BorderRadius.sm,
+  },
+  eventDetails: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  eventTitle: {
+    ...Typography.body,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  eventTypeBadge: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.xs,
+    alignSelf: 'flex-start',
+  },
+  eventTypeText: {
+    ...Typography.caption,
+    color: Colors.primary,
+    fontWeight: '600',
+    fontSize: 10,
+  },
+  eventPrice: {
+    ...Typography.bodySmall,
+    color: Colors.primary,
+    fontWeight: 'bold',
   },
 });

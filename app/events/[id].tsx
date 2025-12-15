@@ -14,15 +14,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
-import { useEvent } from '../../src/hooks/use-events';
-import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import { mockEvents, mockTicketTypes } from '../../src/data/mock-events';
 
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // Fetch event from backend
-  const { event, ticketTypes, loading, error } = useEvent(id);
+  // Use mock data for UI development
+  const event = mockEvents.find((e) => e.id === id) || null;
+  const ticketTypes = mockTicketTypes[id as string] || [];
+  const error = null;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -50,9 +51,7 @@ export default function EventDetailsScreen() {
     router.push(`/events/${id}/book`);
   };
 
-  if (loading) {
-    return <LoadingSpinner fullScreen text="Loading event..." />;
-  }
+  // Removed loading spinner since we're using mock data
 
   if (error || !event) {
     return (
@@ -213,6 +212,24 @@ export default function EventDetailsScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
             </Pressable>
+
+            {/* Photo Gallery */}
+            {event.images && event.images.length > 0 && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Photo Gallery</Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.galleryContainer}
+                >
+                  {event.images.map((imageUrl, index) => (
+                    <View key={index} style={styles.galleryImageWrapper}>
+                      <Image source={{ uri: imageUrl }} style={styles.galleryImage} />
+                    </View>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
 
             {/* Description */}
             <View style={styles.section}>
@@ -483,6 +500,33 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     lineHeight: 26,
+  },
+  galleryContainer: {
+    paddingRight: Spacing.lg,
+    gap: Spacing.md,
+  },
+  galleryImageWrapper: {
+    width: 280,
+    height: 200,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceSecondary,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
+  },
+  galleryImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
   ticketTypeCard: {
     flexDirection: 'row',

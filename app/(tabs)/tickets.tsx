@@ -15,28 +15,28 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
-import { useTickets } from '../../src/hooks/use-bookings';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
 import type { TicketWithDetails } from '../../src/types';
+import { mockTickets } from '../../src/data/mock-tickets';
 
 export default function TicketsTab() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
-
-  // Fetch tickets from backend
-  const { validTickets, usedTickets, expiredTickets, refresh } = useTickets(user?.id);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Removed auto-refresh on focus for better performance
-  // Users can manually refresh with pull-to-refresh gesture
+  // Use mock tickets data for UI development
+  const validTickets = mockTickets.filter((t) => t.status === 'valid');
+  const usedTickets = mockTickets.filter((t) => t.status === 'used');
+  const expiredTickets = mockTickets.filter((t) => t.status === 'expired');
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refresh();
+    // Simulate refresh delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
     setRefreshing(false);
   };
 

@@ -33,43 +33,104 @@ const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] = [
 
 // Type-specific categories
 const EVENT_CATEGORIES = [
+  'Cultural',
   'Concert',
-  'Festival',
-  'Conference',
-  'Workshop',
-  'Seminar',
-  'Networking',
-  'Sports Event',
-  'Exhibition',
-  'Party',
+  'Games',
+  'Outdoors',
+  'Nightlife',
+  'Business',
+  'Entertainment',
+  'Food & Drink',
   'Other',
 ];
 
 const EXPERIENCE_CATEGORIES = [
   'Adventure',
-  'Food & Dining',
-  'Art & Culture',
-  'Wellness & Spa',
-  'Learning',
-  'Entertainment',
+  'Wellness',
   'Photography',
-  'Wine Tasting',
+  'Food & Drink',
+  'Art & Culture',
+  'Learning',
   'Outdoor Activity',
   'Other',
 ];
 
 const TRIP_CATEGORIES = [
+  'Travel',
   'Beach Trip',
   'Mountain Trek',
   'City Tour',
   'Road Trip',
   'Camping',
-  'Safari',
-  'Cruise',
-  'Historical Tour',
-  'Pilgrimage',
+  'Food & Drink',
   'Other',
 ];
+
+// Subcategories for each main category
+const CATEGORY_SUBCATEGORIES: Record<string, string[]> = {
+  Cultural: ['Music', 'Dance', 'Theatre', 'Art', 'Film', 'Literature'],
+  Concert: ['Rock', 'Pop', 'Jazz', 'Classical', 'Electronic', 'Hip Hop', 'Country', 'Indie'],
+  Games: ['Sports', 'E-Games', 'Board Games', 'Card Games', 'Outdoor Games'],
+  Outdoors: ['Getaway', 'Hiking', 'Running', 'Cycling', 'Camping', 'Trekking'],
+  Nightlife: ['Parties', 'Clubs', 'Cafes', 'Movies', 'Bar Hopping', 'Live Music'],
+  Wellness: ['Yoga', 'Retreat', 'Rehab', 'Meditation', 'Spa', 'Fitness'],
+  Business: ['Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Exhibition'],
+  Entertainment: ['Comedy', 'Magic Show', 'Circus', 'Theatre', 'Stand-up', 'Improv'],
+  'Food & Drink': [
+    'Wine Tasting',
+    'Cooking Class',
+    'Food Festival',
+    'Brewery Tour',
+    'Fine Dining',
+    'Street Food',
+  ],
+  Adventure: [
+    'Skydiving',
+    'Scuba Diving',
+    'Paragliding',
+    'Rock Climbing',
+    'Rafting',
+    'Bungee Jumping',
+  ],
+  Photography: ['Portrait', 'Landscape', 'Wildlife', 'Street', 'Wedding', 'Event'],
+  'Art & Culture': ['Painting', 'Sculpture', 'Pottery', 'Calligraphy', 'Crafts', 'Museum Visit'],
+  Learning: ['Language', 'Skill Development', 'Technology', 'Cooking', 'Music', 'Art'],
+  'Outdoor Activity': ['Hiking', 'Cycling', 'Kayaking', 'Fishing', 'Bird Watching', 'Nature Walk'],
+  Travel: ['Sightseeing', 'Adventure Travel', 'Cultural Tour', 'Beach', 'Mountain', 'City Break'],
+  'Beach Trip': [
+    'Swimming',
+    'Surfing',
+    'Snorkeling',
+    'Beach Volleyball',
+    'Sunbathing',
+    'Water Sports',
+  ],
+  'Mountain Trek': [
+    'Hiking',
+    'Camping',
+    'Rock Climbing',
+    'Nature Photography',
+    'Wildlife Spotting',
+  ],
+  'City Tour': [
+    'Historical Sites',
+    'Museums',
+    'Food Tour',
+    'Shopping',
+    'Nightlife',
+    'Architecture',
+  ],
+  'Road Trip': ['Scenic Routes', 'Adventure', 'Food Stops', 'Photography', 'Camping', 'Nature'],
+  Camping: [
+    'Tent Camping',
+    'RV Camping',
+    'Backpacking',
+    'Glamping',
+    'Beach Camping',
+    'Mountain Camping',
+  ],
+  Other: [],
+};
 
 // Helper function to get categories based on event type
 const getCategoriesForType = (type: EventType): string[] => {
@@ -101,7 +162,9 @@ export default function CreateEventScreen() {
   const [eventType, setEventType] = useState<EventType>('event');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [termsAndConditions, setTermsAndConditions] = useState('');
   const [category, setCategory] = useState('');
+  const [subcategories, setSubcategories] = useState<string[]>([]);
   const [locationName, setLocationName] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -410,6 +473,7 @@ export default function CreateEventScreen() {
         type: eventType,
         title: title.trim(),
         description: description.trim(),
+        terms_and_conditions: termsAndConditions.trim() || undefined,
         category,
         location_name: locationName.trim(),
         location_address: locationAddress.trim() || undefined,
@@ -420,7 +484,7 @@ export default function CreateEventScreen() {
         currency: 'INR',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         images: [],
-        tags: [],
+        tags: subcategories, // Store selected subcategories as tags
       };
 
       const event = await EventService.createEvent(eventData, user.id);
@@ -515,6 +579,7 @@ export default function CreateEventScreen() {
                           }
                           setEventType(type.value);
                           setCategory(''); // Reset category when type changes
+                          setSubcategories([]); // Reset subcategories when type changes
                         }}
                       >
                         <Text
@@ -555,7 +620,16 @@ export default function CreateEventScreen() {
                   error={errors.description}
                 />
 
-                <Text style={styles.inputLabel}>Category</Text>
+                <Input
+                  label="Terms & Conditions (Optional)"
+                  placeholder="Add any terms, conditions."
+                  value={termsAndConditions}
+                  onChangeText={setTermsAndConditions}
+                  multiline
+                  numberOfLines={6}
+                />
+
+                <Text style={styles.inputLabel}>Main Category</Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -565,7 +639,10 @@ export default function CreateEventScreen() {
                     <Card
                       key={cat}
                       style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
-                      onPress={() => setCategory(cat)}
+                      onPress={() => {
+                        setCategory(cat);
+                        setSubcategories([]); // Reset subcategories when main category changes
+                      }}
                     >
                       <Text
                         style={[
@@ -579,6 +656,50 @@ export default function CreateEventScreen() {
                   ))}
                 </ScrollView>
                 {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+
+                {/* Subcategories */}
+                {category && CATEGORY_SUBCATEGORIES[category]?.length > 0 && (
+                  <View style={styles.subcategorySection}>
+                    <Text style={styles.inputLabel}>Subcategories (Select all that apply)</Text>
+                    <View style={styles.subcategoryGrid}>
+                      {CATEGORY_SUBCATEGORIES[category].map((subcat) => (
+                        <Pressable
+                          key={subcat}
+                          style={[
+                            styles.subcategoryChip,
+                            subcategories.includes(subcat) && styles.subcategoryChipSelected,
+                          ]}
+                          onPress={() => {
+                            if (subcategories.includes(subcat)) {
+                              setSubcategories(subcategories.filter((s) => s !== subcat));
+                            } else {
+                              setSubcategories([...subcategories, subcat]);
+                            }
+                          }}
+                        >
+                          <View
+                            style={[
+                              styles.checkbox,
+                              subcategories.includes(subcat) && styles.checkboxChecked,
+                            ]}
+                          >
+                            {subcategories.includes(subcat) && (
+                              <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                            )}
+                          </View>
+                          <Text
+                            style={[
+                              styles.subcategoryChipText,
+                              subcategories.includes(subcat) && styles.subcategoryChipTextSelected,
+                            ]}
+                          >
+                            {subcat}
+                          </Text>
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
               </View>
             )}
 
@@ -1208,5 +1329,50 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: Colors.primary,
     fontWeight: '500',
+  },
+  subcategorySection: {
+    marginTop: Spacing.lg,
+  },
+  subcategoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  subcategoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    gap: Spacing.xs,
+  },
+  subcategoryChipSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  subcategoryChipText: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+  },
+  subcategoryChipTextSelected: {
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
   },
 });

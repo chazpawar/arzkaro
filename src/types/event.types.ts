@@ -9,6 +9,7 @@ export interface Event {
   title: string;
   description: string | null;
   short_description: string | null;
+  terms_and_conditions: string | null;
   cover_image_url: string | null;
   images: string[];
   location_name: string | null;
@@ -41,6 +42,7 @@ export interface CreateEvent {
   title: string;
   description?: string;
   short_description?: string;
+  terms_and_conditions?: string;
   cover_image_url?: string;
   images?: string[];
   location_name?: string;

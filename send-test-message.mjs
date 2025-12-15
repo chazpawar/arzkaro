@@ -11,7 +11,9 @@ const supabase = createClient(
 console.log('\n💬 Sending Test Message\n');
 
 // Get the current user
-const { data: { session } } = await supabase.auth.getSession();
+const {
+  data: { session },
+} = await supabase.auth.getSession();
 if (!session) {
   console.log('❌ No active session. Please sign in first.');
   process.exit(1);
@@ -63,5 +65,5 @@ console.log('   ID:', message.id);
 console.log('   Time:', new Date(message.created_at).toLocaleTimeString());
 console.log('\n💡 Now check your app - the message should appear in:');
 console.log('   1. The Chats tab (showing the last message)');
-console.log('   2. The chat screen (if it\'s open)');
+console.log("   2. The chat screen (if it's open)");
 console.log('   3. Should appear in realtime without refresh!\n');

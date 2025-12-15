@@ -439,7 +439,7 @@ export async function getHostEvents(hostId: string) {
     throw new Error(error.message);
   }
 
-  return data as Event[];
+  return data as unknown as Event[];
 }
 
 // Get host stats/analytics

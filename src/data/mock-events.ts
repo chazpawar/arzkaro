@@ -26,6 +26,7 @@ export const mockEvents: Event[] = [
     description:
       'Join us for the biggest music festival of the year! Featuring top artists, amazing food, and unforgettable experiences. Get ready for 3 days of non-stop entertainment.',
     short_description: '3-day music festival with top artists',
+    terms_and_conditions: null,
     cover_image_url:
       'https://marketplace.canva.com/EAGPCwbGzbU/2/0/1131w/canva-school-is-cool-retro-groovy-positive-quote-illustrated-colorful-poster-k2DDIEC4h3c.jpg',
     images: [],
@@ -56,6 +57,7 @@ export const mockEvents: Event[] = [
     description:
       'Network with entrepreneurs, investors, and innovators. Learn from industry leaders, pitch your ideas, and discover the next big thing in tech.',
     short_description: 'Connect with tech entrepreneurs and investors',
+    terms_and_conditions: null,
     cover_image_url:
       'https://d1csarkz8obe9u.cloudfront.net/themedlandingpages/tlp_hero_cool-posters-e2b967a0744ce61fa470e8619dc67ea3.jpg?ts%20=%201754367941',
     images: [],
@@ -86,6 +88,7 @@ export const mockEvents: Event[] = [
     description:
       'Float above the clouds and watch the sunrise from a hot air balloon. Experience breathtaking views of the countryside and create memories that last a lifetime.',
     short_description: 'Magical sunrise from a hot air balloon',
+    terms_and_conditions: null,
     cover_image_url:
       'https://images-cdn.ubuy.co.in/6466130ce3259873f74b6b58-surfing-poster-hawaii-aloha-paradise.jpg',
     images: [],
@@ -116,6 +119,7 @@ export const mockEvents: Event[] = [
     description:
       'Capture the essence of Old Delhi through your lens. Guided photography walk through historic lanes, markets, and monuments with a professional photographer.',
     short_description: "Capture Old Delhi's charm",
+    terms_and_conditions: null,
     cover_image_url:
       'https://img.freepik.com/free-photo/revolution-still-life-design_23-2149061100.jpg?semt=ais_hybrid&w=740&q=80',
     images: [],
@@ -146,9 +150,16 @@ export const mockEvents: Event[] = [
     description:
       'Savor premium wines from around the world. Learn about wine pairing, tasting techniques, and enjoy gourmet snacks in an elegant setting.',
     short_description: 'Discover fine wines and perfect pairings',
+    terms_and_conditions: null,
     cover_image_url:
       'https://ih1.redbubble.net/image.672935128.9185/flat,750x,075,f-pad,750x1000,f8f8f8.u2.jpg',
-    images: [],
+    images: [
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800&q=80',
+      'https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?w=800&q=80',
+      'https://images.unsplash.com/photo-1547595628-c61a29f496f0?w=800&q=80',
+      'https://images.unsplash.com/photo-1516594798947-e65505dbb29d?w=800&q=80',
+      'https://images.unsplash.com/photo-1474722883778-792e7990302f?w=800&q=80',
+    ],
     location_name: 'Vineyard Lounge',
     location_address: 'Pune, Maharashtra',
     location_lat: 18.5204,
@@ -176,6 +187,7 @@ export const mockEvents: Event[] = [
     description:
       'A day dedicated to your well-being. Learn yoga techniques, meditation practices, and holistic wellness from certified instructors.',
     short_description: 'Transform your mind and body',
+    terms_and_conditions: null,
     cover_image_url:
       'https://media.istockphoto.com/id/1366748354/vector/people-silhouettes-doing-yoga-poses-vector-paper-cut-illustration-yoga-class-studio-poster.jpg?s=612x612&w=0&k=20&c=MusBKL6FR93MfiYUP7IZXbP9HcGs6FYVoXqn-QQGfr0=',
     images: [],
@@ -206,6 +218,7 @@ export const mockEvents: Event[] = [
     description:
       "Laugh your heart out with India's top comedians. An evening of non-stop laughter, great food, and amazing vibes.",
     short_description: 'An evening of laughter with top comedians',
+    terms_and_conditions: null,
     cover_image_url: 'https://i.pinimg.com/474x/48/59/01/485901f83486b55c952c40b3f44f1b95.jpg',
     images: [],
     location_name: 'Comedy Club',
@@ -235,6 +248,7 @@ export const mockEvents: Event[] = [
     description:
       'Learn to cook authentic Indian dishes from a master chef. Hands-on experience with traditional recipes, spices, and cooking techniques.',
     short_description: 'Master authentic Indian cooking',
+    terms_and_conditions: null,
     cover_image_url: 'https://i.pinimg.com/236x/79/d1/d6/79d1d61b1f1096566ff6f8122cd96828.jpg',
     images: [],
     location_name: 'Culinary Studio',
@@ -264,9 +278,17 @@ export const mockEvents: Event[] = [
     description:
       'Escape to pristine beaches for a relaxing weekend. Enjoy water sports, beachside dining, and stunning sunsets.',
     short_description: 'Relaxing beach weekend escape',
+    terms_and_conditions: null,
     cover_image_url:
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR8ctH_QyOXkRMK9OMtgUiQW00pcBeHY2m_IQ&s',
-    images: [],
+    images: [
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80',
+      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?w=800&q=80',
+      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=800&q=80',
+      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=800&q=80',
+      'https://images.unsplash.com/photo-1540206063137-4a88ca974d1a?w=800&q=80',
+      'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=800&q=80',
+    ],
     location_name: 'Beach Resort',
     location_address: 'Goa, India',
     location_lat: 15.2993,
@@ -294,6 +316,7 @@ export const mockEvents: Event[] = [
     description:
       'Indulge in the finest cuisines from around the world. Taste exquisite wines, meet celebrity chefs, and enjoy live cooking demonstrations.',
     short_description: 'Gourmet food and wine experience',
+    terms_and_conditions: null,
     cover_image_url: 'https://i.pinimg.com/236x/71/52/2b/71522baf6ae974c201441dda12cb95a8.jpg',
     images: [],
     location_name: 'India Gate Lawns',
@@ -316,3 +339,105 @@ export const mockEvents: Event[] = [
     host: { id: 'host-10', full_name: 'Gourmet Events', avatar_url: null },
   },
 ];
+
+// Mock Ticket Types for each event
+export const mockTicketTypes: Record<string, any[]> = {
+  'event-1': [
+    {
+      id: 'ticket-type-1-1',
+      event_id: 'event-1',
+      name: 'General Admission',
+      description: 'Standard entry to all 3 days',
+      price: 1500,
+      quantity_available: 3753,
+      quantity_sold: 1247,
+      max_per_order: 10,
+      sale_start_date: null,
+      sale_end_date: null,
+      created_at: new Date().toISOString(),
+    },
+  ],
+};
+
+// Mock Host Profiles
+export const mockHostProfiles: Record<
+  string,
+  {
+    id: string;
+    full_name: string;
+    avatar_url: string | null;
+    bio: string;
+    host_type: 'full' | 'activity';
+  }
+> = {
+  'host-1': {
+    id: 'host-1',
+    full_name: 'Mumbai Events Co.',
+    avatar_url: null,
+    bio: 'Premier event organizer in Mumbai. We specialize in large-scale music festivals, cultural events, and entertainment experiences that bring people together.',
+    host_type: 'full',
+  },
+  'host-2': {
+    id: 'host-2',
+    full_name: 'Tech Events India',
+    avatar_url: null,
+    bio: 'Connecting the tech community through meaningful events. We organize startup summits, hackathons, and networking sessions for entrepreneurs and innovators.',
+    host_type: 'full',
+  },
+  'host-3': {
+    id: 'host-3',
+    full_name: 'Adventure Tours',
+    avatar_url: null,
+    bio: 'Your gateway to thrilling adventures. From hot air balloon rides to trekking expeditions, we create unforgettable experiences.',
+    host_type: 'activity',
+  },
+  'host-4': {
+    id: 'host-4',
+    full_name: 'Delhi Photography Club',
+    avatar_url: null,
+    bio: 'Passionate photographers helping others capture the beauty of India. We organize photography walks, workshops, and exhibitions.',
+    host_type: 'activity',
+  },
+  'host-5': {
+    id: 'host-5',
+    full_name: 'Wine Connoisseurs',
+    avatar_url: null,
+    bio: 'Elevating wine appreciation in India. Our curated tasting events feature premium wines from around the world paired with gourmet cuisine.',
+    host_type: 'activity',
+  },
+  'host-6': {
+    id: 'host-6',
+    full_name: 'Wellness Center',
+    avatar_url: null,
+    bio: 'Dedicated to your holistic well-being. We offer yoga retreats, meditation workshops, and wellness programs led by certified instructors.',
+    host_type: 'activity',
+  },
+  'host-7': {
+    id: 'host-7',
+    full_name: 'Laugh Factory',
+    avatar_url: null,
+    bio: "India's premier comedy event organizer. Bringing you the best stand-up comedians and comedy shows across the country.",
+    host_type: 'full',
+  },
+  'host-8': {
+    id: 'host-8',
+    full_name: "Chef's Kitchen",
+    avatar_url: null,
+    bio: 'Learn from master chefs in our state-of-the-art culinary studio. We offer hands-on cooking classes featuring cuisines from around the world.',
+    host_type: 'activity',
+  },
+  'host-9': {
+    id: 'host-9',
+    full_name: 'Beach Escapes',
+    avatar_url: null,
+    bio: 'Creating perfect beach getaways. We organize weekend trips, water sports adventures, and coastal experiences at the best beach destinations.',
+    host_type: 'full',
+  },
+  'host-10': {
+    id: 'host-10',
+    full_name: 'Gourmet Events',
+    avatar_url: null,
+    bio: 'Celebrating the art of fine dining. Our food festivals bring together celebrity chefs, wine experts, and food enthusiasts from across India.',
+    host_type: 'full',
+  },
+};
