@@ -30,6 +30,7 @@ export interface GroupMember {
   user?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
 }
@@ -70,11 +71,13 @@ export interface FriendRequest {
   sender?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
   receiver?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
 }
@@ -88,6 +91,7 @@ export interface Friendship {
   friend?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
 }
@@ -103,6 +107,7 @@ export interface DMConversation {
   other_user?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
   last_message?: DMMessage;
@@ -122,6 +127,7 @@ export interface DMMessage {
   sender?: {
     id: string;
     full_name: string | null;
+    email: string;
     avatar_url: string | null;
   };
 }

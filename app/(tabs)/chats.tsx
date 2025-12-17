@@ -10,6 +10,8 @@ import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useUserGroups } from '../../src/hooks/use-chat';
+import * as DMService from '../../src/services/dm-service';
+import type { DMConversation } from '../../src/types/chat.types';
 
 type FilterType = 'all' | 'unread';
 
@@ -25,19 +27,57 @@ export default function ChatsTab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [dmConversations, setDmConversations] = useState<DMConversation[]>([]);
+  const [loadingDMs, setLoadingDMs] = useState(false);
 
   // Use real chat groups hook
-  const { groups, loading, error, refresh } = useUserGroups(user?.id);
+  const { groups, loading, error: _error, refresh } = useUserGroups(user?.id);
+
+  // Load DM conversations
+  const loadDMs = useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setLoadingDMs(true);
+      console.log('[CHATS TAB] Loading DM conversations');
+      const conversations = await DMService.getUserConversations(user.id);
+      console.log('[CHATS TAB] DM conversations loaded:', conversations.length);
+
+      // Load last message and unread count for each conversation
+      const conversationsWithDetails = await Promise.all(
+        conversations.map(async (conv) => {
+          const messages = await DMService.getMessages(conv.id, 1);
+          const unreadCount = await DMService.getUnreadCount(conv.id, user.id);
+          return {
+            ...conv,
+            last_message: messages[0] || null,
+            unread_count: unreadCount,
+          };
+        })
+      );
+
+      setDmConversations(conversationsWithDetails);
+    } catch (error) {
+      console.error('[CHATS TAB] Error loading DMs:', error);
+    } finally {
+      setLoadingDMs(false);
+    }
+  }, [user?.id]);
+
+  // Load DMs on mount and when user changes
+  React.useEffect(() => {
+    loadDMs();
+  }, [loadDMs]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refresh();
+    await Promise.all([refresh(), loadDMs()]);
     setRefreshing(false);
-  }, [refresh]);
+  }, [refresh, loadDMs]);
 
   // Map groups for display
   const allGroups = groups;
-  const allDMs: any[] = [];
+  const allDMs = dmConversations;
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -122,7 +162,7 @@ export default function ChatsTab() {
   }
 
   // Show loading spinner while fetching chats
-  if (loading && !refreshing) {
+  if ((loading || loadingDMs) && !refreshing) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <TabHeader
@@ -173,8 +213,7 @@ export default function ChatsTab() {
         if (item.type === 'group') {
           router.push(`/events/${item.eventId || item.id}/chat`);
         } else if (item.type === 'dm') {
-          // TODO: Navigate to DM conversation
-          // router.push(`/chats/dm/${item.id}`);
+          router.push(`/dm/${item.id}`);
         }
       }}
     >

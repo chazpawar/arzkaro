@@ -16,6 +16,7 @@ import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useBookings, useTickets } from '../../src/hooks/use-bookings';
+import { getFriendCounts } from '../../src/services/friends-service';
 
 interface MenuItemType {
   icon: keyof typeof Ionicons.glyphMap;
@@ -31,6 +32,8 @@ export default function ProfileTab() {
   const { user, profile, isHost, isAdmin, role, refreshProfile, signOut } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [loadStats, setLoadStats] = useState(false);
+  const [friendsCount, setFriendsCount] = useState(0);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
 
   // Lazy load stats only when needed - NOT on initial render
   const { bookings } = useBookings(loadStats ? user?.id : undefined);
@@ -48,12 +51,37 @@ export default function ProfileTab() {
     return () => clearTimeout(timer);
   }, []);
 
+  // Load friend counts
+  React.useEffect(() => {
+    async function loadFriendCounts() {
+      if (user?.id) {
+        try {
+          const counts = await getFriendCounts(user.id);
+          setFriendsCount(counts.friendsCount);
+          setPendingRequestsCount(counts.pendingRequestsCount);
+        } catch (error) {
+          console.error('Error loading friend counts:', error);
+        }
+      }
+    }
+    if (loadStats) {
+      loadFriendCounts();
+    }
+  }, [user?.id, loadStats]);
+
   // Pull to refresh handler
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       const oldRole = role;
       await refreshProfile();
+
+      // Reload friend counts
+      if (user?.id) {
+        const counts = await getFriendCounts(user.id);
+        setFriendsCount(counts.friendsCount);
+        setPendingRequestsCount(counts.pendingRequestsCount);
+      }
 
       // Show alert if role changed
       if (role !== oldRole) {
@@ -76,7 +104,7 @@ export default function ProfileTab() {
     } finally {
       setRefreshing(false);
     }
-  }, [refreshProfile, role, isAdmin, isHost]);
+  }, [refreshProfile, role, isAdmin, isHost, user?.id]);
 
   // Calculate stats
   const uniqueEvents = new Set(bookings.map((b) => b.event_id)).size;
@@ -105,6 +133,13 @@ export default function ProfileTab() {
   };
 
   const menuItems: MenuItemType[] = [
+    {
+      icon: 'people-outline',
+      label: 'Friends',
+      route: '/friends',
+      badge: pendingRequestsCount > 0 ? String(pendingRequestsCount) : undefined,
+      showArrow: true,
+    },
     { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
   ];
 
@@ -154,6 +189,7 @@ export default function ProfileTab() {
                 | `/notifications`
                 | `/settings`
                 | `/support`
+                | `/friends`
                 | `/admin/dashboard`
                 | `/host/dashboard`
             )
@@ -225,15 +261,20 @@ export default function ProfileTab() {
                   <Text style={styles.statLabel}>Events</Text>
                 </View>
                 <View style={styles.statDivider} />
-                <View style={styles.statItem}>
+                <Pressable style={styles.statItem} onPress={() => router.push('/(tabs)/tickets')}>
                   <Text style={styles.statValue}>{ticketCount}</Text>
                   <Text style={styles.statLabel}>Tickets</Text>
-                </View>
+                </Pressable>
                 <View style={styles.statDivider} />
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>Saved</Text>
-                </View>
+                <Pressable style={styles.statItem} onPress={() => router.push('/friends')}>
+                  <Text style={styles.statValue}>{friendsCount}</Text>
+                  <Text style={styles.statLabel}>Friends</Text>
+                  {pendingRequestsCount > 0 && (
+                    <View style={styles.statBadge}>
+                      <Text style={styles.statBadgeText}>{pendingRequestsCount}</Text>
+                    </View>
+                  )}
+                </Pressable>
               </View>
             </View>
           </View>
@@ -382,6 +423,7 @@ const styles = StyleSheet.create({
   statItem: {
     alignItems: 'center',
     flex: 1,
+    position: 'relative',
   },
   statValue: {
     fontSize: 24,
@@ -392,6 +434,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     marginTop: 2,
+  },
+  statBadge: {
+    position: 'absolute',
+    top: -4,
+    right: 8,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  statBadgeText: {
+    fontSize: 11,
+    color: Colors.background,
+    fontWeight: '600',
   },
   statDivider: {
     width: 1,

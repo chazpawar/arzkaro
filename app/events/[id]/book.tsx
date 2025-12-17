@@ -9,6 +9,7 @@ import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles
 import { useAuth } from '../../../src/contexts/auth-context';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import { useEvent } from '../../../src/hooks/use-events';
+import { createBooking } from '../../../src/services/booking-service';
 
 interface TicketType {
   id: string;
@@ -26,7 +27,7 @@ export default function BookEventScreen() {
 
   // Use real event hook
   const { event, ticketTypes, loading, error } = useEvent(id);
-  const bookingLoading = false;
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -91,12 +92,41 @@ export default function BookEventScreen() {
   const handleConfirmBooking = async () => {
     if (!user?.id || !event?.id) return;
 
-    // Mock booking confirmation
-    Alert.alert(
-      'Booking Confirmed! (Mock)',
-      'This is a mock booking. In production, your booking would be saved to the database.',
-      [{ text: 'OK', onPress: () => router.replace('/(tabs)/tickets') }]
-    );
+    try {
+      setBookingLoading(true);
+
+      // Create booking using real service
+      const { booking: _booking } = await createBooking(
+        {
+          event_id: event.id,
+          ticket_type_id: selectedTicketType?.id,
+          quantity: quantity,
+        },
+        user.id
+      );
+
+      // Show success message
+      Alert.alert(
+        'Booking Confirmed! 🎉',
+        `You've successfully booked ${quantity} ticket${quantity > 1 ? 's' : ''} for ${event.title}. Check your tickets to view your QR code and join the event chat.`,
+        [
+          {
+            text: 'View Tickets',
+            onPress: () => router.replace('/(tabs)/tickets'),
+          },
+        ]
+      );
+    } catch (err) {
+      // Show error message
+      console.error('Booking error:', err);
+      Alert.alert(
+        'Booking Failed',
+        err instanceof Error ? err.message : 'Failed to create booking. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setBookingLoading(false);
+    }
   };
 
   // Show loading spinner while fetching event

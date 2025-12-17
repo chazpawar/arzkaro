@@ -162,7 +162,6 @@ export default function CreateEventScreen() {
   const [eventType, setEventType] = useState<EventType>('event');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [termsAndConditions, setTermsAndConditions] = useState('');
   const [category, setCategory] = useState('');
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [locationName, setLocationName] = useState('');
@@ -473,7 +472,6 @@ export default function CreateEventScreen() {
         type: eventType,
         title: title.trim(),
         description: description.trim(),
-        terms_and_conditions: termsAndConditions.trim() || undefined,
         category,
         location_name: locationName.trim(),
         location_address: locationAddress.trim() || undefined,
@@ -618,15 +616,6 @@ export default function CreateEventScreen() {
                   multiline
                   numberOfLines={4}
                   error={errors.description}
-                />
-
-                <Input
-                  label="Terms & Conditions (Optional)"
-                  placeholder="Add any terms, conditions."
-                  value={termsAndConditions}
-                  onChangeText={setTermsAndConditions}
-                  multiline
-                  numberOfLines={6}
                 />
 
                 <Text style={styles.inputLabel}>Main Category</Text>

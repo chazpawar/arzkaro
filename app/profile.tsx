@@ -43,6 +43,11 @@ export default function ProfileScreen() {
   const [loadingHostRequest, setLoadingHostRequest] = useState(true);
   const [hasPending, setHasPending] = useState(false);
 
+  // Get host's events using real hook (must be called at top level)
+  const { events: hostEvents, loading: eventsLoading } = useHostEvents(
+    isViewingOtherProfile ? userId : undefined
+  );
+
   // Get user metadata from Google OAuth
   const userMetadata = user?.user_metadata;
   const fullName = userMetadata?.full_name || userMetadata?.name || 'Anonymous User';
@@ -174,9 +179,6 @@ export default function ProfileScreen() {
         </SafeAreaView>
       );
     }
-
-    // Get host's events using real hook
-    const { events: hostEvents, loading: eventsLoading } = useHostEvents(userId);
 
     return (
       <SafeAreaView style={styles.container}>

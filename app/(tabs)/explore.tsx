@@ -80,7 +80,7 @@ export default function ExploreTab() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use real events hook
-  const { events, loading, error, refresh } = useEvents();
+  const { events, loading, error: _error, refresh } = useEvents();
 
   const onRefresh = async () => {
     setRefreshing(true);

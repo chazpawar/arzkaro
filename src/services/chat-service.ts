@@ -174,7 +174,7 @@ export async function getGroupMembers(groupId: string) {
     .select(
       `
       *,
-      user:profiles!user_id(id, full_name, avatar_url)
+      user:profiles!user_id(id, full_name, email, avatar_url)
     `
     )
     .eq('group_id', groupId)

@@ -30,9 +30,14 @@ export default function TicketsTab() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use real tickets hook
-  const { validTickets, usedTickets, expiredTickets, loading, error, refresh } = useTickets(
-    user?.id
-  );
+  const {
+    validTickets,
+    usedTickets,
+    expiredTickets,
+    loading,
+    error: _error,
+    refresh,
+  } = useTickets(user?.id);
 
   const onRefresh = async () => {
     setRefreshing(true);
