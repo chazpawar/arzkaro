@@ -8,7 +8,8 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
-import { mockEventGroups } from '../../src/data/mock-chats';
+import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import { useUserGroups } from '../../src/hooks/use-chat';
 
 type FilterType = 'all' | 'unread';
 
@@ -19,21 +20,20 @@ const FILTERS: { id: FilterType; label: string }[] = [
 
 export default function ChatsTab() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Use mock groups data for UI development
-  const groups = mockEventGroups;
+  // Use real chat groups hook
+  const { groups, loading, error, refresh } = useUserGroups(user?.id);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    // Simulate refresh delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await refresh();
     setRefreshing(false);
-  }, []);
+  }, [refresh]);
 
   // Map groups for display
   const allGroups = groups;
@@ -121,7 +121,19 @@ export default function ChatsTab() {
     );
   }
 
-  // Removed loading spinner since we're using mock data
+  // Show loading spinner while fetching chats
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <TabHeader
+          searchPlaceholder="Search conversations..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <LoadingSpinner />
+      </SafeAreaView>
+    );
+  }
 
   const renderFilterChip = (filter: { id: FilterType; label: string }) => {
     const isActive = activeFilter === filter.id;

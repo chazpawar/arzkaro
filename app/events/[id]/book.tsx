@@ -7,7 +7,8 @@ import Button from '../../../src/components/ui/button';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
-import { mockEvents, mockTicketTypes } from '../../../src/data/mock-events';
+import LoadingSpinner from '../../../src/components/ui/loading-spinner';
+import { useEvent } from '../../../src/hooks/use-events';
 
 interface TicketType {
   id: string;
@@ -23,10 +24,8 @@ export default function BookEventScreen() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
 
-  // Use mock data for UI development
-  const event = mockEvents.find((e) => e.id === id) || null;
-  const ticketTypes = mockTicketTypes[id as string] || [];
-  const error = null;
+  // Use real event hook
+  const { event, ticketTypes, loading, error } = useEvent(id);
   const bookingLoading = false;
 
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
@@ -100,7 +99,14 @@ export default function BookEventScreen() {
     );
   };
 
-  // Removed loading spinner since we're using mock data
+  // Show loading spinner while fetching event
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LoadingSpinner fullScreen />
+      </SafeAreaView>
+    );
+  }
 
   if (error || !event) {
     return (

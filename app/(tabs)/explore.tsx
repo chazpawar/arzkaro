@@ -17,8 +17,9 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
+import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
-import { mockEvents } from '../../src/data/mock-events';
+import { useEvents } from '../../src/hooks/use-events';
 
 const CATEGORIES = [
   { id: 'events', label: 'Events', icon: 'calendar-outline' },
@@ -78,18 +79,17 @@ export default function ExploreTab() {
   const [selectedTag, setSelectedTag] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Use mock events data for UI development
-  const events = mockEvents;
+  // Use real events hook
+  const { events, loading, error, refresh } = useEvents();
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate refresh delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await refresh();
     setRefreshing(false);
   };
 
   // Filter events based on search, category, and tag
-  const filteredEvents = events.filter((event) => {
+  const filteredEvents = events.filter((event: Event) => {
     // Search filter
     if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
@@ -236,7 +236,19 @@ export default function ExploreTab() {
     );
   };
 
-  // Removed loading spinner since we're using mock data
+  // Show loading spinner while fetching events
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <TabHeader
+          searchPlaceholder="Search events, experiences..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <LoadingSpinner />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

@@ -17,26 +17,26 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
+import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { TicketWithDetails } from '../../src/types';
-import { mockTickets } from '../../src/data/mock-tickets';
+import { useTickets } from '../../src/hooks/use-bookings';
 
 export default function TicketsTab() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
   const [refreshing, setRefreshing] = useState(false);
 
-  // Use mock tickets data for UI development
-  const validTickets = mockTickets.filter((t) => t.status === 'valid');
-  const usedTickets = mockTickets.filter((t) => t.status === 'used');
-  const expiredTickets = mockTickets.filter((t) => t.status === 'expired');
+  // Use real tickets hook
+  const { validTickets, usedTickets, expiredTickets, loading, error, refresh } = useTickets(
+    user?.id
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
-    // Simulate refresh delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await refresh();
     setRefreshing(false);
   };
 
@@ -54,7 +54,7 @@ export default function TicketsTab() {
     }
   };
 
-  const filteredTickets = getCurrentTickets().filter((ticket) =>
+  const filteredTickets = getCurrentTickets().filter((ticket: TicketWithDetails) =>
     ticket.event?.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -79,6 +79,20 @@ export default function TicketsTab() {
             onPress: () => router.push('/'),
           }}
         />
+      </SafeAreaView>
+    );
+  }
+
+  // Show loading spinner while fetching tickets
+  if (loading && !refreshing) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <TabHeader
+          searchPlaceholder="Search tickets..."
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <LoadingSpinner />
       </SafeAreaView>
     );
   }

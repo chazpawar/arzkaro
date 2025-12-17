@@ -26,7 +26,7 @@ import {
 } from '../src/services/host-service';
 import type { HostRequest } from '../src/types/host.types';
 import type { Profile } from '../src/types/user.types';
-import { mockHostProfiles, mockEvents } from '../src/data/mock-events';
+import { useHostEvents } from '../src/hooks/use-events';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -51,33 +51,13 @@ export default function ProfileScreen() {
   const provider = user?.app_metadata?.provider || 'email';
 
   // Load host profile if viewing another user
+  // TODO: Implement real profile fetching from database
   useEffect(() => {
     if (isViewingOtherProfile && userId) {
       setLoadingProfile(true);
-      // Simulate fetching host profile from mock data
+      // For now, we don't support viewing other profiles until implemented
       setTimeout(() => {
-        const hostProfile = mockHostProfiles[userId];
-        if (hostProfile) {
-          setViewedProfile({
-            id: hostProfile.id,
-            email: '',
-            full_name: hostProfile.full_name,
-            username: null,
-            bio: hostProfile.bio,
-            avatar_url: hostProfile.avatar_url,
-            phone: null,
-            role: 'host',
-            host_type: hostProfile.host_type,
-            is_host_approved: true,
-            host_requested_at: null,
-            host_approved_at: null,
-            is_public: true,
-            location: null,
-            website: null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          } as Profile);
-        }
+        setViewedProfile(null);
         setLoadingProfile(false);
       }, 300);
     }
@@ -195,8 +175,8 @@ export default function ProfileScreen() {
       );
     }
 
-    // Get host's events
-    const hostEvents = mockEvents.filter((event) => event.host_id === userId);
+    // Get host's events using real hook
+    const { events: hostEvents, loading: eventsLoading } = useHostEvents(userId);
 
     return (
       <SafeAreaView style={styles.container}>
@@ -236,11 +216,13 @@ export default function ProfileScreen() {
           {/* Hosted Events Section */}
           <Card style={styles.card}>
             <Text style={styles.sectionTitle}>Hosted Events ({hostEvents.length})</Text>
-            {hostEvents.length === 0 ? (
+            {eventsLoading ? (
+              <Text style={styles.emptyText}>Loading events...</Text>
+            ) : hostEvents.length === 0 ? (
               <Text style={styles.emptyText}>No events hosted yet</Text>
             ) : (
               <View style={styles.eventsContainer}>
-                {hostEvents.map((event) => (
+                {hostEvents.map((event: any) => (
                   <TouchableOpacity
                     key={event.id}
                     style={styles.eventItem}

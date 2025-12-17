@@ -14,16 +14,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
-import { mockEvents, mockTicketTypes } from '../../src/data/mock-events';
+import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import { useEvent } from '../../src/hooks/use-events';
 
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // Use mock data for UI development
-  const event = mockEvents.find((e) => e.id === id) || null;
-  const ticketTypes = mockTicketTypes[id as string] || [];
-  const error = null;
+  // Use real event hook
+  const { event, ticketTypes, loading, error } = useEvent(id);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -51,7 +50,14 @@ export default function EventDetailsScreen() {
     router.push(`/events/${id}/book`);
   };
 
-  // Removed loading spinner since we're using mock data
+  // Show loading spinner while fetching event
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <LoadingSpinner fullScreen />
+      </View>
+    );
+  }
 
   if (error || !event) {
     return (
