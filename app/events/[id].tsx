@@ -243,6 +243,108 @@ export default function EventDetailsScreen() {
               <Text style={styles.description}>{event.description}</Text>
             </View>
 
+            {/* Trip-Specific Details */}
+            {event.type === 'trip' && (
+              <>
+                {/* Departure & Pickups */}
+                {(event.departure_location || (event.pickups && event.pickups.length > 0)) && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Departure & Pickups</Text>
+                    {event.departure_location && (
+                      <View style={styles.tripDetailRow}>
+                        <Ionicons
+                          name="location"
+                          size={20}
+                          color={Colors.primary}
+                          style={styles.tripDetailIcon}
+                        />
+                        <View style={styles.tripDetailContent}>
+                          <Text style={styles.tripDetailLabel}>Departure Location</Text>
+                          <Text style={styles.tripDetailValue}>{event.departure_location}</Text>
+                        </View>
+                      </View>
+                    )}
+                    {event.pickups && event.pickups.length > 0 && (
+                      <View style={styles.tripDetailRow}>
+                        <Ionicons
+                          name="navigate"
+                          size={20}
+                          color={Colors.primary}
+                          style={styles.tripDetailIcon}
+                        />
+                        <View style={styles.tripDetailContent}>
+                          <Text style={styles.tripDetailLabel}>Pickup Points</Text>
+                          <View style={styles.pickupChipsContainer}>
+                            {event.pickups.map((pickup, index) => (
+                              <View key={index} style={styles.pickupChip}>
+                                <Text style={styles.pickupChipText}>{pickup}</Text>
+                              </View>
+                            ))}
+                          </View>
+                        </View>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* Itinerary */}
+                {event.itinerary && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Itinerary</Text>
+                    <Text style={styles.tripDetailText}>{event.itinerary}</Text>
+                  </View>
+                )}
+
+                {/* What's Included */}
+                {event.whats_included && (
+                  <View style={styles.section}>
+                    <View style={styles.tripDetailHeader}>
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={22}
+                        color={Colors.success}
+                        style={styles.tripDetailHeaderIcon}
+                      />
+                      <Text style={styles.sectionTitle}>What&apos;s Included</Text>
+                    </View>
+                    <Text style={styles.tripDetailText}>{event.whats_included}</Text>
+                  </View>
+                )}
+
+                {/* What's NOT Included */}
+                {event.whats_not_included && (
+                  <View style={styles.section}>
+                    <View style={styles.tripDetailHeader}>
+                      <Ionicons
+                        name="close-circle"
+                        size={22}
+                        color={Colors.error}
+                        style={styles.tripDetailHeaderIcon}
+                      />
+                      <Text style={styles.sectionTitle}>What&apos;s NOT Included</Text>
+                    </View>
+                    <Text style={styles.tripDetailText}>{event.whats_not_included}</Text>
+                  </View>
+                )}
+
+                {/* Ideal For */}
+                {event.ideal_for && (
+                  <View style={styles.section}>
+                    <View style={styles.tripDetailHeader}>
+                      <Ionicons
+                        name="people"
+                        size={22}
+                        color={Colors.primary}
+                        style={styles.tripDetailHeaderIcon}
+                      />
+                      <Text style={styles.sectionTitle}>Ideal For</Text>
+                    </View>
+                    <Text style={styles.tripDetailText}>{event.ideal_for}</Text>
+                  </View>
+                )}
+              </>
+            )}
+
             {/* Ticket Types */}
             {ticketTypes.length > 0 && (
               <View style={styles.section}>
@@ -641,5 +743,61 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: Colors.text,
+  },
+  // Trip-specific styles
+  tripDetailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  tripDetailHeaderIcon: {
+    marginRight: Spacing.xs,
+  },
+  tripDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.md,
+  },
+  tripDetailIcon: {
+    marginRight: Spacing.md,
+    marginTop: 2,
+  },
+  tripDetailContent: {
+    flex: 1,
+  },
+  tripDetailLabel: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  tripDetailValue: {
+    fontSize: 16,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  tripDetailText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    lineHeight: 26,
+  },
+  pickupChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.xs,
+  },
+  pickupChip: {
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+  },
+  pickupChipText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
   },
 });

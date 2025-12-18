@@ -1,9 +1,18 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export interface Database {
+export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
+  __InternalSupabase: {
+    PostgrestVersion: '13.0.5';
+  };
   graphql_public: {
-    Tables: Record<never, never>;
-    Views: Record<never, never>;
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
     Functions: {
       graphql: {
         Args: {
@@ -15,8 +24,12 @@ export interface Database {
         Returns: Json;
       };
     };
-    Enums: Record<never, never>;
-    CompositeTypes: Record<never, never>;
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
   public: {
     Tables: {
@@ -213,18 +226,22 @@ export interface Database {
           created_at: string;
           currency: string;
           current_bookings: number;
+          departure_location: string | null;
           description: string | null;
           end_date: string;
           host_id: string;
           id: string;
+          ideal_for: string | null;
           images: string[] | null;
           is_cancelled: boolean;
           is_published: boolean;
+          itinerary: string | null;
           location_address: string | null;
           location_lat: number | null;
           location_lng: number | null;
           location_name: string | null;
           max_capacity: number | null;
+          pickups: string[] | null;
           price: number;
           short_description: string | null;
           start_date: string;
@@ -233,6 +250,8 @@ export interface Database {
           title: string;
           type: Database['public']['Enums']['event_type'];
           updated_at: string;
+          whats_included: string | null;
+          whats_not_included: string | null;
         };
         Insert: {
           category?: string | null;
@@ -240,18 +259,22 @@ export interface Database {
           created_at?: string;
           currency?: string;
           current_bookings?: number;
+          departure_location?: string | null;
           description?: string | null;
           end_date: string;
           host_id: string;
           id?: string;
+          ideal_for?: string | null;
           images?: string[] | null;
           is_cancelled?: boolean;
           is_published?: boolean;
+          itinerary?: string | null;
           location_address?: string | null;
           location_lat?: number | null;
           location_lng?: number | null;
           location_name?: string | null;
           max_capacity?: number | null;
+          pickups?: string[] | null;
           price: number;
           short_description?: string | null;
           start_date: string;
@@ -260,6 +283,8 @@ export interface Database {
           title: string;
           type: Database['public']['Enums']['event_type'];
           updated_at?: string;
+          whats_included?: string | null;
+          whats_not_included?: string | null;
         };
         Update: {
           category?: string | null;
@@ -267,18 +292,22 @@ export interface Database {
           created_at?: string;
           currency?: string;
           current_bookings?: number;
+          departure_location?: string | null;
           description?: string | null;
           end_date?: string;
           host_id?: string;
           id?: string;
+          ideal_for?: string | null;
           images?: string[] | null;
           is_cancelled?: boolean;
           is_published?: boolean;
+          itinerary?: string | null;
           location_address?: string | null;
           location_lat?: number | null;
           location_lng?: number | null;
           location_name?: string | null;
           max_capacity?: number | null;
+          pickups?: string[] | null;
           price?: number;
           short_description?: string | null;
           start_date?: string;
@@ -287,6 +316,8 @@ export interface Database {
           title?: string;
           type?: Database['public']['Enums']['event_type'];
           updated_at?: string;
+          whats_included?: string | null;
+          whats_not_included?: string | null;
         };
         Relationships: [
           {
@@ -381,6 +412,7 @@ export interface Database {
           group_id: string;
           id: string;
           joined_at: string;
+          last_read_at: string;
           role: Database['public']['Enums']['group_member_role'];
           user_id: string;
         };
@@ -388,6 +420,7 @@ export interface Database {
           group_id: string;
           id?: string;
           joined_at?: string;
+          last_read_at?: string;
           role?: Database['public']['Enums']['group_member_role'];
           user_id: string;
         };
@@ -395,6 +428,7 @@ export interface Database {
           group_id?: string;
           id?: string;
           joined_at?: string;
+          last_read_at?: string;
           role?: Database['public']['Enums']['group_member_role'];
           user_id?: string;
         };
@@ -417,39 +451,84 @@ export interface Database {
       };
       host_requests: {
         Row: {
+          account_holder_name: string;
+          account_number: string;
           admin_notes: string | null;
-          business_name: string | null;
-          business_type: string | null;
+          beneficiary_name: string;
+          city: string;
+          contact_number: string;
           created_at: string;
+          email: string;
+          gst_certificate_url: string | null;
+          gstin: string | null;
           id: string;
-          reason: string;
+          ifsc_code: string;
+          organizer_name: string;
+          pan_card_photo_url: string;
+          pan_number: string;
+          pin_code: string;
+          rejection_reason: string | null;
+          requested_host_type: Database['public']['Enums']['host_type'];
           reviewed_at: string | null;
           reviewed_by: string | null;
+          state: string;
           status: Database['public']['Enums']['host_request_status'];
+          street_address: string;
+          updated_at: string;
           user_id: string;
         };
         Insert: {
+          account_holder_name: string;
+          account_number: string;
           admin_notes?: string | null;
-          business_name?: string | null;
-          business_type?: string | null;
+          beneficiary_name: string;
+          city: string;
+          contact_number: string;
           created_at?: string;
+          email: string;
+          gst_certificate_url?: string | null;
+          gstin?: string | null;
           id?: string;
-          reason: string;
+          ifsc_code: string;
+          organizer_name: string;
+          pan_card_photo_url: string;
+          pan_number: string;
+          pin_code: string;
+          rejection_reason?: string | null;
+          requested_host_type: Database['public']['Enums']['host_type'];
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          state: string;
           status?: Database['public']['Enums']['host_request_status'];
+          street_address: string;
+          updated_at?: string;
           user_id: string;
         };
         Update: {
+          account_holder_name?: string;
+          account_number?: string;
           admin_notes?: string | null;
-          business_name?: string | null;
-          business_type?: string | null;
+          beneficiary_name?: string;
+          city?: string;
+          contact_number?: string;
           created_at?: string;
+          email?: string;
+          gst_certificate_url?: string | null;
+          gstin?: string | null;
           id?: string;
-          reason?: string;
+          ifsc_code?: string;
+          organizer_name?: string;
+          pan_card_photo_url?: string;
+          pan_number?: string;
+          pin_code?: string;
+          rejection_reason?: string | null;
+          requested_host_type?: Database['public']['Enums']['host_type'];
           reviewed_at?: string | null;
           reviewed_by?: string | null;
+          state?: string;
           status?: Database['public']['Enums']['host_request_status'];
+          street_address?: string;
+          updated_at?: string;
           user_id?: string;
         };
         Relationships: [
@@ -523,6 +602,7 @@ export interface Database {
           full_name: string | null;
           host_approved_at: string | null;
           host_requested_at: string | null;
+          host_type: Database['public']['Enums']['host_type'] | null;
           id: string;
           is_host_approved: boolean;
           is_public: boolean;
@@ -541,6 +621,7 @@ export interface Database {
           full_name?: string | null;
           host_approved_at?: string | null;
           host_requested_at?: string | null;
+          host_type?: Database['public']['Enums']['host_type'] | null;
           id: string;
           is_host_approved?: boolean;
           is_public?: boolean;
@@ -559,6 +640,7 @@ export interface Database {
           full_name?: string | null;
           host_approved_at?: string | null;
           host_requested_at?: string | null;
+          host_type?: Database['public']['Enums']['host_type'] | null;
           id?: string;
           is_host_approved?: boolean;
           is_public?: boolean;
@@ -629,7 +711,7 @@ export interface Database {
           created_at: string;
           event_id: string;
           id: string;
-          qr_code: string;
+          qr_code: string | null;
           status: Database['public']['Enums']['ticket_status'];
           ticket_type_id: string | null;
           user_id: string;
@@ -641,7 +723,7 @@ export interface Database {
           created_at?: string;
           event_id: string;
           id?: string;
-          qr_code: string;
+          qr_code?: string | null;
           status?: Database['public']['Enums']['ticket_status'];
           ticket_type_id?: string | null;
           user_id: string;
@@ -653,7 +735,7 @@ export interface Database {
           created_at?: string;
           event_id?: string;
           id?: string;
-          qr_code?: string;
+          qr_code?: string | null;
           status?: Database['public']['Enums']['ticket_status'];
           ticket_type_id?: string | null;
           user_id?: string;
@@ -697,22 +779,70 @@ export interface Database {
         ];
       };
     };
-    Views: Record<never, never>;
-    Functions: Record<never, never>;
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      approve_host_request: {
+        Args: {
+          p_admin_id: string;
+          p_admin_notes?: string;
+          p_request_id: string;
+        };
+        Returns: {
+          message: string;
+          success: boolean;
+        }[];
+      };
+      can_user_create_event_type: {
+        Args: {
+          p_event_type: Database['public']['Enums']['event_type'];
+          p_user_id: string;
+        };
+        Returns: boolean;
+      };
+      delete_expired_event_groups: { Args: never; Returns: number };
+      get_pending_host_requests_count: { Args: never; Returns: number };
+      get_unread_count: {
+        Args: { p_group_id: string; p_user_id: string };
+        Returns: number;
+      };
+      is_admin: { Args: never; Returns: boolean };
+      is_host_or_admin: { Args: never; Returns: boolean };
+      mark_group_as_read: {
+        Args: { p_group_id: string; p_user_id: string };
+        Returns: undefined;
+      };
+      reject_host_request: {
+        Args: {
+          p_admin_id: string;
+          p_admin_notes?: string;
+          p_rejection_reason: string;
+          p_request_id: string;
+        };
+        Returns: {
+          message: string;
+          success: boolean;
+        }[];
+      };
+    };
     Enums: {
       booking_status: 'pending' | 'confirmed' | 'cancelled' | 'refunded';
       event_type: 'event' | 'experience' | 'trip';
       friend_request_status: 'pending' | 'accepted' | 'rejected';
       group_member_role: 'member' | 'moderator' | 'host';
       host_request_status: 'pending' | 'approved' | 'rejected';
+      host_type: 'full' | 'activity';
       message_type: 'text' | 'image' | 'system';
       payment_status: 'pending' | 'completed' | 'failed' | 'refunded';
       ticket_status: 'valid' | 'used' | 'cancelled' | 'expired';
       user_role: 'user' | 'host' | 'admin';
     };
-    CompositeTypes: Record<never, never>;
+    CompositeTypes: {
+      [_ in never]: never;
+    };
   };
-}
+};
 
 type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>;
 
@@ -840,6 +970,7 @@ export const Constants = {
       friend_request_status: ['pending', 'accepted', 'rejected'],
       group_member_role: ['member', 'moderator', 'host'],
       host_request_status: ['pending', 'approved', 'rejected'],
+      host_type: ['full', 'activity'],
       message_type: ['text', 'image', 'system'],
       payment_status: ['pending', 'completed', 'failed', 'refunded'],
       ticket_status: ['valid', 'used', 'cancelled', 'expired'],

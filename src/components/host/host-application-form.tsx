@@ -164,8 +164,10 @@ export default function HostApplicationForm({
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>{HOST_TYPE_LABELS[hostType]} Application</Text>
-        <TouchableOpacity onPress={() => setHostType(null)}>
+        <Text style={styles.headerTitle} numberOfLines={2}>
+          {HOST_TYPE_LABELS[hostType]}
+        </Text>
+        <TouchableOpacity onPress={() => setHostType(null)} style={styles.changeTypeButton}>
           <Text style={styles.changeLink}>Change Type</Text>
         </TouchableOpacity>
       </View>
@@ -373,14 +375,27 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: Spacing.lg,
+    gap: Spacing.md,
+  },
+  headerTitle: {
+    ...Typography.h2,
+    color: Colors.text,
+    fontWeight: 'bold',
+    flex: 1,
+    flexShrink: 1,
+    marginRight: Spacing.sm,
   },
   title: {
     ...Typography.h2,
     color: Colors.text,
     fontWeight: 'bold',
     marginBottom: Spacing.sm,
+  },
+  changeTypeButton: {
+    flexShrink: 0,
+    paddingVertical: Spacing.xs,
   },
   subtitle: {
     ...Typography.body,

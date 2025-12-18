@@ -173,6 +173,15 @@ export default function CreateEventScreen() {
   const [maxCapacity, setMaxCapacity] = useState('');
   const [price, setPrice] = useState('0');
 
+  // Trip-specific fields
+  const [departureLocation, setDepartureLocation] = useState('');
+  const [pickups, setPickups] = useState<string[]>([]);
+  const [pickupInput, setPickupInput] = useState('');
+  const [itinerary, setItinerary] = useState('');
+  const [whatsIncluded, setWhatsIncluded] = useState('');
+  const [whatsNotIncluded, setWhatsNotIncluded] = useState('');
+  const [idealFor, setIdealFor] = useState('');
+
   // Date picker state
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
@@ -379,11 +388,19 @@ export default function CreateEventScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const getTotalSteps = () => {
+    return eventType === 'trip' ? 4 : 3;
+  };
+
   const handleNextStep = () => {
     if (step === 1 && validateStep1()) {
       setStep(2);
     } else if (step === 2 && validateStep2()) {
+      // If creating a trip, go to trip details step (3), otherwise skip to capacity & pricing (3)
       setStep(3);
+    } else if (step === 3 && eventType === 'trip') {
+      // From trip details, go to capacity & pricing (4)
+      setStep(4);
     }
   };
 
@@ -468,7 +485,7 @@ export default function CreateEventScreen() {
         return;
       }
 
-      const eventData = {
+      const eventData: any = {
         type: eventType,
         title: title.trim(),
         description: description.trim(),
@@ -484,6 +501,16 @@ export default function CreateEventScreen() {
         images: [],
         tags: subcategories, // Store selected subcategories as tags
       };
+
+      // Add trip-specific fields if creating a trip
+      if (eventType === 'trip') {
+        eventData.departure_location = departureLocation.trim() || undefined;
+        eventData.pickups = pickups.length > 0 ? pickups : undefined;
+        eventData.itinerary = itinerary.trim() || undefined;
+        eventData.whats_included = whatsIncluded.trim() || undefined;
+        eventData.whats_not_included = whatsNotIncluded.trim() || undefined;
+        eventData.ideal_for = idealFor.trim() || undefined;
+      }
 
       const event = await EventService.createEvent(eventData, user.id);
 
@@ -527,7 +554,7 @@ export default function CreateEventScreen() {
         >
           {/* Progress Indicator */}
           <View style={styles.progressContainer}>
-            {[1, 2, 3].map((s) => (
+            {Array.from({ length: getTotalSteps() }, (_, i) => i + 1).map((s) => (
               <View key={s} style={[styles.progressDot, s <= step && styles.progressDotActive]} />
             ))}
           </View>
@@ -893,8 +920,133 @@ export default function CreateEventScreen() {
               </View>
             )}
 
-            {/* Step 3: Capacity & Pricing */}
-            {step === 3 && (
+            {/* Step 3: Trip Details (only for trips) */}
+            {step === 3 && eventType === 'trip' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepTitle}>Trip Details</Text>
+                <Text style={styles.stepDescription}>
+                  Additional information specific to your trip
+                </Text>
+
+                {/* Departure Location */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="location" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Departure & Pickups</Text>
+                  </View>
+
+                  <Input
+                    label="Departure Location"
+                    placeholder="e.g., Mumbai Central Station"
+                    value={departureLocation}
+                    onChangeText={setDepartureLocation}
+                    error={errors.departureLocation}
+                  />
+
+                  {/* Pickups */}
+                  <Text style={styles.inputLabel}>Pickup Points (Optional)</Text>
+                  <View style={styles.pickupContainer}>
+                    <View style={styles.pickupInputRow}>
+                      <Input
+                        placeholder="Add pickup location"
+                        value={pickupInput}
+                        onChangeText={setPickupInput}
+                        containerStyle={styles.pickupInput}
+                      />
+                      <Button
+                        title="Add"
+                        onPress={() => {
+                          if (pickupInput.trim()) {
+                            setPickups([...pickups, pickupInput.trim()]);
+                            setPickupInput('');
+                          }
+                        }}
+                        variant="primary"
+                        size="small"
+                      />
+                    </View>
+                    {pickups.length > 0 && (
+                      <View style={styles.pickupsList}>
+                        {pickups.map((pickup, index) => (
+                          <View key={index} style={styles.pickupChip}>
+                            <Text style={styles.pickupChipText}>{pickup}</Text>
+                            <Pressable
+                              onPress={() => setPickups(pickups.filter((_, i) => i !== index))}
+                              hitSlop={8}
+                            >
+                              <Ionicons name="close-circle" size={18} color={Colors.error} />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                </View>
+
+                {/* Itinerary */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="list" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Itinerary</Text>
+                  </View>
+
+                  <Input
+                    label="Day-by-Day Itinerary"
+                    placeholder="Describe the trip schedule...&#10;Day 1: Departure at 6 AM, Arrive at destination...&#10;Day 2: Trekking and sightseeing..."
+                    value={itinerary}
+                    onChangeText={setItinerary}
+                    multiline
+                    numberOfLines={6}
+                  />
+                </View>
+
+                {/* What's Included / Not Included */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Package Details</Text>
+                  </View>
+
+                  <Input
+                    label="What's Included"
+                    placeholder="e.g., Transportation, Accommodation, Meals, Guide"
+                    value={whatsIncluded}
+                    onChangeText={setWhatsIncluded}
+                    multiline
+                    numberOfLines={3}
+                  />
+
+                  <Input
+                    label="What's NOT Included"
+                    placeholder="e.g., Personal expenses, Insurance, Entry fees"
+                    value={whatsNotIncluded}
+                    onChangeText={setWhatsNotIncluded}
+                    multiline
+                    numberOfLines={3}
+                  />
+                </View>
+
+                {/* Ideal For */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="people" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Target Audience</Text>
+                  </View>
+
+                  <Input
+                    label="Ideal For"
+                    placeholder="e.g., Adventure enthusiasts, Families with kids, Solo travelers"
+                    value={idealFor}
+                    onChangeText={setIdealFor}
+                    multiline
+                    numberOfLines={2}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 3 (Events/Experiences) or Step 4 (Trips): Capacity & Pricing */}
+            {((step === 3 && eventType !== 'trip') || (step === 4 && eventType === 'trip')) && (
               <View style={styles.stepContainer}>
                 <Text style={styles.stepTitle}>Capacity & Pricing</Text>
                 <Text style={styles.stepDescription}>Set your limits and ticket price</Text>
@@ -963,7 +1115,7 @@ export default function CreateEventScreen() {
                 style={styles.footerButton}
               />
             )}
-            {step < 3 ? (
+            {step < getTotalSteps() ? (
               <Button
                 title="Next"
                 onPress={handleNextStep}
@@ -1363,5 +1515,39 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+  },
+  // Trip-specific styles
+  pickupContainer: {
+    marginBottom: Spacing.md,
+  },
+  pickupInputRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  pickupInput: {
+    flex: 1,
+    marginBottom: 0,
+  },
+  pickupsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  pickupChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+  },
+  pickupChipText: {
+    ...Typography.bodySmall,
+    color: Colors.primary,
+    fontWeight: '500',
   },
 });

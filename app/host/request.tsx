@@ -67,10 +67,55 @@ export default function HostRequestScreen() {
     return <LoadingSpinner fullScreen text="Loading..." />;
   }
 
-  // Show pending or rejected status - redirect to profile
-  if (existingRequest && existingRequest.status !== 'approved') {
-    router.replace('/profile');
-    return null;
+  // Show rejection status with reason and reapply option
+  if (existingRequest?.status === 'rejected') {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Host Application' }} />
+        <SafeAreaView style={styles.container}>
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusIcon}>😞</Text>
+            <Text style={styles.statusTitle}>Application Not Approved</Text>
+            {existingRequest.rejection_reason && (
+              <View style={styles.rejectionBox}>
+                <Text style={styles.rejectionLabel}>Reason for rejection:</Text>
+                <Text style={styles.rejectionReason}>{existingRequest.rejection_reason}</Text>
+              </View>
+            )}
+            <Text style={styles.statusText}>
+              Don&apos;t worry! You can address the feedback and submit a new application.
+            </Text>
+            <Button
+              title="Submit New Application"
+              onPress={() => setExistingRequest(null)}
+              variant="primary"
+              size="large"
+            />
+            <Button title="Go Back" onPress={() => router.back()} variant="ghost" size="large" />
+          </View>
+        </SafeAreaView>
+      </>
+    );
+  }
+
+  // Show pending status (no reapply yet)
+  if (existingRequest?.status === 'pending') {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Host Application' }} />
+        <SafeAreaView style={styles.container}>
+          <View style={styles.statusContainer}>
+            <Text style={styles.statusIcon}>⏳</Text>
+            <Text style={styles.statusTitle}>Application Under Review</Text>
+            <Text style={styles.statusText}>
+              Your host application is being reviewed by our team. We&apos;ll notify you once a
+              decision is made. This typically takes 2-3 business days.
+            </Text>
+            <Button title="Go Back" onPress={() => router.back()} variant="primary" size="large" />
+          </View>
+        </SafeAreaView>
+      </>
+    );
   }
 
   // Show new application form
@@ -114,5 +159,25 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: 'center',
     marginBottom: Spacing.xl,
+  },
+  rejectionBox: {
+    backgroundColor: Colors.surface,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.error,
+    borderRadius: 8,
+    padding: Spacing.md,
+    marginVertical: Spacing.lg,
+    width: '100%',
+  },
+  rejectionLabel: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    fontWeight: '600',
+    marginBottom: Spacing.xs,
+  },
+  rejectionReason: {
+    ...Typography.body,
+    color: Colors.text,
+    lineHeight: 22,
   },
 });

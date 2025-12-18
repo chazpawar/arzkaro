@@ -27,6 +27,13 @@ export interface Event {
   is_cancelled: boolean;
   category: string | null;
   tags: string[];
+  // Trip-specific fields
+  departure_location: string | null;
+  pickups: string[];
+  itinerary: string | null;
+  whats_included: string | null;
+  whats_not_included: string | null;
+  ideal_for: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields
@@ -57,6 +64,13 @@ export interface CreateEvent {
   currency?: string;
   category?: string;
   tags?: string[];
+  // Trip-specific fields (optional, only for type === 'trip')
+  departure_location?: string;
+  pickups?: string[];
+  itinerary?: string;
+  whats_included?: string;
+  whats_not_included?: string;
+  ideal_for?: string;
 }
 
 export interface UpdateEvent extends Partial<CreateEvent> {
