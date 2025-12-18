@@ -335,11 +335,13 @@ export default function EventChatScreen() {
 
           {/* Messages List */}
           {messages.length === 0 ? (
-            <EmptyState
-              title="No Messages Yet"
-              emoji="👋"
-              message="Be the first to say hello! Start a conversation with other event attendees."
-            />
+            <View style={styles.emptyStateContainer}>
+              <EmptyState
+                title="No Messages Yet"
+                emoji="👋"
+                message="Be the first to say hello! Start a conversation with other event attendees."
+              />
+            </View>
           ) : (
             <FlatList
               ref={flatListRef}
@@ -473,6 +475,10 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.textSecondary,
     fontStyle: 'italic',
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
   },
   dateHeader: {
     alignItems: 'center',
