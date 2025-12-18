@@ -36,6 +36,8 @@ export interface CreateBooking {
   event_id: string;
   ticket_type_id?: string;
   quantity: number;
+  payment_id?: string;
+  payment_status?: PaymentStatus;
 }
 
 export interface BookingWithDetails extends Omit<Booking, 'event' | 'ticket_type'> {

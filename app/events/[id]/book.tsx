@@ -10,6 +10,7 @@ import { useAuth } from '../../../src/contexts/auth-context';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import { useEvent } from '../../../src/hooks/use-events';
 import { createBooking } from '../../../src/services/booking-service';
+import { razorpayService } from '../../../src/services/razorpay-service';
 
 interface TicketType {
   id: string;
@@ -95,27 +96,71 @@ export default function BookEventScreen() {
     try {
       setBookingLoading(true);
 
-      // Create booking using real service
-      const { booking: _booking } = await createBooking(
-        {
-          event_id: event.id,
-          ticket_type_id: selectedTicketType?.id,
-          quantity: quantity,
-        },
-        user.id
-      );
+      // If the event is paid, process payment first
+      if (totalAmount > 0) {
+        console.log('Processing payment for amount:', totalAmount);
 
-      // Show success message
-      Alert.alert(
-        'Booking Confirmed! 🎉',
-        `You've successfully booked ${quantity} ticket${quantity > 1 ? 's' : ''} for ${event.title}. Check your tickets to view your QR code and join the event chat.`,
-        [
+        // Get user details for Razorpay
+        const userDetails = {
+          name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Guest',
+          email: user.email || '',
+          contact: user.user_metadata?.phone || '+919999999999', // Default for testing
+        };
+
+        // Process payment using Razorpay
+        const paymentResult = await razorpayService.processPayment(
+          event.id,
+          selectedTicketType?.id,
+          quantity,
+          user.id,
+          userDetails
+        );
+
+        if (!paymentResult.success) {
+          throw new Error(paymentResult.error || 'Payment failed');
+        }
+
+        console.log(
+          'Payment successful:',
+          paymentResult.paymentId,
+          'Booking ID:',
+          paymentResult.bookingId
+        );
+
+        // Show success message (booking already created and updated by razorpayService)
+        Alert.alert(
+          'Payment & Booking Confirmed! 🎉',
+          `Payment successful! You've booked ${quantity} ticket${quantity > 1 ? 's' : ''} for ${event.title}. Check your tickets to view your QR code and join the event chat.`,
+          [
+            {
+              text: 'View Tickets',
+              onPress: () => router.replace('/(tabs)/tickets'),
+            },
+          ]
+        );
+      } else {
+        // Free event - no payment required
+        const { booking: _booking } = await createBooking(
           {
-            text: 'View Tickets',
-            onPress: () => router.replace('/(tabs)/tickets'),
+            event_id: event.id,
+            ticket_type_id: selectedTicketType?.id,
+            quantity: quantity,
           },
-        ]
-      );
+          user.id
+        );
+
+        // Show success message for free event
+        Alert.alert(
+          'Booking Confirmed! 🎉',
+          `You've successfully booked ${quantity} ticket${quantity > 1 ? 's' : ''} for ${event.title}. Check your tickets to view your QR code and join the event chat.`,
+          [
+            {
+              text: 'View Tickets',
+              onPress: () => router.replace('/(tabs)/tickets'),
+            },
+          ]
+        );
+      }
     } catch (err) {
       // Show error message
       console.error('Booking error:', err);

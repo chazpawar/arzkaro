@@ -15,6 +15,8 @@ interface CreateBookingInput {
   event_id: string;
   ticket_type_id?: string;
   quantity: number;
+  payment_id?: string;
+  payment_status?: 'pending' | 'completed' | 'failed' | 'refunded';
 }
 
 /**
@@ -47,7 +49,7 @@ export async function createBooking(bookingData: CreateBookingInput, userId: str
     }
   }
 
-  // Create booking with confirmed status (MVP - no payment)
+  // Create booking with payment details if provided
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
     .insert({
@@ -57,8 +59,9 @@ export async function createBooking(bookingData: CreateBookingInput, userId: str
       quantity: bookingData.quantity,
       total_amount: totalAmount,
       currency: eventData.currency || 'INR',
-      status: 'confirmed', // Auto-confirm for MVP
-      payment_status: 'completed', // Skip payment for MVP
+      status: 'confirmed', // Auto-confirm (payment already verified if paid)
+      payment_intent_id: bookingData.payment_id || null,
+      payment_status: bookingData.payment_status || 'completed',
     })
     .select()
     .single();

@@ -15,5 +15,6 @@
       "@utils/*": ["src/utils/*"],
       "@backend/*": ["backend/*"]
     }
-  }
+  },
+  "exclude": ["supabase/functions", "ios", "android", "node_modules"]
 }
