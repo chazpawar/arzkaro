@@ -20,6 +20,8 @@ module.exports = {
       bundleIdentifier: 'com.arzkaro.app',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
+        NSPhotoLibraryUsageDescription: 'This app needs access to your photo library to upload event images.',
+        NSCameraUsageDescription: 'This app needs access to your camera to take event photos.',
       },
     },
     android: {
@@ -41,6 +43,15 @@ module.exports = {
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     },
-    plugins: ['expo-web-browser'],
+    plugins: [
+      'expo-web-browser',
+      [
+        'expo-image-picker',
+        {
+          photosPermission: 'The app needs access to your photo library to upload event images.',
+          cameraPermission: 'The app needs access to your camera to take event photos.',
+        },
+      ],
+    ],
   },
 };

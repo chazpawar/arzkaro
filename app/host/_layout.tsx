@@ -16,12 +16,7 @@ export default function HostLayout() {
         name="dashboard"
         options={{
           title: '',
-        }}
-      />
-      <Stack.Screen
-        name="events"
-        options={{
-          title: 'My Events',
+          headerShown: false,
         }}
       />
       <Stack.Screen

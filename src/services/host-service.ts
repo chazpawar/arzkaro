@@ -465,21 +465,25 @@ export async function getHostStats(hostId: string): Promise<HostStats> {
   const now = new Date().toISOString();
 
   // Get bookings for host's events
-  const { data: bookings, error: bookingsError } = await supabase
-    .from('bookings')
-    .select('total_amount, status')
-    .in('event_id', eventIds.length > 0 ? eventIds : [''])
-    .eq('status', 'confirmed');
+  let bookings: any[] = [];
+  if (eventIds.length > 0) {
+    const { data, error: bookingsError } = await supabase
+      .from('bookings')
+      .select('total_amount, status')
+      .in('event_id', eventIds)
+      .eq('status', 'confirmed');
 
-  if (bookingsError) {
-    throw new Error(bookingsError.message);
+    if (bookingsError) {
+      throw new Error(bookingsError.message);
+    }
+    bookings = data || [];
   }
 
   interface BookingData {
     total_amount: number;
     status: string;
   }
-  const bookingsList = (bookings || []) as BookingData[];
+  const bookingsList = bookings as BookingData[];
 
   // Calculate stats
   const stats: HostStats = {

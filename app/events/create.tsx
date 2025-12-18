@@ -17,6 +17,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
+import ImageUpload from '../../src/components/ui/image-upload';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
@@ -172,6 +173,9 @@ export default function CreateEventScreen() {
   const [endTime, setEndTime] = useState('');
   const [maxCapacity, setMaxCapacity] = useState('');
   const [price, setPrice] = useState('0');
+
+  // Image fields
+  const [coverImageUrl, setCoverImageUrl] = useState<string | null>(null);
 
   // Trip-specific fields
   const [departureLocation, setDepartureLocation] = useState('');
@@ -490,6 +494,7 @@ export default function CreateEventScreen() {
         title: title.trim(),
         description: description.trim(),
         category,
+        cover_image_url: coverImageUrl || undefined,
         location_name: locationName.trim(),
         location_address: locationAddress.trim() || undefined,
         start_date: startDateTime.toISOString(),
@@ -643,6 +648,16 @@ export default function CreateEventScreen() {
                   multiline
                   numberOfLines={4}
                   error={errors.description}
+                />
+
+                <ImageUpload
+                  label={`Add ${eventType === 'event' ? 'Event' : eventType === 'experience' ? 'Experience' : 'Trip'} Cover Image`}
+                  onImageSelected={(url) => {
+                    setCoverImageUrl(url);
+                  }}
+                  currentImageUrl={coverImageUrl}
+                  bucket="event-images"
+                  folder={`${eventType}s/${user?.id}`}
                 />
 
                 <Text style={styles.inputLabel}>Main Category</Text>

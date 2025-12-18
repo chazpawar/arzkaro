@@ -96,8 +96,18 @@ export default function HostDashboard() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+
+      {/* Header with Back Button */}
+      <View style={styles.header}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={24} color={Colors.text} />
+        </Pressable>
+        <Text style={styles.headerTitle}>Host Dashboard</Text>
+        <View style={styles.headerPlaceholder} />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -206,7 +216,7 @@ export default function HostDashboard() {
               <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
             </Pressable>
 
-            <Pressable style={styles.menuItem} onPress={() => router.push('/host/events')}>
+            <Pressable style={styles.menuItem} onPress={() => router.push('/(tabs)/explore')}>
               <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
                 <Ionicons name="calendar-outline" size={20} color={Colors.text} />
               </View>
@@ -228,7 +238,7 @@ export default function HostDashboard() {
           <Text style={styles.footerText}>ArzKaro Host v1.0</Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -236,6 +246,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    ...Typography.h4,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  headerPlaceholder: {
+    width: 40,
   },
   scrollContent: {
     padding: Spacing.lg,

@@ -25,8 +25,6 @@ export async function canUserCreateEventType(
   eventType: 'event' | 'trip' | 'experience'
 ): Promise<EventCreationPermission> {
   // Call database function for permission check
-  // NOTE: RPC function may not exist in type definitions but exists in database
-  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('can_user_create_event_type', {
     p_user_id: userId,
     p_event_type: eventType,

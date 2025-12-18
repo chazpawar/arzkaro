@@ -239,12 +239,10 @@ export async function approveHostRequest(
   adminNotes?: string
 ): Promise<HostRequest> {
   // Use database function for atomic approval
-  // NOTE: RPC function may not exist in type definitions but exists in database
-  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('approve_host_request', {
     p_request_id: requestId,
     p_admin_id: adminId,
-    p_admin_notes: adminNotes || null,
+    p_admin_notes: adminNotes || undefined,
   });
 
   if (error) {
@@ -280,13 +278,11 @@ export async function rejectHostRequest(
   adminNotes?: string
 ): Promise<HostRequest> {
   // Use database function for rejection
-  // NOTE: RPC function may not exist in type definitions but exists in database
-  // @ts-expect-error - RPC function exists in database but not in generated types
   const { data, error } = await supabase.rpc('reject_host_request', {
     p_request_id: requestId,
     p_admin_id: adminId,
     p_rejection_reason: rejectionReason,
-    p_admin_notes: adminNotes || null,
+    p_admin_notes: adminNotes || undefined,
   });
 
   if (error) {
