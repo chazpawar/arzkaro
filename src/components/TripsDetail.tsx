@@ -5,7 +5,7 @@ import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
 
 // Dummy trip data since backend only has events mostly
-const DUMMY_TRIPS = [
+export const DUMMY_TRIPS = [
   {
     id: 'trip1',
     title: 'Manali Backpacking',

@@ -6,7 +6,7 @@ import {
   ScrollView,
   Pressable,
   RefreshControl,
-  ImageBackground,
+  Image,
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -20,7 +20,7 @@ import { useEvents } from '../../src/hooks/use-events';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
-import TripsDetail from '../../src/components/TripsDetail';
+import TripsDetail, { DUMMY_TRIPS } from '../../src/components/TripsDetail';
 import SearchModal from '../../src/components/SearchModal';
 
 const CATEGORIES = [
@@ -28,22 +28,50 @@ const CATEGORIES = [
     id: 'events',
     label: 'Events',
     icon: 'calendar-outline',
-    image:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    // Gradient-like colors or solid colors for circle background
+    color: '#6C63FF',
   },
   {
     id: 'experiences',
     label: 'Experiences',
     icon: 'compass-outline',
-    image:
-      'https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    color: '#FF6584',
   },
   {
     id: 'trips',
     label: 'Trips',
     icon: 'airplane-outline',
+    color: '#4ECDC4',
+  },
+];
+
+const FEATURED_EXPERIENCES = [
+  {
+    id: 'exp1',
+    title: 'Pottery Workshop',
     image:
-      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: '₹1,200',
+    rating: 4.8,
+    location: 'Indiranagar',
+  },
+  {
+    id: 'exp2',
+    title: 'Wine Tasting',
+    image:
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: '₹2,500',
+    rating: 4.9,
+    location: 'Nandi Hills',
+  },
+  {
+    id: 'exp3',
+    title: 'Stand-up Comedy',
+    image:
+      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: '₹499',
+    rating: 4.5,
+    location: 'Koramangala',
   },
 ];
 
@@ -161,28 +189,88 @@ export default function ExploreTab() {
           />
         }
       >
-        {/* Main View: 3 Big Category Buttons */}
+        {/* Main View: Circles + Featured Sections */}
         {!activeView ? (
-          <View style={styles.mainGrid}>
-            {CATEGORIES.map((cat) => (
-              <Pressable
-                key={cat.id}
-                style={styles.bigCategoryCard}
-                onPress={() => setActiveView(cat.id)}
-              >
-                <ImageBackground
-                  source={{ uri: cat.image }}
-                  style={styles.cardBackground}
-                  imageStyle={{ borderRadius: BorderRadius.lg }}
+          <View style={styles.mainContent}>
+            {/* 1. Horizontal Circular Categories */}
+            <View style={styles.categoriesRow}>
+              {CATEGORIES.map((cat) => (
+                <Pressable
+                  key={cat.id}
+                  style={styles.categoryCircleContainer}
+                  onPress={() => setActiveView(cat.id)}
                 >
-                  <View style={styles.cardOverlay} />
-                  <View style={styles.cardContent}>
+                  <View style={[styles.categoryCircle, { backgroundColor: cat.color }]}>
                     <Ionicons name={cat.icon as any} size={32} color="#FFF" />
-                    <Text style={styles.cardTitle}>{cat.label}</Text>
                   </View>
-                </ImageBackground>
-              </Pressable>
-            ))}
+                  <Text style={styles.categoryLabel}>{cat.label}</Text>
+                </Pressable>
+              ))}
+            </View>
+
+            {/* 2. Top Experiences Section */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Top Experiences</Text>
+                <Pressable onPress={() => setActiveView('experiences')}>
+                  <Text style={styles.seeAllText}>See All</Text>
+                </Pressable>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {FEATURED_EXPERIENCES.map((item) => (
+                  <Pressable key={item.id} style={styles.horizontalCard}>
+                    <Image source={{ uri: item.image }} style={styles.horizontalCardImage} />
+                    <View style={styles.horizontalCardContent}>
+                      <Text style={styles.cardTitle} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      <View style={styles.cardRow}>
+                        <Text style={styles.cardLocation}>{item.location}</Text>
+                        <Text style={styles.cardRating}>★ {item.rating}</Text>
+                      </View>
+                      <Text style={styles.cardPrice}>{item.price}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* 3. Popular Trips Section */}
+            <View style={styles.sectionContainer}>
+              <View style={styles.sectionHeaderRow}>
+                <Text style={styles.sectionTitle}>Popular Trips</Text>
+                <Pressable onPress={() => setActiveView('trips')}>
+                  <Text style={styles.seeAllText}>See All</Text>
+                </Pressable>
+              </View>
+
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {DUMMY_TRIPS.map((item) => (
+                  <Pressable key={item.id} style={styles.horizontalCard}>
+                    <Image source={{ uri: item.image }} style={styles.horizontalCardImage} />
+                    <View style={styles.horizontalCardContent}>
+                      <Text style={styles.cardTitle} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      <View style={styles.cardRow}>
+                        <Text style={styles.cardLocation}>{item.location}</Text>
+                        <Text style={styles.cardRating}>★ {item.rating}</Text>
+                      </View>
+                      <Text style={styles.cardPrice}>{item.price}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
           </View>
         ) : (
           // Detail Views
@@ -234,10 +322,10 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary, // Gray background
+    backgroundColor: Colors.surfaceSecondary,
     paddingHorizontal: Spacing.md,
-    paddingVertical: 12, // Taller search bar
-    borderRadius: BorderRadius.full, // Rounded
+    paddingVertical: 12,
+    borderRadius: BorderRadius.full,
     gap: Spacing.sm,
   },
   searchPlaceholder: {
@@ -251,43 +339,108 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  mainGrid: {
-    padding: Spacing.lg,
-    gap: Spacing.lg,
+  mainContent: {
+    paddingBottom: Spacing.xl,
   },
-  bigCategoryCard: {
-    height: 160,
-    borderRadius: BorderRadius.lg,
+  // Categories (Circles)
+  categoriesRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around', // Distribute evenly
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+  },
+  categoryCircleContainer: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  categoryCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    justifyContent: 'center',
+    alignItems: 'center',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
-        shadowRadius: 8,
+        shadowRadius: 4,
       },
       android: {
         elevation: 4,
       },
     }),
   },
-  cardBackground: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  categoryLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
   },
-  cardOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)', // Dark overlay for text readability
+  // Featured Sections
+  sectionContainer: {
+    marginTop: Spacing.xl,
+    gap: Spacing.md,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
+  },
+  horizontalList: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  horizontalCard: {
+    width: 220,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  cardContent: {
-    alignItems: 'center',
-    gap: Spacing.sm,
+  horizontalCardImage: {
+    width: '100%',
+    height: 120,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  horizontalCardContent: {
+    padding: Spacing.sm,
+    gap: 4,
   },
   cardTitle: {
-    fontSize: 24,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardLocation: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  cardRating: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  cardPrice: {
+    fontSize: 14,
     fontWeight: '700',
-    color: '#FFF',
-    letterSpacing: 1,
+    color: Colors.text,
+    marginTop: 2,
   },
 });
