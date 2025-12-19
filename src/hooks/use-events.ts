@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import * as EventService from '../services/event-service';
-import type { Event, EventFilters, TicketType } from '../types';
+import type { Event, EventFilters, TicketType, EventType } from '../types';
 import { hasValidCredentials } from '../../backend/supabase';
 import { useAuth } from '../contexts/auth-context';
 
@@ -184,7 +184,7 @@ export function useEvent(eventId: string | undefined) {
 /**
  * Hook for fetching featured events
  */
-export function useFeaturedEvents(limit = 5) {
+export function useFeaturedEvents(limit = 5, type?: EventType) {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -193,14 +193,14 @@ export function useFeaturedEvents(limit = 5) {
     try {
       setLoading(true);
       setError(null);
-      const data = await EventService.getFeaturedEvents(limit);
+      const data = await EventService.getFeaturedEvents(limit, type);
       setEvents(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch featured events');
     } finally {
       setLoading(false);
     }
-  }, [limit]);
+  }, [limit, type]);
 
   useEffect(() => {
     fetchFeaturedEvents();

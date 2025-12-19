@@ -45,8 +45,8 @@ export default function HostRequestScreen() {
   };
 
   const handleCancelForm = () => {
+    // If we are in the form, just go back to the selection screen
     setShowForm(false);
-    setSelectedCategory(null);
   };
 
   const handleNext = () => {
@@ -58,6 +58,15 @@ export default function HostRequestScreen() {
   const getHostTypeFromCategory = () => {
     if (selectedCategory === 'experience') return 'activity';
     return 'full';
+  };
+
+  // Back handler for the selection screen
+  const handleBack = () => {
+    if (showForm) {
+      setShowForm(false);
+    } else {
+      router.back();
+    }
   };
 
   // If already a host, show success state
@@ -161,8 +170,8 @@ export default function HostRequestScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container}>
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-            <Ionicons name="close" size={24} color={Colors.text} />
+          <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
           </TouchableOpacity>
         </View>
 
@@ -241,6 +250,12 @@ const styles = StyleSheet.create({
   headerRow: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    padding: Spacing.xs,
+    marginRight: Spacing.sm,
   },
   closeButton: {
     padding: Spacing.xs,

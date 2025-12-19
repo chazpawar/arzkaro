@@ -7,6 +7,7 @@ import {
   ScrollView,
   RefreshControl,
   Pressable,
+  TouchableOpacity,
   Image,
   Alert,
   TextInput,

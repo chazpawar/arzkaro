@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TextInput, Pressable, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Modal,
+  TextInput,
+  Pressable,
+  Platform,
+  ScrollView,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import Animated, { FadeIn, FadeOut, Layout } from 'react-native-reanimated';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
@@ -10,118 +21,168 @@ interface SearchModalProps {
   onSearch: (category: string, query: string, date?: Date) => void;
 }
 
-const CATEGORIES = [
-  { id: 'events', label: 'Events', icon: 'calendar-outline' },
-  { id: 'experiences', label: 'Experiences', icon: 'compass-outline' },
-  { id: 'trips', label: 'Trips', icon: 'airplane-outline' },
+const RECENT_SEARCHES = [
+  { id: '1', label: 'New Delhi', subLabel: '8–9 Dec • 16 guests', icon: 'business-outline' },
 ];
 
-const RECENT_SEARCHES = [
-  { id: '1', label: 'New Delhi', subLabel: 'Any week • 2 guests', icon: 'location-outline' },
-  { id: '2', label: 'Mumbai', subLabel: 'Weekend • 1 guest', icon: 'location-outline' },
+const SUGGESTED_DESTINATIONS = [
+  { id: '1', label: 'Nearby', subLabel: "Find what's around you", icon: 'navigate-outline' },
+  {
+    id: '2',
+    label: 'Noida, Uttar Pradesh',
+    subLabel: 'Guests interested in New Delhi also looked here',
+    icon: 'business-outline',
+  },
 ];
 
 export default function SearchModal({ visible, onClose, onSearch }: SearchModalProps) {
-  const [activeCategory, setActiveCategory] = useState('events');
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedSection, setExpandedSection] = useState<'where' | 'when' | 'who'>('where');
 
   const handleSearch = () => {
-    onSearch(activeCategory, searchQuery);
+    onSearch('all', searchQuery);
     onClose();
+  };
+
+  const renderWhereSection = () => {
+    if (expandedSection !== 'where') {
+      return (
+        <Pressable onPress={() => setExpandedSection('where')}>
+          <Animated.View 
+            layout={Layout.springify()} 
+            entering={FadeIn} 
+            exiting={FadeOut}
+            style={styles.collapsedCard}
+          >
+            <Text style={styles.collapsedLabel}>Where</Text>
+            <Text style={styles.collapsedValue}>{searchQuery || 'Add destination'}</Text>
+          </Animated.View>
+        </Pressable>
+      );
+    }
+
+    return (
+      <Animated.View 
+        layout={Layout.springify()} 
+        entering={FadeIn} 
+        exiting={FadeOut}
+        style={styles.expandedCard}
+      >
+        <Text style={styles.cardTitle}>Where?</Text>
+        <View style={styles.searchInputContainer}>
+          <Ionicons name="search" size={20} color={Colors.text} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search destinations"
+            placeholderTextColor={Colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+          />
+        </View>
+
+        <ScrollView style={styles.resultsList} showsVerticalScrollIndicator={false}>
+          <Text style={styles.sectionHeader}>Recent searches</Text>
+          {RECENT_SEARCHES.map((item) => (
+            <Pressable
+              key={item.id}
+              style={styles.resultItem}
+              onPress={() => setSearchQuery(item.label)}
+            >
+              <View style={styles.iconBox}>
+                <Ionicons name={item.icon as any} size={24} color={Colors.text} />
+              </View>
+              <View style={styles.resultContent}>
+                <Text style={styles.resultLabel}>{item.label}</Text>
+                <Text style={styles.resultSubLabel}>{item.subLabel}</Text>
+              </View>
+            </Pressable>
+          ))}
+
+          <Text style={[styles.sectionHeader, { marginTop: Spacing.lg }]}>
+            Suggested destinations
+          </Text>
+          {SUGGESTED_DESTINATIONS.map((item) => (
+            <Pressable
+              key={item.id}
+              style={styles.resultItem}
+              onPress={() => setSearchQuery(item.label)}
+            >
+              <View style={[styles.iconBox, item.id === '1' && styles.blueIconBox]}>
+                <Ionicons
+                  name={item.icon as any}
+                  size={24}
+                  color={item.id === '1' ? '#3B82F6' : Colors.text}
+                />
+              </View>
+              <View style={styles.resultContent}>
+                <Text style={styles.resultLabel}>{item.label}</Text>
+                <Text style={styles.resultSubLabel}>{item.subLabel}</Text>
+              </View>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </Animated.View>
+    );
+  };
+
+  const renderCollapsedSection = (label: string, actionText: string, section: 'when' | 'who') => {
+    const isExpanded = expandedSection === section;
+
+    if (isExpanded) {
+        return (
+             <Animated.View 
+                layout={Layout.springify()} 
+                entering={FadeIn} 
+                exiting={FadeOut}
+                style={styles.expandedCard}
+              >
+                 <Text style={styles.cardTitle}>{label}?</Text>
+                 <View style={{height: 200, justifyContent: 'center', alignItems: 'center'}}>
+                     <Text style={{color: Colors.textSecondary}}>Placeholder for {label} selection</Text>
+                 </View>
+            </Animated.View>
+        )
+    }
+
+    return (
+      <Pressable onPress={() => setExpandedSection(section)}>
+        <Animated.View 
+            layout={Layout.springify()} 
+            entering={FadeIn} 
+            exiting={FadeOut}
+            style={styles.collapsedCard}
+        >
+          <Text style={styles.collapsedLabel}>{label}</Text>
+          <Text style={styles.collapsedAction}>{actionText}</Text>
+        </Animated.View>
+      </Pressable>
+    );
   };
 
   return (
     <Modal visible={visible} animationType="fade" transparent>
       <View style={styles.container}>
-        {/* Background Blur or Overlay */}
-        <Pressable style={styles.overlay} onPress={onClose} />
+        <BlurView intensity={90} style={StyleSheet.absoluteFill} tint="light">
+          <Pressable style={styles.overlay} onPress={onClose} />
+        </BlurView>
 
-        <View style={styles.contentWrapper}>
-          <View style={styles.card}>
-            {/* Header Categories */}
-            <View style={styles.header}>
-              <View style={styles.categoriesRow}>
-                {CATEGORIES.map((cat) => (
-                  <Pressable
-                    key={cat.id}
-                    onPress={() => setActiveCategory(cat.id)}
-                    style={[
-                      styles.categoryTab,
-                      activeCategory === cat.id && styles.categoryTabActive,
-                    ]}
-                  >
-                    <Ionicons
-                      name={cat.icon as any}
-                      size={20}
-                      color={activeCategory === cat.id ? Colors.text : Colors.textSecondary}
-                    />
-                    <Text
-                      style={[
-                        styles.categoryText,
-                        activeCategory === cat.id && styles.categoryTextActive,
-                      ]}
-                    >
-                      {cat.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+        <View style={styles.contentContainer}>
+          <View style={styles.cardStack}>
+            {renderWhereSection()}
+            {renderCollapsedSection('When', 'Add dates', 'when')}
+            {renderCollapsedSection('Who', 'Add guests', 'who')}
+          </View>
 
-              <Pressable onPress={onClose} style={styles.closeButton}>
-                <Ionicons name="close-circle" size={24} color={Colors.textSecondary} />
-              </Pressable>
-            </View>
+          <View style={styles.footer}>
+            <Pressable onPress={() => setSearchQuery('')}>
+              <Text style={styles.clearText}>Clear all</Text>
+            </Pressable>
 
-            {/* Search Input Area */}
-            <View style={styles.searchSection}>
-              <Text style={styles.sectionTitle}>Where?</Text>
-              <View style={styles.searchInputContainer}>
-                <Ionicons name="search" size={20} color={Colors.text} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search destinations"
-                  placeholderTextColor={Colors.textSecondary}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoFocus
-                />
-              </View>
-            </View>
-
-            {/* Recent Searches */}
-            <View style={styles.recentSection}>
-              <Text style={styles.recentTitle}>Recent searches</Text>
-              {RECENT_SEARCHES.map((item) => (
-                <Pressable
-                  key={item.id}
-                  style={styles.recentItem}
-                  onPress={() => {
-                    setSearchQuery(item.label);
-                    // Optionally trigger search immediately
-                  }}
-                >
-                  <View style={styles.recentIconBox}>
-                    <Ionicons name={item.icon as any} size={22} color={Colors.text} />
-                  </View>
-                  <View>
-                    <Text style={styles.recentLabel}>{item.label}</Text>
-                    <Text style={styles.recentSubLabel}>{item.subLabel}</Text>
-                  </View>
-                </Pressable>
-              ))}
-            </View>
-
-            {/* Bottom Actions */}
-            <View style={styles.footer}>
-              <Pressable onPress={() => setSearchQuery('')}>
-                <Text style={styles.clearText}>Clear all</Text>
-              </Pressable>
-
-              <Pressable style={styles.searchButton} onPress={handleSearch}>
-                <Ionicons name="search" size={20} color="#FFF" />
-                <Text style={styles.searchButtonText}>Search</Text>
-              </Pressable>
-            </View>
+            <Pressable style={styles.searchButton} onPress={handleSearch}>
+              <Ionicons name="search" size={20} color="#FFF" />
+              <Text style={styles.searchButtonText}>Search</Text>
+            </Pressable>
           </View>
         </View>
       </View>
@@ -132,17 +193,24 @@ export default function SearchModal({ visible, onClose, onSearch }: SearchModalP
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'flex-start',
-  },
-  contentWrapper: {
-    marginTop: Platform.OS === 'ios' ? 60 : 40,
-    paddingHorizontal: Spacing.md,
+    justifyContent: 'center',
+    padding: Spacing.md,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
-  card: {
+  contentContainer: {
+    width: '100%',
+    maxWidth: 400,
+    alignSelf: 'center',
+  },
+  cardStack: {
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  // Expanded Card Styles
+  expandedCard: {
     backgroundColor: '#fff',
     borderRadius: BorderRadius.xl,
     padding: Spacing.lg,
@@ -150,69 +218,32 @@ const styles = StyleSheet.create({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
+        shadowOpacity: 0.1,
         shadowRadius: 12,
       },
       android: {
-        elevation: 8,
+        elevation: 5,
       },
     }),
+    height: 400, // Fixed height for the expanded card
+    overflow: 'hidden',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: Colors.text,
     marginBottom: Spacing.lg,
-  },
-  categoriesRow: {
-    flexDirection: 'row',
-    gap: Spacing.lg,
-    flex: 1,
-    justifyContent: 'center',
-  },
-  categoryTab: {
-    alignItems: 'center',
-    gap: 4,
-    opacity: 0.6,
-  },
-  categoryTabActive: {
-    opacity: 1,
-    borderBottomWidth: 2,
-    borderBottomColor: Colors.text,
-    paddingBottom: 4,
-  },
-  categoryText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.text,
-  },
-  categoryTextActive: {
-    fontWeight: '700',
-  },
-  closeButton: {
-    position: 'absolute',
-    right: 0,
-    top: -4,
-  },
-  searchSection: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    marginBottom: Spacing.md,
-    color: Colors.text,
   },
   searchInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.md,
     height: 50,
-    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -229,66 +260,111 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.text,
+    marginLeft: Spacing.sm,
     height: '100%',
   },
-  recentSection: {
-    marginBottom: Spacing.xl,
+  resultsList: {
+    flex: 1,
   },
-  recentTitle: {
+  sectionHeader: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.textSecondary,
     marginBottom: Spacing.md,
   },
-  recentItem: {
+  resultItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: Spacing.md,
-    gap: Spacing.md,
+    marginBottom: Spacing.lg,
   },
-  recentIconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    backgroundColor: Colors.surfaceSecondary,
+  iconBox: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: '#F3F4F6',
     alignItems: 'center',
     justifyContent: 'center',
+    marginRight: Spacing.md,
   },
-  recentLabel: {
+  blueIconBox: {
+    backgroundColor: '#EFF6FF',
+  },
+  resultContent: {
+    flex: 1,
+  },
+  resultLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
+    marginBottom: 2,
   },
-  recentSubLabel: {
+  resultSubLabel: {
     fontSize: 13,
     color: Colors.textSecondary,
+    lineHeight: 18,
   },
+  // Collapsed Card Styles
+  collapsedCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: BorderRadius.lg, // Medium rounding
+    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.lg,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  collapsedLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  collapsedValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  collapsedAction: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  // Footer Styles
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
   },
   clearText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    color: Colors.textSecondary,
+    color: Colors.text,
     textDecorationLine: 'underline',
+    marginTop: 4,
   },
   searchButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    backgroundColor: '#FF385C',
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.lg,
     gap: Spacing.xs,
   },
   searchButtonText: {
     color: '#FFF',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 16,
   },
 });

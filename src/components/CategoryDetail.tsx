@@ -83,17 +83,19 @@ export default function CategoryDetail({
           </Text>
         </View>
 
-        <Text style={styles.locationText}>{club.location}</Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.locationText}>{club.location}</Text>
+          <Pressable style={styles.bookButton}>
+            <Text style={styles.bookButtonText}>Book Now</Text>
+          </Pressable>
+        </View>
       </View>
-      <Pressable style={styles.followButton}>
-        <Text style={styles.followButtonText}>Follow</Text>
-      </Pressable>
     </View>
   );
 
   return (
     <View style={styles.container}>
-      {/* Horizontal Tags ScrollView (Circular Icons like Misfits) */}
+      {/* Horizontal Tags ScrollView (Circular Icons) */}
       <View style={styles.tagsContainer}>
         <ScrollView
           horizontal
@@ -107,12 +109,12 @@ export default function CategoryDetail({
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Ionicons
                     name={tag.icon as any}
-                    size={24}
+                    size={32}
                     color={isSelected ? '#FFF' : Colors.primary}
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={10} color="#FFF" />
+                      <Ionicons name="checkmark" size={12} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -180,9 +182,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   tagIconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -192,85 +194,93 @@ const styles = StyleSheet.create({
   tagIconCircleSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    borderWidth: 2,
   },
   checkBadge: {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FFB800', // Gold color for checkmark
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    backgroundColor: '#FFB800',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: Colors.background,
   },
   tagLabel: {
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textSecondary,
     fontWeight: '500',
+    marginTop: 6,
   },
   tagLabelSelected: {
     color: Colors.text,
     fontWeight: '700',
   },
   sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.textSecondary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
     marginHorizontal: Spacing.lg,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.md,
-    textAlign: 'center',
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
+    textAlign: 'left',
   },
   clubsList: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.md,
+    gap: Spacing.lg,
   },
   clubCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
+    backgroundColor: '#fff',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
     marginBottom: Spacing.sm,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
     }),
   },
   clubImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 12,
-    marginRight: Spacing.md,
+    width: 100,
+    height: 100,
+    borderRadius: 24,
+    marginRight: Spacing.lg,
+    backgroundColor: '#f0f0f0',
   },
   clubContent: {
     flex: 1,
+    justifyContent: 'center',
+    minHeight: 100,
   },
   clubCategory: {
     fontSize: 12,
     color: Colors.textSecondary,
-    marginBottom: 2,
+    marginBottom: 4,
+    fontWeight: '600',
+    textTransform: 'uppercase',
   },
   clubName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: 8,
+    lineHeight: 22,
   },
   ratingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
   },
   ratingBadge: {
     backgroundColor: '#4CAF50',
@@ -285,7 +295,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   noRatingBadge: {
-    backgroundColor: Colors.border,
+    backgroundColor: '#f0f0f0',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -300,19 +310,25 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textSecondary,
   },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
   locationText: {
     fontSize: 12,
     color: Colors.textSecondary,
   },
-  followButton: {
+  bookButton: {
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md, // Reduced padding
+    paddingVertical: 6, // Reduced padding
     borderRadius: BorderRadius.full,
   },
-  followButtonText: {
+  bookButtonText: {
     color: '#FFF',
-    fontSize: 14,
+    fontSize: 12, // Reduced font size
     fontWeight: '600',
   },
   eventsList: {

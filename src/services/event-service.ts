@@ -1,6 +1,7 @@
 import { supabase } from '../../backend/supabase';
 import type {
   Event,
+  EventType,
   CreateEvent,
   UpdateEvent,
   EventFilters,
@@ -353,8 +354,8 @@ export async function deleteTicketType(id: string) {
 }
 
 // Get featured/upcoming events for home screen
-export async function getFeaturedEvents(limit = 5) {
-  const { data, error } = await supabase
+export async function getFeaturedEvents(limit = 5, type?: EventType) {
+  let query = supabase
     .from('events')
     .select(
       `
@@ -367,6 +368,12 @@ export async function getFeaturedEvents(limit = 5) {
     .gte('start_date', new Date().toISOString())
     .order('start_date', { ascending: true })
     .limit(limit);
+
+  if (type) {
+    query = query.eq('type', type);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(error.message);

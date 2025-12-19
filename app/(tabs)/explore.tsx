@@ -16,7 +16,7 @@ import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
-import { useEvents } from '../../src/hooks/use-events';
+import { useEvents, useFeaturedEvents } from '../../src/hooks/use-events';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
@@ -28,20 +28,19 @@ const CATEGORIES = [
     id: 'events',
     label: 'Events',
     icon: 'calendar-outline',
-    // Gradient-like colors or solid colors for circle background
-    color: '#6C63FF',
+    color: '#6C63FF', // We will use this for the ICON color now
   },
   {
     id: 'experiences',
     label: 'Experiences',
     icon: 'compass-outline',
-    color: '#FF6584',
+    color: '#FF6584', // Icon color
   },
   {
     id: 'trips',
     label: 'Trips',
     icon: 'airplane-outline',
-    color: '#4ECDC4',
+    color: '#4ECDC4', // Icon color
   },
 ];
 
@@ -105,6 +104,8 @@ export default function ExploreTab() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const { events, loading, refresh } = useEvents();
+  const { events: featuredExperiences } = useFeaturedEvents(5, 'experience');
+  const { events: featuredTrips } = useFeaturedEvents(5, 'trip');
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -200,8 +201,8 @@ export default function ExploreTab() {
                   style={styles.categoryCircleContainer}
                   onPress={() => setActiveView(cat.id)}
                 >
-                  <View style={[styles.categoryCircle, { backgroundColor: cat.color }]}>
-                    <Ionicons name={cat.icon as any} size={32} color="#FFF" />
+                  <View style={styles.categoryCircle}>
+                    <Ionicons name={cat.icon as any} size={32} color={cat.color} />
                   </View>
                   <Text style={styles.categoryLabel}>{cat.label}</Text>
                 </Pressable>
@@ -222,21 +223,39 @@ export default function ExploreTab() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.horizontalList}
               >
-                {FEATURED_EXPERIENCES.map((item) => (
-                  <Pressable key={item.id} style={styles.horizontalCard}>
-                    <Image source={{ uri: item.image }} style={styles.horizontalCardImage} />
-                    <View style={styles.horizontalCardContent}>
-                      <Text style={styles.cardTitle} numberOfLines={1}>
-                        {item.title}
-                      </Text>
-                      <View style={styles.cardRow}>
-                        <Text style={styles.cardLocation}>{item.location}</Text>
-                        <Text style={styles.cardRating}>★ {item.rating}</Text>
+                {(featuredExperiences.length > 0 ? featuredExperiences : FEATURED_EXPERIENCES).map(
+                  (item) => (
+                    <Pressable key={item.id} style={styles.horizontalCard}>
+                      <Image
+                        source={{
+                          uri:
+                            (item as any).image ||
+                            (item as any).cover_image_url ||
+                            'https://via.placeholder.com/150',
+                        }}
+                        style={styles.horizontalCardImage}
+                      />
+                      <View style={styles.horizontalCardContent}>
+                        <Text style={styles.cardTitle} numberOfLines={1}>
+                          {item.title}
+                        </Text>
+                        <View style={styles.cardRow}>
+                          <Text style={styles.cardLocation}>
+                            {(item as any).location || (item as any).location_name || ''}
+                          </Text>
+                          <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
+                        </View>
+                        <Text style={styles.cardPrice}>
+                          {(item as any).price
+                            ? typeof (item as any).price === 'string'
+                              ? (item as any).price
+                              : `₹${(item as any).price}`
+                            : ''}
+                        </Text>
                       </View>
-                      <Text style={styles.cardPrice}>{item.price}</Text>
-                    </View>
-                  </Pressable>
-                ))}
+                    </Pressable>
+                  )
+                )}
               </ScrollView>
             </View>
 
@@ -254,18 +273,34 @@ export default function ExploreTab() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.horizontalList}
               >
-                {DUMMY_TRIPS.map((item) => (
+                {(featuredTrips.length > 0 ? featuredTrips : DUMMY_TRIPS).map((item) => (
                   <Pressable key={item.id} style={styles.horizontalCard}>
-                    <Image source={{ uri: item.image }} style={styles.horizontalCardImage} />
+                    <Image
+                      source={{
+                        uri:
+                          (item as any).image ||
+                          (item as any).cover_image_url ||
+                          'https://via.placeholder.com/150',
+                      }}
+                      style={styles.horizontalCardImage}
+                    />
                     <View style={styles.horizontalCardContent}>
                       <Text style={styles.cardTitle} numberOfLines={1}>
                         {item.title}
                       </Text>
                       <View style={styles.cardRow}>
-                        <Text style={styles.cardLocation}>{item.location}</Text>
-                        <Text style={styles.cardRating}>★ {item.rating}</Text>
+                        <Text style={styles.cardLocation}>
+                          {(item as any).location || (item as any).location_name || ''}
+                        </Text>
+                        <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
                       </View>
-                      <Text style={styles.cardPrice}>{item.price}</Text>
+                      <Text style={styles.cardPrice}>
+                        {(item as any).price
+                          ? typeof (item as any).price === 'string'
+                            ? (item as any).price
+                            : `₹${(item as any).price}`
+                          : ''}
+                      </Text>
                     </View>
                   </Pressable>
                 ))}
@@ -359,12 +394,15 @@ const styles = StyleSheet.create({
     borderRadius: 36,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff', // White background
+    borderWidth: 1, // Optional: add a subtle border or keep clean
+    borderColor: '#eee',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        shadowOpacity: 0.1, // Softer shadow
+        shadowRadius: 8,
       },
       android: {
         elevation: 4,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
@@ -38,54 +39,99 @@ export const DUMMY_TRIPS = [
   },
 ];
 
+const TRIP_CATEGORIES = [
+  { id: 'All', label: 'All', icon: 'grid-outline' },
+  { id: 'Weekend', label: 'Weekend', icon: 'calendar-outline' },
+  { id: 'Budget', label: 'Budget', icon: 'wallet-outline' },
+  { id: 'Luxury', label: 'Luxury', icon: 'diamond-outline' },
+  { id: 'Adventure', label: 'Adventure', icon: 'compass-outline' },
+];
+
 interface TripsDetailProps {
-  events: Event[]; // In case we want to use real data later
+  events: Event[];
 }
 
-export default function TripsDetail({ events: _events }: TripsDetailProps) {
+export default function TripsDetail({ events }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  const filters = ['All', 'Weekend', 'Budget', 'Luxury', 'Adventure'];
+  // Use passed events if available, otherwise fallback to empty (or we could keep DUMMY_TRIPS as a fallback if we really want, but better to move to real data)
+  // For now, let's map the passed events to the structure we need, or update the UI to use Event type directly.
+  // The UI expects: id, image, location, rating, title, date, price
+
+  const displayTrips =
+    events.length > 0
+      ? events.map((event) => ({
+          id: event.id,
+          title: event.title,
+          image:
+            event.cover_image_url ||
+            'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+          date: new Date(event.start_date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+          }),
+          price: `₹${event.price}`,
+          rating: 4.5, // Placeholder
+          location: event.location_name || 'Unknown Location',
+        }))
+      : DUMMY_TRIPS;
 
   return (
     <View style={styles.container}>
-      {/* Filters ScrollView */}
-      <View style={styles.filtersContainer}>
+      {/* Horizontal Tags ScrollView (Circular Icons like CategoryDetail) */}
+      <View style={styles.tagsContainer}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filtersContent}
+          contentContainerStyle={styles.tagsContent}
         >
-          {filters.map((filter) => (
-            <Pressable
-              key={filter}
-              style={[styles.filterChip, activeFilter === filter && styles.filterChipActive]}
-              onPress={() => setActiveFilter(filter)}
-            >
-              <Text style={[styles.filterText, activeFilter === filter && styles.filterTextActive]}>
-                {filter}
-              </Text>
-            </Pressable>
-          ))}
+          {TRIP_CATEGORIES.map((cat) => {
+            const isSelected = activeFilter === cat.id;
+            return (
+              <Pressable
+                key={cat.id}
+                style={styles.tagItem}
+                onPress={() => setActiveFilter(cat.id)}
+              >
+                <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
+                  <Ionicons
+                    name={cat.icon as any}
+                    size={32} // Increased size
+                    color={isSelected ? '#FFF' : Colors.primary}
+                  />
+                  {isSelected && (
+                    <View style={styles.checkBadge}>
+                      <Ionicons name="checkmark" size={14} color="#FFF" />
+                    </View>
+                  )}
+                </View>
+                <Text style={[styles.tagLabel, isSelected && styles.tagLabelSelected]}>
+                  {cat.label}
+                </Text>
+              </Pressable>
+            );
+          })}
         </ScrollView>
       </View>
 
-      <Text style={styles.sectionHeader}>Popular Trips</Text>
+      <Text style={styles.sectionHeader}>{displayTrips.length} Popular Trips</Text>
 
       {/* Trips List */}
       <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
-        {DUMMY_TRIPS.map((trip) => (
+        {displayTrips.map((trip) => (
           <View key={trip.id} style={styles.tripCard}>
             <Image source={{ uri: trip.image }} style={styles.tripImage} />
             <View style={styles.tripContent}>
               <View style={styles.tripHeader}>
                 <Text style={styles.tripLocation}>{trip.location}</Text>
                 <View style={styles.ratingBadge}>
-                  <Text style={styles.ratingText}>★ {trip.rating}</Text>
+                  <Text style={styles.ratingText}>{trip.rating} ★</Text>
                 </View>
               </View>
+
               <Text style={styles.tripTitle}>{trip.title}</Text>
               <Text style={styles.tripDate}>{trip.date}</Text>
+
               <View style={styles.tripFooter}>
                 <Text style={styles.tripPrice}>
                   {trip.price} <Text style={styles.perPerson}>/ person</Text>
@@ -106,58 +152,86 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  filtersContainer: {
+  // Circular Tags Styles (Matched to CategoryDetail)
+  tagsContainer: {
     paddingVertical: Spacing.md,
+    backgroundColor: Colors.background,
   },
-  filtersContent: {
+  tagsContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.sm,
+    gap: Spacing.lg,
   },
-  filterChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
+  tagItem: {
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  tagIconCircle: {
+    width: 90, // Matched big size
+    height: 90, // Matched big size
+    borderRadius: 45,
     backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  filterChipActive: {
+  tagIconCircleSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+    borderWidth: 2,
   },
-  filterText: {
+  checkBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: '#FFB800',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.background,
+  },
+  tagLabel: {
     fontSize: 14,
-    fontWeight: '500',
     color: Colors.textSecondary,
+    fontWeight: '500',
+    marginTop: 6,
   },
-  filterTextActive: {
-    color: '#FFF',
-    fontWeight: '600',
+  tagLabelSelected: {
+    color: Colors.text,
+    fontWeight: '700',
   },
+  // Section Header
   sectionHeader: {
     fontSize: 20,
     fontWeight: '700',
     marginHorizontal: Spacing.lg,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.md,
-    color: Colors.text,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.lg,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
   tripsList: {
     paddingHorizontal: Spacing.lg,
     gap: Spacing.lg,
     paddingBottom: Spacing.xxl,
   },
+  // Card Styles (Matched to new big card style)
   tripCard: {
+    flexDirection: 'row', // Make it horizontal
+    alignItems: 'center', // Align items center vertically
     backgroundColor: '#fff',
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    marginBottom: Spacing.md,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.sm, // Add padding like other cards
+    marginBottom: Spacing.sm,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.1,
-        shadowRadius: 8,
+        shadowRadius: 12,
       },
       android: {
         elevation: 3,
@@ -165,35 +239,41 @@ const styles = StyleSheet.create({
     }),
   },
   tripImage: {
-    width: '100%',
-    height: 200,
+    width: 100, // Fixed width like other cards
+    height: 100, // Fixed height like other cards
+    borderRadius: BorderRadius.lg, // Match border radius style
+    marginRight: Spacing.md,
   },
   tripContent: {
-    padding: Spacing.md,
+    flex: 1,
+    justifyContent: 'center',
+    padding: Spacing.sm, // Reduced padding
   },
   tripHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 4, // Reduced margin
   },
   tripLocation: {
-    fontSize: 12,
+    fontSize: 12, // Smaller font
     fontWeight: '600',
     color: Colors.textSecondary,
     textTransform: 'uppercase',
   },
   ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   ratingText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: Colors.text,
+    fontWeight: '700',
+    color: '#FFF',
   },
   tripTitle: {
-    fontSize: 18,
+    fontSize: 16, // Smaller title
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 4,
@@ -201,17 +281,17 @@ const styles = StyleSheet.create({
   tripDate: {
     fontSize: 14,
     color: Colors.textSecondary,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   tripFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: Spacing.xs,
+    marginTop: 0,
   },
   tripPrice: {
-    fontSize: 18,
-    fontWeight: '700',
+    fontSize: 16, // Smaller price
+    fontWeight: '800',
     color: Colors.primary,
   },
   perPerson: {
@@ -220,16 +300,14 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
   bookButton: {
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.primary,
+    paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   bookButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: Colors.text,
+    color: '#FFF',
   },
 });
