@@ -252,7 +252,7 @@ export default function DMChatScreen() {
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <KeyboardAvoidingView
           style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
           {/* Connection Status */}
@@ -278,6 +278,8 @@ export default function DMChatScreen() {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.messagesList}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
               onContentSizeChange={() => {
                 flatListRef.current?.scrollToEnd({ animated: false });
               }}

@@ -10,20 +10,22 @@ import { submitHostRequest, validateHostRequest } from '@/services/host-service'
 
 interface HostApplicationFormProps {
   userId: string;
+  initialHostType?: 'full' | 'activity';
   onSuccess: () => void;
   onCancel?: () => void;
 }
 
 export default function HostApplicationForm({
   userId,
+  initialHostType = 'activity',
   onSuccess,
   onCancel,
 }: HostApplicationFormProps) {
-  const [hostType, setHostType] = useState<'full' | 'activity' | null>(null);
+  const [hostType, setHostType] = useState<'full' | 'activity'>(initialHostType);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState<HostRequestFormData>({
-    host_type: 'activity',
+    host_type: initialHostType,
     organizer_name: '',
     contact_number: '',
     email: '',
@@ -44,6 +46,9 @@ export default function HostApplicationForm({
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleInputChange = (field: keyof HostRequestFormData, value: string) => {
+    if (field === 'host_type') {
+      setHostType(value as 'full' | 'activity');
+    }
     setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
@@ -55,17 +60,7 @@ export default function HostApplicationForm({
     }
   };
 
-  const handleHostTypeSelect = (type: 'full' | 'activity') => {
-    setHostType(type);
-    setFormData((prev) => ({ ...prev, host_type: type }));
-  };
-
   const handleSubmit = async () => {
-    if (!hostType) {
-      Alert.alert('Error', 'Please select a host type');
-      return;
-    }
-
     // Map form data to request data format for validation and submission
     const requestData = {
       user_id: userId,
@@ -113,53 +108,6 @@ export default function HostApplicationForm({
     }
   };
 
-  // Host type selection screen
-  if (!hostType) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Apply to Become a Host</Text>
-        <Text style={styles.subtitle}>Choose the type of host you&apos;d like to become</Text>
-
-        <TouchableOpacity
-          style={styles.hostTypeCard}
-          onPress={() => handleHostTypeSelect('activity')}
-        >
-          <View style={styles.hostTypeHeader}>
-            <Text style={styles.hostTypeTitle}>Activity Host</Text>
-            <Text style={styles.hostTypeBadge}>Simpler KYC</Text>
-          </View>
-          <Text style={styles.hostTypeDescription}>
-            Create and manage activities/experiences only. Perfect for activity organizers who want
-            a quick start.
-          </Text>
-          <View style={styles.hostTypeFeatures}>
-            <Text style={styles.hostTypeFeature}>• Create Activities</Text>
-            <Text style={styles.hostTypeFeature}>• Simpler verification process</Text>
-            <Text style={styles.hostTypeFeature}>• No GST required</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.hostTypeCard} onPress={() => handleHostTypeSelect('full')}>
-          <View style={styles.hostTypeHeader}>
-            <Text style={styles.hostTypeTitle}>Full Host</Text>
-            <Text style={[styles.hostTypeBadge, styles.hostTypeBadgePremium]}>Complete Access</Text>
-          </View>
-          <Text style={styles.hostTypeDescription}>
-            Create events, trips, and activities. Complete business verification required.
-          </Text>
-          <View style={styles.hostTypeFeatures}>
-            <Text style={styles.hostTypeFeature}>• Create Events</Text>
-            <Text style={styles.hostTypeFeature}>• Create Trips</Text>
-            <Text style={styles.hostTypeFeature}>• Create Activities</Text>
-            <Text style={styles.hostTypeFeature}>• GST verification optional</Text>
-          </View>
-        </TouchableOpacity>
-
-        {onCancel && <Button title="Cancel" onPress={onCancel} variant="ghost" fullWidth />}
-      </View>
-    );
-  }
-
   // Application form
   return (
     <ScrollView style={styles.container}>
@@ -167,32 +115,36 @@ export default function HostApplicationForm({
         <Text style={styles.headerTitle} numberOfLines={2}>
           {HOST_TYPE_LABELS[hostType]}
         </Text>
-        <TouchableOpacity onPress={() => setHostType(null)} style={styles.changeTypeButton}>
+        <TouchableOpacity onPress={onCancel} style={styles.changeTypeButton}>
           <Text style={styles.changeLink}>Change Type</Text>
         </TouchableOpacity>
       </View>
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Personal Information</Text>
-
-        <Input
-          label="Organizer/Business Name"
-          value={formData.organizer_name}
-          onChangeText={(value) => handleInputChange('organizer_name', value)}
-          placeholder="Enter your full name or business name"
-          error={errors.organizer_name}
-          required
-        />
-
-        <Input
-          label="Contact Number"
-          value={formData.contact_number}
-          onChangeText={(value) => handleInputChange('contact_number', value)}
-          placeholder="10-digit mobile number"
-          keyboardType="phone-pad"
-          error={errors.contact_number}
-          required
-        />
+        <View style={styles.row}>
+          <View style={styles.flex1}>
+            <Input
+              label="Full Name"
+              value={formData.organizer_name}
+              onChangeText={(value) => handleInputChange('organizer_name', value)}
+              placeholder="As per PAN"
+              error={errors.organizer_name}
+              required
+            />
+          </View>
+          <View style={styles.flex1}>
+            <Input
+              label="Contact Number"
+              value={formData.contact_number}
+              onChangeText={(value) => handleInputChange('contact_number', value)}
+              placeholder="10-digit mobile"
+              keyboardType="phone-pad"
+              error={errors.contact_number}
+              required
+            />
+          </View>
+        </View>
 
         <Input
           label="Email Address"
@@ -208,25 +160,38 @@ export default function HostApplicationForm({
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Address</Text>
-
         <Input
           label="Street Address"
           value={formData.street_address}
           onChangeText={(value) => handleInputChange('street_address', value)}
-          placeholder="Building name, street"
+          placeholder="Building, street, area"
           error={errors.street_address}
           required
         />
-
-        <Input
-          label="City"
-          value={formData.city}
-          onChangeText={(value) => handleInputChange('city', value)}
-          placeholder="Enter city"
-          error={errors.city}
-          required
-        />
-
+        <View style={styles.row}>
+          <View style={styles.flex2}>
+            <Input
+              label="City"
+              value={formData.city}
+              onChangeText={(value) => handleInputChange('city', value)}
+              placeholder="City"
+              error={errors.city}
+              required
+            />
+          </View>
+          <View style={styles.flex1}>
+            <Input
+              label="PIN Code"
+              value={formData.pin_code}
+              onChangeText={(value) => handleInputChange('pin_code', value)}
+              placeholder="6-digit"
+              keyboardType="number-pad"
+              maxLength={6}
+              error={errors.pin_code}
+              required
+            />
+          </View>
+        </View>
         <Input
           label="State"
           value={formData.state}
@@ -235,22 +200,10 @@ export default function HostApplicationForm({
           error={errors.state}
           required
         />
-
-        <Input
-          label="PIN Code"
-          value={formData.pin_code}
-          onChangeText={(value) => handleInputChange('pin_code', value)}
-          placeholder="6-digit PIN"
-          keyboardType="number-pad"
-          maxLength={6}
-          error={errors.pin_code}
-          required
-        />
       </Card>
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>KYC Documents</Text>
-
         <Input
           label="PAN Number"
           value={formData.pan_number}
@@ -262,46 +215,47 @@ export default function HostApplicationForm({
           required
         />
 
-        <Input
-          label="PAN Card Photo URL"
-          value={formData.pan_card_photo_url}
-          onChangeText={(value) => handleInputChange('pan_card_photo_url', value)}
-          placeholder="Google Drive link or image URL"
-          autoCapitalize="none"
-          error={errors.pan_card_photo_url}
-          hint="Upload to Google Drive and share the link"
-          required
-        />
-
         {hostType === 'full' && (
-          <>
-            <Input
-              label="GSTIN (Optional)"
-              value={formData.gstin}
-              onChangeText={(value) => handleInputChange('gstin', value.toUpperCase())}
-              placeholder="22AAAAA0000A1Z5"
-              autoCapitalize="characters"
-              maxLength={15}
-              error={errors.gstin}
-            />
-
-            <Input
-              label="GST Certificate URL (Optional)"
-              value={formData.gst_certificate_url}
-              onChangeText={(value) => handleInputChange('gst_certificate_url', value)}
-              placeholder="Google Drive link or image URL"
-              autoCapitalize="none"
-              error={errors.gst_certificate_url}
-              hint="Required if GSTIN is provided"
-            />
-          </>
+          <Input
+            label="GSTIN (Optional)"
+            value={formData.gstin}
+            onChangeText={(value) => handleInputChange('gstin', value.toUpperCase())}
+            placeholder="22AAAAA0000A1Z5"
+            autoCapitalize="characters"
+            maxLength={15}
+            error={errors.gstin}
+          />
         )}
+
+        <View style={styles.row}>
+          <View style={styles.flex1}>
+            <Input
+              label="PAN Photo URL"
+              value={formData.pan_card_photo_url}
+              onChangeText={(value) => handleInputChange('pan_card_photo_url', value)}
+              placeholder="Share link"
+              autoCapitalize="none"
+              error={errors.pan_card_photo_url}
+              required
+            />
+          </View>
+          {hostType === 'full' && (
+            <View style={styles.flex1}>
+              <Input
+                label="GST Photo URL"
+                value={formData.gst_certificate_url}
+                onChangeText={(value) => handleInputChange('gst_certificate_url', value)}
+                placeholder="Share link"
+                autoCapitalize="none"
+                error={errors.gst_certificate_url}
+              />
+            </View>
+          )}
+        </View>
       </Card>
 
       <Card style={styles.section}>
         <Text style={styles.sectionTitle}>Bank Details</Text>
-        <Text style={styles.sectionHint}>For receiving payments from bookings</Text>
-
         <Input
           label="Account Holder Name"
           value={formData.account_holder_name}
@@ -310,16 +264,6 @@ export default function HostApplicationForm({
           error={errors.account_holder_name}
           required
         />
-
-        <Input
-          label="Beneficiary Name"
-          value={formData.beneficiary_name}
-          onChangeText={(value) => handleInputChange('beneficiary_name', value)}
-          placeholder="Beneficiary name"
-          error={errors.beneficiary_name}
-          required
-        />
-
         <Input
           label="Account Number"
           value={formData.account_number}
@@ -329,17 +273,30 @@ export default function HostApplicationForm({
           error={errors.account_number}
           required
         />
-
-        <Input
-          label="IFSC Code"
-          value={formData.ifsc_code}
-          onChangeText={(value) => handleInputChange('ifsc_code', value.toUpperCase())}
-          placeholder="ABCD0123456"
-          autoCapitalize="characters"
-          maxLength={11}
-          error={errors.ifsc_code}
-          required
-        />
+        <View style={styles.row}>
+          <View style={styles.flex1}>
+            <Input
+              label="IFSC Code"
+              value={formData.ifsc_code}
+              onChangeText={(value) => handleInputChange('ifsc_code', value.toUpperCase())}
+              placeholder="ABCD0123456"
+              autoCapitalize="characters"
+              maxLength={11}
+              error={errors.ifsc_code}
+              required
+            />
+          </View>
+          <View style={styles.flex1}>
+            <Input
+              label="Beneficiary"
+              value={formData.beneficiary_name}
+              onChangeText={(value) => handleInputChange('beneficiary_name', value)}
+              placeholder="Name"
+              error={errors.beneficiary_name}
+              required
+            />
+          </View>
+        </View>
       </Card>
 
       <View style={styles.buttonContainer}>
@@ -469,5 +426,16 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
     marginTop: Spacing.lg,
     marginBottom: Spacing.xl,
+  },
+  row: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    width: '100%',
+  },
+  flex1: {
+    flex: 1,
+  },
+  flex2: {
+    flex: 2,
   },
 });

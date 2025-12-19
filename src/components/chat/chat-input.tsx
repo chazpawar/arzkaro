@@ -1,8 +1,15 @@
 import React, { useState, useCallback } from 'react';
-import { View, TextInput, StyleSheet, Pressable, Keyboard, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Keyboard,
+  ActivityIndicator,
+  Text,
+} from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../constants/Styles';
+import { Spacing, Typography } from '../../constants/Styles';
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;
@@ -101,13 +108,9 @@ export default function ChatInput({
         disabled={!canSend}
       >
         {sending ? (
-          <ActivityIndicator size="small" color={Colors.textInverse} />
+          <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          <Ionicons
-            name="send"
-            size={20}
-            color={canSend ? Colors.textInverse : Colors.textTertiary}
-          />
+          <Text style={[styles.sendText, !canSend && styles.sendTextDisabled]}>Send</Text>
         )}
       </Pressable>
     </View>
@@ -126,35 +129,44 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: 25,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.xs,
     marginRight: Spacing.sm,
-    minHeight: 40,
+    minHeight: 44,
     maxHeight: 120,
     justifyContent: 'center',
   },
   input: {
     ...Typography.body,
+    fontSize: 15,
     color: Colors.text,
     maxHeight: 100,
     paddingTop: 0,
     paddingBottom: 0,
   },
   sendButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: Spacing.sm,
+    height: 44,
   },
   sendButtonActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: 'transparent',
   },
   sendButtonDisabled: {
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: 'transparent',
+  },
+  sendText: {
+    ...Typography.body,
+    color: Colors.primary,
+    fontWeight: '700',
+    fontSize: 16,
+  },
+  sendTextDisabled: {
+    color: Colors.primaryLight,
   },
 });

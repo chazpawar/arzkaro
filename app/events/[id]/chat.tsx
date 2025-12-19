@@ -300,7 +300,7 @@ export default function EventChatScreen() {
       <SafeAreaView style={styles.container} edges={['bottom']}>
         <KeyboardAvoidingView
           style={styles.keyboardView}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
         >
           {/* Group Info Banner */}
@@ -350,6 +350,8 @@ export default function EventChatScreen() {
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.messagesList}
               showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="interactive"
               onContentSizeChange={() => {
                 flatListRef.current?.scrollToEnd({ animated: false });
               }}
@@ -479,6 +481,7 @@ const styles = StyleSheet.create({
   emptyStateContainer: {
     flex: 1,
     justifyContent: 'center',
+    paddingBottom: 100, // Account for input height
   },
   dateHeader: {
     alignItems: 'center',

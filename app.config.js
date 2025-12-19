@@ -9,7 +9,7 @@ module.exports = {
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     scheme: 'arzkaro',
-    newArchEnabled: true,
+    newArchEnabled: false, // Disabled for react-native-razorpay compatibility
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
@@ -20,7 +20,8 @@ module.exports = {
       bundleIdentifier: 'com.arzkaro.app',
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
-        NSPhotoLibraryUsageDescription: 'This app needs access to your photo library to upload event images.',
+        NSPhotoLibraryUsageDescription:
+          'This app needs access to your photo library to upload event images.',
         NSCameraUsageDescription: 'This app needs access to your camera to take event photos.',
       },
     },
@@ -32,6 +33,7 @@ module.exports = {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
+      softwareKeyboardLayoutMode: 'resize',
     },
     web: {
       favicon: './assets/favicon.png',

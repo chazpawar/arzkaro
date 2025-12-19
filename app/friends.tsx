@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../src/components/ui/loading-spinner';
@@ -158,6 +158,7 @@ export default function FriendsScreen() {
     if (!item.friend) return null;
 
     const displayName = item.friend.full_name || item.friend.email?.split('@')[0] || 'User';
+    const username = (item.friend as any).username || item.friend.email?.split('@')[0] || '';
     const isLoading = actionLoading === item.id;
 
     return (
@@ -176,44 +177,38 @@ export default function FriendsScreen() {
         </View>
 
         <View style={styles.listItemContent}>
+          <Text style={styles.listItemUsername} numberOfLines={1}>
+            {username}
+          </Text>
           <Text style={styles.listItemName} numberOfLines={1}>
             {displayName}
           </Text>
-          <Text style={styles.listItemSubtext}>
-            Friends since{' '}
-            {new Date(item.created_at).toLocaleDateString('en-IN', {
-              month: 'short',
-              year: 'numeric',
-            })}
-          </Text>
         </View>
 
-        <View style={styles.actionButtons}>
-          <Pressable
-            style={styles.messageButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleMessageFriend(item.friend!.id);
-            }}
-          >
-            <Ionicons name="chatbubble-outline" size={20} color={Colors.primary} />
-          </Pressable>
+        <Pressable
+          style={styles.messageButtonLarge}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleMessageFriend(item.friend!.id);
+          }}
+        >
+          <Text style={styles.messageButtonText}>Message</Text>
+        </Pressable>
 
-          <Pressable
-            style={styles.removeButton}
-            onPress={(e) => {
-              e.stopPropagation();
-              handleRemoveFriend(item.id, displayName);
-            }}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <LoadingSpinner size="small" />
-            ) : (
-              <Ionicons name="person-remove-outline" size={20} color={Colors.error} />
-            )}
-          </Pressable>
-        </View>
+        <Pressable
+          style={styles.menuButton}
+          onPress={(e) => {
+            e.stopPropagation();
+            handleRemoveFriend(item.id, displayName);
+          }}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <LoadingSpinner size="small" />
+          ) : (
+            <Ionicons name="ellipsis-vertical" size={20} color={Colors.text} />
+          )}
+        </Pressable>
       </Pressable>
     );
   };
@@ -222,10 +217,14 @@ export default function FriendsScreen() {
     if (!item.sender) return null;
 
     const displayName = item.sender.full_name || item.sender.email?.split('@')[0] || 'User';
+    const username = (item.sender as any).username || item.sender.email?.split('@')[0] || '';
     const isLoading = actionLoading === item.id;
 
     return (
-      <View style={styles.requestItem}>
+      <Pressable
+        style={styles.requestItem}
+        onPress={() => router.push(`/profile?userId=${item.sender?.id}`)}
+      >
         <View style={styles.avatarContainer}>
           {item.sender.avatar_url ? (
             <Image source={{ uri: item.sender.avatar_url }} style={styles.avatar} />
@@ -237,40 +236,42 @@ export default function FriendsScreen() {
         </View>
 
         <View style={styles.listItemContent}>
+          <Text style={styles.listItemUsername} numberOfLines={1}>
+            {username}
+          </Text>
           <Text style={styles.listItemName} numberOfLines={1}>
             {displayName}
-          </Text>
-          <Text style={styles.listItemSubtext}>
-            Sent{' '}
-            {new Date(item.created_at).toLocaleDateString('en-IN', {
-              month: 'short',
-              day: 'numeric',
-            })}
           </Text>
         </View>
 
         <View style={styles.requestActions}>
           <Pressable
-            style={[styles.requestActionButton, styles.acceptButton]}
-            onPress={() => handleAcceptRequest(item.id)}
+            style={styles.confirmButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleAcceptRequest(item.id);
+            }}
             disabled={isLoading}
           >
             {isLoading ? (
               <LoadingSpinner size="small" color={Colors.background} />
             ) : (
-              <Ionicons name="checkmark" size={20} color={Colors.background} />
+              <Text style={styles.confirmButtonText}>Confirm</Text>
             )}
           </Pressable>
 
           <Pressable
-            style={[styles.requestActionButton, styles.rejectButton]}
-            onPress={() => handleRejectRequest(item.id)}
+            style={styles.deleteButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              handleRejectRequest(item.id);
+            }}
             disabled={isLoading}
           >
-            <Ionicons name="close" size={20} color={Colors.error} />
+            <Text style={styles.deleteButtonText}>Delete</Text>
           </Pressable>
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -298,6 +299,7 @@ export default function FriendsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       {/* Header */}
       <View style={styles.header}>
         <Pressable onPress={() => router.back()} style={styles.backButton}>
@@ -517,47 +519,73 @@ const styles = StyleSheet.create({
   listItemContent: {
     flex: 1,
   },
-  listItemName: {
+  listItemUsername: {
     ...Typography.bodyMedium,
     color: Colors.text,
     fontWeight: '600',
     marginBottom: 2,
   },
+  listItemName: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+  },
   listItemSubtext: {
     ...Typography.caption,
     color: Colors.textSecondary,
   },
-  actionButtons: {
-    flexDirection: 'row',
-    gap: Spacing.xs,
+  messageButtonLarge: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  messageButton: {
+  messageButtonText: {
+    ...Typography.body,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  menuButton: {
     padding: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.primarySoft,
-  },
-  removeButton: {
-    padding: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.errorLight,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   requestActions: {
     flexDirection: 'row',
     gap: Spacing.xs,
   },
-  requestActionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  confirmButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.primary,
+    minWidth: 80,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  acceptButton: {
-    backgroundColor: Colors.success,
+  confirmButtonText: {
+    ...Typography.bodySmall,
+    color: Colors.background,
+    fontWeight: '600',
   },
-  rejectButton: {
-    backgroundColor: Colors.errorLight,
+  deleteButton: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surfaceSecondary,
+    minWidth: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: Colors.error,
+    borderColor: Colors.border,
+  },
+  deleteButtonText: {
+    ...Typography.bodySmall,
+    color: Colors.text,
+    fontWeight: '600',
   },
 });

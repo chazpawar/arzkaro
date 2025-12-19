@@ -1,4 +1,5 @@
-import RazorpayCheckout from 'react-native-razorpay';
+import Constants from 'expo-constants';
+import RazorpayCheckoutModule from 'react-native-razorpay';
 import { Config } from '../constants/config';
 import { supabase } from '../../backend/supabase';
 import type {
@@ -7,6 +8,23 @@ import type {
   RazorpayPaymentError,
   CreateOrderParams,
 } from '../types/razorpay.types';
+
+// Store reference to the module - may be null if native module isn't linked
+const RazorpayCheckout = RazorpayCheckoutModule;
+
+/**
+ * Check if we're running in Expo Go (where native modules aren't available)
+ */
+function isExpoGo(): boolean {
+  return Constants.appOwnership === 'expo';
+}
+
+/**
+ * Check if Razorpay native module is available
+ */
+function isRazorpayAvailable(): boolean {
+  return RazorpayCheckout !== null && typeof RazorpayCheckout?.open === 'function';
+}
 
 /**
  * Razorpay Payment Service
@@ -48,6 +66,15 @@ class RazorpayService {
     options: Partial<RazorpayCheckoutOptions>
   ): Promise<RazorpayPaymentSuccess | null> {
     try {
+      // Check if Razorpay native module is available
+      if (!isRazorpayAvailable()) {
+        const errorMessage = isExpoGo()
+          ? 'Razorpay payments are not available in Expo Go. Please use a development build to test payments. Run: npx expo run:android or npx expo run:ios'
+          : 'Razorpay native module is not properly linked. Please rebuild the app.';
+        console.error(errorMessage);
+        throw new Error(errorMessage);
+      }
+
       // Validate required fields
       if (!this.keyId) {
         throw new Error('Razorpay Key ID is not configured');

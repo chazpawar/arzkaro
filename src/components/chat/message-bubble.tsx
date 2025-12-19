@@ -107,35 +107,38 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   bubbleOwn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: BorderRadius.xl,
     borderBottomRightRadius: BorderRadius.xs,
   },
   bubbleOther: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: BorderRadius.xl,
     borderBottomLeftRadius: BorderRadius.xs,
-    borderWidth: 1,
-    borderColor: Colors.border,
   },
   senderName: {
     ...Typography.captionMedium,
-    color: Colors.primary,
+    color: Colors.textSecondary,
     marginBottom: 2,
   },
   messageText: {
-    ...Typography.body,
+    ...Typography.bodyMedium,
     color: Colors.text,
+    fontSize: 15,
   },
   messageTextOwn: {
-    color: Colors.textInverse,
+    color: Colors.text,
   },
   timestamp: {
     ...Typography.caption,
+    fontSize: 10,
     color: Colors.textTertiary,
     alignSelf: 'flex-end',
-    marginTop: 4,
+    marginTop: 2,
+    opacity: 0.7,
   },
   timestampOwn: {
-    color: Colors.textInverse,
+    color: Colors.textTertiary,
     opacity: 0.8,
   },
   // System message

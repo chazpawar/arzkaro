@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
 import HostApplicationForm from '../../src/components/host/host-application-form';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography } from '../../src/constants/Styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
 import type { HostRequest } from '../../src/types/host.types';
@@ -16,6 +17,10 @@ export default function HostRequestScreen() {
   const { user, isHost, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [existingRequest, setExistingRequest] = useState<HostRequest | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<'experience' | 'event' | 'trip' | null>(
+    null
+  );
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     fetchExistingRequest();
@@ -37,6 +42,22 @@ export default function HostRequestScreen() {
 
   const handleApplicationSuccess = () => {
     router.back();
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setSelectedCategory(null);
+  };
+
+  const handleNext = () => {
+    if (selectedCategory) {
+      setShowForm(true);
+    }
+  };
+
+  const getHostTypeFromCategory = () => {
+    if (selectedCategory === 'experience') return 'activity';
+    return 'full';
   };
 
   // If already a host, show success state
@@ -118,16 +139,95 @@ export default function HostRequestScreen() {
     );
   }
 
-  // Show new application form
+  if (showForm) {
+    return (
+      <>
+        <Stack.Screen options={{ title: 'Become a Host', headerShown: true }} />
+        <SafeAreaView style={styles.container} edges={['bottom']}>
+          <HostApplicationForm
+            userId={user?.id || ''}
+            initialHostType={getHostTypeFromCategory()}
+            onSuccess={handleApplicationSuccess}
+            onCancel={handleCancelForm}
+          />
+        </SafeAreaView>
+      </>
+    );
+  }
+
+  // Question screen
   return (
     <>
-      <Stack.Screen options={{ title: 'Become a Host' }} />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
-        <HostApplicationForm
-          userId={user?.id || ''}
-          onSuccess={handleApplicationSuccess}
-          onCancel={() => router.back()}
-        />
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+            <Ionicons name="close" size={24} color={Colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <Text style={styles.questionTitle}>What would you like to host?</Text>
+
+          <View style={styles.choiceGrid}>
+            <TouchableOpacity
+              style={[
+                styles.choiceCard,
+                selectedCategory === 'experience' && styles.selectedChoiceCard,
+              ]}
+              onPress={() => setSelectedCategory('experience')}
+            >
+              <View style={styles.choiceIconContainer}>
+                <Text style={styles.emojiIcon}>🎈</Text>
+              </View>
+              <View style={styles.choiceTextContainer}>
+                <Text style={styles.choiceLabel}>Experience</Text>
+                <Text style={styles.choiceDescription}>Host workshops, activities or sessions</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.choiceCard, selectedCategory === 'event' && styles.selectedChoiceCard]}
+              onPress={() => setSelectedCategory('event')}
+            >
+              <View style={styles.choiceIconContainer}>
+                <Text style={styles.emojiIcon}>🎟️</Text>
+              </View>
+              <View style={styles.choiceTextContainer}>
+                <Text style={styles.choiceLabel}>Events</Text>
+                <Text style={styles.choiceDescription}>
+                  Host meetups, parties or large gatherings
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.choiceCard, selectedCategory === 'trip' && styles.selectedChoiceCard]}
+              onPress={() => setSelectedCategory('trip')}
+            >
+              <View style={styles.choiceIconContainer}>
+                <Text style={styles.emojiIcon}>🎒</Text>
+              </View>
+              <View style={styles.choiceTextContainer}>
+                <Text style={styles.choiceLabel}>Trips</Text>
+                <Text style={styles.choiceDescription}>
+                  Host multi-day journeys and explorations
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <Button
+            title="Next"
+            onPress={handleNext}
+            variant="primary"
+            size="large"
+            disabled={!selectedCategory}
+            fullWidth
+          />
+        </View>
       </SafeAreaView>
     </>
   );
@@ -137,6 +237,84 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  headerRow: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+  },
+  scrollContent: {
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.xl,
+    alignItems: 'center',
+  },
+  questionTitle: {
+    ...Typography.h2,
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.xxl,
+    fontWeight: '600',
+  },
+  choiceGrid: {
+    gap: Spacing.md,
+    width: '100%',
+    paddingTop: Spacing.xl,
+  },
+  choiceCard: {
+    flexDirection: 'row',
+    width: '100%',
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    padding: Spacing.lg,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+  },
+  selectedChoiceCard: {
+    borderColor: Colors.primary,
+    borderWidth: 2,
+    backgroundColor: Colors.primarySoft,
+  },
+  choiceIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: Colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: Spacing.lg,
+  },
+  emojiIcon: {
+    fontSize: 32,
+  },
+  choiceTextContainer: {
+    flex: 1,
+  },
+  choiceLabel: {
+    ...Typography.h4,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  choiceDescription: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+  },
+  footer: {
+    padding: Spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  disabledButton: {
+    opacity: 0.5,
+    backgroundColor: Colors.border,
   },
   statusContainer: {
     flex: 1,
