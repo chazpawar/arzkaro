@@ -5,82 +5,78 @@ import {
   StyleSheet,
   ScrollView,
   Pressable,
-  Image,
-  Platform,
   RefreshControl,
+  ImageBackground,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
-import { useAuth } from '../../src/contexts/auth-context';
-import TabHeader from '../../src/components/TabHeader';
-import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
 import { useEvents } from '../../src/hooks/use-events';
 
+// New Components
+import CategoryDetail from '../../src/components/CategoryDetail';
+import TripsDetail from '../../src/components/TripsDetail';
+import SearchModal from '../../src/components/SearchModal';
+
 const CATEGORIES = [
-  { id: 'events', label: 'Events', icon: 'calendar-outline' },
-  { id: 'experiences', label: 'Experiences', icon: 'compass-outline' },
-  { id: 'trips', label: 'Trips', icon: 'airplane-outline' },
+  {
+    id: 'events',
+    label: 'Events',
+    icon: 'calendar-outline',
+    image:
+      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'experiences',
+    label: 'Experiences',
+    icon: 'compass-outline',
+    image:
+      'https://images.unsplash.com/photo-1523580494863-6f3031224c94?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
+  {
+    id: 'trips',
+    label: 'Trips',
+    icon: 'airplane-outline',
+    image:
+      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+  },
 ];
 
-// Category tags mapped to event types
 const CATEGORY_TAGS_BY_TYPE: Record<string, { id: string; label: string; icon: string }[]> = {
   events: [
-    { id: 'all', label: 'All', icon: 'grid-outline' },
-    { id: 'Concert', label: 'Concert', icon: 'musical-notes-outline' },
-    { id: 'Business', label: 'Business', icon: 'briefcase-outline' },
-    { id: 'Entertainment', label: 'Entertainment', icon: 'film-outline' },
-    { id: 'Food & Drink', label: 'Food & Drink', icon: 'restaurant-outline' },
+    { id: 'all', label: 'Sporty', icon: 'american-football-outline' },
+    { id: 'Badminton', label: 'Badminton', icon: 'tennisball-outline' },
+    { id: 'Pickleball', label: 'Pickleball', icon: 'baseball-outline' },
+    { id: 'Box Cricket', label: 'Box Cricket', icon: 'baseball-outline' },
+    { id: 'Bowling', label: 'Bowling', icon: 'bowling-ball-outline' },
   ],
   experiences: [
-    { id: 'all', label: 'All', icon: 'grid-outline' },
-    { id: 'Adventure', label: 'Adventure', icon: 'navigate-outline' },
-    { id: 'Photography', label: 'Photography', icon: 'camera-outline' },
+    { id: 'all', label: 'Cultural', icon: 'color-palette-outline' },
+    { id: 'Games', label: 'Games', icon: 'game-controller-outline' },
+    { id: 'Entertainment', label: 'Entertainment', icon: 'film-outline' },
+    { id: 'Outdoors', label: 'Outdoors', icon: 'leaf-outline' },
+    { id: 'Nightlife', label: 'Nightlife', icon: 'wine-outline' },
     { id: 'Wellness', label: 'Wellness', icon: 'fitness-outline' },
-    { id: 'Food & Drink', label: 'Food & Drink', icon: 'restaurant-outline' },
   ],
-  trips: [
-    { id: 'all', label: 'All', icon: 'grid-outline' },
-    { id: 'Travel', label: 'Travel', icon: 'map-outline' },
-    { id: 'Food & Drink', label: 'Food & Drink', icon: 'restaurant-outline' },
-  ],
-};
-
-const EMPTY_STATE_CONFIG = {
-  events: {
-    title: 'No Events Found',
-    message: 'No events available at the moment.',
-    icon: 'calendar-outline' as const,
-    createLabel: 'Create Event',
-  },
-  experiences: {
-    title: 'No Experiences Found',
-    message: 'Discover amazing experiences.',
-    icon: 'compass-outline' as const,
-    createLabel: 'Create Experience',
-  },
-  trips: {
-    title: 'No Trips Found',
-    message: 'Start planning your next adventure.',
-    icon: 'airplane-outline' as const,
-    createLabel: 'Create Trip',
-  },
+  trips: [], // Trips handled by TripsDetail component directly
 };
 
 export default function ExploreTab() {
   const router = useRouter();
-  const { isHost, isAdmin } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('events');
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
+
+  // State for active view (null = main grid, 'events'|'experiences'|'trips' = detail view)
+  const [activeView, setActiveView] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Use real events hook
-  const { events, loading, error: _error, refresh } = useEvents();
+  const { events, loading, refresh } = useEvents();
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -88,163 +84,44 @@ export default function ExploreTab() {
     setRefreshing(false);
   };
 
-  // Filter events based on search, category, and tag
+  // Filter logic similar to previous implementation
   const filteredEvents = events.filter((event: Event) => {
-    // Search filter
     if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
 
-    // Category filter - map category to event type
+    // Type mapping
     const typeMap: Record<string, string> = {
       events: 'event',
       experiences: 'experience',
       trips: 'trip',
     };
 
-    const eventType = typeMap[selectedCategory];
-    if (eventType && event.type !== eventType) {
-      return false;
+    if (activeView) {
+      const eventType = typeMap[activeView];
+      if (eventType && event.type !== eventType) return false;
     }
 
-    // Tag filter - filter by category
-    if (selectedTag !== 'all' && event.category !== selectedTag) {
+    if (activeView !== 'trips' && selectedTag !== 'all' && event.category !== selectedTag) {
       return false;
     }
 
     return true;
   });
 
-  const renderCategoryTab = (category: (typeof CATEGORIES)[0]) => {
-    const isSelected = selectedCategory === category.id;
-
-    return (
-      <Pressable
-        key={category.id}
-        style={[styles.categoryTab, isSelected && styles.categoryTabSelected]}
-        onPress={() => {
-          setSelectedCategory(category.id);
-          setSelectedTag('all'); // Reset tag filter when changing category
-        }}
-      >
-        <View
-          style={[styles.categoryIconContainer, isSelected && styles.categoryIconContainerSelected]}
-        >
-          <Ionicons
-            name={category.icon as 'calendar-outline' | 'compass-outline' | 'airplane-outline'}
-            size={22}
-            color={isSelected ? Colors.primary : Colors.textSecondary}
-          />
-        </View>
-        <Text style={[styles.categoryLabel, isSelected && styles.categoryLabelSelected]}>
-          {category.label}
-        </Text>
-      </Pressable>
-    );
+  const handleBackToMain = () => {
+    setActiveView(null);
+    setSelectedTag('all');
   };
 
-  const renderCategoryTag = (tag: { id: string; label: string; icon: string }) => {
-    const isSelected = selectedTag === tag.id;
-
-    return (
-      <Pressable
-        key={tag.id}
-        style={[styles.tagChip, isSelected && styles.tagChipSelected]}
-        onPress={() => setSelectedTag(tag.id)}
-      >
-        <Ionicons
-          name={tag.icon as any}
-          size={16}
-          color={isSelected ? '#FFFFFF' : Colors.textSecondary}
-        />
-        <Text style={[styles.tagLabel, isSelected && styles.tagLabelSelected]}>{tag.label}</Text>
-      </Pressable>
-    );
+  const handleSearch = (category: string, query: string) => {
+    setActiveView(category);
+    setSearchQuery(query);
   };
 
-  // Get tags for the current category
-  const currentCategoryTags = CATEGORY_TAGS_BY_TYPE[selectedCategory] || [];
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    return `${displayHours}:${displayMinutes} ${ampm}`;
-  };
-
-  const renderSimpleCard = ({ item }: { item: Event }) => (
-    <Pressable style={styles.simpleCard} onPress={() => router.push(`/events/${item.id}`)}>
-      {/* Image with padding inside card */}
-      <View style={styles.simpleCardImageWrapper}>
-        {item.cover_image_url ? (
-          <Image source={{ uri: item.cover_image_url }} style={styles.simpleCardImage} />
-        ) : (
-          <View style={styles.simpleCardImagePlaceholder}>
-            <Ionicons name="image-outline" size={32} color={Colors.textSecondary} />
-          </View>
-        )}
-      </View>
-
-      {/* Content below image */}
-      <View style={styles.simpleCardContent}>
-        {/* Title */}
-        <Text style={styles.simpleCardTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-
-        {/* Location and Time on same row */}
-        <View style={styles.cardDetailsRow}>
-          {/* Location - Left */}
-          <View style={[styles.cardDetailItem, styles.cardDetailLeft]}>
-            <Ionicons name="location" size={16} color="#FF3B30" />
-            <Text style={styles.cardDetailText} numberOfLines={1}>
-              {item.location_name || 'TBA'}
-            </Text>
-          </View>
-
-          {/* Time - Right */}
-          <View style={[styles.cardDetailItem, styles.cardDetailRight]}>
-            <Ionicons name="time-outline" size={16} color={Colors.text} />
-            <Text style={styles.cardDetailText}>{formatTime(item.start_date)}</Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-
-  const renderEmptyState = () => {
-    const config = EMPTY_STATE_CONFIG[selectedCategory as keyof typeof EMPTY_STATE_CONFIG];
-
-    return (
-      <EmptyState
-        title={config.title}
-        message={config.message}
-        icon={config.icon}
-        action={
-          isHost || isAdmin
-            ? {
-                label: config.createLabel,
-                icon: 'add-circle-outline',
-                onPress: () => router.push('/events/create'),
-              }
-            : undefined
-        }
-      />
-    );
-  };
-
-  // Show loading spinner while fetching events
   if (loading && !refreshing) {
     return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <TabHeader
-          searchPlaceholder="Search events, experiences..."
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-        />
+      <SafeAreaView style={styles.container}>
         <LoadingSpinner />
       </SafeAreaView>
     );
@@ -252,12 +129,25 @@ export default function ExploreTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header with Search - Outside ScrollView */}
-      <TabHeader
-        searchPlaceholder="Search events, experiences..."
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      {/* Search Bar Header */}
+      <View style={styles.headerContainer}>
+        {activeView && (
+          <Pressable onPress={handleBackToMain} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </Pressable>
+        )}
+
+        <Pressable style={styles.searchBar} onPress={() => setSearchModalVisible(true)}>
+          <Ionicons name="search" size={20} color={Colors.text} />
+          <Text style={styles.searchPlaceholder}>{searchQuery || 'Search'}</Text>
+        </Pressable>
+
+        {!activeView && (
+          <Pressable style={styles.notificationButton}>
+            <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+          </Pressable>
+        )}
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -271,39 +161,56 @@ export default function ExploreTab() {
           />
         }
       >
-        {/* Category Tabs */}
-        <View style={styles.categorySection}>
-          <View style={styles.categoryTabs}>{CATEGORIES.map(renderCategoryTab)}</View>
-          <View style={styles.categoryDivider} />
-        </View>
-
-        {/* Category Tags */}
-        <View style={styles.tagsSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tagsScrollContent}
-          >
-            {currentCategoryTags.map(renderCategoryTag)}
-          </ScrollView>
-        </View>
-
-        {/* All Events Section */}
-        {filteredEvents.length > 0 ? (
-          <View style={styles.allEventsList}>
-            {filteredEvents.map((item) => (
-              <View key={item.id} style={styles.cardWrapper}>
-                {renderSimpleCard({ item })}
-              </View>
+        {/* Main View: 3 Big Category Buttons */}
+        {!activeView ? (
+          <View style={styles.mainGrid}>
+            {CATEGORIES.map((cat) => (
+              <Pressable
+                key={cat.id}
+                style={styles.bigCategoryCard}
+                onPress={() => setActiveView(cat.id)}
+              >
+                <ImageBackground
+                  source={{ uri: cat.image }}
+                  style={styles.cardBackground}
+                  imageStyle={{ borderRadius: BorderRadius.lg }}
+                >
+                  <View style={styles.cardOverlay} />
+                  <View style={styles.cardContent}>
+                    <Ionicons name={cat.icon as any} size={32} color="#FFF" />
+                    <Text style={styles.cardTitle}>{cat.label}</Text>
+                  </View>
+                </ImageBackground>
+              </Pressable>
             ))}
           </View>
         ) : (
-          renderEmptyState()
+          // Detail Views
+          <View>
+            {activeView === 'trips' ? (
+              <TripsDetail events={filteredEvents} />
+            ) : (
+              <CategoryDetail
+                type={activeView as 'events' | 'experiences'}
+                tags={CATEGORY_TAGS_BY_TYPE[activeView] || []}
+                selectedTag={selectedTag}
+                onSelectTag={setSelectedTag}
+                events={filteredEvents}
+                onEventPress={(id) => router.push(`/events/${id}`)}
+              />
+            )}
+          </View>
         )}
 
-        {/* Bottom spacing */}
         <View style={{ height: Spacing.xxl }} />
       </ScrollView>
+
+      {/* Search Modal */}
+      <SearchModal
+        visible={searchModalVisible}
+        onClose={() => setSearchModalVisible(false)}
+        onSearch={handleSearch}
+      />
     </SafeAreaView>
   );
 }
@@ -312,181 +219,75 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    flexDirection: 'column',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
+  },
+  backButton: {
+    padding: 4,
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceSecondary, // Gray background
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 12, // Taller search bar
+    borderRadius: BorderRadius.full, // Rounded
+    gap: Spacing.sm,
+  },
+  searchPlaceholder: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  notificationButton: {
+    padding: 4,
   },
   scrollView: {
     flex: 1,
   },
-  categorySection: {
-    paddingTop: Spacing.sm,
+  mainGrid: {
+    padding: Spacing.lg,
+    gap: Spacing.lg,
   },
-  categoryTabs: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: Spacing.lg,
-  },
-  categoryTab: {
-    alignItems: 'center',
-    paddingVertical: Spacing.sm,
-    position: 'relative',
-  },
-  categoryTabSelected: {},
-  categoryIconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.surfaceSecondary,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.xs,
-  },
-  categoryIconContainerSelected: {
-    backgroundColor: Colors.primarySoft,
-  },
-  categoryLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  categoryLabelSelected: {
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  categoryDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginTop: Spacing.md,
-    marginHorizontal: Spacing.lg,
-  },
-  section: {
-    marginTop: Spacing.lg,
-  },
-  sectionHeader: {
-    paddingHorizontal: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  sectionSubtitle: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-  },
-  allEventsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xl,
-    justifyContent: 'space-between',
-    gap: Spacing.sm,
-  },
-  cardWrapper: {
-    width: '48%',
-    marginBottom: Spacing.md,
-  },
-  simpleCard: {
-    backgroundColor: '#FFFFFF', // White background
+  bigCategoryCard: {
+    height: 160,
     borderRadius: BorderRadius.lg,
-    padding: Spacing.sm, // Padding inside the card
-    marginBottom: Spacing.md,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.2,
         shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
   },
-  simpleCardImageWrapper: {
-    width: '100%',
-    height: 180,
-    marginBottom: Spacing.sm,
-    borderRadius: BorderRadius.md, // Rounded corners for image
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  simpleCardImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  simpleCardImagePlaceholder: {
+  cardBackground: {
     flex: 1,
-    backgroundColor: Colors.surfaceSecondary,
-    alignItems: 'center',
     justifyContent: 'center',
-  },
-  simpleCardContent: {
-    paddingHorizontal: 0, // No horizontal padding here as per screenshot
-  },
-  simpleCardTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-    lineHeight: 22,
-  },
-  cardDetailsRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', // For left-right alignment
-    width: '100%',
   },
-  cardDetailItem: {
-    flexDirection: 'row',
+  cardOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)', // Dark overlay for text readability
+    borderRadius: BorderRadius.lg,
+  },
+  cardContent: {
     alignItems: 'center',
-    gap: 4,
-  },
-  cardDetailLeft: {
-    flex: 1, // Takes up remaining space on the left
-    justifyContent: 'flex-start',
-  },
-  cardDetailRight: {
-    justifyContent: 'flex-end', // Aligns to the right
-  },
-  cardDetailText: {
-    fontSize: 13,
-    color: Colors.text,
-    flexShrink: 1,
-  },
-  tagsSection: {
-    marginTop: Spacing.md,
-    marginBottom: Spacing.sm,
-  },
-  tagsScrollContent: {
-    paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
   },
-  tagChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.surfaceSecondary,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tagChipSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  tagLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  tagLabelSelected: {
-    color: '#FFFFFF',
-    fontWeight: '600',
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#FFF',
+    letterSpacing: 1,
   },
 });
