@@ -40,7 +40,12 @@ const generateClubs = (category: string) => {
 
 interface CategoryDetailProps {
   type: 'events' | 'experiences';
-  tags: { id: string; label: string; icon: string }[];
+  tags: {
+    id: string;
+    label: string;
+    icon: any;
+    subcategories?: { id: string; label: string; icon: any }[];
+  }[];
   selectedTag: string;
   onSelectTag: (tagId: string) => void;
   events: Event[];
@@ -55,7 +60,21 @@ export default function CategoryDetail({
   events,
   onEventPress,
 }: CategoryDetailProps) {
-  const clubs = generateClubs(selectedTag === 'all' ? 'Sports' : selectedTag);
+  const [selectedSubcategory, setSelectedSubcategory] = React.useState<string | null>(null);
+
+  const clubs = generateClubs(
+    selectedSubcategory || (selectedTag === 'all' ? 'Sports' : selectedTag)
+  );
+
+  // Find the selected main category to check for subcategories
+  const selectedMainCategory = tags.find((tag) => tag.id === selectedTag);
+  const hasSubcategories =
+    selectedMainCategory?.subcategories && selectedMainCategory.subcategories.length > 0;
+
+  // Reset subcategory when main category changes
+  React.useEffect(() => {
+    setSelectedSubcategory(null);
+  }, [selectedTag]);
 
   const renderClubCard = (club: any) => (
     <Pressable
@@ -114,11 +133,7 @@ export default function CategoryDetail({
             return (
               <Pressable key={tag.id} style={styles.tagItem} onPress={() => onSelectTag(tag.id)}>
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
-                  <Ionicons
-                    name={tag.icon as any}
-                    size={32}
-                    color={isSelected ? '#FFF' : Colors.primary}
-                  />
+                  <Image source={tag.icon} style={styles.tagIcon} resizeMode="contain" />
                   {isSelected && (
                     <View style={styles.checkBadge}>
                       <Ionicons name="checkmark" size={10} color="#FFF" />
@@ -134,12 +149,66 @@ export default function CategoryDetail({
         </ScrollView>
       </View>
 
-      <Text style={styles.sectionHeader}>
-        {clubs.length} {selectedTag === 'all' ? 'Popular' : selectedTag} Clubs
-      </Text>
+      {/* Subcategories as Large Cards - Show only if main category has subcategories */}
+      {hasSubcategories && !selectedSubcategory && (
+        <>
+          <Text style={styles.sectionHeader}>Choose Your Interest</Text>
+          <View style={styles.subcategoryCardsList}>
+            {selectedMainCategory?.subcategories?.map((subcat) => (
+              <Pressable
+                key={subcat.id}
+                style={styles.subcategoryCard}
+                onPress={() => setSelectedSubcategory(subcat.id)}
+              >
+                <View style={styles.subcategoryCardContent}>
+                  <View style={styles.subcategoryIconContainer}>
+                    <Image
+                      source={subcat.icon}
+                      style={styles.subcategoryCardIcon}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View style={styles.subcategoryCardTextContainer}>
+                    <Text style={styles.subcategoryCardTitle}>{subcat.label}</Text>
+                    <Text style={styles.subcategoryCardSubtitle}>
+                      Explore {subcat.label.toLowerCase()} activities
+                    </Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={24} color={Colors.textSecondary} />
+                </View>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      )}
 
-      {/* Clubs List */}
-      <View style={styles.clubsList}>{clubs.map(renderClubCard)}</View>
+      {/* Breadcrumb - Show when subcategory is selected */}
+      {selectedSubcategory && (
+        <View style={styles.breadcrumbContainer}>
+          <Pressable onPress={() => setSelectedSubcategory(null)} style={styles.breadcrumbButton}>
+            <Ionicons name="chevron-back" size={16} color={Colors.primary} />
+            <Text style={styles.breadcrumbText}>Back to {selectedTag} subcategories</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {/* Only show clubs if no subcategories OR a subcategory is selected */}
+      {(!hasSubcategories || selectedSubcategory) && (
+        <>
+          <Text style={styles.sectionHeader}>
+            {clubs.length}{' '}
+            {selectedSubcategory
+              ? selectedSubcategory
+              : selectedTag === 'all'
+                ? 'Popular'
+                : selectedTag}{' '}
+            Clubs
+          </Text>
+
+          {/* Clubs List */}
+          <View style={styles.clubsList}>{clubs.map(renderClubCard)}</View>
+        </>
+      )}
 
       <Text style={styles.sectionHeader}>
         Upcoming {type === 'events' ? 'Events' : 'Experiences'}
@@ -189,9 +258,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   tagIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -202,6 +271,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
     borderWidth: 2,
+  },
+  tagIcon: {
+    width: 48,
+    height: 48,
   },
   checkBadge: {
     position: 'absolute',
@@ -225,6 +298,111 @@ const styles = StyleSheet.create({
   tagLabelSelected: {
     color: Colors.text,
     fontWeight: '700',
+  },
+  subcategoriesContainer: {
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  subcategoriesTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  subcategoriesContent: {
+    gap: Spacing.sm,
+  },
+  subcategoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: Spacing.xs,
+  },
+  subcategoryIcon: {
+    width: 20,
+    height: 20,
+  },
+  subcategoryLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  subcategoryCardsList: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  subcategoryCard: {
+    backgroundColor: '#fff',
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.08,
+        shadowRadius: 8,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  subcategoryCardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  subcategoryIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subcategoryCardIcon: {
+    width: 32,
+    height: 32,
+  },
+  subcategoryCardTextContainer: {
+    flex: 1,
+  },
+  subcategoryCardTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  subcategoryCardSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.textSecondary,
+  },
+  breadcrumbContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.background,
+  },
+  breadcrumbButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  breadcrumbText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   sectionHeader: {
     fontSize: 20,

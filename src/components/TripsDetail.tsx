@@ -97,12 +97,12 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Ionicons
                     name={cat.icon as any}
-                    size={32} // Increased size
+                    size={28}
                     color={isSelected ? '#FFF' : Colors.primary}
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={14} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -167,9 +167,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   tagIconCircle: {
-    width: 90, // Matched big size
-    height: 90, // Matched big size
-    borderRadius: 45,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -186,9 +186,9 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     backgroundColor: '#FFB800',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -208,11 +208,11 @@ const styles = StyleSheet.create({
   sectionHeader: {
     fontSize: 20,
     fontWeight: '700',
+    color: Colors.text,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
-    color: Colors.textSecondary,
-    textAlign: 'center',
+    textAlign: 'left',
   },
   tripsList: {
     paddingHorizontal: Spacing.lg,
