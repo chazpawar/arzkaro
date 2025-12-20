@@ -8,6 +8,7 @@ import {
   Pressable,
   Platform,
   Dimensions,
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -117,6 +118,14 @@ const MOCK_EVENTS: Record<string, any> = {
     whats_included: 'Transport, Accommodation, All Meals, Trek Guide, Safety Equipment',
     whats_not_included: 'Personal expenses, Travel insurance, Tips',
     pickups: ['Koramangala', 'Indiranagar', 'Whitefield'],
+    images: [
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    ],
   },
   trip2: {
     id: 'trip2',
@@ -144,6 +153,14 @@ const MOCK_EVENTS: Record<string, any> = {
     whats_included: 'Accommodation, Breakfast, Beach Party Access, Water Sports (2 activities)',
     whats_not_included: 'Lunch & Dinner, Alcohol, Personal expenses',
     pickups: ['Koramangala', 'MG Road', 'Airport'],
+    images: [
+      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1537551621259-8d4c3e00c26c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1583198594211-9c6b5ec5c73e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1520454974749-611b7248ffdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    ],
   },
   trip3: {
     id: 'trip3',
@@ -171,12 +188,22 @@ const MOCK_EVENTS: Record<string, any> = {
     whats_included: 'Transport from Delhi, Camping, All Meals, Trek Guide',
     whats_not_included: 'Travel to Delhi, Personal expenses, Snacks',
     pickups: ['Delhi - Kashmere Gate'],
+    images: [
+      'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    ],
   },
 };
 
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const [showAllGalleryImages, setShowAllGalleryImages] = React.useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
 
   // Check if this is a mock event
   const isMockEvent = id && MOCK_EVENTS[id];
@@ -214,6 +241,30 @@ export default function EventDetailsScreen() {
     router.push(`/events/${id}/book`);
   };
 
+  const handleImagePress = (index: number) => {
+    setSelectedImageIndex(index);
+  };
+
+  const handleCloseImageModal = () => {
+    setSelectedImageIndex(null);
+  };
+
+  const handleNextImage = () => {
+    if (
+      selectedImageIndex !== null &&
+      event.images &&
+      selectedImageIndex < event.images.length - 1
+    ) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
+  const handlePreviousImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+
   // Show loading spinner while fetching event (but not for mock events)
   if (loading && !isMockEvent) {
     return (
@@ -239,6 +290,25 @@ export default function EventDetailsScreen() {
 
   const spotsLeft = (event.max_capacity || 0) - (event.current_bookings || 0);
   const isSoldOut = event.max_capacity ? spotsLeft <= 0 : false;
+  const isTrip = event.type === 'trip';
+
+  // Calculate trip duration in days
+  const getTripDuration = () => {
+    if (!isTrip) return 0;
+    const start = new Date(event.start_date);
+    const end = new Date(event.end_date);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const formatDateShort = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
 
   return (
     <>
@@ -255,7 +325,7 @@ export default function EventDetailsScreen() {
       />
       <View style={styles.container}>
         {/* Sticky Cover Image */}
-        <View style={styles.imageContainer}>
+        <View style={[styles.imageContainer, isTrip && styles.imageContainerTrip]}>
           {event.cover_image_url ? (
             <Image
               source={{ uri: event.cover_image_url }}
@@ -272,68 +342,133 @@ export default function EventDetailsScreen() {
 
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, isTrip && styles.scrollContentTrip]}
           style={styles.scrollView}
         >
           {/* Content */}
           <View style={styles.content}>
             {/* Title & Price */}
             <View style={styles.titleSection}>
-              {/* Category Tag */}
-              {event.category && (
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>{event.category}</Text>
+              {/* Category Tags */}
+              {event.tags && event.tags.length > 0 && (
+                <View style={styles.categoryTagsRow}>
+                  {event.tags.slice(0, 2).map((tag, index) => (
+                    <View key={index} style={styles.categoryBadge}>
+                      <Text style={styles.categoryText}>{tag}</Text>
+                    </View>
+                  ))}
                 </View>
               )}
               <Text style={styles.title}>{event.title}</Text>
-            </View>
 
-            {/* Quick Info Cards */}
-            <View style={styles.quickInfoContainer}>
-              <View style={styles.quickInfoCard}>
-                <Ionicons
-                  name="calendar-outline"
-                  size={22}
-                  color={Colors.primary}
-                  style={styles.quickInfoIcon}
-                />
-                <View>
-                  <Text style={styles.quickInfoLabel}>DATE</Text>
-                  <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
-                </View>
-              </View>
-
-              <View style={styles.quickInfoCard}>
-                <Ionicons
-                  name="time-outline"
-                  size={22}
-                  color={Colors.primary}
-                  style={styles.quickInfoIcon}
-                />
-                <View>
-                  <Text style={styles.quickInfoLabel}>TIME</Text>
-                  <Text style={styles.quickInfoValue}>
-                    {formatTime(event.start_date)} - {formatTime(event.end_date)}
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.quickInfoCard}>
-                <Ionicons
-                  name="location-outline"
-                  size={22}
-                  color={Colors.primary}
-                  style={styles.quickInfoIcon}
-                />
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.quickInfoLabel}>VENUE</Text>
-                  <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
-                  {event.location_address && (
-                    <Text style={styles.quickInfoSubValue}>{event.location_address}</Text>
+              {/* Trip-specific layout */}
+              {isTrip ? (
+                <>
+                  {/* Departure & Pickups in one line */}
+                  {(event.departure_location || (event.pickups && event.pickups.length > 0)) && (
+                    <View style={styles.tripCompactRow}>
+                      <Text style={styles.tripCompactText}>
+                        {event.departure_location && (
+                          <>
+                            <Text style={styles.tripCompactLabel}>Departure - </Text>
+                            {event.departure_location}
+                          </>
+                        )}
+                        {event.pickups && event.pickups.length > 0 && (
+                          <>
+                            {event.departure_location && ' | '}
+                            <Text style={styles.tripCompactLabel}>Pickups - </Text>
+                            {event.pickups.slice(0, 2).join(', ')}
+                            {event.pickups.length > 2 && ` +${event.pickups.length - 2}`}
+                          </>
+                        )}
+                      </Text>
+                    </View>
                   )}
+
+                  {/* Destination Location */}
+                  {event.location_name && (
+                    <View style={styles.tripCompactRow}>
+                      <Ionicons name="location" size={16} color={Colors.primary} />
+                      <Text style={styles.tripCompactText}>{event.location_name}</Text>
+                    </View>
+                  )}
+
+                  {/* Trip Duration & Dates */}
+                  <View style={styles.tripCompactRow}>
+                    <Ionicons name="calendar" size={16} color={Colors.primary} />
+                    <Text style={styles.tripCompactText}>
+                      {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
+                      {getTripDuration() > 0 && ` (${getTripDuration()} days)`}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  {/* Date and Time in one line */}
+                  <Text style={styles.dateTimeText}>
+                    {formatDate(event.start_date)} | {formatTime(event.start_date)} -{' '}
+                    {formatTime(event.end_date)}
+                  </Text>
+                  {/* Location */}
+                  {event.location_name && (
+                    <View style={styles.locationRow}>
+                      <Ionicons name="location" size={18} color={Colors.primary} />
+                      <Text style={styles.locationText}>{event.location_name}</Text>
+                    </View>
+                  )}
+                </>
+              )}
+            </View>
+
+            {/* Quick Info Cards - Only show for non-trip events */}
+            {!isTrip && (
+              <View style={styles.quickInfoContainer}>
+                <View style={styles.quickInfoCard}>
+                  <Ionicons
+                    name="calendar-outline"
+                    size={22}
+                    color={Colors.primary}
+                    style={styles.quickInfoIcon}
+                  />
+                  <View>
+                    <Text style={styles.quickInfoLabel}>DATE</Text>
+                    <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.quickInfoCard}>
+                  <Ionicons
+                    name="time-outline"
+                    size={22}
+                    color={Colors.primary}
+                    style={styles.quickInfoIcon}
+                  />
+                  <View>
+                    <Text style={styles.quickInfoLabel}>TIME</Text>
+                    <Text style={styles.quickInfoValue}>
+                      {formatTime(event.start_date)} - {formatTime(event.end_date)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.quickInfoCard}>
+                  <Ionicons
+                    name="location-outline"
+                    size={22}
+                    color={Colors.primary}
+                    style={styles.quickInfoIcon}
+                  />
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.quickInfoLabel}>VENUE</Text>
+                    <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
+                    {event.location_address && (
+                      <Text style={styles.quickInfoSubValue}>{event.location_address}</Text>
+                    )}
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
 
             {/* Availability */}
             {event.max_capacity && (
@@ -491,6 +626,36 @@ export default function EventDetailsScreen() {
                   </View>
                 )}
 
+                {/* Trip Gallery */}
+                {event.images && event.images.length > 0 && (
+                  <View style={styles.tripGalleryContainer}>
+                    <Text style={styles.tripGalleryTitle}>Trip Gallery:</Text>
+                    <View style={styles.tripGalleryImagesRow}>
+                      {(showAllGalleryImages ? event.images : event.images.slice(0, 3)).map(
+                        (imageUrl, index) => (
+                          <Pressable
+                            key={index}
+                            style={styles.tripGalleryImageWrapper}
+                            onPress={() => handleImagePress(index)}
+                          >
+                            <Image source={{ uri: imageUrl }} style={styles.tripGalleryImage} />
+                          </Pressable>
+                        )
+                      )}
+                    </View>
+                    {event.images.length > 3 && (
+                      <Pressable
+                        style={styles.tripGallerySeeAll}
+                        onPress={() => setShowAllGalleryImages(!showAllGalleryImages)}
+                      >
+                        <Text style={styles.tripGallerySeeAllText}>
+                          {showAllGalleryImages ? 'Show less' : 'See all...'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+
                 {/* Ideal For */}
                 {event.ideal_for && (
                   <View style={styles.section}>
@@ -542,8 +707,8 @@ export default function EventDetailsScreen() {
 
         {/* Book Now Footer */}
         <SafeAreaView edges={['bottom']} style={styles.footer}>
-          <View style={styles.footerContainer}>
-            <View style={styles.footerPillContainer}>
+          <View style={[styles.footerContainer, isTrip && styles.footerContainerTrip]}>
+            <View style={[styles.footerPillContainer, isTrip && styles.footerPillContainerTrip]}>
               <Text style={styles.footerPriceValue}>{formatPrice(event.price)}</Text>
               <Pressable
                 style={[styles.bookButtonNested, isSoldOut && styles.bookButtonDisabled]}
@@ -557,6 +722,79 @@ export default function EventDetailsScreen() {
             </View>
           </View>
         </SafeAreaView>
+
+        {/* Image Viewer Modal */}
+        {selectedImageIndex !== null && event.images && (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={handleCloseImageModal}
+          >
+            <View style={styles.imageModalContainer}>
+              <SafeAreaView style={styles.imageModalSafeArea}>
+                {/* Close Button */}
+                <Pressable style={styles.imageModalCloseButton} onPress={handleCloseImageModal}>
+                  <Ionicons name="close" size={30} color={Colors.textInverse} />
+                </Pressable>
+
+                {/* Image Counter */}
+                <View style={styles.imageModalCounter}>
+                  <Text style={styles.imageModalCounterText}>
+                    {selectedImageIndex + 1} / {event.images.length}
+                  </Text>
+                </View>
+
+                {/* Image */}
+                <View style={styles.imageModalImageContainer}>
+                  <Image
+                    source={{ uri: event.images[selectedImageIndex] }}
+                    style={styles.imageModalImage}
+                    resizeMode="contain"
+                  />
+                </View>
+
+                {/* Navigation Buttons */}
+                <View style={styles.imageModalNavigation}>
+                  <Pressable
+                    style={[
+                      styles.imageModalNavButton,
+                      selectedImageIndex === 0 && styles.imageModalNavButtonDisabled,
+                    ]}
+                    onPress={handlePreviousImage}
+                    disabled={selectedImageIndex === 0}
+                  >
+                    <Ionicons
+                      name="chevron-back"
+                      size={32}
+                      color={selectedImageIndex === 0 ? Colors.textTertiary : Colors.textInverse}
+                    />
+                  </Pressable>
+
+                  <Pressable
+                    style={[
+                      styles.imageModalNavButton,
+                      selectedImageIndex === event.images.length - 1 &&
+                        styles.imageModalNavButtonDisabled,
+                    ]}
+                    onPress={handleNextImage}
+                    disabled={selectedImageIndex === event.images.length - 1}
+                  >
+                    <Ionicons
+                      name="chevron-forward"
+                      size={32}
+                      color={
+                        selectedImageIndex === event.images.length - 1
+                          ? Colors.textTertiary
+                          : Colors.textInverse
+                      }
+                    />
+                  </Pressable>
+                </View>
+              </SafeAreaView>
+            </View>
+          </Modal>
+        )}
       </View>
     </>
   );
@@ -571,7 +809,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Dimensions.get('window').height * 0.75, // Start content below image
+    paddingTop: Dimensions.get('window').height * 0.68, // Start content below image
     paddingBottom: 100,
   },
   headerButton: {
@@ -599,7 +837,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: '100%',
-    height: Dimensions.get('window').height * 0.75, // 75% of screen height to show full image
+    height: Dimensions.get('window').height * 0.68, // 68% of screen height
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -623,17 +861,23 @@ const styles = StyleSheet.create({
   categoryBadge: {
     alignSelf: 'flex-start',
     backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
+    paddingHorizontal: Spacing.sm + 2,
+    paddingVertical: 6,
     borderRadius: BorderRadius.full,
-    marginBottom: Spacing.sm,
+    marginRight: Spacing.sm,
+  },
+  categoryTagsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   categoryText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
     color: Colors.textInverse,
     textTransform: 'uppercase',
-    letterSpacing: 0.5,
+    letterSpacing: 0.8,
   },
   content: {
     padding: Spacing.lg,
@@ -653,6 +897,22 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: Spacing.sm,
     letterSpacing: -0.5,
+  },
+  dateTimeText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.primary,
+    marginBottom: Spacing.sm,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  locationText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
   },
   price: {
     fontSize: 22,
@@ -871,7 +1131,7 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
   },
   footerContainer: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xl + Spacing.md,
     paddingBottom: Spacing.lg,
   },
   footerPillContainer: {
@@ -880,20 +1140,21 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    minHeight: 56,
+    paddingLeft: Spacing.lg,
+    paddingRight: Spacing.sm + 4,
+    paddingVertical: Spacing.sm + 4,
+    minHeight: 60,
+    alignSelf: 'stretch',
   },
   footerPriceValue: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: Colors.textInverse,
-    flex: 1,
   },
   bookButtonNested: {
     backgroundColor: Colors.textInverse,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm + 2,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm + 6,
     borderRadius: BorderRadius.full,
     minWidth: 120,
     alignItems: 'center',
@@ -905,7 +1166,7 @@ const styles = StyleSheet.create({
   },
   bookButtonNestedText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: Colors.text,
   },
   // Trip-specific styles
@@ -963,5 +1224,142 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary,
     fontWeight: '500',
+  },
+  // Trip-specific compact layout styles
+  imageContainerTrip: {
+    height: Dimensions.get('window').height * 0.66, // 66% instead of 68% for trips
+  },
+  scrollContentTrip: {
+    paddingTop: Dimensions.get('window').height * 0.66, // Match trip image height
+  },
+  tripCompactRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginBottom: Spacing.xs,
+  },
+  tripCompactText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+    flex: 1,
+  },
+  tripCompactLabel: {
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  footerContainerTrip: {
+    paddingHorizontal: Spacing.xl + 2,
+  },
+  footerPillContainerTrip: {
+    paddingLeft: Spacing.md + 2,
+    paddingRight: Spacing.xs + 2,
+    paddingVertical: Spacing.xs + 2,
+  },
+  // Trip Gallery styles
+  tripGalleryContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  tripGalleryTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  tripGalleryImagesRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  tripGalleryImageWrapper: {
+    width: `${(100 - Spacing.sm * 2) / 3}%`,
+    aspectRatio: 4 / 3,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  tripGalleryImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  tripGallerySeeAll: {
+    alignSelf: 'flex-end',
+  },
+  tripGallerySeeAllText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+  // Image Modal styles
+  imageModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.95)',
+  },
+  imageModalSafeArea: {
+    flex: 1,
+  },
+  imageModalCloseButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 20,
+    right: 20,
+    zIndex: 10,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageModalCounter: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 20,
+    left: 20,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  imageModalCounterText: {
+    fontSize: 14,
+    color: Colors.textInverse,
+    fontWeight: '600',
+  },
+  imageModalImageContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageModalImage: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
+  },
+  imageModalNavigation: {
+    position: 'absolute',
+    bottom: 40,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xl,
+  },
+  imageModalNavButton: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageModalNavButtonDisabled: {
+    opacity: 0.3,
   },
 });

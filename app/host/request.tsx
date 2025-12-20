@@ -151,7 +151,17 @@ export default function HostRequestScreen() {
   if (showForm) {
     return (
       <>
-        <Stack.Screen options={{ title: 'Become a Host', headerShown: true }} />
+        <Stack.Screen
+          options={{
+            title: 'Become a Host',
+            headerShown: true,
+            headerLeft: () => (
+              <TouchableOpacity onPress={handleCancelForm} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            ),
+          }}
+        />
         <SafeAreaView style={styles.container} edges={['bottom']}>
           <HostApplicationForm
             userId={user?.id || ''}
