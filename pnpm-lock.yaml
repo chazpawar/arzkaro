@@ -17,6 +17,9 @@ importers:
       '@react-native-community/datetimepicker':
         specifier: ^8.5.1
         version: 8.5.1(expo@54.0.25)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+      '@react-native-community/slider':
+        specifier: 5.1.1
+        version: 5.1.1
       '@supabase/supabase-js':
         specifier: ^2.86.0
         version: 2.86.0
@@ -1153,6 +1156,9 @@ packages:
         optional: true
       react-native-windows:
         optional: true
+
+  '@react-native-community/slider@5.1.1':
+    resolution: {integrity: sha512-W98If/LnTaziU3/0h5+G1LvJaRhMc6iLQBte6UWa4WBIHDMaDPglNBIFKcCXc9Dxp83W+f+5Wv22Olq9M2HJYA==}
 
   '@react-native/assets-registry@0.81.5':
     resolution: {integrity: sha512-705B6x/5Kxm1RKRvSv0ADYWm5JOnoiQ1ufW7h8uu2E6G9Of/eE6hP/Ivw3U5jI16ERqZxiKQwk34VJbB0niX9w==}
@@ -5779,6 +5785,8 @@ snapshots:
       react-native: 0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0)
     optionalDependencies:
       expo: 54.0.25(@babel/core@7.28.5)(@expo/metro-runtime@6.1.2)(expo-router@6.0.15)(react-native@0.81.5(@babel/core@7.28.5)(@types/react@19.1.17)(react@19.1.0))(react@19.1.0)
+
+  '@react-native-community/slider@5.1.1': {}
 
   '@react-native/assets-registry@0.81.5': {}
 

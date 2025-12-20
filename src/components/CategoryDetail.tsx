@@ -58,7 +58,14 @@ export default function CategoryDetail({
   const clubs = generateClubs(selectedTag === 'all' ? 'Sports' : selectedTag);
 
   const renderClubCard = (club: any) => (
-    <View key={club.id} style={styles.clubCard}>
+    <Pressable
+      key={club.id}
+      style={styles.clubCard}
+      onPress={() => {
+        // You can add club-specific navigation here if needed
+        // For now, we'll leave it as is since clubs are dummy data
+      }}
+    >
       <Image source={{ uri: club.image }} style={styles.clubImage} />
       <View style={styles.clubContent}>
         <Text style={styles.clubCategory}>
@@ -85,12 +92,12 @@ export default function CategoryDetail({
 
         <View style={styles.infoRow}>
           <Text style={styles.locationText}>{club.location}</Text>
-          <Pressable style={styles.bookButton}>
+          <View style={styles.bookButton}>
             <Text style={styles.bookButtonText}>Book Now</Text>
-          </Pressable>
+          </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 
   return (

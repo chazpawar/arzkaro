@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,61 +11,66 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
+import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
 interface SearchModalProps {
   visible: boolean;
   onClose: () => void;
-  onSearch: (location: string, query: string) => void;
+  onSearch: (location: string, query: string, radius: number) => void;
   searchContext?: 'all' | 'experiences' | 'trips';
 }
 
-// Popular destinations for trips
-const POPULAR_DESTINATIONS = [
-  { id: '1', label: 'Goa', icon: 'airplane-outline' },
-  { id: '2', label: 'Manali', icon: 'snow-outline' },
-  { id: '3', label: 'Jaipur', icon: 'business-outline' },
-  { id: '4', label: 'Rishikesh', icon: 'water-outline' },
-  { id: '5', label: 'Udaipur', icon: 'boat-outline' },
-  { id: '6', label: 'Leh-Ladakh', icon: 'snow-outline' },
-];
-
-// Nearby locations for experiences
-const NEARBY_LOCATIONS = [
-  { id: '1', label: 'All Locations', icon: 'globe-outline' },
-  { id: '2', label: 'Indiranagar', icon: 'location-outline' },
-  { id: '3', label: 'Koramangala', icon: 'location-outline' },
-  { id: '4', label: 'Whitefield', icon: 'location-outline' },
-  { id: '5', label: 'HSR Layout', icon: 'location-outline' },
-  { id: '6', label: 'Marathahalli', icon: 'location-outline' },
-];
-
 // Suggested keywords
 const SUGGESTED_KEYWORDS = [
-  { id: '1', label: 'Cricket', icon: 'baseball-outline', category: 'Sport' },
-  { id: '2', label: 'Dance', icon: 'musical-notes-outline', category: 'Arts' },
-  { id: '3', label: 'Badminton', icon: 'tennisball-outline', category: 'Sport' },
-  { id: '4', label: 'Yoga', icon: 'fitness-outline', category: 'Wellness' },
-  { id: '5', label: 'Trekking', icon: 'trail-sign-outline', category: 'Adventure' },
-  { id: '6', label: 'Photography', icon: 'camera-outline', category: 'Arts' },
-  { id: '7', label: 'Comedy', icon: 'happy-outline', category: 'Entertainment' },
-  { id: '8', label: 'Food', icon: 'restaurant-outline', category: 'Food & Drink' },
+  'Cricket',
+  'Dance',
+  'Badminton',
+  'Yoga',
+  'Trekking',
+  'Photography',
+  'Comedy',
+  'Food',
+  'Music',
+  'Fitness',
+];
+
+// Popular locations
+const POPULAR_LOCATIONS = [
+  'Bangalore',
+  'Mumbai',
+  'Delhi',
+  'Goa',
+  'Pune',
+  'Hyderabad',
+  'Chennai',
+  'Kolkata',
 ];
 
 export default function SearchModal({
   visible,
   onClose,
   onSearch,
-  searchContext = 'all',
+  searchContext: _searchContext = 'all',
 }: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('All Locations');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedRadius, setSelectedRadius] = useState(10);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
 
-  const locations = searchContext === 'trips' ? POPULAR_DESTINATIONS : NEARBY_LOCATIONS;
+  // Reset to main search view when modal closes
+  useEffect(() => {
+    if (!visible) {
+      setShowLocationPicker(false);
+    }
+  }, [visible]);
 
   const handleSearch = () => {
-    onSearch(selectedLocation, searchQuery.trim());
+    const location = useCurrentLocation ? 'Current Location' : selectedLocation;
+    onSearch(location || 'All Locations', searchQuery.trim(), selectedRadius);
     onClose();
   };
 
@@ -73,145 +78,224 @@ export default function SearchModal({
     setSearchQuery(keyword);
   };
 
-  const handleLocationSelect = (location: string) => {
-    setSelectedLocation(location);
-  };
-
   const handleClear = () => {
     setSearchQuery('');
-    setSelectedLocation('All Locations');
+    setSelectedLocation('');
+    setSelectedRadius(10);
+    setUseCurrentLocation(false);
   };
+
+  const handleCurrentLocation = () => {
+    setUseCurrentLocation(true);
+    setSelectedLocation('Current Location');
+    setShowLocationPicker(false);
+  };
+
+  const handleSelectLocation = () => {
+    setShowLocationPicker(true);
+  };
+
+  const handleLocationSearchSelect = (location: string) => {
+    setSelectedLocation(location);
+    setUseCurrentLocation(false);
+    setShowLocationPicker(false);
+    setLocationSearchQuery('');
+  };
+
+  const handleBackFromLocation = () => {
+    setShowLocationPicker(false);
+  };
+
+  const filteredLocations = POPULAR_LOCATIONS.filter((loc) =>
+    loc.toLowerCase().includes(locationSearchQuery.toLowerCase())
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.container}>
-        <BlurView intensity={90} style={StyleSheet.absoluteFill} tint="light">
-          <Pressable style={styles.overlay} onPress={onClose} />
-        </BlurView>
+      <View style={styles.modalWrapper}>
+        <Pressable style={styles.overlay} onPress={onClose} />
+        <BlurView
+          intensity={90}
+          style={StyleSheet.absoluteFill}
+          tint="light"
+          pointerEvents="none"
+        />
 
         <View style={styles.contentContainer}>
-          {/* Header */}
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Search Events</Text>
-            <Pressable onPress={onClose} style={styles.closeButton}>
-              <Ionicons name="close" size={28} color={Colors.text} />
-            </Pressable>
-          </View>
-
-          <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-            {/* Keyword Search Input */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>What are you looking for?</Text>
-              <View style={styles.searchInputContainer}>
-                <Ionicons name="search" size={20} color={Colors.textSecondary} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="e.g., Cricket, Dance, Manali, Food..."
-                  placeholderTextColor={Colors.textSecondary}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  autoFocus
-                  returnKeyType="search"
-                  onSubmitEditing={handleSearch}
-                />
-                {searchQuery.length > 0 && (
-                  <Pressable onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
-                  </Pressable>
-                )}
+          {!showLocationPicker ? (
+            <>
+              {/* Main Search View */}
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>Search</Text>
+                <Pressable onPress={onClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={28} color={Colors.text} />
+                </Pressable>
               </View>
-              <Text style={styles.helperText}>
-                Search by activity, destination, category, or any keyword
-              </Text>
-            </View>
 
-            {/* Suggested Keywords */}
-            {searchQuery.length === 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Suggested Keywords</Text>
-                <View style={styles.keywordGrid}>
-                  {SUGGESTED_KEYWORDS.map((keyword) => (
-                    <Pressable
-                      key={keyword.id}
-                      style={styles.keywordChip}
-                      onPress={() => handleKeywordSelect(keyword.label)}
-                    >
-                      <Ionicons name={keyword.icon as any} size={18} color={Colors.primary} />
-                      <Text style={styles.keywordText}>{keyword.label}</Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Location Filter */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>
-                {searchContext === 'trips' ? 'Select Destination' : 'Filter by Location'}
-              </Text>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.locationScroll}
-              >
-                {locations.map((location) => (
-                  <Pressable
-                    key={location.id}
-                    style={[
-                      styles.locationChip,
-                      selectedLocation === location.label && styles.locationChipActive,
-                    ]}
-                    onPress={() => handleLocationSelect(location.label)}
-                  >
-                    <Ionicons
-                      name={location.icon as any}
-                      size={20}
-                      color={
-                        selectedLocation === location.label ? Colors.primary : Colors.textSecondary
-                      }
+              <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Search Input */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>What are you looking for?</Text>
+                  <View style={styles.searchInputContainer}>
+                    <Ionicons name="search" size={20} color={Colors.textSecondary} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Type activity, event name..."
+                      placeholderTextColor={Colors.textSecondary}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      returnKeyType="search"
+                      onSubmitEditing={handleSearch}
                     />
-                    <Text
-                      style={[
-                        styles.locationChipText,
-                        selectedLocation === location.label && styles.locationChipTextActive,
-                      ]}
-                    >
-                      {location.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
+                    {searchQuery.length > 0 && (
+                      <Pressable onPress={() => setSearchQuery('')}>
+                        <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
 
-            {/* Search Tips */}
-            <View style={styles.section}>
-              <View style={styles.tipCard}>
-                <Ionicons name="bulb-outline" size={24} color={Colors.primary} />
-                <View style={styles.tipContent}>
-                  <Text style={styles.tipTitle}>Search Tips</Text>
-                  <Text style={styles.tipText}>
-                    • Type any keyword: sport name, activity, place, or category{'\n'}• Our system
-                    will find all matching events{'\n'}• Combine keywords with location for better
-                    results
-                  </Text>
+                {/* Suggested Keywords */}
+                {searchQuery.length === 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitleSmall}>Suggested Keywords</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.keywordScroll}
+                    >
+                      {SUGGESTED_KEYWORDS.map((keyword, index) => (
+                        <Pressable
+                          key={index}
+                          style={styles.keywordChip}
+                          onPress={() => handleKeywordSelect(keyword)}
+                        >
+                          <Text style={styles.keywordText}>{keyword}</Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Location Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Location</Text>
+                  <Pressable style={styles.locationSelectButton} onPress={handleSelectLocation}>
+                    <View style={styles.locationSelectLeft}>
+                      <Ionicons name="location-outline" size={22} color={Colors.primary} />
+                      <Text style={styles.locationSelectText}>
+                        {selectedLocation || 'Select Location'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                  </Pressable>
+                </View>
+
+                {/* Radius Section - Slider */}
+                <View style={styles.section}>
+                  <View style={styles.radiusHeader}>
+                    <Text style={styles.sectionTitle}>Search Radius</Text>
+                    <Text style={styles.radiusValue}>{selectedRadius} km</Text>
+                  </View>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={1}
+                    maximumValue={50}
+                    step={1}
+                    value={selectedRadius}
+                    onValueChange={setSelectedRadius}
+                    minimumTrackTintColor={Colors.primary}
+                    maximumTrackTintColor={Colors.border}
+                    thumbTintColor={Colors.primary}
+                  />
+                  <View style={styles.sliderLabels}>
+                    <Text style={styles.sliderLabel}>1 km</Text>
+                    <Text style={styles.sliderLabel}>50 km</Text>
+                  </View>
+                </View>
+
+                <View style={{ height: 100 }} />
+              </ScrollView>
+
+              {/* Footer */}
+              <View style={styles.footer}>
+                <Pressable onPress={handleClear} style={styles.clearButton}>
+                  <Text style={styles.clearText}>Clear</Text>
+                </Pressable>
+
+                <Pressable style={styles.searchButton} onPress={handleSearch}>
+                  <Ionicons name="search" size={20} color="#FFF" />
+                  <Text style={styles.searchButtonText}>Search</Text>
+                </Pressable>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* Location Selection View */}
+              <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                  <Pressable onPress={handleBackFromLocation} style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={28} color={Colors.text} />
+                  </Pressable>
+                  <Text style={styles.headerTitle}>Select Location</Text>
                 </View>
               </View>
-            </View>
 
-            <View style={{ height: 100 }} />
-          </ScrollView>
+              <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Current Location Option */}
+                <View style={styles.section}>
+                  <Pressable style={styles.locationOption} onPress={handleCurrentLocation}>
+                    <View style={styles.locationOptionLeft}>
+                      <Ionicons name="navigate" size={22} color={Colors.primary} />
+                      <Text style={styles.locationOptionText}>Use Current Location</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                  </Pressable>
+                </View>
 
-          {/* Footer */}
-          <View style={styles.footer}>
-            <Pressable onPress={handleClear} style={styles.clearButton}>
-              <Text style={styles.clearText}>Clear All</Text>
-            </Pressable>
+                {/* Search Location */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitleSmall}>Search Location</Text>
+                  <View style={styles.searchInputContainer}>
+                    <Ionicons name="search" size={20} color={Colors.textSecondary} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search for a city or area..."
+                      placeholderTextColor={Colors.textSecondary}
+                      value={locationSearchQuery}
+                      onChangeText={setLocationSearchQuery}
+                      autoFocus
+                    />
+                    {locationSearchQuery.length > 0 && (
+                      <Pressable onPress={() => setLocationSearchQuery('')}>
+                        <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
 
-            <Pressable style={styles.searchButton} onPress={handleSearch}>
-              <Ionicons name="search" size={20} color="#FFF" />
-              <Text style={styles.searchButtonText}>Search</Text>
-            </Pressable>
-          </View>
+                {/* Popular Locations */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitleSmall}>Popular Locations</Text>
+                  <View style={styles.locationsList}>
+                    {filteredLocations.map((location, index) => (
+                      <Pressable
+                        key={index}
+                        style={styles.locationItem}
+                        onPress={() => handleLocationSearchSelect(location)}
+                      >
+                        <Ionicons name="location" size={20} color={Colors.primary} />
+                        <Text style={styles.locationItemText}>{location}</Text>
+                        <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ height: 100 }} />
+              </ScrollView>
+            </>
+          )}
         </View>
       </View>
     </Modal>
@@ -219,11 +303,14 @@ export default function SearchModal({
 }
 
 const styles = StyleSheet.create({
+  modalWrapper: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
   overlay: {
-    flex: 1,
+    ...StyleSheet.absoluteFillObject,
   },
   contentContainer: {
     position: 'absolute',
@@ -233,7 +320,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopLeftRadius: BorderRadius.xxl,
     borderTopRightRadius: BorderRadius.xxl,
-    maxHeight: '90%',
+    maxHeight: '85%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -254,8 +341,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  backButton: {
+    padding: Spacing.xs,
+    marginLeft: -Spacing.xs,
+  },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
     color: Colors.text,
   },
@@ -266,13 +362,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    padding: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: Spacing.md,
+  },
+  sectionTitleSmall: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
   },
   searchInputContainer: {
     flexDirection: 'row',
@@ -282,7 +385,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
     paddingHorizontal: Spacing.md,
-    height: 56,
+    height: 52,
     gap: Spacing.sm,
   },
   searchInput: {
@@ -291,84 +394,107 @@ const styles = StyleSheet.create({
     color: Colors.text,
     height: '100%',
   },
-  helperText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
-    lineHeight: 18,
-  },
-  keywordGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  keywordScroll: {
     gap: Spacing.sm,
+    paddingRight: Spacing.lg,
   },
   keywordChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.xs,
     backgroundColor: Colors.surface,
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   keywordText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
     color: Colors.text,
   },
-  locationScroll: {
-    gap: Spacing.sm,
-    paddingRight: Spacing.lg,
-  },
-  locationChip: {
+  locationSelectButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    justifyContent: 'space-between',
     backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
     borderWidth: 1,
     borderColor: Colors.border,
-    minWidth: 100,
-  },
-  locationChipActive: {
-    backgroundColor: Colors.primaryLight || '#FFF0F3',
-    borderColor: Colors.primary,
-  },
-  locationChipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  locationChipTextActive: {
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  tipCard: {
-    flexDirection: 'row',
-    backgroundColor: Colors.surface,
-    padding: Spacing.md,
     borderRadius: BorderRadius.lg,
-    gap: Spacing.md,
+    padding: Spacing.md,
+    height: 56,
+  },
+  locationSelectLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  locationSelectText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  radiusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  radiusValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  sliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xs,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  locationOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    height: 56,
   },
-  tipContent: {
-    flex: 1,
+  locationOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
   },
-  tipTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+  locationOptionText: {
+    fontSize: 16,
+    fontWeight: '500',
     color: Colors.text,
-    marginBottom: Spacing.xs,
   },
-  tipText: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-    lineHeight: 20,
+  locationsList: {
+    gap: Spacing.sm,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  locationItemText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
   },
   footer: {
     flexDirection: 'row',
@@ -386,8 +512,7 @@ const styles = StyleSheet.create({
   clearText: {
     fontSize: 16,
     fontWeight: '600',
-    color: Colors.text,
-    textDecorationLine: 'underline',
+    color: Colors.textSecondary,
   },
   searchButton: {
     flexDirection: 'row',

@@ -17,12 +17,176 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
 
+// Mock data for demo experiences/trips
+const MOCK_EVENTS: Record<string, any> = {
+  exp1: {
+    id: 'exp1',
+    title: 'Pottery Workshop',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: 1200,
+    location_name: 'Indiranagar',
+    location_address: 'Church Street, Indiranagar, Bangalore',
+    description:
+      'Learn the art of pottery making in this hands-on workshop. Create your own ceramic masterpiece with guidance from expert potters. All materials provided. Perfect for beginners!',
+    type: 'experience',
+    category: 'Art & Craft',
+    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 20,
+    current_bookings: 12,
+    tags: ['Art', 'Workshop', 'Creative', 'Beginner Friendly'],
+    host: {
+      full_name: 'Pottery Studio Bangalore',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-1',
+    currency: 'INR',
+  },
+  exp2: {
+    id: 'exp2',
+    title: 'Wine Tasting',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: 2500,
+    location_name: 'Nandi Hills Vineyard',
+    location_address: 'Nandi Hills, Karnataka',
+    description:
+      'Discover the finest wines in a beautiful vineyard setting. Includes guided wine tasting of 5 premium wines, cheese pairing, and vineyard tour. Learn about wine making from our sommelier.',
+    type: 'experience',
+    category: 'Food & Drink',
+    start_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 30,
+    current_bookings: 18,
+    tags: ['Wine', 'Tasting', 'Vineyard', 'Food Pairing'],
+    host: {
+      full_name: 'Nandi Hills Winery',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-2',
+    currency: 'INR',
+  },
+  exp3: {
+    id: 'exp3',
+    title: 'Stand-up Comedy Night',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    price: 499,
+    location_name: 'The Comedy Store',
+    location_address: 'Koramangala, Bangalore',
+    description:
+      'An evening of laughter with some of the best comedians in town! Featuring 4 amazing performers. Food and drinks available. 18+ only.',
+    type: 'experience',
+    category: 'Entertainment',
+    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 100,
+    current_bookings: 75,
+    tags: ['Comedy', 'Entertainment', 'Nightlife'],
+    host: {
+      full_name: 'Comedy Store Bangalore',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-3',
+    currency: 'INR',
+  },
+  trip1: {
+    id: 'trip1',
+    title: 'Manali Backpacking',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    price: 8499,
+    location_name: 'Manali, Himachal Pradesh',
+    departure_location: 'Bangalore',
+    description:
+      '5 days of adventure in the Himalayas! Trek through scenic trails, camp under the stars, and experience the local culture. All meals, accommodation, and transport included.',
+    type: 'trip',
+    category: 'Adventure',
+    start_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 26 * 24 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 25,
+    current_bookings: 15,
+    tags: ['Trek', 'Adventure', 'Mountains', 'Camping'],
+    host: {
+      full_name: 'Mountain Explorers',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-4',
+    currency: 'INR',
+    whats_included: 'Transport, Accommodation, All Meals, Trek Guide, Safety Equipment',
+    whats_not_included: 'Personal expenses, Travel insurance, Tips',
+    pickups: ['Koramangala', 'Indiranagar', 'Whitefield'],
+  },
+  trip2: {
+    id: 'trip2',
+    title: 'Goa Beach Party',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    price: 12999,
+    location_name: 'Goa',
+    departure_location: 'Bangalore',
+    description:
+      '4 nights in Goa! Beach parties, water sports, DJ nights, and more. Stay at a beachfront resort. Perfect for groups!',
+    type: 'trip',
+    category: 'Party',
+    start_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 40,
+    current_bookings: 28,
+    tags: ['Beach', 'Party', 'Water Sports', 'Nightlife'],
+    host: {
+      full_name: 'Goa Adventures',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-5',
+    currency: 'INR',
+    whats_included: 'Accommodation, Breakfast, Beach Party Access, Water Sports (2 activities)',
+    whats_not_included: 'Lunch & Dinner, Alcohol, Personal expenses',
+    pickups: ['Koramangala', 'MG Road', 'Airport'],
+  },
+  trip3: {
+    id: 'trip3',
+    title: 'Kasol & Kheerganga Trek',
+    cover_image_url:
+      'https://images.unsplash.com/photo-1455620611406-966ca6889d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    price: 7999,
+    location_name: 'Kasol, Himachal Pradesh',
+    departure_location: 'Delhi',
+    description:
+      'Trek to Kheerganga hot springs, explore Kasol cafes, and camp by the Parvati river. 4 days of Himalayan bliss!',
+    type: 'trip',
+    category: 'Trek',
+    start_date: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 39 * 24 * 60 * 60 * 1000).toISOString(),
+    max_capacity: 20,
+    current_bookings: 8,
+    tags: ['Trek', 'Mountains', 'Camping', 'Nature'],
+    host: {
+      full_name: 'Himalayan Trails',
+      avatar_url: null,
+    },
+    host_id: 'mock-host-6',
+    currency: 'INR',
+    whats_included: 'Transport from Delhi, Camping, All Meals, Trek Guide',
+    whats_not_included: 'Travel to Delhi, Personal expenses, Snacks',
+    pickups: ['Delhi - Kashmere Gate'],
+  },
+};
+
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
 
-  // Use real event hook
-  const { event, ticketTypes, loading, error } = useEvent(id);
+  // Check if this is a mock event
+  const isMockEvent = id && MOCK_EVENTS[id];
+  const mockEvent = isMockEvent ? MOCK_EVENTS[id] : null;
+
+  // Use real event hook (skip if mock)
+  const { event: realEvent, ticketTypes, loading, error } = useEvent(isMockEvent ? '' : id);
+
+  // Use mock event if available, otherwise real event
+  const event = mockEvent || realEvent;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -50,8 +214,8 @@ export default function EventDetailsScreen() {
     router.push(`/events/${id}/book`);
   };
 
-  // Show loading spinner while fetching event
-  if (loading) {
+  // Show loading spinner while fetching event (but not for mock events)
+  if (loading && !isMockEvent) {
     return (
       <View style={styles.container}>
         <LoadingSpinner fullScreen />
@@ -59,7 +223,7 @@ export default function EventDetailsScreen() {
     );
   }
 
-  if (error || !event) {
+  if ((error || !event) && !isMockEvent) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>

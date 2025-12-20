@@ -47,27 +47,41 @@ const FEATURED_EXPERIENCES = [
     title: 'Pottery Workshop',
     image:
       'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: '₹1,200',
+    price: 1200,
     rating: 4.8,
     location: 'Indiranagar',
+    description:
+      'Learn the art of pottery making with expert instructors. Create your own masterpiece!',
+    type: 'experience',
+    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'exp2',
     title: 'Wine Tasting',
     image:
       'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: '₹2,500',
+    price: 2500,
     rating: 4.9,
     location: 'Nandi Hills',
+    description:
+      'Discover the finest wines in a beautiful vineyard setting. Includes cheese pairing.',
+    type: 'experience',
+    start_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
   },
   {
     id: 'exp3',
     title: 'Stand-up Comedy',
     image:
       'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: '₹499',
+    price: 499,
     rating: 4.5,
     location: 'Koramangala',
+    description: 'An evening of laughter with some of the best comedians in town!',
+    type: 'experience',
+    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -191,9 +205,10 @@ export default function ExploreTab() {
     setSelectedTag('all');
   };
 
-  const handleSearch = (location: string, query: string) => {
+  const handleSearch = (location: string, query: string, _radius: number) => {
     setSearchLocation(location);
     setSearchQuery(query);
+    // TODO: Use radius for nearby search filtering
   };
 
   if (loading && !refreshing) {
@@ -288,7 +303,11 @@ export default function ExploreTab() {
               >
                 {(featuredExperiences.length > 0 ? featuredExperiences : FEATURED_EXPERIENCES).map(
                   (item) => (
-                    <Pressable key={item.id} style={styles.horizontalCard}>
+                    <Pressable
+                      key={item.id}
+                      style={styles.horizontalCard}
+                      onPress={() => router.push(`/events/${item.id}`)}
+                    >
                       <Image
                         source={{
                           uri:
@@ -337,7 +356,11 @@ export default function ExploreTab() {
                 contentContainerStyle={styles.horizontalList}
               >
                 {(featuredTrips.length > 0 ? featuredTrips : DUMMY_TRIPS).map((item) => (
-                  <Pressable key={item.id} style={styles.horizontalCard}>
+                  <Pressable
+                    key={item.id}
+                    style={styles.horizontalCard}
+                    onPress={() => router.push(`/events/${item.id}`)}
+                  >
                     <Image
                       source={{
                         uri:
@@ -374,7 +397,10 @@ export default function ExploreTab() {
           // Detail Views
           <View>
             {activeView === 'trips' ? (
-              <TripsDetail events={filteredEvents} />
+              <TripsDetail
+                events={filteredEvents}
+                onTripPress={(id) => router.push(`/events/${id}`)}
+              />
             ) : (
               <CategoryDetail
                 type={activeView as 'events' | 'experiences'}

@@ -49,9 +49,10 @@ const TRIP_CATEGORIES = [
 
 interface TripsDetailProps {
   events: Event[];
+  onTripPress?: (tripId: string) => void;
 }
 
-export default function TripsDetail({ events }: TripsDetailProps) {
+export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
   // Use passed events if available, otherwise fallback to empty (or we could keep DUMMY_TRIPS as a fallback if we really want, but better to move to real data)
@@ -119,7 +120,7 @@ export default function TripsDetail({ events }: TripsDetailProps) {
       {/* Trips List */}
       <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
         {displayTrips.map((trip) => (
-          <View key={trip.id} style={styles.tripCard}>
+          <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
             <Image source={{ uri: trip.image }} style={styles.tripImage} />
             <View style={styles.tripContent}>
               <View style={styles.tripHeader}>
@@ -136,12 +137,12 @@ export default function TripsDetail({ events }: TripsDetailProps) {
                 <Text style={styles.tripPrice}>
                   {trip.price} <Text style={styles.perPerson}>/ person</Text>
                 </Text>
-                <Pressable style={styles.bookButton}>
+                <View style={styles.bookButton}>
                   <Text style={styles.bookButtonText}>View</Text>
-                </Pressable>
+                </View>
               </View>
             </View>
-          </View>
+          </Pressable>
         ))}
       </ScrollView>
     </View>
