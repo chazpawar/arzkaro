@@ -1,14 +1,5 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  Pressable,
-  RefreshControl,
-  Image,
-  Platform,
-} from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -29,7 +20,13 @@ const BoardGameIcon = require('../../assets/categoriesicons/Board Game.png');
 const HousePartyIcon = require('../../assets/categoriesicons/House Party.png');
 const DJNightIcon = require('../../assets/categoriesicons/DJ Night.png');
 
+// Main category icons from assets/others
+const ForYouIcon = require('../../assets/others/foryou.png');
+const ExperiencesIcon = require('../../assets/others/experiences.png');
+const TripsIcon = require('../../assets/others/trips.png');
+
 const CATEGORY_ICONS: Record<string, any> = {
+  All: require('../../assets/categoriesicons/Play.png'), // For "All" categories
   Music: require('../../assets/categoriesicons/Music.png'),
   Comedy: DJNightIcon,
   Sports: require('../../assets/categoriesicons/Sports.png'),
@@ -68,17 +65,17 @@ const CATEGORIES = [
   {
     id: 'events',
     label: 'For You',
-    icon: 'sparkles-outline',
+    icon: ForYouIcon,
   },
   {
     id: 'experiences',
     label: 'Experiences',
-    icon: 'compass-outline',
+    icon: ExperiencesIcon,
   },
   {
     id: 'trips',
     label: 'Trips',
-    icon: 'airplane-outline',
+    icon: TripsIcon,
   },
 ];
 
@@ -403,7 +400,7 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
     {
       id: 'all',
       label: 'All',
-      icon: CATEGORY_ICONS.Play, // Using Play icon for "All"
+      icon: CATEGORY_ICONS.All,
     },
     {
       id: 'Music',
@@ -425,7 +422,7 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
     {
       id: 'all',
       label: 'All',
-      icon: CATEGORY_ICONS.Play, // Using Play icon for "All"
+      icon: CATEGORY_ICONS.All,
     },
     {
       id: 'Cultural',
@@ -716,12 +713,13 @@ export default function ExploreTab() {
                     style={styles.categoryCircleContainer}
                     onPress={() => handleCategoryPress(cat.id)}
                   >
-                    <View style={[styles.categoryCircle, isActive && styles.categoryCircleActive]}>
-                      <Ionicons
-                        name={cat.icon as any}
-                        size={32}
-                        color={isActive ? '#fff' : Colors.primary}
-                      />
+                    <View style={styles.categoryIconContainer}>
+                      <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
+                      {isActive && (
+                        <View style={styles.categoryCheckBadge}>
+                          <Ionicons name="checkmark" size={12} color="#FFF" />
+                        </View>
+                      )}
                     </View>
                     <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
                       {cat.label}
@@ -960,31 +958,31 @@ const styles = StyleSheet.create({
   categoryCircleContainer: {
     alignItems: 'center',
     gap: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
-  categoryCircle: {
+  categoryIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
     width: 72,
     height: 72,
-    borderRadius: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff', // White background
-    borderWidth: 1, // Optional: add a subtle border or keep clean
-    borderColor: '#eee',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1, // Softer shadow
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
-  categoryCircleActive: {
+  categoryIcon: {
+    width: 64,
+    height: 64,
+  },
+  categoryCheckBadge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
     backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.background,
   },
   categoryLabel: {
     fontSize: 14,

@@ -97,12 +97,12 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Ionicons
                     name={cat.icon as any}
-                    size={28}
+                    size={32}
                     color={isSelected ? '#FFF' : Colors.primary}
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={10} color="#FFF" />
+                      <Ionicons name="checkmark" size={12} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -165,11 +165,12 @@ const styles = StyleSheet.create({
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
   tagIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -185,7 +186,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FFB800',
+    backgroundColor: Colors.primary,
     width: 24,
     height: 24,
     borderRadius: 12,

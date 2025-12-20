@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   tabActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.text,
   },
   tabText: {
     fontSize: 14,

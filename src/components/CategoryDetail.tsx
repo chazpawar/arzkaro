@@ -192,11 +192,11 @@ export default function CategoryDetail({
                   }
                 }}
               >
-                <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
+                <View style={styles.tagIconContainer}>
                   <Image source={tag.icon} style={styles.tagIcon} resizeMode="contain" />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={10} color="#FFF" />
+                      <Ionicons name="checkmark" size={12} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -303,31 +303,24 @@ const styles = StyleSheet.create({
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
   },
-  tagIconCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surface,
+  tagIconContainer: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tagIconCircleSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    borderWidth: 2,
+    width: 72,
+    height: 72,
   },
   tagIcon: {
-    width: 48,
-    height: 48,
+    width: 64,
+    height: 64,
   },
   checkBadge: {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#FFB800',
+    backgroundColor: Colors.primary,
     width: 24,
     height: 24,
     borderRadius: 12,
