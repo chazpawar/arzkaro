@@ -26,21 +26,18 @@ import SearchModal from '../../src/components/SearchModal';
 const CATEGORIES = [
   {
     id: 'events',
-    label: 'Events',
-    icon: 'calendar-outline',
-    color: '#6C63FF', // We will use this for the ICON color now
+    label: 'For You',
+    icon: 'sparkles-outline',
   },
   {
     id: 'experiences',
     label: 'Experiences',
     icon: 'compass-outline',
-    color: '#FF6584', // Icon color
   },
   {
     id: 'trips',
     label: 'Trips',
     icon: 'airplane-outline',
-    color: '#4ECDC4', // Icon color
   },
 ];
 
@@ -87,8 +84,6 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, { id: string; label: string; icon: s
     { id: 'Games', label: 'Games', icon: 'game-controller-outline' },
     { id: 'Entertainment', label: 'Entertainment', icon: 'film-outline' },
     { id: 'Outdoors', label: 'Outdoors', icon: 'leaf-outline' },
-    { id: 'Nightlife', label: 'Nightlife', icon: 'wine-outline' },
-    { id: 'Wellness', label: 'Wellness', icon: 'fitness-outline' },
   ],
   trips: [], // Trips handled by TripsDetail component directly
 };
@@ -102,6 +97,7 @@ export default function ExploreTab() {
   const [selectedTag, setSelectedTag] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchLocation, setSearchLocation] = useState('All Locations');
 
   const { events, loading, refresh } = useEvents();
   const { events: featuredExperiences } = useFeaturedEvents(5, 'experience');
@@ -113,10 +109,62 @@ export default function ExploreTab() {
     setRefreshing(false);
   };
 
-  // Filter logic similar to previous implementation
+  // Filter logic with comprehensive keyword search
   const filteredEvents = events.filter((event: Event) => {
-    if (searchQuery && !event.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      return false;
+    // Keyword search - searches across multiple fields
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+
+      // Search in title
+      const titleMatch = event.title.toLowerCase().includes(query);
+
+      // Search in description
+      const descMatch = event.description?.toLowerCase().includes(query) || false;
+      const shortDescMatch = event.short_description?.toLowerCase().includes(query) || false;
+
+      // Search in category
+      const categoryMatch = event.category?.toLowerCase().includes(query) || false;
+
+      // Search in tags
+      const tagsMatch = event.tags.some((tag) => tag.toLowerCase().includes(query));
+
+      // Search in location fields
+      const locationNameMatch = event.location_name?.toLowerCase().includes(query) || false;
+      const locationAddressMatch = event.location_address?.toLowerCase().includes(query) || false;
+      const departureLocationMatch =
+        event.departure_location?.toLowerCase().includes(query) || false;
+
+      // If none of the fields match, filter out
+      if (
+        !titleMatch &&
+        !descMatch &&
+        !shortDescMatch &&
+        !categoryMatch &&
+        !tagsMatch &&
+        !locationNameMatch &&
+        !locationAddressMatch &&
+        !departureLocationMatch
+      ) {
+        return false;
+      }
+    }
+
+    // Location filter
+    if (searchLocation && searchLocation !== 'All Locations') {
+      const locationLower = searchLocation.toLowerCase();
+
+      // For trips, check departure_location
+      if (event.type === 'trip') {
+        const tripLocationMatch =
+          event.departure_location?.toLowerCase().includes(locationLower) || false;
+        if (!tripLocationMatch) return false;
+      }
+      // For experiences/events, check location_name
+      else {
+        const eventLocationMatch =
+          event.location_name?.toLowerCase().includes(locationLower) || false;
+        if (!eventLocationMatch) return false;
+      }
     }
 
     // Type mapping
@@ -143,8 +191,8 @@ export default function ExploreTab() {
     setSelectedTag('all');
   };
 
-  const handleSearch = (category: string, query: string) => {
-    setActiveView(category);
+  const handleSearch = (location: string, query: string) => {
+    setSearchLocation(location);
     setSearchQuery(query);
   };
 
@@ -158,6 +206,17 @@ export default function ExploreTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Logo - Only show on main view */}
+      {!activeView && (
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/arz.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+      )}
+
       {/* Search Bar Header */}
       <View style={styles.headerContainer}>
         {activeView && (
@@ -168,7 +227,11 @@ export default function ExploreTab() {
 
         <Pressable style={styles.searchBar} onPress={() => setSearchModalVisible(true)}>
           <Ionicons name="search" size={20} color={Colors.text} />
-          <Text style={styles.searchPlaceholder}>{searchQuery || 'Search'}</Text>
+          <Text style={styles.searchPlaceholder} numberOfLines={1}>
+            {searchQuery
+              ? `${searchQuery}${searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
+              : 'Search events, activities...'}
+          </Text>
         </Pressable>
 
         {!activeView && (
@@ -202,7 +265,7 @@ export default function ExploreTab() {
                   onPress={() => setActiveView(cat.id)}
                 >
                   <View style={styles.categoryCircle}>
-                    <Ionicons name={cat.icon as any} size={32} color={cat.color} />
+                    <Ionicons name={cat.icon as any} size={32} color={Colors.primary} />
                   </View>
                   <Text style={styles.categoryLabel}>{cat.label}</Text>
                 </Pressable>
@@ -333,6 +396,9 @@ export default function ExploreTab() {
         visible={searchModalVisible}
         onClose={() => setSearchModalVisible(false)}
         onSearch={handleSearch}
+        searchContext={
+          activeView === 'trips' ? 'trips' : activeView === 'experiences' ? 'experiences' : 'all'
+        }
       />
     </SafeAreaView>
   );
@@ -342,6 +408,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
+  },
+  logo: {
+    width: 120,
+    height: 48,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -364,6 +439,7 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   searchPlaceholder: {
+    flex: 1,
     fontSize: 16,
     color: Colors.textSecondary,
     fontWeight: '500',

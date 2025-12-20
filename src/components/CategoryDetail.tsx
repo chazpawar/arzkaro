@@ -114,7 +114,7 @@ export default function CategoryDetail({
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -182,9 +182,9 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   tagIconCircle: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -201,9 +201,9 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     backgroundColor: '#FFB800',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

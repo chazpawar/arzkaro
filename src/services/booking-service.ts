@@ -87,7 +87,7 @@ export async function getUserBookings(userId: string) {
       `
       *,
       event:events(id, title, cover_image_url, start_date, end_date, location_name, location_address),
-      ticket_type:ticket_types(id, name)
+      ticket_type:ticket_types(id, name, description)
     `
     )
     .eq('user_id', userId)
@@ -347,7 +347,7 @@ export async function getEventBookings(eventId: string) {
       `
       *,
       user:profiles!user_id(id, full_name, email, avatar_url),
-      ticket_type:ticket_types(id, name)
+      ticket_type:ticket_types(id, name, description)
     `
     )
     .eq('event_id', eventId)

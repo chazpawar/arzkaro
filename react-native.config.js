@@ -11,7 +11,6 @@ module.exports = {
           packageImportPath: 'import com.razorpay.rn.RazorpayPackage;',
           packageInstance: 'new RazorpayPackage()',
         },
-        ios: null, // Configure iOS separately if needed
       },
     },
   },
