@@ -13,27 +13,32 @@ const generateClubs = (category: string) => {
       name: `${category} Club of India`,
       image:
         'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      rating: 4.5,
-      members: 26,
       location: 'Pitampura',
+      timing: '5:00 PM',
     },
     {
       id: '2',
       name: `Just ${category} It`,
       image:
         'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      rating: 4.8,
-      members: 88,
       location: 'Rohini',
+      timing: '6:00 PM',
     },
     {
       id: '3',
       name: `Northern Daredevils`,
       image:
         'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      rating: 0,
-      members: 12,
       location: 'Pitampura',
+      timing: '7:00 PM',
+    },
+    {
+      id: '4',
+      name: `${category} Warriors`,
+      image:
+        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+      location: 'Dwarka',
+      timing: '5:30 PM',
     },
   ];
 };
@@ -50,6 +55,7 @@ interface CategoryDetailProps {
   onSelectTag: (tagId: string) => void;
   events: Event[];
   onEventPress: (eventId: string) => void;
+  showInline?: boolean; // New prop to control inline vs full page view
 }
 
 export default function CategoryDetail({
@@ -59,6 +65,7 @@ export default function CategoryDetail({
   onSelectTag,
   events,
   onEventPress,
+  showInline = false,
 }: CategoryDetailProps) {
   const [selectedSubcategory, setSelectedSubcategory] = React.useState<string | null>(null);
 
@@ -76,6 +83,51 @@ export default function CategoryDetail({
     setSelectedSubcategory(null);
   }, [selectedTag]);
 
+  // Filter events based on subcategory selection
+  const filteredEvents = React.useMemo(() => {
+    if (!selectedSubcategory) {
+      return events;
+    }
+    // Filter events by subcategory - assuming event.tags or event.category contains subcategory
+    return events.filter((event) => {
+      // Check if event tags include the subcategory
+      if (
+        event.tags &&
+        event.tags.some((tag) => tag.toLowerCase() === selectedSubcategory.toLowerCase())
+      ) {
+        return true;
+      }
+      // Also check if event category matches
+      if (event.category?.toLowerCase() === selectedSubcategory.toLowerCase()) {
+        return true;
+      }
+      return false;
+    });
+  }, [events, selectedSubcategory]);
+
+  // Prepare tags to display based on selection
+  const displayTags = React.useMemo(() => {
+    if (selectedTag === 'all') {
+      // Show all tags when 'all' is selected
+      return tags;
+    } else if (hasSubcategories) {
+      // Show selected category + its subcategories
+      const mainCategory = tags.find((tag) => tag.id === selectedTag);
+      if (mainCategory && mainCategory.subcategories) {
+        return [
+          mainCategory,
+          ...mainCategory.subcategories.map((sub) => ({
+            id: sub.id,
+            label: sub.label,
+            icon: sub.icon,
+          })),
+        ];
+      }
+    }
+    // If no subcategories, just show the selected category
+    return tags.filter((tag) => tag.id === selectedTag);
+  }, [tags, selectedTag, hasSubcategories]);
+
   const renderClubCard = (club: any) => (
     <Pressable
       key={club.id}
@@ -85,34 +137,23 @@ export default function CategoryDetail({
         // For now, we'll leave it as is since clubs are dummy data
       }}
     >
-      <Image source={{ uri: club.image }} style={styles.clubImage} />
-      <View style={styles.clubContent}>
-        <Text style={styles.clubCategory}>
-          {selectedTag === 'all' ? 'General' : selectedTag} Club
-        </Text>
-        <Text style={styles.clubName} numberOfLines={2}>
-          {club.name}
-        </Text>
-
-        <View style={styles.ratingRow}>
-          {club.rating > 0 ? (
-            <View style={styles.ratingBadge}>
-              <Text style={styles.ratingText}>{club.rating} ★</Text>
-            </View>
-          ) : (
-            <View style={styles.noRatingBadge}>
-              <Text style={styles.noRatingText}>-- ★</Text>
-            </View>
-          )}
-          <Text style={styles.memberCount}>
-            ({club.rating > 0 ? club.members : 'No ratings yet'})
+      <View style={styles.clubCardInner}>
+        <Image source={{ uri: club.image }} style={styles.clubImage} />
+        <View style={styles.clubContent}>
+          <Text style={styles.clubName} numberOfLines={1}>
+            {club.name}
           </Text>
-        </View>
-
-        <View style={styles.infoRow}>
-          <Text style={styles.locationText}>{club.location}</Text>
-          <View style={styles.bookButton}>
-            <Text style={styles.bookButtonText}>Book Now</Text>
+          <View style={styles.clubInfoRow}>
+            <View style={styles.clubLocationRow}>
+              <Ionicons name="location" size={14} color={Colors.primary} />
+              <Text style={styles.clubLocationText} numberOfLines={1}>
+                {club.location}
+              </Text>
+            </View>
+            <View style={styles.clubTimingRow}>
+              <Ionicons name="time-outline" size={14} color={Colors.primary} />
+              <Text style={styles.clubTimingText}>{club.timing}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -128,10 +169,29 @@ export default function CategoryDetail({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tagsContent}
         >
-          {tags.map((tag) => {
-            const isSelected = selectedTag === tag.id;
+          {displayTags.map((tag) => {
+            // For subcategories, check if it matches the selected subcategory
+            const isSubcategory = selectedMainCategory?.subcategories?.some(
+              (sub) => sub.id === tag.id
+            );
+            const isSelected = isSubcategory
+              ? selectedSubcategory === tag.id
+              : selectedTag === tag.id;
+
             return (
-              <Pressable key={tag.id} style={styles.tagItem} onPress={() => onSelectTag(tag.id)}>
+              <Pressable
+                key={tag.id}
+                style={styles.tagItem}
+                onPress={() => {
+                  if (isSubcategory) {
+                    // If it's a subcategory, set the subcategory
+                    setSelectedSubcategory(selectedSubcategory === tag.id ? null : tag.id);
+                  } else {
+                    // If it's a main category, handle normal selection
+                    onSelectTag(tag.id);
+                  }
+                }}
+              >
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Image source={tag.icon} style={styles.tagIcon} resizeMode="contain" />
                   {isSelected && (
@@ -149,94 +209,81 @@ export default function CategoryDetail({
         </ScrollView>
       </View>
 
-      {/* Subcategories as Large Cards - Show only if main category has subcategories */}
-      {hasSubcategories && !selectedSubcategory && (
+      {/* Only show content below if showInline is true OR a specific category is selected */}
+      {(showInline || selectedTag !== 'all') && (
         <>
-          <Text style={styles.sectionHeader}>Choose Your Interest</Text>
-          <View style={styles.subcategoryCardsList}>
-            {selectedMainCategory?.subcategories?.map((subcat) => (
-              <Pressable
-                key={subcat.id}
-                style={styles.subcategoryCard}
-                onPress={() => setSelectedSubcategory(subcat.id)}
-              >
-                <View style={styles.subcategoryCardContent}>
-                  <View style={styles.subcategoryIconContainer}>
+          {/* Show clubs only when 'all' is selected or no subcategories */}
+          {(selectedTag === 'all' || !hasSubcategories) && (
+            <>
+              <Text style={styles.sectionHeader}>
+                {clubs.length}{' '}
+                {selectedSubcategory
+                  ? selectedSubcategory
+                  : selectedTag === 'all'
+                    ? 'Popular'
+                    : selectedTag}{' '}
+                Clubs
+              </Text>
+
+              {/* Clubs List */}
+              <View style={styles.clubsGrid}>{clubs.map(renderClubCard)}</View>
+            </>
+          )}
+
+          <Text style={styles.sectionHeader}>
+            {hasSubcategories && selectedTag !== 'all'
+              ? selectedSubcategory
+                ? `${selectedSubcategory} Events`
+                : `${selectedTag} Events`
+              : `Upcoming ${type === 'events' ? 'Events' : 'Experiences'}`}
+          </Text>
+
+          {/* Events Grid - Same as Clubs Grid */}
+          <View style={styles.eventsGrid}>
+            {filteredEvents.length > 0 ? (
+              filteredEvents.map((event) => (
+                <Pressable
+                  key={event.id}
+                  style={styles.clubCard}
+                  onPress={() => onEventPress(event.id)}
+                >
+                  <View style={styles.clubCardInner}>
                     <Image
-                      source={subcat.icon}
-                      style={styles.subcategoryCardIcon}
-                      resizeMode="contain"
+                      source={{ uri: event.cover_image_url || 'https://via.placeholder.com/150' }}
+                      style={styles.clubImage}
                     />
+                    <View style={styles.clubContent}>
+                      <Text style={styles.clubName} numberOfLines={1}>
+                        {event.title}
+                      </Text>
+                      <View style={styles.clubInfoRow}>
+                        <View style={styles.clubLocationRow}>
+                          <Ionicons name="location" size={14} color={Colors.primary} />
+                          <Text style={styles.clubLocationText} numberOfLines={1}>
+                            {event.location_name || 'Location TBA'}
+                          </Text>
+                        </View>
+                        <View style={styles.clubTimingRow}>
+                          <Ionicons name="time-outline" size={14} color={Colors.primary} />
+                          <Text style={styles.clubTimingText}>
+                            {new Date(event.start_date).toLocaleTimeString('en-US', {
+                              hour: 'numeric',
+                              minute: '2-digit',
+                              hour12: true,
+                            })}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.subcategoryCardTextContainer}>
-                    <Text style={styles.subcategoryCardTitle}>{subcat.label}</Text>
-                    <Text style={styles.subcategoryCardSubtitle}>
-                      Explore {subcat.label.toLowerCase()} activities
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={24} color={Colors.textSecondary} />
-                </View>
-              </Pressable>
-            ))}
+                </Pressable>
+              ))
+            ) : (
+              <Text style={styles.emptyText}>No {type} found for this category.</Text>
+            )}
           </View>
         </>
       )}
-
-      {/* Breadcrumb - Show when subcategory is selected */}
-      {selectedSubcategory && (
-        <View style={styles.breadcrumbContainer}>
-          <Pressable onPress={() => setSelectedSubcategory(null)} style={styles.breadcrumbButton}>
-            <Ionicons name="chevron-back" size={16} color={Colors.primary} />
-            <Text style={styles.breadcrumbText}>Back to {selectedTag} subcategories</Text>
-          </Pressable>
-        </View>
-      )}
-
-      {/* Only show clubs if no subcategories OR a subcategory is selected */}
-      {(!hasSubcategories || selectedSubcategory) && (
-        <>
-          <Text style={styles.sectionHeader}>
-            {clubs.length}{' '}
-            {selectedSubcategory
-              ? selectedSubcategory
-              : selectedTag === 'all'
-                ? 'Popular'
-                : selectedTag}{' '}
-            Clubs
-          </Text>
-
-          {/* Clubs List */}
-          <View style={styles.clubsList}>{clubs.map(renderClubCard)}</View>
-        </>
-      )}
-
-      <Text style={styles.sectionHeader}>
-        Upcoming {type === 'events' ? 'Events' : 'Experiences'}
-      </Text>
-
-      {/* Events List */}
-      <View style={styles.eventsList}>
-        {events.length > 0 ? (
-          events.map((event) => (
-            <Pressable
-              key={event.id}
-              style={styles.eventCard}
-              onPress={() => onEventPress(event.id)}
-            >
-              <Image
-                source={{ uri: event.cover_image_url || 'https://via.placeholder.com/150' }}
-                style={styles.eventImage}
-              />
-              <View style={styles.eventContent}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventDate}>{new Date(event.start_date).toDateString()}</Text>
-              </View>
-            </Pressable>
-          ))
-        ) : (
-          <Text style={styles.emptyText}>No {type} found for this category.</Text>
-        )}
-      </View>
     </View>
   );
 }
@@ -413,153 +460,82 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     textAlign: 'left',
   },
-  clubsList: {
+  clubsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
+    justifyContent: 'space-between',
   },
   clubCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: '48%',
     backgroundColor: '#fff',
     borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    borderWidth: 1,
+    borderColor: Colors.border,
+    marginBottom: Spacing.xs,
+  },
+  clubCardInner: {
+    padding: Spacing.sm,
   },
   clubImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 24,
-    marginRight: Spacing.lg,
+    width: '100%',
+    height: 180,
+    borderRadius: BorderRadius.lg,
     backgroundColor: '#f0f0f0',
   },
   clubContent: {
-    flex: 1,
-    justifyContent: 'center',
-    minHeight: 100,
-  },
-  clubCategory: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+    alignItems: 'center',
+    minHeight: 50,
   },
   clubName: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
     color: Colors.text,
     marginBottom: 8,
-    lineHeight: 22,
+    lineHeight: 18,
+    textAlign: 'center',
+    height: 18,
   },
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  ratingBadge: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  ratingText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  noRatingBadge: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: 6,
-  },
-  noRatingText: {
-    color: Colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  memberCount: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  infoRow: {
+  clubInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
   },
-  locationText: {
-    fontSize: 12,
-    color: Colors.textSecondary,
-  },
-  bookButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md, // Reduced padding
-    paddingVertical: 6, // Reduced padding
-    borderRadius: BorderRadius.full,
-  },
-  bookButtonText: {
-    color: '#FFF',
-    fontSize: 12, // Reduced font size
-    fontWeight: '600',
-  },
-  eventsList: {
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xxl,
-  },
-  eventCard: {
+  clubLocationRow: {
     flexDirection: 'row',
-    marginBottom: Spacing.md,
-    backgroundColor: '#fff',
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 1,
-      },
-    }),
-  },
-  eventImage: {
-    width: 50,
-    height: 50,
-    borderRadius: BorderRadius.sm,
-    marginRight: Spacing.md,
-  },
-  eventContent: {
+    gap: 4,
     flex: 1,
   },
-  eventTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  eventDate: {
-    fontSize: 14,
+  clubLocationText: {
+    fontSize: 13,
     color: Colors.textSecondary,
+    flex: 1,
+  },
+  clubTimingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  clubTimingText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+  },
+  eventsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+    justifyContent: 'space-between',
   },
   emptyText: {
     textAlign: 'center',
     color: Colors.textSecondary,
     marginTop: Spacing.md,
+    width: '100%',
   },
 });
