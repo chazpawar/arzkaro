@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from 'react-native';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../src/components/ui/button';
@@ -44,7 +44,8 @@ export default function ProfileScreen() {
   const [hasPending, setHasPending] = useState(false);
 
   // Get host's events using real hook (must be called at top level)
-  const { events: hostEvents, loading: eventsLoading } = useHostEvents(
+  // Note: Currently not displayed in the UI, but keeping for future use
+  const { events: _hostEvents, loading: _eventsLoading } = useHostEvents(
     isViewingOtherProfile ? userId : undefined
   );
 
@@ -56,13 +57,30 @@ export default function ProfileScreen() {
   const provider = user?.app_metadata?.provider || 'email';
 
   // Load host profile if viewing another user
-  // TODO: Implement real profile fetching from database
   useEffect(() => {
     if (isViewingOtherProfile && userId) {
       setLoadingProfile(true);
-      // For now, we don't support viewing other profiles until implemented
+      // Mock host profile data for demonstration
       setTimeout(() => {
-        setViewedProfile(null);
+        setViewedProfile({
+          id: userId,
+          email: 'aditya.negi@example.com',
+          full_name: 'Aditya Negi',
+          username: 'adityanegi',
+          avatar_url: 'https://i.pravatar.cc/150?img=12',
+          bio: 'Aditya born in Bangalore. Have studied Computer Science, even...',
+          phone: null,
+          role: 'host',
+          host_type: 'full',
+          is_host_approved: true,
+          host_requested_at: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+          host_approved_at: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+          is_public: true,
+          location: 'Bangalore, India',
+          website: null,
+          created_at: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+          updated_at: new Date().toISOString(),
+        });
         setLoadingProfile(false);
       }, 300);
     }
@@ -180,75 +198,123 @@ export default function ProfileScreen() {
       );
     }
 
+    // Calculate years of hosting
+    const yearsOfHosting = viewedProfile.host_approved_at
+      ? Math.floor(
+          (Date.now() - new Date(viewedProfile.host_approved_at).getTime()) /
+            (365 * 24 * 60 * 60 * 1000)
+        )
+      : 0;
+
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            <Text style={styles.backButtonText}>Back</Text>
-          </TouchableOpacity>
+        <Stack.Screen options={{ headerShown: false }} />
 
-          {/* Host Profile Card */}
-          <Card style={styles.profileCard}>
-            <View style={styles.profileContent}>
-              {viewedProfile.avatar_url ? (
-                <Image source={{ uri: viewedProfile.avatar_url }} style={styles.avatarImage} />
-              ) : (
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {viewedProfile.full_name?.charAt(0).toUpperCase() || 'H'}
-                  </Text>
+        {/* Header */}
+        <View style={styles.profileViewHeader}>
+          <TouchableOpacity style={styles.profileBackButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.profileViewTitle}>Host Profile</Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
+
+        <ScrollView contentContainerStyle={styles.hostProfileScrollContent}>
+          {/* Host Profile Section */}
+          <View style={styles.hostProfileSection}>
+            {/* Host Profile Card */}
+            <View style={styles.hostProfileCard}>
+              <View style={styles.hostProfileHeader}>
+                {/* Avatar */}
+                {viewedProfile.avatar_url ? (
+                  <Image
+                    source={{ uri: viewedProfile.avatar_url }}
+                    style={styles.hostAvatarImage}
+                  />
+                ) : (
+                  <View style={styles.hostAvatar}>
+                    <Text style={styles.hostAvatarText}>
+                      {viewedProfile.full_name?.charAt(0).toUpperCase() || 'H'}
+                    </Text>
+                  </View>
+                )}
+
+                {/* Host Info */}
+                <View style={styles.hostInfo}>
+                  <Text style={styles.hostName}>{viewedProfile.full_name}</Text>
+                  {viewedProfile.bio && (
+                    <Text style={styles.hostBio} numberOfLines={2}>
+                      {viewedProfile.bio}
+                    </Text>
+                  )}
+
+                  {/* Social Icons */}
+                  <View style={styles.socialIcons}>
+                    <View style={styles.socialIcon}>
+                      <Ionicons name="logo-instagram" size={20} color="#E4405F" />
+                    </View>
+                  </View>
                 </View>
-              )}
-              <View style={styles.profileInfo}>
-                <Text style={styles.userName}>{viewedProfile.full_name}</Text>
+              </View>
+
+              {/* Stats Row */}
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>267</Text>
+                  <Text style={styles.statLabel}>Reviews</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <View style={styles.ratingContainer}>
+                    <Text style={styles.statValue}>4.9</Text>
+                    <Ionicons name="star" size={16} color="#FFB800" />
+                  </View>
+                  <Text style={styles.statLabel}>Ratings</Text>
+                </View>
+                <View style={styles.statDivider} />
+                <View style={styles.statItem}>
+                  <Text style={styles.statValue}>{yearsOfHosting}</Text>
+                  <Text style={styles.statLabel}>Years of hosting</Text>
+                </View>
               </View>
             </View>
-          </Card>
+          </View>
 
-          {/* Bio Section */}
-          {viewedProfile.bio && (
-            <Card style={styles.card}>
-              <Text style={styles.label}>About</Text>
-              <Text style={styles.value}>{viewedProfile.bio}</Text>
-            </Card>
-          )}
+          {/* Terms & Conditions Section */}
+          <View style={styles.policySection}>
+            <Text style={styles.policyTitle}>Terms & Conditions:</Text>
+            <View style={styles.policyContent}>
+              <Text style={styles.policyText}>
+                • All bookings are subject to availability{'\n'}• Full payment required at time of
+                booking{'\n'}• Participants must be 18+ years old{'\n'}• Valid ID proof required for
+                verification{'\n'}• Follow all safety guidelines during the trip
+              </Text>
+            </View>
+          </View>
 
-          {/* Hosted Events Section */}
-          <Card style={styles.card}>
-            <Text style={styles.sectionTitle}>Hosted Events ({hostEvents.length})</Text>
-            {eventsLoading ? (
-              <Text style={styles.emptyText}>Loading events...</Text>
-            ) : hostEvents.length === 0 ? (
-              <Text style={styles.emptyText}>No events hosted yet</Text>
-            ) : (
-              <View style={styles.eventsContainer}>
-                {hostEvents.map((event: any) => (
-                  <TouchableOpacity
-                    key={event.id}
-                    style={styles.eventItem}
-                    onPress={() => router.push(`/events/${event.id}`)}
-                  >
-                    {event.cover_image_url ? (
-                      <Image source={{ uri: event.cover_image_url }} style={styles.eventImage} />
-                    ) : (
-                      <View style={[styles.eventImage, { backgroundColor: Colors.surface }]} />
-                    )}
-                    <View style={styles.eventDetails}>
-                      <Text style={styles.eventTitle} numberOfLines={2}>
-                        {event.title}
-                      </Text>
-                      <View style={styles.eventTypeBadge}>
-                        <Text style={styles.eventTypeText}>{event.type.toUpperCase()}</Text>
-                      </View>
-                      <Text style={styles.eventPrice}>₹{event.price.toLocaleString()}</Text>
-                    </View>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            )}
-          </Card>
+          {/* Cancellation Policy Section */}
+          <View style={styles.policySection}>
+            <Text style={styles.policyTitle}>Cancellation Policy:</Text>
+            <View style={styles.policyContent}>
+              <Text style={styles.policyText}>
+                • 100% refund if cancelled 15+ days before trip{'\n'}• 50% refund if cancelled 7-14
+                days before trip{'\n'}• No refund if cancelled less than 7 days before trip{'\n'}•
+                Refunds processed within 7-10 business days
+              </Text>
+            </View>
+          </View>
+
+          {/* Privacy Policy Section */}
+          <View style={styles.policySection}>
+            <Text style={styles.policyTitle}>Privacy Policy:</Text>
+            <View style={styles.policyContent}>
+              <Text style={styles.policyText}>
+                • Your personal information is kept confidential{'\n'}• Data used only for booking
+                and communication{'\n'}• We do not share your data with third parties{'\n'}• Contact
+                details shared only with trip participants
+              </Text>
+            </View>
+          </View>
         </ScrollView>
       </SafeAreaView>
     );
@@ -257,6 +323,7 @@ export default function ProfileScreen() {
   // Render own profile view
   return (
     <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Profile Card with Avatar and Name */}
         <Card style={styles.profileCard}>
@@ -594,10 +661,171 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  // Profile View Header (for viewing host profiles)
+  profileViewHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  profileBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileViewTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerPlaceholder: {
+    width: 40,
+  },
+  hostProfileScrollContent: {
+    padding: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  // Host Profile Styles
+  hostProfileSection: {
+    marginBottom: Spacing.xl,
+  },
+  hostProfileTitle: {
+    fontSize: 20,
+    color: Colors.text,
+    fontWeight: '700',
     marginBottom: Spacing.md,
+  },
+  hostProfileCard: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    borderColor: Colors.text,
+    padding: Spacing.lg,
+  },
+  hostProfileHeader: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  hostAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hostAvatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  hostAvatarText: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  hostInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  hostName: {
+    fontSize: 18,
+    color: Colors.text,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  hostBio: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    lineHeight: 18,
+  },
+  socialIcons: {
+    flexDirection: 'row',
     gap: Spacing.xs,
+    marginTop: 4,
+  },
+  socialIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 24,
+    color: Colors.text,
+    fontWeight: '700',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: Colors.border,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // Policy Sections
+  policySection: {
+    marginBottom: Spacing.xl,
+  },
+  policyTitle: {
+    fontSize: 20,
+    color: Colors.text,
+    fontWeight: '700',
+    marginBottom: Spacing.md,
+  },
+  policyContent: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  policyText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
   },
   backButtonText: {
     ...Typography.body,

@@ -77,7 +77,13 @@ export default function RootLayout() {
         <Stack.Screen
           name="profile"
           options={{
-            title: 'Edit Profile',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="edit-profile"
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen

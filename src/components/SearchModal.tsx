@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   Pressable,
   Platform,
   ScrollView,
+  Keyboard,
+  LayoutAnimation,
+  UIManager,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -48,6 +51,11 @@ const POPULAR_LOCATIONS = [
   'Kolkata',
 ];
 
+// Enable LayoutAnimation on Android
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function SearchModal({
   visible,
   onClose,
@@ -60,11 +68,14 @@ export default function SearchModal({
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchInputRef = useRef<TextInput>(null);
 
   // Reset to main search view when modal closes
   useEffect(() => {
     if (!visible) {
       setShowLocationPicker(false);
+      setIsSearchFocused(false);
     }
   }, [visible]);
 
@@ -93,6 +104,8 @@ export default function SearchModal({
 
   const handleSelectLocation = () => {
     setShowLocationPicker(true);
+    setIsSearchFocused(false); // Reset search focus when going to location picker
+    Keyboard.dismiss();
   };
 
   const handleLocationSearchSelect = (location: string) => {
@@ -110,10 +123,18 @@ export default function SearchModal({
     loc.toLowerCase().includes(locationSearchQuery.toLowerCase())
   );
 
+  const handleDismissKeyboard = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Keyboard.dismiss();
+    setIsSearchFocused(false);
+  };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.modalWrapper}>
-        <Pressable style={styles.overlay} onPress={onClose} />
+      <Pressable
+        style={styles.modalWrapper}
+        onPress={isSearchFocused ? handleDismissKeyboard : onClose}
+      >
         <BlurView
           intensity={90}
           style={StyleSheet.absoluteFill}
@@ -121,98 +142,151 @@ export default function SearchModal({
           pointerEvents="none"
         />
 
-        <View style={styles.contentContainer}>
+        <View
+          style={[
+            styles.contentContainer,
+            isSearchFocused && !showLocationPicker && styles.contentContainerFullscreen,
+          ]}
+        >
           {!showLocationPicker ? (
             <>
               {/* Main Search View */}
-              <View style={styles.header}>
-                <Text style={styles.headerTitle}>Search</Text>
-                <Pressable onPress={onClose} style={styles.closeButton}>
-                  <Ionicons name="close" size={28} color={Colors.text} />
-                </Pressable>
-              </View>
-
-              <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-                {/* Search Input */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>What are you looking for?</Text>
-                  <View style={styles.searchInputContainer}>
-                    <Ionicons name="search" size={20} color={Colors.textSecondary} />
-                    <TextInput
-                      style={styles.searchInput}
-                      placeholder="Type activity, event name..."
-                      placeholderTextColor={Colors.textSecondary}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      returnKeyType="search"
-                      onSubmitEditing={handleSearch}
-                    />
-                    {searchQuery.length > 0 && (
-                      <Pressable onPress={() => setSearchQuery('')}>
-                        <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+              {!isSearchFocused && (
+                <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                  <View style={styles.header}>
+                    <Text style={styles.headerTitle}>Search</Text>
+                    {!isSearchFocused && (
+                      <Pressable onPress={onClose} style={styles.closeButton}>
+                        <Ionicons name="close" size={28} color={Colors.text} />
                       </Pressable>
                     )}
                   </View>
-                </View>
+                </Pressable>
+              )}
+
+              <ScrollView
+                style={styles.content}
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={!isSearchFocused}
+              >
+                {/* Search Input */}
+                <Pressable
+                  style={[styles.section, isSearchFocused && styles.sectionFullscreen]}
+                  onPress={isSearchFocused ? handleDismissKeyboard : undefined}
+                >
+                  {!isSearchFocused && (
+                    <Text style={styles.sectionTitle}>What are you looking for?</Text>
+                  )}
+                  <Pressable onPress={(e) => e.stopPropagation()}>
+                    <View style={styles.searchInputContainer}>
+                      <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                        <Ionicons
+                          name={isSearchFocused ? 'arrow-back' : 'search'}
+                          size={20}
+                          color={Colors.textSecondary}
+                        />
+                      </Pressable>
+                      <TextInput
+                        ref={searchInputRef}
+                        style={styles.searchInput}
+                        placeholder="Type activity, event name..."
+                        placeholderTextColor={Colors.textSecondary}
+                        value={searchQuery}
+                        onChangeText={setSearchQuery}
+                        returnKeyType="search"
+                        onSubmitEditing={handleSearch}
+                        onFocus={() => {
+                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                          setIsSearchFocused(true);
+                        }}
+                        onBlur={() => {
+                          LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+                          setIsSearchFocused(false);
+                        }}
+                      />
+                      {searchQuery.length > 0 && (
+                        <Pressable onPress={() => setSearchQuery('')}>
+                          <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                        </Pressable>
+                      )}
+                    </View>
+                  </Pressable>
+                </Pressable>
 
                 {/* Suggested Keywords */}
                 {searchQuery.length === 0 && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitleSmall}>Suggested Keywords</Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.keywordScroll}
-                    >
-                      {SUGGESTED_KEYWORDS.map((keyword, index) => (
-                        <Pressable
-                          key={index}
-                          style={styles.keywordChip}
-                          onPress={() => handleKeywordSelect(keyword)}
+                  <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                    <View style={styles.section}>
+                      <Text style={styles.sectionTitleSmall}>Suggested Keywords</Text>
+                      <Pressable onPress={(e) => e.stopPropagation()}>
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.keywordScroll}
                         >
-                          <Text style={styles.keywordText}>{keyword}</Text>
-                        </Pressable>
-                      ))}
-                    </ScrollView>
-                  </View>
+                          {SUGGESTED_KEYWORDS.map((keyword, index) => (
+                            <Pressable
+                              key={index}
+                              style={styles.keywordChip}
+                              onPress={() => handleKeywordSelect(keyword)}
+                            >
+                              <Text style={styles.keywordText}>{keyword}</Text>
+                            </Pressable>
+                          ))}
+                        </ScrollView>
+                      </Pressable>
+                    </View>
+                  </Pressable>
                 )}
 
                 {/* Location Section */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitle}>Location</Text>
-                  <Pressable style={styles.locationSelectButton} onPress={handleSelectLocation}>
-                    <View style={styles.locationSelectLeft}>
-                      <Ionicons name="location-outline" size={22} color={Colors.primary} />
-                      <Text style={styles.locationSelectText}>
-                        {selectedLocation || 'Select Location'}
-                      </Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
-                  </Pressable>
-                </View>
+                <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>Location</Text>
+                    <Pressable
+                      style={styles.locationSelectButton}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        handleSelectLocation();
+                      }}
+                    >
+                      <View style={styles.locationSelectLeft}>
+                        <Ionicons name="location-outline" size={22} color={Colors.primary} />
+                        <Text style={styles.locationSelectText}>
+                          {selectedLocation || 'Select Location'}
+                        </Text>
+                      </View>
+                      <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                    </Pressable>
+                  </View>
+                </Pressable>
 
                 {/* Radius Section - Slider */}
-                <View style={styles.section}>
-                  <View style={styles.radiusHeader}>
-                    <Text style={styles.sectionTitle}>Search Radius</Text>
-                    <Text style={styles.radiusValue}>{selectedRadius} km</Text>
+                <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                  <View style={styles.section}>
+                    <View style={styles.radiusHeader}>
+                      <Text style={styles.sectionTitle}>Search Radius</Text>
+                      <Text style={styles.radiusValue}>{selectedRadius} km</Text>
+                    </View>
+                    <Pressable onPress={(e) => e.stopPropagation()}>
+                      <Slider
+                        style={styles.slider}
+                        minimumValue={1}
+                        maximumValue={50}
+                        step={1}
+                        value={selectedRadius}
+                        onValueChange={setSelectedRadius}
+                        minimumTrackTintColor={Colors.primary}
+                        maximumTrackTintColor={Colors.border}
+                        thumbTintColor={Colors.primary}
+                      />
+                      <View style={styles.sliderLabels}>
+                        <Text style={styles.sliderLabel}>1 km</Text>
+                        <Text style={styles.sliderLabel}>50 km</Text>
+                      </View>
+                    </Pressable>
                   </View>
-                  <Slider
-                    style={styles.slider}
-                    minimumValue={1}
-                    maximumValue={50}
-                    step={1}
-                    value={selectedRadius}
-                    onValueChange={setSelectedRadius}
-                    minimumTrackTintColor={Colors.primary}
-                    maximumTrackTintColor={Colors.border}
-                    thumbTintColor={Colors.primary}
-                  />
-                  <View style={styles.sliderLabels}>
-                    <Text style={styles.sliderLabel}>1 km</Text>
-                    <Text style={styles.sliderLabel}>50 km</Text>
-                  </View>
-                </View>
+                </Pressable>
 
                 <View style={{ height: 100 }} />
               </ScrollView>
@@ -297,7 +371,7 @@ export default function SearchModal({
             </>
           )}
         </View>
-      </View>
+      </Pressable>
     </Modal>
   );
 }
@@ -321,6 +395,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: BorderRadius.xxl,
     borderTopRightRadius: BorderRadius.xxl,
     maxHeight: '85%',
+    top: undefined,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -332,6 +407,13 @@ const styles = StyleSheet.create({
         elevation: 8,
       },
     }),
+  },
+  contentContainerFullscreen: {
+    maxHeight: '100%',
+    height: '100%',
+    top: 0,
+    borderTopLeftRadius: 0,
+    borderTopRightRadius: 0,
   },
   header: {
     flexDirection: 'row',
@@ -364,6 +446,9 @@ const styles = StyleSheet.create({
   section: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
+  },
+  sectionFullscreen: {
+    paddingTop: Spacing.xxl + 20, // Extra spacing from top when fullscreen
   },
   sectionTitle: {
     fontSize: 17,
