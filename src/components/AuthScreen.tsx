@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, Pressable, Image, TextInput, Animated } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
 import { useAuth } from '../contexts/auth-context';
-import PhoneLoginScreen from './PhoneLoginScreen';
-import EmailLoginScreen from './EmailLoginScreen';
-import PhoneSignupScreen from './PhoneSignupScreen';
-import EmailSignupScreen from './EmailSignupScreen';
+import OTPVerificationModal from './OTPVerificationModal';
+import EmailSignupModal from './EmailSignupModal';
 
 const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <path d="M9.82727273,24 C9.82727273,22.4757333 10.0804318,21.0144 10.5322727,19.6437333 L2.62345455,13.6042667 C1.08206818,16.7338667 0.213636364,20.2602667 0.213636364,24 C0.213636364,27.7365333 1.081,31.2608 2.62025,34.3882667 L10.5247955,28.3370667 C10.0772273,26.9728 9.82727273,25.5168 9.82727273,24" fill="#FBBC05"/>
@@ -22,30 +21,103 @@ interface AuthScreenProps {
   onSignInSuccess?: () => void;
 }
 
-type AuthView = 'main' | 'phone' | 'email' | 'phoneSignup' | 'emailSignup';
+type InputMode = 'phone' | 'email';
 
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authView, setAuthView] = useState<AuthView>('main');
+  const [inputMode, setInputMode] = useState<InputMode>('phone');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [showOTPModal, setShowOTPModal] = useState(false);
+  const [showEmailSignupModal, setShowEmailSignupModal] = useState(false);
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
   const { refreshProfile } = useAuth();
+
+  const toggleInputMode = () => {
+    // Scale down and fade out
+    Animated.parallel([
+      Animated.timing(scaleAnim, {
+        toValue: 0.95,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacityAnim, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Switch mode
+      setInputMode(inputMode === 'phone' ? 'email' : 'phone');
+      // Scale up and fade in
+      Animated.parallel([
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
 
   const handleSkip = () => {
     // Placeholder - No action needed for now
     console.log('Skip button clicked (placeholder)');
   };
 
-  const handlePhoneLogin = () => {
-    setAuthView('phone');
+  const handlePhoneContinue = () => {
+    if (phoneNumber.trim()) {
+      // TODO: Implement actual OTP send logic here
+      console.log('Sending OTP to:', '+91' + phoneNumber);
+      setShowOTPModal(true);
+    }
+  };
+
+  const handleEmailContinue = () => {
+    if (email.trim()) {
+      // Open email signup modal
+      console.log('Opening email signup for:', email);
+      setShowEmailSignupModal(true);
+    }
+  };
+
+  const handleContinue = () => {
+    if (inputMode === 'phone') {
+      handlePhoneContinue();
+    } else {
+      handleEmailContinue();
+    }
+  };
+
+  const handleOTPVerifySuccess = () => {
+    setShowOTPModal(false);
+    // TODO: Handle successful verification (check if user exists, create profile, etc.)
+    onSignInSuccess?.();
+  };
+
+  const handleEmailSignupSuccess = () => {
+    setShowEmailSignupModal(false);
+    // TODO: Handle successful signup
+    onSignInSuccess?.();
+  };
+
+  const handleCloseOTPModal = () => {
+    setShowOTPModal(false);
+  };
+
+  const handleCloseEmailSignupModal = () => {
+    setShowEmailSignupModal(false);
   };
 
   const handleEmailLogin = () => {
-    setAuthView('email');
-  };
-
-  const handleBack = () => {
-    setAuthView('main');
-    setError(null);
+    toggleInputMode();
   };
 
   const handleGoogleSignIn = async () => {
@@ -77,38 +149,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
     }
   };
 
-  // Show phone login screen
-  if (authView === 'phone') {
-    return (
-      <PhoneLoginScreen
-        onBack={handleBack}
-        onSuccess={onSignInSuccess}
-        onSignupPress={() => setAuthView('phoneSignup')}
-      />
-    );
-  }
-
-  // Show email login screen
-  if (authView === 'email') {
-    return (
-      <EmailLoginScreen
-        onBack={handleBack}
-        onSuccess={onSignInSuccess}
-        onSignupPress={() => setAuthView('emailSignup')}
-      />
-    );
-  }
-
-  // Show phone signup screen
-  if (authView === 'phoneSignup') {
-    return <PhoneSignupScreen onBack={handleBack} onSuccess={onSignInSuccess} />;
-  }
-
-  // Show email signup screen
-  if (authView === 'emailSignup') {
-    return <EmailSignupScreen onBack={handleBack} onSuccess={onSignInSuccess} />;
-  }
-
   // Main auth screen
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -124,57 +164,124 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
         {/* Logo Section */}
         <View style={styles.logoSection}>
           <Image source={require('../../assets/arz.png')} style={styles.appLogo} />
-          <Text style={styles.tagline}>
-            Discover concerts, workshops,{'\n'}meetups, and exclusive events{'\n'}happening around
-            you.
-          </Text>
+          <Text style={styles.tagline}>Discover experiences{'\n'}happening in your city</Text>
         </View>
       </View>
 
-      {/* Bottom Section - Orange Background */}
+      {/* Bottom Section - White Card with Orange Border */}
       <View style={styles.bottomSection}>
-        {/* Error Message */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.cardContainer}>
+          {/* Error Message */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
+          <Text style={styles.cardTitle}>Log in or Sign up</Text>
+
+          {/* Animated Input Container */}
+          <Animated.View
+            style={[
+              styles.inputContainer,
+              {
+                opacity: opacityAnim,
+                transform: [{ scale: scaleAnim }],
+              },
+            ]}
+          >
+            {inputMode === 'phone' ? (
+              <>
+                <Text style={styles.inputLabel}>Phone Number</Text>
+                <View style={styles.phoneInputWrapper}>
+                  <Text style={styles.countryCode}>+91</Text>
+                  <TextInput
+                    style={styles.phoneInput}
+                    value={phoneNumber}
+                    onChangeText={setPhoneNumber}
+                    placeholder="Enter your phone number"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="phone-pad"
+                  />
+                </View>
+                <Text style={styles.inputHint}>We will verify your phone number through OTP.</Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.inputLabel}>Email</Text>
+                <TextInput
+                  style={styles.emailInput}
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Enter your email"
+                  placeholderTextColor={Colors.textTertiary}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </>
+            )}
+          </Animated.View>
+
+          {/* Continue Button */}
+          <Pressable
+            style={({ pressed }) => [styles.continueButton, pressed && styles.buttonPressed]}
+            onPress={handleContinue}
+          >
+            <Text style={styles.continueButtonText}>Continue</Text>
+          </Pressable>
+
+          {/* Divider */}
+          <View style={styles.dividerContainer}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>Or</Text>
+            <View style={styles.dividerLine} />
           </View>
-        )}
 
-        {/* Login with Phone Button */}
-        <Pressable
-          style={({ pressed }) => [styles.primaryButton, pressed && styles.buttonPressed]}
-          onPress={handlePhoneLogin}
-        >
-          <Text style={styles.primaryButtonText}>Login with Phone</Text>
-        </Pressable>
+          {/* Toggle Email/Phone Button */}
+          <Pressable
+            style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
+            onPress={handleEmailLogin}
+          >
+            <Ionicons
+              name={inputMode === 'phone' ? 'mail-outline' : 'call-outline'}
+              size={22}
+              color={Colors.text}
+              style={styles.emailIcon}
+            />
+            <Text style={styles.secondaryButtonText}>
+              {inputMode === 'phone' ? 'Continue with email' : 'Continue with phone'}
+            </Text>
+          </Pressable>
 
-        {/* Login with Email/Password Button */}
-        <Pressable
-          style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-          onPress={handleEmailLogin}
-        >
-          <Text style={styles.secondaryButtonText}>Login with Email</Text>
-        </Pressable>
-
-        {/* Divider */}
-        <View style={styles.dividerContainer}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
-          <View style={styles.dividerLine} />
+          {/* Google Sign In Button */}
+          <Pressable
+            style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
+            onPress={handleGoogleSignIn}
+            disabled={loading}
+          >
+            <SvgXml xml={GOOGLE_SVG} width={24} height={24} style={styles.googleIconSvg} />
+            <Text style={styles.googleButtonText}>
+              {loading ? 'Signing in...' : 'Continue with Google'}
+            </Text>
+          </Pressable>
         </View>
-
-        {/* Google Sign In Button */}
-        <Pressable
-          style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
-          onPress={handleGoogleSignIn}
-          disabled={loading}
-        >
-          <SvgXml xml={GOOGLE_SVG} width={24} height={24} style={styles.googleIconSvg} />
-          <Text style={styles.googleButtonText}>
-            {loading ? 'Signing in...' : 'Continue with Google'}
-          </Text>
-        </Pressable>
       </View>
+
+      {/* OTP Verification Modal */}
+      <OTPVerificationModal
+        visible={showOTPModal}
+        phoneNumber={'+91' + phoneNumber}
+        onClose={handleCloseOTPModal}
+        onVerifySuccess={handleOTPVerifySuccess}
+      />
+
+      {/* Email Signup Modal */}
+      <EmailSignupModal
+        visible={showEmailSignupModal}
+        email={email}
+        onClose={handleCloseEmailSignupModal}
+        onSignupSuccess={handleEmailSignupSuccess}
+      />
     </SafeAreaView>
   );
 }
@@ -209,61 +316,156 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appLogo: {
-    width: 120,
-    height: 60,
+    width: 260,
+    height: 130,
     resizeMode: 'contain',
-    marginBottom: Spacing.xl,
+    marginBottom: -20,
   },
   tagline: {
-    fontSize: 18,
+    fontSize: 19,
     color: Colors.textSecondary,
     textAlign: 'center',
-    lineHeight: 26,
+    lineHeight: 30,
+    marginBottom: Spacing.xl,
   },
   bottomSection: {
     backgroundColor: Colors.primary,
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
+    overflow: 'hidden',
+  },
+  cardContainer: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    borderTopWidth: 3,
+    borderLeftWidth: 3,
+    borderRightWidth: 3,
+    borderBottomWidth: 0,
+    borderColor: Colors.primary,
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xl,
-    paddingBottom: Spacing.xl,
+    paddingBottom: Spacing.xxl,
     gap: Spacing.md,
   },
+  cardTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+    marginBottom: Spacing.md,
+  },
+  inputContainer: {
+    marginBottom: Spacing.sm,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  phoneInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.text,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.xs,
+  },
+  countryCode: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginRight: Spacing.sm,
+    paddingRight: Spacing.sm,
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+  },
+  phoneInput: {
+    flex: 1,
+    paddingVertical: Spacing.md + 2,
+    fontSize: 16,
+    color: Colors.text,
+    letterSpacing: 0,
+  },
+  emailInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.text,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md + 2,
+    fontSize: 16,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+    letterSpacing: 0,
+  },
+  inputHint: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+  },
   errorContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
+    marginBottom: Spacing.sm,
   },
   errorText: {
     ...Typography.bodySmall,
-    color: Colors.textInverse,
+    color: Colors.error,
     textAlign: 'center',
   },
-  primaryButton: {
-    backgroundColor: Colors.background,
+  continueButton: {
+    backgroundColor: Colors.primary,
     borderRadius: 50,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.sm + 4,
+    paddingHorizontal: Spacing.xl,
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+    alignSelf: 'center',
+    width: '70%',
+  },
+  continueButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  primaryButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 50,
+    paddingVertical: Spacing.lg,
     paddingHorizontal: Spacing.xl,
     alignItems: 'center',
   },
   primaryButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.background,
   },
   secondaryButton: {
-    backgroundColor: 'transparent',
-    borderRadius: 50,
-    borderWidth: 2,
-    borderColor: Colors.background,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.text,
+    paddingVertical: Spacing.sm + 6,
+    paddingHorizontal: Spacing.lg,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignSelf: 'center',
+    width: '80%',
+    minHeight: 50,
+  },
+  emailIcon: {
+    marginRight: Spacing.md,
   },
   secondaryButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
-    color: Colors.textInverse,
+    color: Colors.text,
   },
   dividerContainer: {
     flexDirection: 'row',
@@ -273,41 +475,38 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: Colors.border,
   },
   dividerText: {
     fontSize: 14,
-    color: Colors.textInverse,
-    marginHorizontal: Spacing.md,
+    color: Colors.textSecondary,
+    marginHorizontal: Spacing.lg,
     fontWeight: '500',
   },
   googleButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: Colors.background,
-    borderRadius: 50,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.text,
+    paddingVertical: Spacing.sm + 6,
+    paddingHorizontal: Spacing.lg,
+    alignSelf: 'center',
+    width: '80%',
+    marginBottom: Spacing.xl,
   },
   googleIconSvg: {
-    marginRight: Spacing.sm,
+    marginRight: Spacing.md,
   },
   googleButtonText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: Colors.text,
   },
   buttonPressed: {
     opacity: 0.9,
     transform: [{ scale: 0.98 }],
-  },
-  googleLogo: {
-    width: 20,
-    height: 20,
-  },
-  googleG: {
-    fontSize: 16,
-    fontWeight: '700',
   },
 });
