@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,16 +8,12 @@ import {
   Pressable,
   Platform,
   ScrollView,
-  Animated,
-  Dimensions,
 } from 'react-native';
-import { Calendar, DateData } from 'react-native-calendars';
-
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
+import { BlurView } from 'expo-blur';
+import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
-
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface SearchModalProps {
   visible: boolean;
@@ -26,62 +22,30 @@ interface SearchModalProps {
   searchContext?: 'all' | 'experiences' | 'trips';
 }
 
-// Suggested destinations data
-const SUGGESTED_DESTINATIONS = [
-  {
-    id: 'nearby',
-    label: 'Nearby',
-    sublabel: "Find what's around you",
-    icon: 'navigate',
-    iconColor: '#3B82F6',
-    iconBg: '#EFF6FF',
-    isLocation: false,
-  },
-  {
-    id: 'noida',
-    label: 'Noida, Uttar Pradesh',
-    sublabel: 'Near you',
-    icon: 'business',
-    iconColor: '#EF4444',
-    iconBg: '#FEF2F2',
-    isLocation: true,
-  },
-  {
-    id: 'jaipur',
-    label: 'Jaipur, Rajasthan',
-    sublabel: 'Great for a weekend getaway',
-    icon: 'cactus', // Using material community icon name for visual approximation
-    iconColor: '#6366F1',
-    iconBg: '#EEF2FF',
-    isLocation: true,
-  },
-  {
-    id: 'gurgaon',
-    label: 'Gurgaon District, Haryana',
-    sublabel: 'Popular with travellers near you',
-    icon: 'beach-access', // Placeholder
-    iconColor: '#8B5CF6',
-    iconBg: '#F5F3FF',
-    isLocation: true,
-  },
-  {
-    id: 'dehradun',
-    label: 'Dehradun, Uttarakhand',
-    sublabel: 'For nature lovers',
-    icon: 'terrain',
-    iconColor: '#10B981',
-    iconBg: '#ECFDF5',
-    isLocation: true,
-  },
-  {
-    id: 'goa',
-    label: 'North Goa, Goa',
-    sublabel: 'Popular beach destination',
-    icon: 'umbrella',
-    iconColor: '#F59E0B',
-    iconBg: '#FFFBEB',
-    isLocation: true,
-  },
+// Suggested keywords
+const SUGGESTED_KEYWORDS = [
+  'Cricket',
+  'Dance',
+  'Badminton',
+  'Yoga',
+  'Trekking',
+  'Photography',
+  'Comedy',
+  'Food',
+  'Music',
+  'Fitness',
+];
+
+// Popular locations
+const POPULAR_LOCATIONS = [
+  'Bangalore',
+  'Mumbai',
+  'Delhi',
+  'Goa',
+  'Pune',
+  'Hyderabad',
+  'Chennai',
+  'Kolkata',
 ];
 
 export default function SearchModal({
@@ -90,490 +54,479 @@ export default function SearchModal({
   onSearch,
   searchContext: _searchContext = 'all',
 }: SearchModalProps) {
-  // Animation values
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  // Search state
-  const [step, setStep] = useState<'collapsed' | 'expanded'>('collapsed');
-  const [activeSection, setActiveSection] = useState<'where' | 'when' | 'who'>('where');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('');
+  const [selectedRadius, setSelectedRadius] = useState(10);
+  const [showLocationPicker, setShowLocationPicker] = useState(false);
+  const [locationSearchQuery, setLocationSearchQuery] = useState('');
+  const [useCurrentLocation, setUseCurrentLocation] = useState(false);
 
-  // Selection state
-  const [where, setWhere] = useState('');
-
-  // When state
-  const [dateCategory, setDateCategory] = useState<'dates' | 'flexible'>('dates');
-  const [selectedDateOption, setSelectedDateOption] = useState('Any week');
-  const [selectedStartDate, setSelectedStartDate] = useState<string>('');
-  const [selectedEndDate, setSelectedEndDate] = useState<string>('');
-
-  // Generate marked dates for range selection
-  const getMarkedDates = () => {
-    const marked: any = {};
-
-    if (selectedStartDate) {
-      marked[selectedStartDate] = { startingDay: true, color: Colors.primary, textColor: 'white' };
-
-      if (selectedEndDate) {
-        marked[selectedEndDate] = { endingDay: true, color: Colors.primary, textColor: 'white' };
-
-        // Fill dates in between
-        const currentDate = new Date(selectedStartDate);
-        const end = new Date(selectedEndDate);
-
-        while (currentDate < end) {
-          currentDate.setDate(currentDate.getDate() + 1);
-          const dateString = currentDate.toISOString().split('T')[0];
-
-          if (dateString < selectedEndDate) {
-            marked[dateString] = { color: Colors.primaryLight, textColor: 'white' };
-          }
-        }
-      } else {
-        marked[selectedStartDate] = { selected: true, color: Colors.primary, textColor: 'white' };
-      }
-    }
-
-    return marked;
-  };
-
-  const onDayPress = (day: DateData) => {
-    if (!selectedStartDate || (selectedStartDate && selectedEndDate)) {
-      // Start new range
-      setSelectedStartDate(day.dateString);
-      setSelectedEndDate('');
-      setSelectedDateOption('Custom dates');
-    } else {
-      // Complete range
-      // Check if end date is before start date
-      if (new Date(day.dateString) < new Date(selectedStartDate)) {
-        setSelectedStartDate(day.dateString);
-        setSelectedEndDate('');
-      } else {
-        setSelectedEndDate(day.dateString);
-
-        // Format display string
-        const start = new Date(selectedStartDate).toLocaleDateString([], {
-          month: 'short',
-          day: 'numeric',
-        });
-        const end = new Date(day.dateString).toLocaleDateString([], {
-          month: 'short',
-          day: 'numeric',
-        });
-        setSelectedDateOption(`${start} - ${end}`);
-      }
-    }
-  };
-
-  // Who state
-  const [guests, setGuests] = useState({
-    adults: 0,
-    children: 0,
-    infants: 0,
-    pets: 0,
-  });
-
-  // Calculate total guest count string
-  const getGuestString = () => {
-    const total = guests.adults + guests.children;
-    if (total === 0) return 'Add guests';
-    let str = `${total} guest${total !== 1 ? 's' : ''}`;
-    if (guests.infants > 0) str += `, ${guests.infants} infant${guests.infants !== 1 ? 's' : ''}`;
-    if (guests.pets > 0) str += `, ${guests.pets} pet${guests.pets !== 1 ? 's' : ''}`;
-    return str;
-  };
-
+  // Reset to main search view when modal closes
   useEffect(() => {
-    if (visible) {
-      // Reset state when opening
-      setStep('collapsed');
-      setActiveSection('where');
-      setSearchQuery('');
-
-      // Animate in
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    } else {
-      // Animate out
-      Animated.parallel([
-        Animated.timing(slideAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-        Animated.timing(fadeAnim, {
-          toValue: 0,
-          duration: 250,
-          useNativeDriver: true,
-        }),
-      ]).start();
+    if (!visible) {
+      setShowLocationPicker(false);
     }
-  }, [visible, fadeAnim, slideAnim]);
+  }, [visible]);
 
-  const handleClose = () => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: SCREEN_HEIGHT,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 250,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      onClose();
-    });
+  const handleSearch = () => {
+    const location = useCurrentLocation ? 'Current Location' : selectedLocation;
+    onSearch(location || 'All Locations', searchQuery.trim(), selectedRadius);
+    onClose();
   };
 
-  const handleSearchPress = () => {
-    // If just opening the expanded view
-    if (step === 'collapsed') {
-      setStep('expanded');
-    } else {
-      // Perform actual search
-      onSearch(where || 'All Locations', searchQuery, 10);
-      handleClose();
-    }
+  const handleKeywordSelect = (keyword: string) => {
+    setSearchQuery(keyword);
   };
 
-  const handleClearAll = () => {
-    setWhere('');
-    setDateCategory('dates');
-    setSelectedDateOption('Any week');
-    setGuests({ adults: 0, children: 0, infants: 0, pets: 0 });
+  const handleClear = () => {
     setSearchQuery('');
-    setStep('collapsed');
-    setActiveSection('where');
+    setSelectedLocation('');
+    setSelectedRadius(10);
+    setUseCurrentLocation(false);
   };
 
-  const updateGuests = (type: keyof typeof guests, delta: number) => {
-    setGuests((prev) => {
-      const newValue = Math.max(0, prev[type] + delta);
-      return { ...prev, [type]: newValue };
-    });
+  const handleCurrentLocation = () => {
+    setUseCurrentLocation(true);
+    setSelectedLocation('Current Location');
+    setShowLocationPicker(false);
   };
 
-  const renderWhereContent = () => (
-    <>
-      <View style={styles.searchInputContainer}>
-        <Ionicons name="search" size={20} color={Colors.textSecondary} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search destinations"
-          placeholderTextColor={Colors.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          onFocus={() => setStep('expanded')}
-        />
-      </View>
-
-      <Text style={styles.sectionSubtitle}>Suggested destinations</Text>
-
-      <ScrollView style={styles.suggestionsList} showsVerticalScrollIndicator={false}>
-        {SUGGESTED_DESTINATIONS.slice(0, 3).map((item) => (
-          <Pressable
-            key={item.id}
-            style={styles.suggestionItem}
-            onPress={() => {
-              setWhere(item.label);
-              setSearchQuery(item.label);
-              setActiveSection('when'); // Auto-advance
-            }}
-          >
-            <View style={[styles.suggestionIcon, { backgroundColor: item.iconBg }]}>
-              {item.id === 'jaipur' ? (
-                <MaterialCommunityIcons name="cactus" size={24} color={item.iconColor} />
-              ) : (
-                <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
-              )}
-            </View>
-            <View style={styles.suggestionTextContainer}>
-              <Text style={styles.suggestionLabel}>{item.label}</Text>
-              <Text style={styles.suggestionSublabel}>{item.sublabel}</Text>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </>
-  );
-
-  const renderWhenContent = () => (
-    <View>
-      <View style={styles.tabsContainer}>
-        <Pressable
-          style={[styles.tab, dateCategory === 'dates' && styles.tabActive]}
-          onPress={() => setDateCategory('dates')}
-        >
-          <Text style={[styles.tabText, dateCategory === 'dates' && styles.tabTextActive]}>
-            Dates
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.tab, dateCategory === 'flexible' && styles.tabActive]}
-          onPress={() => setDateCategory('flexible')}
-        >
-          <Text style={[styles.tabText, dateCategory === 'flexible' && styles.tabTextActive]}>
-            Flexible
-          </Text>
-        </Pressable>
-      </View>
-
-      <View style={styles.calendarContainer}>
-        {dateCategory === 'dates' ? (
-          <Calendar
-            onDayPress={onDayPress}
-            markedDates={getMarkedDates()}
-            markingType={'period'}
-            theme={{
-              todayTextColor: Colors.primary,
-              selectedDayBackgroundColor: Colors.primary,
-              arrowColor: Colors.primary,
-              textDayFontWeight: '500',
-              textMonthFontWeight: 'bold',
-              textDayHeaderFontWeight: '500',
-            }}
-            minDate={new Date().toISOString().split('T')[0]}
-          />
-        ) : (
-          <View style={styles.calendarPlaceholder}>
-            <Ionicons name="calendar-outline" size={48} color={Colors.textSecondary} />
-            <Text style={styles.placeholderText}>Select a flexible timeframe</Text>
-          </View>
-        )}
-
-        <View style={styles.quickDatesRow}>
-          {['This weekend', 'Next week', 'Any week'].map((opt) => (
-            <Pressable
-              key={opt}
-              style={[
-                styles.quickDateChip,
-                selectedDateOption === opt && !selectedEndDate && styles.quickDateChipActive,
-              ]}
-              onPress={() => {
-                setSelectedDateOption(opt);
-                setSelectedStartDate('');
-                setSelectedEndDate('');
-              }}
-            >
-              <Text
-                style={[
-                  styles.quickDateText,
-                  selectedDateOption === opt && !selectedEndDate && styles.quickDateTextActive,
-                ]}
-              >
-                {opt}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderWhoContent = () => (
-    <View style={styles.guestList}>
-      {[
-        { id: 'adults', label: 'Adults', sub: 'Ages 13 or above' },
-        { id: 'children', label: 'Children', sub: 'Ages 2–12' },
-        { id: 'infants', label: 'Infants', sub: 'Under 2' },
-        { id: 'pets', label: 'Pets', sub: 'Bringing a service animal?' },
-      ].map((item) => (
-        <View key={item.id} style={styles.guestRow}>
-          <View>
-            <Text style={styles.guestLabel}>{item.label}</Text>
-            <Text style={styles.guestSubLabel}>{item.sub}</Text>
-          </View>
-          <View style={styles.counterContainer}>
-            <Pressable
-              style={[
-                styles.counterBtn,
-                guests[item.id as keyof typeof guests] === 0 && styles.counterBtnDisabled,
-              ]}
-              onPress={() => updateGuests(item.id as keyof typeof guests, -1)}
-              disabled={guests[item.id as keyof typeof guests] === 0}
-            >
-              <Ionicons
-                name="remove"
-                size={20}
-                color={guests[item.id as keyof typeof guests] === 0 ? '#CDCDCD' : '#717171'}
-              />
-            </Pressable>
-            <Text style={styles.counterValue}>{guests[item.id as keyof typeof guests]}</Text>
-            <Pressable
-              style={styles.counterBtn}
-              onPress={() => updateGuests(item.id as keyof typeof guests, 1)}
-            >
-              <Ionicons name="add" size={20} color="#717171" />
-            </Pressable>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-
-  const renderSectionHeader = (section: 'where' | 'when' | 'who', title: string, value: string) => {
-    const isActive = activeSection === section;
-
-    if (isActive) {
-      return (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>{title}</Text>
-          {section === 'where' && renderWhereContent()}
-          {section === 'when' && renderWhenContent()}
-          {section === 'who' && renderWhoContent()}
-        </View>
-      );
-    }
-
-    return (
-      <Pressable style={styles.collapsedCard} onPress={() => setActiveSection(section)}>
-        <Text style={styles.collapsedLabel}>{title}</Text>
-        <Text style={styles.actionText}>{value}</Text>
-      </Pressable>
-    );
+  const handleSelectLocation = () => {
+    setShowLocationPicker(true);
   };
 
-  const renderCollapsedView = () => (
-    <View style={styles.collapsedContainer}>
-      <View style={styles.headerRow}>
-        <Pressable onPress={handleClose} style={styles.closeButton}>
-          <View style={styles.closeButtonCircle}>
-            <Ionicons name="close" size={20} color={Colors.text} />
-          </View>
-        </Pressable>
-        <View style={{ flex: 1 }} />
-      </View>
+  const handleLocationSearchSelect = (location: string) => {
+    setSelectedLocation(location);
+    setUseCurrentLocation(false);
+    setShowLocationPicker(false);
+    setLocationSearchQuery('');
+  };
 
-      {renderSectionHeader('where', 'Where', where || 'Add destination')}
-      {renderSectionHeader('when', 'When', selectedDateOption || 'Add dates')}
-      {renderSectionHeader('who', 'Who', getGuestString())}
-    </View>
-  );
+  const handleBackFromLocation = () => {
+    setShowLocationPicker(false);
+  };
 
-  const renderExpandedView = () => (
-    <View style={styles.expandedContainer}>
-      <View style={styles.searchHeader}>
-        <Pressable onPress={() => setStep('collapsed')} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </Pressable>
-        <TextInput
-          style={styles.headerInput}
-          placeholder="Search destinations"
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          autoFocus
-        />
-      </View>
-
-      <Text style={styles.sectionSubtitle}>Suggested destinations</Text>
-
-      <ScrollView style={styles.expandedList} showsVerticalScrollIndicator={false}>
-        {SUGGESTED_DESTINATIONS.map((item) => (
-          <Pressable
-            key={item.id}
-            style={styles.suggestionItem}
-            onPress={() => {
-              setWhere(item.label);
-              setSearchQuery(item.label);
-              setStep('collapsed');
-              setActiveSection('when');
-            }}
-          >
-            <View style={[styles.suggestionIcon, { backgroundColor: item.iconBg }]}>
-              {item.id === 'jaipur' ? (
-                <MaterialCommunityIcons name="cactus" size={24} color={item.iconColor} />
-              ) : (
-                <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
-              )}
-            </View>
-            <View style={styles.suggestionTextContainer}>
-              <Text style={styles.suggestionLabel}>{item.label}</Text>
-              <Text style={styles.suggestionSublabel}>{item.sublabel}</Text>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
-    </View>
+  const filteredLocations = POPULAR_LOCATIONS.filter((loc) =>
+    loc.toLowerCase().includes(locationSearchQuery.toLowerCase())
   );
 
   return (
-    <Modal visible={visible} transparent animationType="none" onRequestClose={handleClose}>
-      <View style={styles.modalOverlay}>
-        <Animated.View style={[styles.backdrop, { opacity: fadeAnim }]}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={handleClose} />
-        </Animated.View>
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.modalWrapper}>
+        <Pressable style={styles.overlay} onPress={onClose} />
+        <BlurView
+          intensity={90}
+          style={StyleSheet.absoluteFill}
+          tint="light"
+          pointerEvents="none"
+        />
 
-        <Animated.View style={[styles.modalContent, { transform: [{ translateY: slideAnim }] }]}>
-          {step === 'collapsed' ? (
+        <View style={styles.contentContainer}>
+          {!showLocationPicker ? (
             <>
-              {renderCollapsedView()}
+              {/* Main Search View */}
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>Search</Text>
+                <Pressable onPress={onClose} style={styles.closeButton}>
+                  <Ionicons name="close" size={28} color={Colors.text} />
+                </Pressable>
+              </View>
 
+              <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Search Input */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>What are you looking for?</Text>
+                  <View style={styles.searchInputContainer}>
+                    <Ionicons name="search" size={20} color={Colors.textSecondary} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Type activity, event name..."
+                      placeholderTextColor={Colors.textSecondary}
+                      value={searchQuery}
+                      onChangeText={setSearchQuery}
+                      returnKeyType="search"
+                      onSubmitEditing={handleSearch}
+                    />
+                    {searchQuery.length > 0 && (
+                      <Pressable onPress={() => setSearchQuery('')}>
+                        <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+
+                {/* Suggested Keywords */}
+                {searchQuery.length === 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitleSmall}>Suggested Keywords</Text>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.keywordScroll}
+                    >
+                      {SUGGESTED_KEYWORDS.map((keyword, index) => (
+                        <Pressable
+                          key={index}
+                          style={styles.keywordChip}
+                          onPress={() => handleKeywordSelect(keyword)}
+                        >
+                          <Text style={styles.keywordText}>{keyword}</Text>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+
+                {/* Location Section */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Location</Text>
+                  <Pressable style={styles.locationSelectButton} onPress={handleSelectLocation}>
+                    <View style={styles.locationSelectLeft}>
+                      <Ionicons name="location-outline" size={22} color={Colors.primary} />
+                      <Text style={styles.locationSelectText}>
+                        {selectedLocation || 'Select Location'}
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                  </Pressable>
+                </View>
+
+                {/* Radius Section - Slider */}
+                <View style={styles.section}>
+                  <View style={styles.radiusHeader}>
+                    <Text style={styles.sectionTitle}>Search Radius</Text>
+                    <Text style={styles.radiusValue}>{selectedRadius} km</Text>
+                  </View>
+                  <Slider
+                    style={styles.slider}
+                    minimumValue={1}
+                    maximumValue={50}
+                    step={1}
+                    value={selectedRadius}
+                    onValueChange={setSelectedRadius}
+                    minimumTrackTintColor={Colors.primary}
+                    maximumTrackTintColor={Colors.border}
+                    thumbTintColor={Colors.primary}
+                  />
+                  <View style={styles.sliderLabels}>
+                    <Text style={styles.sliderLabel}>1 km</Text>
+                    <Text style={styles.sliderLabel}>50 km</Text>
+                  </View>
+                </View>
+
+                <View style={{ height: 100 }} />
+              </ScrollView>
+
+              {/* Footer */}
               <View style={styles.footer}>
-                <Pressable onPress={handleClearAll}>
-                  <Text style={styles.clearAllText}>Clear all</Text>
+                <Pressable onPress={handleClear} style={styles.clearButton}>
+                  <Text style={styles.clearText}>Clear</Text>
                 </Pressable>
 
-                <Pressable style={styles.searchButton} onPress={handleSearchPress}>
+                <Pressable style={styles.searchButton} onPress={handleSearch}>
                   <Ionicons name="search" size={20} color="#FFF" />
                   <Text style={styles.searchButtonText}>Search</Text>
                 </Pressable>
               </View>
             </>
           ) : (
-            renderExpandedView()
+            <>
+              {/* Location Selection View */}
+              <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                  <Pressable onPress={handleBackFromLocation} style={styles.backButton}>
+                    <Ionicons name="chevron-back" size={28} color={Colors.text} />
+                  </Pressable>
+                  <Text style={styles.headerTitle}>Select Location</Text>
+                </View>
+              </View>
+
+              <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+                {/* Current Location Option */}
+                <View style={styles.section}>
+                  <Pressable style={styles.locationOption} onPress={handleCurrentLocation}>
+                    <View style={styles.locationOptionLeft}>
+                      <Ionicons name="navigate" size={22} color={Colors.primary} />
+                      <Text style={styles.locationOptionText}>Use Current Location</Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                  </Pressable>
+                </View>
+
+                {/* Search Location */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitleSmall}>Search Location</Text>
+                  <View style={styles.searchInputContainer}>
+                    <Ionicons name="search" size={20} color={Colors.textSecondary} />
+                    <TextInput
+                      style={styles.searchInput}
+                      placeholder="Search for a city or area..."
+                      placeholderTextColor={Colors.textSecondary}
+                      value={locationSearchQuery}
+                      onChangeText={setLocationSearchQuery}
+                      autoFocus
+                    />
+                    {locationSearchQuery.length > 0 && (
+                      <Pressable onPress={() => setLocationSearchQuery('')}>
+                        <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+                      </Pressable>
+                    )}
+                  </View>
+                </View>
+
+                {/* Popular Locations */}
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitleSmall}>Popular Locations</Text>
+                  <View style={styles.locationsList}>
+                    {filteredLocations.map((location, index) => (
+                      <Pressable
+                        key={index}
+                        style={styles.locationItem}
+                        onPress={() => handleLocationSearchSelect(location)}
+                      >
+                        <Ionicons name="location" size={20} color={Colors.primary} />
+                        <Text style={styles.locationItemText}>{location}</Text>
+                        <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ height: 100 }} />
+              </ScrollView>
+            </>
           )}
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  modalWrapper: {
     flex: 1,
-    justifyContent: 'flex-end',
   },
-  backdrop: {
+  container: {
+    flex: 1,
+  },
+  overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
   },
-  modalContent: {
-    backgroundColor: Colors.background, // Should be light gray/off-white based on image
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    height: '90%',
-    paddingTop: Spacing.md,
-  },
-
-  // Collapsed View Styles
-  collapsedContainer: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.md,
-  },
-  card: {
-    backgroundColor: '#FFF',
-    borderRadius: 24,
-    padding: Spacing.lg,
+  contentContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: BorderRadius.xxl,
+    borderTopRightRadius: BorderRadius.xxl,
+    maxHeight: '85%',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: { width: 0, height: -4 },
         shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: {
+        elevation: 8,
+      },
+    }),
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  backButton: {
+    padding: Spacing.xs,
+    marginLeft: -Spacing.xs,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  closeButton: {
+    padding: Spacing.xs,
+  },
+  content: {
+    flex: 1,
+  },
+  section: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.lg,
+  },
+  sectionTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  sectionTitleSmall: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+  },
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    paddingHorizontal: Spacing.md,
+    height: 52,
+    gap: Spacing.sm,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text,
+    height: '100%',
+  },
+  keywordScroll: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.lg,
+  },
+  keywordChip: {
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  keywordText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  locationSelectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    height: 56,
+  },
+  locationSelectLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  locationSelectText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  radiusHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.sm,
+  },
+  radiusValue: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  slider: {
+    width: '100%',
+    height: 40,
+  },
+  sliderLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.xs,
+  },
+  sliderLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+  },
+  locationOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    height: 56,
+  },
+  locationOptionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  locationOptionText: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  locationsList: {
+    gap: Spacing.sm,
+  },
+  locationItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  locationItemText: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '500',
+    color: Colors.text,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  clearButton: {
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+  },
+  clearText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+  },
+  searchButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.primary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    borderRadius: BorderRadius.full,
+    gap: Spacing.xs,
+    ...Platform.select({
+      ios: {
+        shadowColor: Colors.primary,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
         shadowRadius: 8,
       },
       android: {
@@ -581,310 +534,9 @@ const styles = StyleSheet.create({
       },
     }),
   },
-  cardHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  cardTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  closeButton: {
-    padding: 4,
-  },
-  closeButtonCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#F3F4F6',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: BorderRadius.lg,
-    paddingHorizontal: Spacing.md,
-    height: 50,
-    marginBottom: Spacing.lg,
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-    fontSize: 16,
-    color: Colors.text,
-  },
-  sectionSubtitle: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-  },
-  suggestionsList: {
-    maxHeight: 240,
-  },
-  suggestionItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  suggestionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: Spacing.md,
-  },
-  suggestionTextContainer: {
-    flex: 1,
-  },
-  suggestionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  suggestionSublabel: {
-    fontSize: 13,
-    color: Colors.textSecondary,
-  },
-
-  collapsedCard: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderRadius: 20,
-    padding: Spacing.lg,
-    paddingVertical: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  collapsedLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: Colors.textSecondary,
-  },
-  actionText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-
-  // Footer
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: Spacing.lg,
-    paddingBottom: Platform.OS === 'ios' ? 40 : Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    backgroundColor: '#FFF',
-  },
-  clearAllText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    textDecorationLine: 'underline',
-  },
-  searchButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: BorderRadius.lg,
-    gap: 8,
-  },
   searchButtonText: {
     color: '#FFF',
+    fontWeight: '700',
     fontSize: 16,
-    fontWeight: '600',
-  },
-
-  // Expanded View Styles
-  headerRow: {
-    flexDirection: 'row',
-    marginBottom: Spacing.md,
-  },
-  tabsContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#F3F4F6',
-    borderRadius: BorderRadius.full,
-    padding: 4,
-    marginBottom: Spacing.lg,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: BorderRadius.full,
-    alignItems: 'center',
-  },
-  tabActive: {
-    backgroundColor: '#FFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textSecondary,
-  },
-  tabTextActive: {
-    color: Colors.text,
-  },
-  calendarContainer: {
-    marginTop: Spacing.sm,
-  },
-  calendarPlaceholder: {
-    alignItems: 'center',
-    paddingVertical: Spacing.xl,
-    backgroundColor: '#F9FAFB',
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderStyle: 'dashed',
-  },
-  placeholderText: {
-    marginTop: Spacing.sm,
-    color: Colors.textSecondary,
-    fontSize: 14,
-  },
-  quickDatesRow: {
-    flexDirection: 'row',
-    gap: Spacing.sm,
-    marginTop: Spacing.lg,
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  quickDateChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    backgroundColor: '#FFF',
-  },
-  quickDateChipActive: {
-    borderColor: Colors.text,
-    backgroundColor: '#F3F4F6',
-    borderWidth: 2,
-  },
-  quickDateText: {
-    fontSize: 14,
-    color: Colors.text,
-  },
-  quickDateTextActive: {
-    fontWeight: '600',
-  },
-
-  // Guest selection styles
-  guestList: {
-    marginTop: Spacing.sm,
-  },
-  guestRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-  },
-  guestLabel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-  },
-  guestSubLabel: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  counterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
-  },
-  counterBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#B0B0B0',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  counterBtnDisabled: {
-    borderColor: '#EBEBEB',
-    backgroundColor: '#F7F7F7',
-  },
-  counterValue: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    minWidth: 24,
-    textAlign: 'center',
-  },
-
-  expandedContainer: {
-    flex: 1,
-    paddingHorizontal: Spacing.lg,
-  },
-  searchHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: Spacing.lg,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    backgroundColor: '#FFF',
-    height: 56,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 20,
-  },
-  headerInput: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    paddingHorizontal: Spacing.sm,
-  },
-  expandedList: {
-    flex: 1,
   },
 });

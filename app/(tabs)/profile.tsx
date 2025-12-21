@@ -234,6 +234,10 @@ export default function ProfileTab() {
                   <Text style={styles.avatarText}>{avatarLetter}</Text>
                 </View>
               )}
+              {/* Edit Button on Avatar */}
+              <Pressable style={styles.editBadge} onPress={() => router.push('/edit-profile')}>
+                <Ionicons name="pencil" size={14} color={Colors.background} />
+              </Pressable>
             </View>
 
             <View style={styles.profileInfo}>

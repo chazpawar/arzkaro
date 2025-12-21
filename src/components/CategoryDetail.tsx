@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Pressable,
+  Platform,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
@@ -68,6 +77,8 @@ export default function CategoryDetail({
   showInline = false,
 }: CategoryDetailProps) {
   const [selectedSubcategory, setSelectedSubcategory] = React.useState<string | null>(null);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const scaleAnims = React.useRef<Record<string, Animated.Value>>({});
 
   const clubs = generateClubs(
     selectedSubcategory || (selectedTag === 'all' ? 'Sports' : selectedTag)
@@ -77,6 +88,25 @@ export default function CategoryDetail({
   const selectedMainCategory = tags.find((tag) => tag.id === selectedTag);
   const hasSubcategories =
     selectedMainCategory?.subcategories && selectedMainCategory.subcategories.length > 0;
+
+  // Initialize scale animations for all tags
+  React.useEffect(() => {
+    tags.forEach((tag) => {
+      if (!scaleAnims.current[tag.id]) {
+        scaleAnims.current[tag.id] = new Animated.Value(1);
+      }
+    });
+    // Also initialize for subcategories
+    tags.forEach((tag) => {
+      if (tag.subcategories) {
+        tag.subcategories.forEach((sub) => {
+          if (!scaleAnims.current[sub.id]) {
+            scaleAnims.current[sub.id] = new Animated.Value(1);
+          }
+        });
+      }
+    });
+  }, [tags]);
 
   // Reset subcategory when main category changes
   React.useEffect(() => {
@@ -105,28 +135,100 @@ export default function CategoryDetail({
     });
   }, [events, selectedSubcategory]);
 
-  // Prepare tags to display based on selection
+  // Prepare tags to display based on selection - with reordering
   const displayTags = React.useMemo(() => {
+    let result: any[] = [];
+
     if (selectedTag === 'all') {
       // Show all tags when 'all' is selected
-      return tags;
+      result = tags;
     } else if (hasSubcategories) {
       // Show selected category + its subcategories
       const mainCategory = tags.find((tag) => tag.id === selectedTag);
       if (mainCategory && mainCategory.subcategories) {
-        return [
+        // Create a structure with main category first, then subcategories
+        result = [
           mainCategory,
           ...mainCategory.subcategories.map((sub) => ({
             id: sub.id,
             label: sub.label,
             icon: sub.icon,
+            isSubcategory: true,
           })),
         ];
       }
+    } else {
+      // If no subcategories, show all tags but reordered
+      const selectedIndex = tags.findIndex((tag) => tag.id === selectedTag);
+      if (selectedIndex > 0) {
+        // Move selected to first position
+        result = [
+          tags[selectedIndex],
+          ...tags.slice(0, selectedIndex),
+          ...tags.slice(selectedIndex + 1),
+        ];
+      } else {
+        result = tags;
+      }
     }
-    // If no subcategories, just show the selected category
-    return tags.filter((tag) => tag.id === selectedTag);
+
+    return result;
   }, [tags, selectedTag, hasSubcategories]);
+
+  // Scroll to start and animate scale when selection changes
+  React.useEffect(() => {
+    if (selectedTag !== 'all' && scrollViewRef.current) {
+      // Scroll to beginning
+      scrollViewRef.current.scrollTo({ x: 0, animated: true });
+
+      // Animate scale for selected tag
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        const isSelected = tagId === selectedTag;
+        Animated.spring(scaleAnims.current[tagId], {
+          toValue: isSelected ? 1.15 : 1,
+          useNativeDriver: true,
+          friction: 6,
+        }).start();
+      });
+    } else if (selectedTag === 'all') {
+      // Reset all scales when back to 'all'
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        Animated.spring(scaleAnims.current[tagId], {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 6,
+        }).start();
+      });
+    }
+  }, [selectedTag]);
+
+  // Animate scale for subcategory selection
+  React.useEffect(() => {
+    if (selectedSubcategory && scaleAnims.current[selectedSubcategory]) {
+      // Scale the selected subcategory
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        if (selectedMainCategory?.subcategories?.some((sub) => sub.id === tagId)) {
+          const isSelected = tagId === selectedSubcategory;
+          Animated.spring(scaleAnims.current[tagId], {
+            toValue: isSelected ? 1.15 : 1,
+            useNativeDriver: true,
+            friction: 6,
+          }).start();
+        }
+      });
+    } else if (!selectedSubcategory && selectedMainCategory) {
+      // Reset subcategory scales when none selected
+      selectedMainCategory.subcategories?.forEach((sub) => {
+        if (scaleAnims.current[sub.id]) {
+          Animated.spring(scaleAnims.current[sub.id], {
+            toValue: 1,
+            useNativeDriver: true,
+            friction: 6,
+          }).start();
+        }
+      });
+    }
+  }, [selectedSubcategory, selectedMainCategory]);
 
   const renderClubCard = (club: any) => (
     <Pressable
@@ -165,18 +267,39 @@ export default function CategoryDetail({
       {/* Horizontal Tags ScrollView (Circular Icons) */}
       <View style={styles.tagsContainer}>
         <ScrollView
+          ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tagsContent}
         >
+          {/* Back Button - Show when not on 'all' */}
+          {selectedTag !== 'all' && (
+            <Pressable
+              style={styles.backButtonContainer}
+              onPress={() => {
+                onSelectTag('all');
+                setSelectedSubcategory(null);
+              }}
+            >
+              <View style={styles.backButtonCircle}>
+                <Ionicons name="chevron-back" size={18} color={Colors.text} />
+              </View>
+            </Pressable>
+          )}
+
           {displayTags.map((tag) => {
             // For subcategories, check if it matches the selected subcategory
-            const isSubcategory = selectedMainCategory?.subcategories?.some(
-              (sub) => sub.id === tag.id
-            );
+            const isSubcategory =
+              tag.isSubcategory ||
+              selectedMainCategory?.subcategories?.some((sub) => sub.id === tag.id);
             const isSelected = isSubcategory
               ? selectedSubcategory === tag.id
               : selectedTag === tag.id;
+
+            // Get or create animation value for this tag
+            if (!scaleAnims.current[tag.id]) {
+              scaleAnims.current[tag.id] = new Animated.Value(1);
+            }
 
             return (
               <Pressable
@@ -192,14 +315,21 @@ export default function CategoryDetail({
                   }
                 }}
               >
-                <View style={styles.tagIconContainer}>
+                <Animated.View
+                  style={[
+                    styles.tagIconContainer,
+                    {
+                      transform: [{ scale: scaleAnims.current[tag.id] }],
+                    },
+                  ]}
+                >
                   <Image source={tag.icon} style={styles.tagIcon} resizeMode="contain" />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
-                </View>
+                </Animated.View>
                 <Text style={[styles.tagLabel, isSelected && styles.tagLabelSelected]}>
                   {tag.label}
                 </Text>
@@ -209,8 +339,8 @@ export default function CategoryDetail({
         </ScrollView>
       </View>
 
-      {/* Only show content below if showInline is true OR a specific category is selected */}
-      {(showInline || selectedTag !== 'all') && (
+      {/* Show content when: 1) Not inline mode (dedicated page), or 2) specific category is selected */}
+      {(!showInline || selectedTag !== 'all') && (
         <>
           {/* Show clubs only when 'all' is selected or no subcategories */}
           {(selectedTag === 'all' || !hasSubcategories) && (
@@ -298,42 +428,59 @@ const styles = StyleSheet.create({
   },
   tagsContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  backButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xs,
+  },
+  backButtonCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
   },
   tagIconContainer: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 72,
-    height: 72,
+    width: 68,
+    height: 68,
   },
   tagIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
   },
   checkBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     backgroundColor: Colors.primary,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+    zIndex: 10,
   },
   tagLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.textSecondary,
     fontWeight: '500',
-    marginTop: 6,
+    marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,
