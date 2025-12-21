@@ -25,7 +25,7 @@ import { useTickets } from '../../src/hooks/use-bookings';
 export default function TicketsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const insets = useSafeAreaInsets();
+  const _insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
   const [refreshing, setRefreshing] = useState(false);
@@ -67,9 +67,9 @@ export default function TicketsTab() {
   // Not authenticated
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/arz.png')}
@@ -305,17 +305,16 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: Colors.background,
   },
   logoContainer: {
     alignItems: 'center',
-    justifyContent: 'center',
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   tabsContainer: {
     flexDirection: 'row',

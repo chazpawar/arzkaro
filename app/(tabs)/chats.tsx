@@ -5,7 +5,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Fonts } from '../../src/constants/Fonts';
-import { Spacing } from '../../src/constants/Styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -122,7 +122,7 @@ const MOCK_CHATS = [
 export default function ChatsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
-  const insets = useSafeAreaInsets();
+  const _insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
   const [dmConversations, setDmConversations] = useState<DMConversation[]>([]);
@@ -249,7 +249,7 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.header}>
           <View style={styles.headerTitleContainer}>
             <Text style={styles.headerTitle}>Chats</Text>
           </View>
@@ -414,18 +414,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
+    paddingTop: 0,
+    paddingBottom: 0,
     position: 'relative',
   },
   logoContainer: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: -15,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   usernameContainer: {
     flexDirection: 'row',
@@ -454,8 +455,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.xs,
-    paddingBottom: Spacing.md,
+    paddingTop: 0,
+    paddingBottom: Spacing.sm,
   },
   searchBar: {
     flexDirection: 'row',
@@ -473,24 +474,30 @@ const styles = StyleSheet.create({
   filterTabs: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.lg,
-    marginBottom: Spacing.xs,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   filterTab: {
-    paddingVertical: Spacing.xs,
-    position: 'relative',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surfaceSecondary,
+    gap: Spacing.xs,
   },
   filterTabActive: {
-    // Active styling usually handled by text or underline in simpler designs
+    backgroundColor: Colors.text,
   },
   filterTabText: {
-    fontSize: 16,
+    fontSize: 14,
     fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   filterTabTextActive: {
-    color: Colors.text,
+    color: Colors.textInverse,
   },
   listContent: {
     paddingBottom: Spacing.xl,

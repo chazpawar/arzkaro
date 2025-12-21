@@ -925,18 +925,21 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: Spacing.sm,
-    paddingBottom: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 0,
+    paddingBottom: 0,
+    marginBottom: -15,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingTop: 0,
+    paddingBottom: Spacing.sm,
     gap: Spacing.md,
   },
   backButton: {
