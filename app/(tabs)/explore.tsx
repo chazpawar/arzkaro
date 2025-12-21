@@ -924,6 +924,9 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: 0,
+    paddingBottom: 0,
     marginBottom: -15,
   },
   logo: {
@@ -934,7 +937,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingTop: 0,
+    paddingBottom: Spacing.sm,
     gap: Spacing.md,
   },
   backButton: {
