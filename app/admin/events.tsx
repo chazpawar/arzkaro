@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import * as AdminService from '../../src/services/admin-service';
 import type { Event } from '../../src/types/event.types';
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     ...Typography.caption,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   tabTextActive: {
@@ -405,7 +406,7 @@ const styles = StyleSheet.create({
   statusText: {
     color: 'white',
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     textTransform: 'uppercase',
   },
   detailsContainer: {
@@ -415,7 +416,7 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 4,
     lineHeight: 20,
@@ -454,7 +455,7 @@ const styles = StyleSheet.create({
   },
   hostAvatarText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   hostName: {
@@ -472,7 +473,7 @@ const styles = StyleSheet.create({
   },
   priceText: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   statsContainer: {
@@ -483,7 +484,7 @@ const styles = StyleSheet.create({
   statsText: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,

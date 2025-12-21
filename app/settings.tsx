@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/Colors';
+import { Fonts } from '../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 
@@ -180,7 +181,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -199,7 +200,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     ...Typography.bodySmall,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
     textTransform: 'uppercase',
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   menuSubtitle: {

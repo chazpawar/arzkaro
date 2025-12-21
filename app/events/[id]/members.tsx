@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
+import { Fonts } from '../../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import * as ChatService from '../../../src/services/chat-service';
@@ -555,7 +556,7 @@ const styles = StyleSheet.create({
   friendButtonTextAdd: {
     ...Typography.caption,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   friendButtonFriends: {
     backgroundColor: Colors.successLight,
@@ -563,7 +564,7 @@ const styles = StyleSheet.create({
   friendButtonTextFriends: {
     ...Typography.caption,
     color: Colors.success,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   friendButtonSent: {
     backgroundColor: Colors.surfaceSecondary,
@@ -571,7 +572,7 @@ const styles = StyleSheet.create({
   friendButtonTextSent: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   friendButtonAccept: {
     backgroundColor: Colors.success,
@@ -579,6 +580,6 @@ const styles = StyleSheet.create({
   friendButtonTextAccept: {
     ...Typography.caption,
     color: Colors.background,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
 });

@@ -40,6 +40,9 @@ export default [
       'prefer-const': 'error',
       'no-var': 'error',
 
+      // Import rules
+      'import/no-unresolved': 'off', // TypeScript handles this
+
       // Prettier integration
       'prettier/prettier': [
         'error',

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Modal, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
 interface EmailSignupModalProps {
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   closeButton: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.background,
   },
   continueButtonTextDisabled: {

@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { Fonts } from './Fonts';
 
 // Spacing scale
 export const Spacing = {
@@ -27,72 +28,72 @@ export const Typography = {
   // Headings
   h1: {
     fontSize: 32,
-    fontWeight: '700' as const,
+    fontFamily: Fonts.bold as const,
     lineHeight: 40,
     letterSpacing: -0.5,
   },
   h2: {
     fontSize: 24,
-    fontWeight: '600' as const,
+    fontFamily: Fonts.semiBold as const,
     lineHeight: 32,
     letterSpacing: -0.3,
   },
   h3: {
     fontSize: 20,
-    fontWeight: '600' as const,
+    fontFamily: Fonts.semiBold as const,
     lineHeight: 28,
   },
   h4: {
     fontSize: 18,
-    fontWeight: '600' as const,
+    fontFamily: Fonts.semiBold as const,
     lineHeight: 24,
   },
   // Body text
   body: {
     fontSize: 16,
-    fontWeight: '400' as const,
+    fontFamily: Fonts.regular as const,
     lineHeight: 24,
   },
   bodyLarge: {
     fontSize: 18,
-    fontWeight: '400' as const,
+    fontFamily: Fonts.regular as const,
     lineHeight: 26,
   },
   bodyMedium: {
     fontSize: 16,
-    fontWeight: '500' as const,
+    fontFamily: Fonts.medium as const,
     lineHeight: 24,
   },
   bodySmall: {
     fontSize: 14,
-    fontWeight: '400' as const,
+    fontFamily: Fonts.regular as const,
     lineHeight: 20,
   },
   bodySmallMedium: {
     fontSize: 14,
-    fontWeight: '500' as const,
+    fontFamily: Fonts.medium as const,
     lineHeight: 20,
   },
   // Caption
   caption: {
     fontSize: 12,
-    fontWeight: '400' as const,
+    fontFamily: Fonts.regular as const,
     lineHeight: 16,
   },
   captionMedium: {
     fontSize: 12,
-    fontWeight: '500' as const,
+    fontFamily: Fonts.medium as const,
     lineHeight: 16,
   },
   // Labels
   label: {
     fontSize: 14,
-    fontWeight: '600' as const,
+    fontFamily: Fonts.semiBold as const,
     lineHeight: 20,
   },
   labelSmall: {
     fontSize: 12,
-    fontWeight: '600' as const,
+    fontFamily: Fonts.semiBold as const,
     lineHeight: 16,
   },
 };

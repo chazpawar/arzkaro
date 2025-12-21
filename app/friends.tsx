@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../src/components/ui/loading-spinner';
 import EmptyState from '../src/components/ui/empty-state';
 import { Colors } from '../src/constants/Colors';
+import { Fonts } from '../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 import * as FriendsService from '../src/services/friends-service';
@@ -419,7 +420,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -451,11 +452,11 @@ const styles = StyleSheet.create({
   tabText: {
     ...Typography.body,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   tabTextActive: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   badge: {
     backgroundColor: Colors.error,
@@ -469,7 +470,7 @@ const styles = StyleSheet.create({
   badgeText: {
     ...Typography.caption,
     color: Colors.background,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     fontSize: 11,
   },
   list: {
@@ -522,7 +523,7 @@ const styles = StyleSheet.create({
   listItemUsername: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: 2,
   },
   listItemName: {
@@ -544,7 +545,7 @@ const styles = StyleSheet.create({
   messageButtonText: {
     ...Typography.body,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   menuButton: {
     padding: Spacing.sm,
@@ -570,7 +571,7 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     ...Typography.bodySmall,
     color: Colors.background,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   deleteButton: {
     paddingHorizontal: Spacing.md,
@@ -586,6 +587,6 @@ const styles = StyleSheet.create({
   deleteButtonText: {
     ...Typography.bodySmall,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
 });

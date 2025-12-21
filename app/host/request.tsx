@@ -7,6 +7,7 @@ import Button from '../../src/components/ui/button';
 import HostApplicationForm from '../../src/components/host/host-application-form';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.xxl,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   choiceGrid: {
     gap: Spacing.md,
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
   },
   choiceLabel: {
     ...Typography.h4,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 2,
   },
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
   rejectionLabel: {
     ...Typography.bodySmall,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: Spacing.xs,
   },
   rejectionReason: {

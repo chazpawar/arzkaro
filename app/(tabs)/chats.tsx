@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import EmptyState from '../../src/components/ui/empty-state';
@@ -432,7 +433,7 @@ const styles = StyleSheet.create({
   },
   usernameText: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   headerIcons: {
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   searchContainer: {
@@ -485,7 +486,7 @@ const styles = StyleSheet.create({
   },
   filterTabText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   filterTabTextActive: {
@@ -541,7 +542,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nameUnread: {
-    fontWeight: '700', // Unread names are bold
+    fontFamily: Fonts.bold, // Unread names are bold
   },
   message: {
     fontSize: 14,
@@ -549,7 +550,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageUnread: {
-    fontWeight: '600', // Unread messages are bolder
+    fontFamily: Fonts.semiBold, // Unread messages are bolder
     color: Colors.text,
   },
   timeDot: {

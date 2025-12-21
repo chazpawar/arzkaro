@@ -5,6 +5,7 @@ import { SvgXml } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
 import { useAuth } from '../contexts/auth-context';
 import OTPVerificationModal from './OTPVerificationModal';
@@ -302,7 +303,7 @@ const styles = StyleSheet.create({
   },
   skipText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   content: {
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: Spacing.md,
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   },
   countryCode: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginRight: Spacing.sm,
     paddingRight: Spacing.sm,
@@ -430,7 +431,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.background,
   },
   primaryButton: {
@@ -442,7 +443,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.background,
   },
   secondaryButton: {
@@ -464,7 +465,7 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   dividerContainer: {
@@ -481,7 +482,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     marginHorizontal: Spacing.lg,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   googleButton: {
     flexDirection: 'row',
@@ -502,7 +503,7 @@ const styles = StyleSheet.create({
   },
   googleButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   buttonPressed: {

@@ -9,6 +9,7 @@ import {
   StyleProp,
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import { BorderRadius, Spacing } from '@/constants/Styles';
 
 interface ButtonProps {
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   text: {
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
   },
   primaryText: {

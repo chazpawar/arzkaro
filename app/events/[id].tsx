@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
@@ -1000,7 +1001,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -1019,14 +1020,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
     letterSpacing: -0.5,
   },
   dateTimeText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.primary,
     marginBottom: Spacing.sm,
   },
@@ -1037,12 +1038,12 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   price: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   quickInfoContainer: {
@@ -1061,12 +1062,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textSecondary,
     marginBottom: 4,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     letterSpacing: 0.5,
   },
   quickInfoValue: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   quickInfoSubValue: {
@@ -1095,11 +1096,11 @@ const styles = StyleSheet.create({
   },
   spotsLeft: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   soldOut: {
     color: Colors.error,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   hostSection: {
     flexDirection: 'row',
@@ -1126,7 +1127,7 @@ const styles = StyleSheet.create({
   },
   hostAvatarText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   hostInfo: {
@@ -1138,7 +1139,7 @@ const styles = StyleSheet.create({
   },
   hostName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   hostStats: {
@@ -1150,7 +1151,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -1172,7 +1173,7 @@ const styles = StyleSheet.create({
   },
   ticketTypeName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 2,
   },
@@ -1182,7 +1183,7 @@ const styles = StyleSheet.create({
   },
   ticketTypePrice: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   tagsSection: {
@@ -1221,7 +1222,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   footer: {
@@ -1247,7 +1248,7 @@ const styles = StyleSheet.create({
   },
   footerPriceValue: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
   },
   bookButtonNested: {
@@ -1265,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   bookButtonNestedText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   // Trip-specific styles
@@ -1293,14 +1294,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   tripDetailValue: {
     fontSize: 16,
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   tripDetailText: {
     fontSize: 16,
@@ -1322,7 +1323,7 @@ const styles = StyleSheet.create({
   pickupChipText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   // Trip-specific compact layout styles
   imageContainerTrip: {
@@ -1339,23 +1340,23 @@ const styles = StyleSheet.create({
   },
   tripCompactText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
     flex: 1,
   },
   tripCompactLabel: {
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   // Departure/Pickup specific styles (maroon and bold)
   tripDeparturePickupText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.maroon,
     flex: 1,
   },
   tripDeparturePickupLabel: {
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.maroon,
   },
   footerContainerTrip: {
@@ -1377,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   tripGalleryTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -1405,7 +1406,7 @@ const styles = StyleSheet.create({
   tripGallerySeeAllText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     textDecorationLine: 'underline',
   },
   // Itinerary styles
@@ -1419,7 +1420,7 @@ const styles = StyleSheet.create({
   },
   itineraryTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.lg,
   },
@@ -1428,7 +1429,7 @@ const styles = StyleSheet.create({
   },
   itineraryDayTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
@@ -1445,7 +1446,7 @@ const styles = StyleSheet.create({
   itinerarySeeMoreText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     textDecorationLine: 'underline',
   },
   // About Event styles
@@ -1459,7 +1460,7 @@ const styles = StyleSheet.create({
   },
   aboutEventTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -1471,7 +1472,7 @@ const styles = StyleSheet.create({
   aboutEventSeeMore: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     textDecorationLine: 'underline',
     marginTop: Spacing.sm,
     alignSelf: 'flex-end',
@@ -1485,7 +1486,7 @@ const styles = StyleSheet.create({
   },
   whatsIncludedGroupTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -1511,7 +1512,7 @@ const styles = StyleSheet.create({
   },
   whatsNotIncludedGroupTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -1565,7 +1566,7 @@ const styles = StyleSheet.create({
   imageModalCounterText: {
     fontSize: 14,
     color: Colors.textInverse,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   imageModalImageContainer: {
     flex: 1,

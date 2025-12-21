@@ -1,6 +1,7 @@
 import React, { memo } from 'react';
 import { View, Text, StyleSheet, Image, Pressable } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import { Spacing, Typography } from '../../constants/Styles';
 
 interface ChatListItemProps {
@@ -181,7 +182,7 @@ const styles = StyleSheet.create({
   },
   previewUnread: {
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   unreadBadge: {
     backgroundColor: Colors.primary,
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   unreadText: {
     ...Typography.caption,
     color: Colors.textInverse,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     fontSize: 11,
   },
 });

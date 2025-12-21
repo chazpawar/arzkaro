@@ -7,6 +7,7 @@ import Button from '../../src/components/ui/button';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTicketValidation } from '../../src/hooks/use-bookings';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 
 export default function HostScannerScreen() {
@@ -158,7 +159,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     textAlign: 'center',
     letterSpacing: 1,

@@ -17,6 +17,7 @@ import Card from '../src/components/ui/card';
 import Modal from '../src/components/ui/modal';
 import HostApplicationForm from '../src/components/host/host-application-form';
 import { Colors } from '../src/constants/Colors';
+import { Fonts } from '../src/constants/Fonts';
 import { BorderRadius, Spacing, Typography } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 import {
@@ -536,12 +537,12 @@ const styles = StyleSheet.create({
   avatarText: {
     fontSize: 48,
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
   userName: {
     ...Typography.h2,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.xs,
   },
   userEmail: {
@@ -583,7 +584,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...Typography.caption,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -596,7 +597,7 @@ const styles = StyleSheet.create({
   hostCardTitle: {
     ...Typography.h3,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.xs,
   },
   hostCardDescription: {
@@ -618,7 +619,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   statusBadge: {
     paddingHorizontal: Spacing.sm,
@@ -627,7 +628,7 @@ const styles = StyleSheet.create({
   },
   statusBadgeText: {
     ...Typography.caption,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   hostRequestInfo: {
     ...Typography.bodySmall,
@@ -692,7 +693,7 @@ const styles = StyleSheet.create({
   },
   profileViewTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerPlaceholder: {
@@ -709,7 +710,7 @@ const styles = StyleSheet.create({
   hostProfileTitle: {
     fontSize: 20,
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.md,
   },
   hostProfileCard: {
@@ -740,7 +741,7 @@ const styles = StyleSheet.create({
   hostAvatarText: {
     fontSize: 28,
     color: '#FFFFFF',
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
   hostInfo: {
     flex: 1,
@@ -749,7 +750,7 @@ const styles = StyleSheet.create({
   hostName: {
     fontSize: 18,
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     marginBottom: 4,
   },
   hostBio: {
@@ -788,7 +789,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 24,
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   statLabel: {
     fontSize: 12,
@@ -812,7 +813,7 @@ const styles = StyleSheet.create({
   policyTitle: {
     fontSize: 20,
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.md,
   },
   policyContent: {
@@ -830,12 +831,12 @@ const styles = StyleSheet.create({
   backButtonText: {
     ...Typography.body,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   sectionTitle: {
     ...Typography.h3,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.md,
   },
   emptyText: {
@@ -868,7 +869,7 @@ const styles = StyleSheet.create({
   eventTitle: {
     ...Typography.body,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   eventTypeBadge: {
     backgroundColor: Colors.primaryLight,
@@ -880,12 +881,12 @@ const styles = StyleSheet.create({
   eventTypeText: {
     ...Typography.caption,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     fontSize: 10,
   },
   eventPrice: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
 });

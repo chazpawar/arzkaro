@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
@@ -955,7 +956,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   notificationButton: {
     padding: 4,
@@ -1005,12 +1006,12 @@ const styles = StyleSheet.create({
   },
   categoryLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   categoryLabelActive: {
     color: Colors.primary,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   // Featured Sections
   sectionContainer: {
@@ -1025,13 +1026,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   seeAllText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   horizontalList: {
     paddingHorizontal: Spacing.lg,
@@ -1056,7 +1057,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   cardRow: {
@@ -1070,12 +1071,12 @@ const styles = StyleSheet.create({
   },
   cardRating: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   cardPrice: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginTop: 2,
   },

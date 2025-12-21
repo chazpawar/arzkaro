@@ -19,6 +19,7 @@ import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
 import ImageUpload from '../../src/components/ui/image-upload';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as EventService from '../../src/services/event-service';
@@ -1225,7 +1226,7 @@ const styles = StyleSheet.create({
   },
   typeLabelSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   typeLabelDisabled: {
     color: Colors.textTertiary,
@@ -1243,7 +1244,7 @@ const styles = StyleSheet.create({
   hostTypeBadgeText: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: Spacing.xs,
   },
   permissionMessage: {
@@ -1275,7 +1276,7 @@ const styles = StyleSheet.create({
   },
   categoryChipTextSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   errorText: {
     ...Typography.caption,
@@ -1383,12 +1384,12 @@ const styles = StyleSheet.create({
   sectionHeaderText: {
     ...Typography.h4,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   subsectionLabel: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
@@ -1404,7 +1405,7 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   datePickerButton: {
     flexDirection: 'row',
@@ -1459,7 +1460,7 @@ const styles = StyleSheet.create({
   durationText: {
     ...Typography.bodySmall,
     color: Colors.success,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   templateSection: {
     marginTop: Spacing.md,
@@ -1484,7 +1485,7 @@ const styles = StyleSheet.create({
   templateChipText: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   subcategorySection: {
     marginTop: Spacing.lg,
@@ -1515,7 +1516,7 @@ const styles = StyleSheet.create({
   },
   subcategoryChipTextSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   checkbox: {
     width: 18,
@@ -1563,6 +1564,6 @@ const styles = StyleSheet.create({
   pickupChipText: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
 });

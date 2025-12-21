@@ -4,6 +4,7 @@ import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useTicket } from '../../src/hooks/use-bookings';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -235,7 +236,7 @@ const styles = StyleSheet.create({
   },
   ticketTypeText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   dashedSeparator: {
@@ -281,13 +282,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
   ticketIdLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textTertiary,
     letterSpacing: 1,
     marginBottom: Spacing.xs,
@@ -295,7 +296,7 @@ const styles = StyleSheet.create({
   ticketCode: {
     marginBottom: Spacing.sm,
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     letterSpacing: 1,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
   },
   eventTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.lg,
     textAlign: 'center',
@@ -339,14 +340,14 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textTertiary,
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   detailValue: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   detailSubValue: {
@@ -389,7 +390,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
 });

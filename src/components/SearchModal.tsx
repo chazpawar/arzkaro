@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Slider from '@react-native-community/slider';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
 interface SearchModalProps {
@@ -434,7 +435,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   closeButton: {
@@ -452,13 +453,13 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
   sectionTitleSmall: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
   },
@@ -493,7 +494,7 @@ const styles = StyleSheet.create({
   },
   keywordText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   locationSelectButton: {
@@ -514,7 +515,7 @@ const styles = StyleSheet.create({
   },
   locationSelectText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   radiusHeader: {
@@ -525,7 +526,7 @@ const styles = StyleSheet.create({
   },
   radiusValue: {
     fontSize: 16,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   slider: {
@@ -559,7 +560,7 @@ const styles = StyleSheet.create({
   },
   locationOptionText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   locationsList: {
@@ -578,7 +579,7 @@ const styles = StyleSheet.create({
   locationItemText: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   footer: {
@@ -596,7 +597,7 @@ const styles = StyleSheet.create({
   },
   clearText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   searchButton: {
@@ -621,7 +622,7 @@ const styles = StyleSheet.create({
   },
   searchButtonText: {
     color: '#FFF',
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     fontSize: 16,
   },
 });

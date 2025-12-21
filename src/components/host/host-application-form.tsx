@@ -4,6 +4,7 @@ import Input from '../ui/input';
 import Button from '../ui/button';
 import Card from '../ui/card';
 import { Colors } from '@/constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import { BorderRadius, Spacing, Typography } from '@/constants/Styles';
 import { HostRequestFormData, HOST_TYPE_LABELS } from '@/types/host.types';
 import { submitHostRequest, validateHostRequest } from '@/services/host-service';
@@ -339,7 +340,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.h2,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     flex: 1,
     flexShrink: 1,
     marginRight: Spacing.sm,
@@ -347,7 +348,7 @@ const styles = StyleSheet.create({
   title: {
     ...Typography.h2,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.sm,
   },
   changeTypeButton: {
@@ -362,7 +363,7 @@ const styles = StyleSheet.create({
   changeLink: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   hostTypeCard: {
     backgroundColor: Colors.surface,
@@ -381,7 +382,7 @@ const styles = StyleSheet.create({
   hostTypeTitle: {
     ...Typography.h3,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
   hostTypeBadge: {
     ...Typography.caption,
@@ -390,7 +391,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.sm,
     paddingVertical: 4,
     borderRadius: BorderRadius.sm,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   hostTypeBadgePremium: {
     color: Colors.success,
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...Typography.h4,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
     marginBottom: Spacing.xs,
   },
   sectionHint: {
