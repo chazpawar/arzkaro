@@ -272,7 +272,13 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.header}>
-          <Text style={styles.usernameText}>{user?.user_metadata?.full_name || 'Messages'}</Text>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
           <View style={styles.headerIcons} />
         </View>
         <LoadingSpinner />
@@ -325,10 +331,14 @@ export default function ChatsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Instagram-style Header */}
+      {/* Header with Logo */}
       <View style={styles.header}>
-        <View style={styles.usernameContainer}>
-          <Text style={styles.usernameText}>{user?.user_metadata?.full_name || 'Messages'}</Text>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/arz.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
 
         <View style={styles.headerIcons} />
@@ -401,10 +411,20 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    height: 56,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+    position: 'relative',
+  },
+  logoContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logo: {
+    width: 120,
+    height: 60,
   },
   usernameContainer: {
     flexDirection: 'row',
@@ -433,7 +453,8 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.md,
   },
   searchBar: {
     flexDirection: 'row',

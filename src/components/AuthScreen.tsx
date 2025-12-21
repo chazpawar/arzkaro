@@ -209,8 +209,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   appLogo: {
-    width: 220,
-    height: 140,
+    width: 120,
+    height: 60,
     resizeMode: 'contain',
     marginBottom: Spacing.xl,
   },

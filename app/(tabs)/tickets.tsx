@@ -70,8 +70,11 @@ export default function TicketsTab() {
         {/* Header */}
         <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>arz</Text>
-            <Text style={styles.logoDot}>.</Text>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -301,22 +304,17 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
     backgroundColor: Colors.background,
   },
   logoContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  logoText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  logoDot: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.primary,
+  logo: {
+    width: 120,
+    height: 60,
   },
   tabsContainer: {
     flexDirection: 'row',

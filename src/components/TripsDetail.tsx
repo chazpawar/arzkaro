@@ -97,12 +97,12 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Ionicons
                     name={cat.icon as any}
-                    size={32}
+                    size={28}
                     color={isSelected ? '#FFF' : Colors.primary}
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -160,17 +160,17 @@ const styles = StyleSheet.create({
   },
   tagsContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
   },
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
   },
   tagIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -184,22 +184,23 @@ const styles = StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     backgroundColor: Colors.primary,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+    zIndex: 10,
   },
   tagLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.textSecondary,
     fontWeight: '500',
-    marginTop: 6,
+    marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,

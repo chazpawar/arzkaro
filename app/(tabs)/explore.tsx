@@ -613,16 +613,25 @@ export default function ExploreTab() {
   });
 
   const handleCategoryPress = (categoryId: string) => {
+    console.log('[EXPLORE] Category pressed:', categoryId, 'Current activeView:', activeView);
     if (categoryId === 'trips') {
-      // For trips, navigate to the trips category view (not inline)
+      // For trips, navigate to the trips category view (full page)
+      console.log('[EXPLORE] Setting activeView=trips, selectedTag=trips');
       setActiveView('trips');
-      setSelectedTag('trips'); // Set to 'trips' to show full page view
+      setSelectedTag('trips');
+    } else if (categoryId === 'experiences') {
+      // For experiences, navigate to the experiences category view (full page)
+      console.log('[EXPLORE] Setting activeView=experiences, selectedTag=all');
+      setActiveView('experiences');
+      setSelectedTag('all'); // Start with 'all' to show all experience categories
     } else if (activeView === categoryId) {
-      // If clicking the same category (except trips), toggle back to 'events' (For You)
+      // If clicking the same category (except trips/experiences), toggle back to 'events' (For You)
+      console.log('[EXPLORE] Toggling back to events view');
       setActiveView('events');
       setSelectedTag('all');
     } else {
       // Otherwise, switch to the new category
+      console.log('[EXPLORE] Setting activeView to:', categoryId);
       setActiveView(categoryId);
       setSelectedTag('all');
     }
@@ -644,8 +653,8 @@ export default function ExploreTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Logo - Hide when a specific category (not 'all') is selected */}
-      {selectedTag === 'all' && (
+      {/* Logo - Hide when viewing experiences/trips or a specific category is selected */}
+      {selectedTag === 'all' && activeView === 'events' && (
         <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/arz.png')}
@@ -657,15 +666,13 @@ export default function ExploreTab() {
 
       {/* Search Bar Header */}
       <View style={styles.headerContainer}>
-        {/* Back button - Show when a specific category is selected */}
-        {selectedTag !== 'all' && (
+        {/* Back button - Show when viewing experiences/trips or a specific category is selected */}
+        {(selectedTag !== 'all' || activeView === 'experiences' || activeView === 'trips') && (
           <Pressable
             onPress={() => {
               setSelectedTag('all');
-              // Also reset to 'events' view when going back
-              if (activeView === 'trips') {
-                setActiveView('events');
-              }
+              // Reset to 'events' view when going back
+              setActiveView('events');
             }}
             style={styles.backButton}
           >
@@ -682,7 +689,7 @@ export default function ExploreTab() {
           </Text>
         </Pressable>
 
-        {selectedTag === 'all' && (
+        {selectedTag === 'all' && activeView === 'events' && (
           <Pressable style={styles.notificationButton}>
             <Ionicons name="notifications-outline" size={24} color={Colors.text} />
           </Pressable>
@@ -702,8 +709,8 @@ export default function ExploreTab() {
         }
       >
         <View style={styles.mainContent}>
-          {/* 1. Horizontal Circular Categories - Show only when 'all' is selected */}
-          {selectedTag === 'all' && (
+          {/* 1. Horizontal Circular Categories - Show only when in For You view */}
+          {selectedTag === 'all' && activeView === 'events' && (
             <View style={styles.categoriesRow}>
               {CATEGORIES.map((cat) => {
                 const isActive = activeView === cat.id;
@@ -717,7 +724,7 @@ export default function ExploreTab() {
                       <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
                       {isActive && (
                         <View style={styles.categoryCheckBadge}>
-                          <Ionicons name="checkmark" size={12} color="#FFF" />
+                          <Ionicons name="checkmark" size={10} color="#FFF" />
                         </View>
                       )}
                     </View>
@@ -730,20 +737,31 @@ export default function ExploreTab() {
             </View>
           )}
 
-          {/* 2. Show categories and events inline when Experiences is clicked */}
-          {activeView === 'experiences' && (
-            <View>
-              <CategoryDetail
-                type="experiences"
-                tags={CATEGORY_TAGS_BY_TYPE['experiences'] || []}
-                selectedTag={selectedTag}
-                onSelectTag={setSelectedTag}
-                events={filteredEvents}
-                onEventPress={(id) => router.push(`/events/${id}`)}
-                showInline={selectedTag === 'all'}
-              />
-            </View>
-          )}
+          {/* 2. Show experiences category page when Experiences is clicked */}
+          {(() => {
+            const shouldShow = activeView === 'experiences';
+            console.log(
+              '[EXPLORE RENDER] activeView:',
+              activeView,
+              'selectedTag:',
+              selectedTag,
+              'Show experiences?',
+              shouldShow
+            );
+            return shouldShow ? (
+              <View>
+                <CategoryDetail
+                  type="experiences"
+                  tags={CATEGORY_TAGS_BY_TYPE['experiences'] || []}
+                  selectedTag={selectedTag}
+                  onSelectTag={setSelectedTag}
+                  events={filteredEvents}
+                  onEventPress={(id) => router.push(`/events/${id}`)}
+                  showInline={false}
+                />
+              </View>
+            ) : null;
+          })()}
 
           {/* 3. Show trips detail as full page when Trips is clicked */}
           {activeView === 'trips' && selectedTag === 'trips' && (
@@ -906,12 +924,12 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: Spacing.xs,
-    paddingBottom: Spacing.sm,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   logo: {
     width: 120,
-    height: 48,
+    height: 60,
   },
   headerContainer: {
     flexDirection: 'row',
@@ -958,34 +976,35 @@ const styles = StyleSheet.create({
   categoryCircleContainer: {
     alignItems: 'center',
     gap: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
   },
   categoryIconContainer: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 72,
-    height: 72,
+    width: 68,
+    height: 68,
   },
   categoryIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
   },
   categoryCheckBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     backgroundColor: Colors.primary,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+    zIndex: 10,
   },
   categoryLabel: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: Colors.text,
   },

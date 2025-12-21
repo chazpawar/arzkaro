@@ -43,17 +43,19 @@ export default function TabHeader({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
     backgroundColor: Colors.background,
     zIndex: 10,
   },
   logoContainer: {
     alignItems: 'center',
+    paddingBottom: Spacing.xs,
     marginBottom: Spacing.xs,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 120,
+    height: 60,
   },
   searchContainer: {
     flexDirection: 'row',
