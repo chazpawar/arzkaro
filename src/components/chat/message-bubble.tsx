@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
   },
   bubbleOwn: {
-    backgroundColor: Colors.surfaceSecondary,
+    backgroundColor: Colors.primary,
     borderRadius: BorderRadius.xl,
     borderBottomRightRadius: BorderRadius.xs,
   },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   messageTextOwn: {
-    color: Colors.text,
+    color: Colors.textInverse,
   },
   timestamp: {
     ...Typography.caption,
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   timestampOwn: {
-    color: Colors.textTertiary,
+    color: Colors.textInverse,
     opacity: 0.8,
   },
   // System message

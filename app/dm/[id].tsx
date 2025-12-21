@@ -17,7 +17,7 @@ import ChatInput from '../../src/components/chat/chat-input';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography } from '../../src/constants/Styles';
+import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as DMService from '../../src/services/dm-service';
 import type { DMConversation, DMMessage } from '../../src/types/chat.types';
@@ -171,16 +171,62 @@ export default function DMChatScreen() {
   const renderMessage = useCallback(
     ({ item, index }: { item: DMMessage; index: number }) => {
       const isOwn = item.sender_id === user?.id;
-      const prevMessage = index > 0 ? messages[index - 1] : null;
-      const showAvatar = !prevMessage || prevMessage.sender_id !== item.sender_id;
+
+      // Calculate visual grouping
+      // Note: messages are usually ordered by time (oldest first) in the array
+      // if using standard FlatList, or newest first if inverted.
+      // Based on service: (data as DMMessage[]).reverse() -> Oldest First (Index 0)
+
+      const currentMsg = messages[index];
+      const previousMsg = index > 0 ? messages[index - 1] : null;
+      const nextMsg = index < messages.length - 1 ? messages[index + 1] : null;
+
+      const currentDate = new Date(currentMsg.created_at);
+      const previousDate = previousMsg ? new Date(previousMsg.created_at) : null;
+
+      // Show date header if it's the first message or date changed
+      const showDate = !previousDate || currentDate.toDateString() !== previousDate.toDateString();
+
+      // Show avatar if it's the last message from the sender in this cluster
+      const isLastFromUser = !nextMsg || nextMsg.sender_id !== item.sender_id;
+      const showAvatar = !isOwn && isLastFromUser;
+
+      let dateLabel = '';
+      if (showDate) {
+        const now = new Date();
+        const isToday = now.toDateString() === currentDate.toDateString();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = yesterday.toDateString() === currentDate.toDateString();
+
+        if (isToday) dateLabel = 'Today';
+        else if (isYesterday) dateLabel = 'Yesterday';
+        else
+          dateLabel = currentDate.toLocaleDateString([], {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+
+        // Add time
+        dateLabel += ` ${currentDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+      }
 
       return (
-        <MessageBubble
-          message={item}
-          isOwn={isOwn}
-          showAvatar={showAvatar}
-          onAvatarPress={() => !isOwn && handleViewProfile()}
-        />
+        <View>
+          {showDate && (
+            <View style={styles.dateHeader}>
+              <Text style={styles.dateHeaderText}>{dateLabel}</Text>
+            </View>
+          )}
+
+          <MessageBubble
+            message={item}
+            isOwn={isOwn}
+            showAvatar={showAvatar}
+            onAvatarPress={() => !isOwn && handleViewProfile()}
+          />
+        </View>
       );
     },
     [user, messages, handleViewProfile]
@@ -326,5 +372,20 @@ const styles = StyleSheet.create({
   },
   messagesList: {
     paddingVertical: Spacing.md,
+    paddingBottom: Spacing.xl,
+  },
+  dateHeader: {
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  dateHeaderText: {
+    ...Typography.caption,
+    color: Colors.textTertiary,
+    backgroundColor: Colors.surfaceSecondary,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    overflow: 'hidden',
   },
 });

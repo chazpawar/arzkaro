@@ -160,18 +160,56 @@ export default function EventChatScreen() {
   const renderMessage = useCallback(
     ({ item, index }: { item: any; index: number }) => {
       const isOwn = item.user_id === user?.id;
-      const prevMessage = index > 0 ? messages[index - 1] : null;
-      const showAvatar = !prevMessage || prevMessage.user_id !== item.user_id;
+
+      // Calculate for Standard Top-to-Bottom list (Index 0 = Oldest)
+      const currentMsg = messages[index];
+      const previousMsg = index > 0 ? messages[index - 1] : null; // Message "above" visually
+      const nextMsg = index < messages.length - 1 ? messages[index + 1] : null; // Message "below" visually
+
+      const currentDate = new Date(currentMsg.created_at);
+      const previousDate = previousMsg ? new Date(previousMsg.created_at) : null;
+
+      const showDate = !previousDate || currentDate.toDateString() !== previousDate.toDateString();
+
+      const isLastMessageFromBlock = !nextMsg || nextMsg.user_id !== currentMsg.user_id;
+      const showAvatarProp = !isOwn && isLastMessageFromBlock;
+
+      let dateLabel = '';
+      if (showDate) {
+        const now = new Date();
+        const isToday = now.toDateString() === currentDate.toDateString();
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const isYesterday = yesterday.toDateString() === currentDate.toDateString();
+
+        if (isToday) dateLabel = 'Today';
+        else if (isYesterday) dateLabel = 'Yesterday';
+        else
+          dateLabel = currentDate.toLocaleDateString([], {
+            weekday: 'short',
+            month: 'short',
+            day: 'numeric',
+          });
+
+        // Append time for Instagram style if needed, or just date
+        dateLabel += ` ${currentDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
+      }
 
       return (
         <View>
+          {showDate && (
+            <View style={styles.dateHeader}>
+              <Text style={styles.dateHeaderText}>{dateLabel}</Text>
+            </View>
+          )}
+
           <MessageBubble
             message={item}
             isOwn={isOwn}
-            showAvatar={showAvatar}
+            showAvatar={showAvatarProp}
             onAvatarPress={handleMemberPress}
           />
-          {/* Show delivery status for own messages */}
+
           {isOwn && item.status && (
             <View style={styles.messageStatus}>
               {item.status === 'sending' && (
