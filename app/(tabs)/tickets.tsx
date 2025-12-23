@@ -311,10 +311,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginBottom: -15,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   tabsContainer: {
     flexDirection: 'row',

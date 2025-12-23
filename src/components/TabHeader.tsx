@@ -50,12 +50,11 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    paddingBottom: Spacing.xs,
-    marginBottom: Spacing.xs,
+    marginBottom: -15,
   },
   logo: {
-    width: 120,
-    height: 60,
+    width: 200,
+    height: 100,
   },
   searchContainer: {
     flexDirection: 'row',
