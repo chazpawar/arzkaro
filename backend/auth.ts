@@ -151,3 +151,59 @@ export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   return { error };
 };
+
+/**
+ * Sign up with email and password
+ * Creates a new user account and automatically creates a profile via database trigger
+ */
+export const signUpWithEmail = async (email: string, password: string, fullName: string) => {
+  try {
+    console.log('📝 [EMAIL_SIGNUP] Starting signup for:', email);
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL_SIGNUP] Error:', error);
+      throw error;
+    }
+
+    console.log('✅ [EMAIL_SIGNUP] Signup successful');
+    return { data, error: null };
+  } catch (error) {
+    console.error('Email Sign Up Error:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Sign in with email and password
+ */
+export const signInWithEmail = async (email: string, password: string) => {
+  try {
+    console.log('📝 [EMAIL_LOGIN] Starting login for:', email);
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL_LOGIN] Error:', error);
+      throw error;
+    }
+
+    console.log('✅ [EMAIL_LOGIN] Login successful');
+    return { data, error: null };
+  } catch (error) {
+    console.error('Email Sign In Error:', error);
+    return { data: null, error };
+  }
+};

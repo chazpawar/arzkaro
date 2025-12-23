@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
+import { signUpWithEmail } from '../../backend/auth';
 
 interface EmailSignupScreenProps {
   onBack: () => void;
@@ -50,13 +51,21 @@ export default function EmailSignupScreen({ onBack, onSuccess }: EmailSignupScre
     try {
       setLoading(true);
       setError(null);
-      // TODO: Implement email/password signup API call
-      console.log('Creating account with:', email);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error: authError } = await signUpWithEmail(email, password, name.trim());
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (!data?.session && !data?.user) {
+        throw new Error('Account creation failed');
+      }
+
+      console.log('✅ Account created successfully');
       onSuccess?.();
     } catch (err) {
+      console.error('Signup error:', err);
       setError(err instanceof Error ? err.message : 'Failed to create account');
     } finally {
       setLoading(false);

@@ -4,19 +4,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
+import { signInWithEmail } from '../../backend/auth';
 
 interface EmailLoginScreenProps {
   onBack: () => void;
   onSuccess?: () => void;
   onSignupPress?: () => void;
-  onForgotPasswordPress?: () => void;
 }
 
 export default function EmailLoginScreen({
   onBack,
   onSuccess,
   onSignupPress,
-  onForgotPasswordPress,
 }: EmailLoginScreenProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -39,13 +38,21 @@ export default function EmailLoginScreen({
     try {
       setLoading(true);
       setError(null);
-      // TODO: Implement email/password login API call
-      console.log('Logging in with:', email);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error: authError } = await signInWithEmail(email, password);
+
+      if (authError) {
+        throw authError;
+      }
+
+      if (!data?.session) {
+        throw new Error('No session returned');
+      }
+
+      console.log('✅ Login successful');
       onSuccess?.();
     } catch (err) {
+      console.error('Login error:', err);
       setError(err instanceof Error ? err.message : 'Failed to login');
     } finally {
       setLoading(false);
@@ -127,11 +134,6 @@ export default function EmailLoginScreen({
             </Pressable>
           </View>
         </View>
-
-        {/* Forgot Password */}
-        <Pressable style={styles.forgotButton} onPress={onForgotPasswordPress}>
-          <Text style={styles.forgotText}>Forgot Password?</Text>
-        </Pressable>
 
         {/* Login Button */}
         <Pressable
@@ -240,20 +242,12 @@ const styles = StyleSheet.create({
   eyeButton: {
     padding: Spacing.xs,
   },
-  forgotButton: {
-    alignSelf: 'flex-end',
-    marginBottom: Spacing.xl,
-  },
-  forgotText: {
-    ...Typography.bodySmall,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
   loginButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.full,
     paddingVertical: Spacing.md,
     alignItems: 'center',
+    marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
   },
   loginButtonText: {

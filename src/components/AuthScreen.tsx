@@ -10,7 +10,6 @@ import PhoneLoginScreen from './PhoneLoginScreen';
 import EmailLoginScreen from './EmailLoginScreen';
 import PhoneSignupScreen from './PhoneSignupScreen';
 import EmailSignupScreen from './EmailSignupScreen';
-import ForgotPasswordScreen from './ForgotPasswordScreen';
 
 const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg">
   <path d="M9.82727273,24 C9.82727273,22.4757333 10.0804318,21.0144 10.5322727,19.6437333 L2.62345455,13.6042667 C1.08206818,16.7338667 0.213636364,20.2602667 0.213636364,24 C0.213636364,27.7365333 1.081,31.2608 2.62025,34.3882667 L10.5247955,28.3370667 C10.0772273,26.9728 9.82727273,25.5168 9.82727273,24" fill="#FBBC05"/>
@@ -23,7 +22,7 @@ interface AuthScreenProps {
   onSignInSuccess?: () => void;
 }
 
-type AuthView = 'main' | 'phone' | 'email' | 'phoneSignup' | 'emailSignup' | 'forgotPassword';
+type AuthView = 'main' | 'phone' | 'email' | 'phoneSignup' | 'emailSignup';
 
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = useState(false);
@@ -96,7 +95,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
         onBack={handleBack}
         onSuccess={onSignInSuccess}
         onSignupPress={() => setAuthView('emailSignup')}
-        onForgotPasswordPress={() => setAuthView('forgotPassword')}
       />
     );
   }
@@ -109,11 +107,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   // Show email signup screen
   if (authView === 'emailSignup') {
     return <EmailSignupScreen onBack={handleBack} onSuccess={onSignInSuccess} />;
-  }
-
-  // Show forgot password screen
-  if (authView === 'forgotPassword') {
-    return <ForgotPasswordScreen onBack={handleBack} onSuccess={onSignInSuccess} />;
   }
 
   // Main auth screen
