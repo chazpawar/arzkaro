@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import EmptyState from '../../src/components/ui/empty-state';
@@ -493,7 +492,7 @@ const styles = StyleSheet.create({
   },
   filterTabText: {
     fontSize: 14,
-    fontFamily: Fonts.semiBold,
+    fontWeight: '600',
     color: Colors.textSecondary,
   },
   filterTabTextActive: {
