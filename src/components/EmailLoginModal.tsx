@@ -1,31 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Modal, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
-import { signUpWithEmail } from '../../backend/auth';
+import { signInWithEmail } from '../../backend/auth';
 import { useAuth } from '../contexts/auth-context';
 
-interface EmailSignupModalProps {
+interface EmailLoginModalProps {
   visible: boolean;
   email: string;
   onClose: () => void;
-  onSignupSuccess: () => void;
+  onLoginSuccess: () => void;
+  onSwitchToSignup: () => void;
 }
 
-export default function EmailSignupModal({
+export default function EmailLoginModal({
   visible,
   email: initialEmail,
   onClose,
-  onSignupSuccess,
-}: EmailSignupModalProps) {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
+  onLoginSuccess,
+  onSwitchToSignup,
+}: EmailLoginModalProps) {
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const { refreshProfile } = useAuth();
 
   // Update email when initialEmail changes
@@ -33,16 +31,10 @@ export default function EmailSignupModal({
     setEmail(initialEmail);
   }, [initialEmail]);
 
-  const handleContinue = async () => {
+  const handleLogin = async () => {
     // Validation
-    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim() || !password.trim()) {
-      Alert.alert('Error', 'All fields are required');
-      return;
-    }
-
-    // Password validation
-    if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters long');
+    if (!email.trim() || !password.trim()) {
+      Alert.alert('Error', 'Email and password are required');
       return;
     }
 
@@ -54,59 +46,38 @@ export default function EmailSignupModal({
     }
 
     setLoading(true);
-    setError(null);
 
     try {
-      const fullName = `${firstName.trim()} ${lastName.trim()}`;
-      console.log('📧 [EMAIL_SIGNUP] Attempting signup:', { email, fullName });
+      console.log('📧 [EMAIL_LOGIN] Attempting login:', email);
 
-      const result = await signUpWithEmail(email.trim(), password, fullName);
+      const result = await signInWithEmail(email.trim(), password);
 
       if (result.error) {
-        const errorMessage = result.error.message || 'Failed to create account';
-        console.error('❌ [EMAIL_SIGNUP] Error:', errorMessage);
+        const errorMessage = result.error.message || 'Failed to sign in';
+        console.error('❌ [EMAIL_LOGIN] Error:', errorMessage);
         Alert.alert('Error', errorMessage);
         setLoading(false);
         return;
       }
 
       if (result.data?.user) {
-        console.log('✅ [EMAIL_SIGNUP] Account created successfully');
+        console.log('✅ [EMAIL_LOGIN] Login successful');
         // Refresh profile to get the latest data
         await refreshProfile(result.data.user.id);
-        Alert.alert(
-          'Success',
-          'Account created successfully! You can now sign in.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                onSignupSuccess();
-                // Reset form
-                setFirstName('');
-                setLastName('');
-                setDateOfBirth('');
-                setPassword('');
-              },
-            },
-          ]
-        );
+        onLoginSuccess();
+        // Reset form
+        setPassword('');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
-      console.error('❌ [EMAIL_SIGNUP] Exception:', err);
+      console.error('❌ [EMAIL_LOGIN] Exception:', err);
       Alert.alert('Error', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
-  const isComplete =
-    firstName.trim() !== '' &&
-    lastName.trim() !== '' &&
-    dateOfBirth.trim() !== '' &&
-    email.trim() !== '' &&
-    password.trim() !== '';
+  const isComplete = email.trim() !== '' && password.trim() !== '';
 
   return (
     <Modal visible={visible} animationType="slide" transparent={true} onRequestClose={onClose}>
@@ -114,7 +85,7 @@ export default function EmailSignupModal({
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Complete your profile</Text>
+            <Text style={styles.headerTitle}>Welcome back</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={Colors.text} />
             </Pressable>
@@ -126,46 +97,6 @@ export default function EmailSignupModal({
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
-            {/* First Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>First Name</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="Enter your first name"
-                placeholderTextColor={Colors.textTertiary}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Last Name */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Last Name</Text>
-              <TextInput
-                style={styles.input}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Enter your last name"
-                placeholderTextColor={Colors.textTertiary}
-                autoCapitalize="words"
-              />
-            </View>
-
-            {/* Date of Birth */}
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Date of Birth</Text>
-              <TextInput
-                style={styles.input}
-                value={dateOfBirth}
-                onChangeText={setDateOfBirth}
-                placeholder="DD/MM/YYYY"
-                placeholderTextColor={Colors.textTertiary}
-                keyboardType="numbers-and-punctuation"
-              />
-              <Text style={styles.inputHint}>You must be 18 or older to sign up.</Text>
-            </View>
-
             {/* Email */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Email</Text>
@@ -177,6 +108,7 @@ export default function EmailSignupModal({
                 placeholderTextColor={Colors.textTertiary}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoComplete="email"
               />
             </View>
 
@@ -187,30 +119,41 @@ export default function EmailSignupModal({
                 style={styles.input}
                 value={password}
                 onChangeText={setPassword}
-                placeholder="Create a password"
+                placeholder="Enter your password"
                 placeholderTextColor={Colors.textTertiary}
                 secureTextEntry={true}
                 autoCapitalize="none"
+                autoComplete="password"
               />
-              <Text style={styles.inputHint}>Password must be at least 8 characters long.</Text>
             </View>
+
+            {/* Switch to Signup */}
+            <Pressable onPress={onSwitchToSignup} style={styles.switchButton}>
+              <Text style={styles.switchText}>
+                Don't have an account? <Text style={styles.switchTextBold}>Sign up</Text>
+              </Text>
+            </Pressable>
           </ScrollView>
 
-          {/* Continue Button */}
+          {/* Login Button */}
           <View style={styles.footer}>
             <Pressable
-              style={[styles.continueButton, !isComplete && styles.continueButtonDisabled]}
-              onPress={handleContinue}
+              style={[styles.loginButton, !isComplete && styles.loginButtonDisabled]}
+              onPress={handleLogin}
               disabled={!isComplete || loading}
             >
-              <Text
-                style={[
-                  styles.continueButtonText,
-                  !isComplete && styles.continueButtonTextDisabled,
-                ]}
-              >
-                {loading ? 'Creating account...' : 'Continue'}
-              </Text>
+              {loading ? (
+                <ActivityIndicator color={Colors.background} />
+              ) : (
+                <Text
+                  style={[
+                    styles.loginButtonText,
+                    !isComplete && styles.loginButtonTextDisabled,
+                  ]}
+                >
+                  Log in
+                </Text>
+              )}
             </Pressable>
           </View>
         </View>
@@ -232,7 +175,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.xl,
     paddingBottom: Spacing.xxl,
-    minHeight: '93%',
+    minHeight: '60%',
   },
   header: {
     flexDirection: 'row',
@@ -274,30 +217,38 @@ const styles = StyleSheet.create({
     color: Colors.text,
     letterSpacing: 0,
   },
-  inputHint: {
-    fontSize: 12,
+  switchButton: {
+    marginTop: Spacing.sm,
+    paddingVertical: Spacing.sm,
+    alignItems: 'center',
+  },
+  switchText: {
+    fontSize: 14,
     color: Colors.textSecondary,
-    marginTop: Spacing.xs,
+  },
+  switchTextBold: {
+    fontWeight: '700',
+    color: Colors.primary,
   },
   footer: {
     paddingTop: Spacing.md,
   },
-  continueButton: {
+  loginButton: {
     backgroundColor: Colors.primary,
     borderRadius: BorderRadius.lg,
     paddingVertical: Spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  continueButtonDisabled: {
+  loginButtonDisabled: {
     backgroundColor: Colors.border,
   },
-  continueButtonText: {
+  loginButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.background,
   },
-  continueButtonTextDisabled: {
+  loginButtonTextDisabled: {
     color: Colors.textTertiary,
   },
 });
