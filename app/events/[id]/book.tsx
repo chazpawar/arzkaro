@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
 import { Colors } from '../../../src/constants/Colors';
+import { Fonts } from '../../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
@@ -637,7 +638,7 @@ const styles = StyleSheet.create({
   },
   quantityButtonSymbol: {
     fontSize: 28,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   quantityValueBubble: {

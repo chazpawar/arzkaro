@@ -1,4 +1,4 @@
-# Development Workflow Guide - iOS Development with Expo
+# Development Workflow Guide - iOS & Android Development with Expo
 
 > **Quick Start Guide for Daily Development**  
 > Last Updated: December 2025
@@ -6,9 +6,14 @@
 ## Table of Contents
 
 - [Quick Start](#quick-start)
+  - [iOS Setup](#ios-setup)
+  - [Android Setup](#android-setup)
 - [When to Rebuild vs When to Just Reload](#when-to-rebuild-vs-when-to-just-reload)
 - [Daily Development Workflow](#daily-development-workflow)
 - [Common Development Commands](#common-development-commands)
+- [Platform-Specific Commands](#platform-specific-commands)
+  - [iOS Commands](#ios-commands)
+  - [Android Commands](#android-commands)
 - [Troubleshooting Common Issues](#troubleshooting-common-issues)
 - [Project Setup (One-Time)](#project-setup-one-time)
 
@@ -16,7 +21,9 @@
 
 ## Quick Start
 
-### First Time Setup (Do This Once)
+### iOS Setup
+
+#### First Time Setup (Do This Once)
 
 ```bash
 # 1. Clone/navigate to project
@@ -32,7 +39,7 @@ cd ios && pod install && cd ..
 pnpm run ios
 ```
 
-### Daily Development (Fast - No Rebuild Needed!)
+#### Daily Development (Fast - No Rebuild Needed!)
 
 ```bash
 # Just run this - Metro bundler will handle hot reloading
@@ -40,6 +47,59 @@ pnpm run ios
 ```
 
 **That's it!** The app will launch on the simulator and any code changes will automatically reload.
+
+### Android Setup
+
+#### First Time Setup (Do This Once)
+
+**Prerequisites:**
+1. Install **Android Studio** from https://developer.android.com/studio
+2. Configure **Android SDK** (API Level 33 or 34 recommended)
+3. Create an **Android Virtual Device (AVD)**:
+   - Open Android Studio → **Virtual Device Manager**
+   - Click **Create Device**
+   - Choose **Pixel 6** or **Pixel 7**
+   - Select **Android 13 (API 33)** or **Android 14 (API 34)**
+   - Choose **x86_64** image for better performance
+   - Configure RAM: 2048 MB minimum (4096 MB recommended)
+
+4. Set environment variables (add to `~/.zshrc` or `~/.bash_profile`):
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/emulator
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+```
+
+**Build and Run:**
+
+```bash
+# 1. Start Android emulator
+emulator -avd Pixel_7 &
+
+# 2. Wait for emulator to boot (30-60 seconds)
+# Check status with:
+adb devices
+
+# 3. Build and install app (first time - takes 10-15 minutes)
+pnpm run android
+# OR
+npx expo run:android
+
+# 4. Start dev server
+npx expo start --dev-client
+```
+
+#### Daily Development (Fast - No Rebuild Needed!)
+
+```bash
+# 1. Start emulator (if not running)
+emulator -avd Pixel_7 &
+
+# 2. Start dev server (app will auto-launch)
+npx expo start --dev-client
+```
+
+**Pro Tip:** Keep the emulator running while developing to avoid boot time!
 
 ---
 
@@ -177,8 +237,9 @@ pnpm run ios
 pnpm run ios
 ```
 
-### Scenario 4: Switching Between Simulator Devices
+### Scenario 4: Switching Between Simulator/Emulator Devices
 
+**iOS:**
 ```bash
 # List available simulators
 xcrun simctl list devices available
@@ -189,11 +250,29 @@ pnpm run ios --device "iPhone 15 Pro Max"
 pnpm run ios --device "iPhone SE (3rd generation)"
 ```
 
+**Android:**
+```bash
+# List available AVDs
+emulator -list-avds
+
+# Start specific emulator
+emulator -avd Pixel_6 &
+# OR
+emulator -avd Pixel_7 &
+
+# Check connected devices
+adb devices
+```
+
 ---
 
-## Common Development Commands
+## Platform-Specific Commands
 
-### Metro Bundler Commands (Interactive)
+### iOS Commands
+
+### iOS Commands
+
+#### Metro Bundler Commands (Interactive)
 
 When Metro is running, you can press:
 
@@ -208,7 +287,7 @@ When Metro is running, you can press:
 | `m` | Toggle menu                      |
 | `?` | Show all commands                |
 
-### Simulator Commands
+#### Simulator Commands
 
 ```bash
 # Open simulator
@@ -256,7 +335,89 @@ xcrun simctl io booted recordVideo video.mp4
 | `Cmd + S`         | Screenshot                          |
 | `Cmd + 1/2/3`     | Scale simulator (50%/75%/100%)      |
 
----
+### Android Commands
+
+#### Emulator Commands
+
+```bash
+# List available AVDs
+emulator -list-avds
+
+# Start emulator
+emulator -avd Pixel_7 &
+
+# Start emulator with writable system (for testing)
+emulator -avd Pixel_7 -writable-system &
+
+# List running emulators
+adb devices
+
+# Kill emulator
+adb -s emulator-5554 emu kill
+```
+
+#### ADB (Android Debug Bridge) Commands
+
+```bash
+# Check connected devices
+adb devices
+
+# Install APK
+adb install /path/to/app.apk
+
+# Uninstall app
+adb uninstall com.arzkaro.app
+
+# Launch app
+adb shell am start -n com.arzkaro.app/.MainActivity
+
+# Stop app
+adb shell am force-stop com.arzkaro.app
+
+# View logs (filtered for React Native)
+adb logcat | grep ReactNative
+# OR for all logs
+adb logcat
+
+# Clear logs
+adb logcat -c
+
+# View installed packages
+adb shell pm list packages | grep arzkaro
+
+# Take screenshot
+adb shell screencap /sdcard/screenshot.png
+adb pull /sdcard/screenshot.png
+
+# Record screen
+adb shell screenrecord /sdcard/demo.mp4
+# Press Ctrl+C to stop, then:
+adb pull /sdcard/demo.mp4
+
+# Clear app data
+adb shell pm clear com.arzkaro.app
+
+# Open dev menu
+adb shell input keyevent 82
+
+# Reload app
+adb shell input text "RR"
+
+# Reverse port (for Metro bundler)
+adb reverse tcp:8081 tcp:8081
+```
+
+#### Keyboard Shortcuts in Android Emulator
+
+| Shortcut      | Action                |
+| ------------- | --------------------- |
+| `Cmd + M`     | Open developer menu   |
+| `R + R`       | Reload app            |
+| `Ctrl + M`    | Menu                  |
+| `Cmd + S`     | Screenshot            |
+| `Cmd + Down`  | Close keyboard        |
+
+## Common Development Commands
 
 ## Troubleshooting Common Issues
 
@@ -381,6 +542,75 @@ rm -rf node_modules/.cache
 pnpm start
 ```
 
+### Issue 9: Android Emulator Won't Start
+
+**Solution:**
+
+```bash
+# Check if emulator is installed
+emulator -list-avds
+
+# If no AVDs listed, create one in Android Studio
+
+# Kill existing emulator processes
+pkill -9 qemu-system
+
+# Start fresh
+emulator -avd Pixel_7 &
+```
+
+### Issue 10: "Unable to load script" on Android
+
+**Cause:** Metro bundler not accessible from emulator.
+
+**Solution:**
+
+```bash
+# Reverse port for Metro
+adb reverse tcp:8081 tcp:8081
+
+# Restart Metro
+pnpm start -- --reset-cache
+
+# Reload app in emulator (shake device or Cmd+M → Reload)
+```
+
+### Issue 11: Android Build Failed with Gradle Errors
+
+**Solution:**
+
+```bash
+# Clean Gradle cache
+cd android
+./gradlew clean
+rm -rf build/
+cd ..
+
+# Clear Gradle cache globally
+rm -rf ~/.gradle/caches/
+
+# Rebuild
+pnpm run android
+```
+
+### Issue 12: "adb: command not found"
+
+**Solution:**
+
+```bash
+# Add to ~/.zshrc or ~/.bash_profile
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export PATH=$PATH:$ANDROID_HOME/platform-tools
+
+# Apply changes
+source ~/.zshrc
+# OR
+source ~/.bash_profile
+
+# Verify
+adb --version
+```
+
 ---
 
 ## Project Setup (One-Time)
@@ -389,6 +619,7 @@ pnpm start
 
 If you're setting up the project for the first time on a new machine:
 
+**For iOS:**
 ```bash
 # 1. Clone repository
 git clone <your-repo-url>
@@ -403,11 +634,56 @@ cd ios && pod install && cd ..
 # 4. Verify everything is set up
 pnpm run ios
 
-# The app should build and launch on iPhone 17 Pro simulator
+# The app should build and launch on iPhone simulator
 ```
+
+**For Android:**
+```bash
+# 1. Clone repository (if not done already)
+git clone <your-repo-url>
+cd arzkaro
+
+# 2. Install Node dependencies
+pnpm install
+
+# 3. Create Android Virtual Device in Android Studio
+# (See Android Setup section above)
+
+# 4. Start emulator
+emulator -avd Pixel_7 &
+
+# 5. Build and run
+pnpm run android
+
+# The app should build and launch on Android emulator
+```
+
+### Android-Specific Configuration
+
+The project is already configured for Android in `app.config.js`:
+
+```javascript
+android: {
+  package: 'com.arzkaro.app',
+  adaptiveIcon: {
+    foregroundImage: './assets/adaptive-icon.png',
+    backgroundColor: '#ffffff',
+  },
+  edgeToEdgeEnabled: true,
+  predictiveBackGestureEnabled: false,
+  softwareKeyboardLayoutMode: 'resize',
+}
+```
+
+**Key settings:**
+- **package**: App identifier for Android
+- **adaptiveIcon**: Icon configuration for Android 8.0+
+- **edgeToEdgeEnabled**: Modern edge-to-edge display
+- **softwareKeyboardLayoutMode**: Resize layout when keyboard appears
 
 ### Environment Setup Checklist
 
+**For iOS:**
 - [ ] macOS with Xcode installed
 - [ ] Xcode Command Line Tools: `xcode-select --install`
 - [ ] Node.js LTS version installed
@@ -415,6 +691,16 @@ pnpm run ios
 - [ ] CocoaPods installed: `sudo gem install cocoapods`
 - [ ] iOS Simulator available
 - [ ] Port 8081 is free (not used by other apps)
+
+**For Android:**
+- [ ] Android Studio installed
+- [ ] Android SDK (API Level 33 or 34)
+- [ ] Android SDK Build-Tools
+- [ ] Android Emulator installed
+- [ ] Android Virtual Device (AVD) created
+- [ ] ANDROID_HOME environment variable set
+- [ ] ADB in PATH
+- [ ] Port 8081 is free
 
 ---
 
@@ -490,18 +776,23 @@ pnpm run ios
 
 ## Quick Reference: What Command to Use
 
-| Task                       | Command                                                                                 |
-| -------------------------- | --------------------------------------------------------------------------------------- |
-| **Start development**      | `pnpm run ios`                                                                          |
-| **Just start Metro**       | `pnpm start`                                                                            |
-| **Reload app**             | Press 'r' in Metro terminal                                                             |
-| **Open dev menu**          | `Cmd+D` in simulator                                                                    |
-| **Install new package**    | `pnpm install <package>`                                                                |
-| **Install native package** | `pnpm install <package> && cd ios && pod install && cd .. && pnpm run ios`              |
-| **Clear cache**            | `pnpm start -- --reset-cache`                                                           |
-| **Clean rebuild**          | `rm -rf node_modules && pnpm install && cd ios && pod install && cd .. && pnpm run ios` |
-| **Run on specific device** | `pnpm run ios --device "iPhone 15 Pro"`                                                 |
-| **Build for production**   | `eas build --platform ios --profile production --local`                                 |
+| Task                          | iOS Command                                                                             | Android Command                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| **Start development**         | `pnpm run ios`                                                                          | `pnpm run android`                                                     |
+| **Start emulator/simulator**  | `open -a Simulator`                                                                     | `emulator -avd Pixel_7 &`                                              |
+| **Just start Metro**          | `pnpm start`                                                                            | `pnpm start`                                                           |
+| **Start with dev client**     | `npx expo start --dev-client`                                                           | `npx expo start --dev-client`                                          |
+| **Reload app**                | Press 'r' in Metro terminal or `Cmd+R` in simulator                                     | Press 'r' in Metro or shake device                                     |
+| **Open dev menu**             | `Cmd+D` in simulator                                                                    | `Cmd+M` or `adb shell input keyevent 82`                               |
+| **Check devices**             | `xcrun simctl list devices`                                                             | `adb devices`                                                          |
+| **Install new package**       | `pnpm install <package>`                                                                | `pnpm install <package>`                                               |
+| **Install native package**    | `pnpm install <package> && cd ios && pod install && cd .. && pnpm run ios`              | `pnpm install <package> && pnpm run android`                           |
+| **View logs**                 | In Xcode or Metro console                                                               | `adb logcat \| grep ReactNative`                                       |
+| **Clear cache**               | `pnpm start -- --reset-cache`                                                           | `pnpm start -- --reset-cache`                                          |
+| **Clean rebuild**             | `rm -rf node_modules && pnpm install && cd ios && pod install && cd .. && pnpm run ios` | `rm -rf node_modules && pnpm install && pnpm run android`              |
+| **Uninstall app**             | `xcrun simctl uninstall booted com.arzkaro.app`                                         | `adb uninstall com.arzkaro.app`                                        |
+| **Take screenshot**           | `xcrun simctl io booted screenshot screen.png`                                          | `adb shell screencap /sdcard/screen.png && adb pull /sdcard/screen.png` |
+| **Build for production**      | `eas build --platform ios --profile production`                                         | `eas build --platform android --profile production`                    |
 
 ---
 
@@ -552,15 +843,20 @@ A: YES! Once built, just use `pnpm start` and edit code. Rebuilds only needed fo
 **Q: What's the fastest way to test changes?**
 A: Keep Metro running, edit files, save. Changes appear in 1-2 seconds.
 
-**Q: Should I use `pnpm run ios` or `pnpm start`?**
+**Q: Should I use `pnpm run ios/android` or `pnpm start`?**
 A:
-
-- First time: `pnpm run ios` (builds + runs)
+- First time: `pnpm run ios` or `pnpm run android` (builds + runs)
 - After that: Just keep Metro running from the first command
-- If Metro stops: `pnpm start`
+- If Metro stops: `pnpm start` or `npx expo start --dev-client`
+
+**Q: Can I develop for both iOS and Android simultaneously?**
+A: Yes! Keep Metro running and have both simulator and emulator open. Metro will serve to both platforms.
+
+**Q: Which platform should I develop on?**
+A: Develop on whichever platform is more convenient. Test on both before releasing. iOS simulator is generally faster on Mac, but Android emulator works well for most tasks.
 
 ---
 
 **Happy Developing! 🚀**
 
-For more detailed information, see [planios.md](./planios.md)
+For more detailed information, see the project README.

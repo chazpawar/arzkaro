@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
 
@@ -199,17 +200,17 @@ const styles = StyleSheet.create({
   tagLabel: {
     fontSize: 12,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   // Section Header
   sectionHeader: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
@@ -260,7 +261,7 @@ const styles = StyleSheet.create({
   },
   tripLocation: {
     fontSize: 12, // Smaller font
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     textTransform: 'uppercase',
   },
@@ -272,12 +273,12 @@ const styles = StyleSheet.create({
   },
   ratingText: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: '#FFF',
   },
   tripTitle: {
     fontSize: 16, // Smaller title
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
@@ -299,7 +300,7 @@ const styles = StyleSheet.create({
   },
   perPerson: {
     fontSize: 12,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textSecondary,
   },
   bookButton: {
@@ -310,7 +311,7 @@ const styles = StyleSheet.create({
   },
   bookButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#FFF',
   },
 });

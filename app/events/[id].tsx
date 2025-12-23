@@ -14,6 +14,7 @@ import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
@@ -101,7 +102,7 @@ const MOCK_EVENTS: Record<string, any> = {
     location_name: 'Manali, Himachal Pradesh',
     departure_location: 'Bangalore',
     description:
-      '5 days of adventure in the Himalayas! Trek through scenic trails, camp under the stars, and experience the local culture. All meals, accommodation, and transport included.',
+      "Embark on an unforgettable 5-day adventure in the majestic Himalayas! This carefully curated trek takes you through some of the most scenic trails in Manali, offering breathtaking views of snow-capped peaks, lush valleys, and pristine landscapes.\n\nExperience the thrill of camping under a blanket of stars, wake up to stunning mountain sunrises, and immerse yourself in the rich local culture of Himachal Pradesh. Our expert guides will lead you through challenging yet rewarding trails, ensuring your safety while you create memories that will last a lifetime.\n\nThis trip is perfect for adventure enthusiasts who want to disconnect from city life and reconnect with nature. Whether you're an experienced trekker or a beginner, our team will ensure you have the best experience. All meals, comfortable accommodation, and transport are included, so you can focus on enjoying the journey.",
     type: 'trip',
     category: 'Adventure',
     start_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
@@ -115,9 +116,66 @@ const MOCK_EVENTS: Record<string, any> = {
     },
     host_id: 'mock-host-4',
     currency: 'INR',
-    whats_included: 'Transport, Accommodation, All Meals, Trek Guide, Safety Equipment',
-    whats_not_included: 'Personal expenses, Travel insurance, Tips',
+    whats_included: [
+      'Transport from Bangalore',
+      'Accommodation',
+      'All Meals',
+      'Trek Guide',
+      'Safety Equipment',
+    ],
+    whats_not_included: ['Personal expenses', 'Travel insurance', 'Tips'],
     pickups: ['Koramangala', 'Indiranagar', 'Whitefield'],
+    itinerary: [
+      {
+        day: 1,
+        title: 'Departure and Journey',
+        activities: [
+          'Depart from Bangalore at 6:00 PM',
+          'Overnight journey to Manali',
+          'Dinner en route',
+        ],
+      },
+      {
+        day: 2,
+        title: 'Arrival and Local Sightseeing',
+        activities: [
+          'Arrive in Manali by morning',
+          'Check-in to hotel and freshen up',
+          'Visit Hadimba Temple and Mall Road',
+          'Evening bonfire at hotel',
+        ],
+      },
+      {
+        day: 3,
+        title: 'Solang Valley Adventure',
+        activities: [
+          'Early morning drive to Solang Valley',
+          'Paragliding and zorbing activities',
+          'Lunch at local restaurant',
+          'Return to hotel and rest',
+        ],
+      },
+      {
+        day: 4,
+        title: 'Rohtang Pass Excursion',
+        activities: [
+          'Early morning departure to Rohtang Pass',
+          'Snow activities and photography',
+          'Packed lunch at scenic viewpoint',
+          'Return by evening and group dinner',
+        ],
+      },
+      {
+        day: 5,
+        title: 'Old Manali and Departure',
+        activities: [
+          'Breakfast and checkout',
+          'Explore Old Manali cafes and shops',
+          'Late afternoon departure to Bangalore',
+          'Overnight journey back',
+        ],
+      },
+    ],
     images: [
       'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
       'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -136,7 +194,7 @@ const MOCK_EVENTS: Record<string, any> = {
     location_name: 'Goa',
     departure_location: 'Bangalore',
     description:
-      '4 nights in Goa! Beach parties, water sports, DJ nights, and more. Stay at a beachfront resort. Perfect for groups!',
+      "Get ready for 4 unforgettable nights in Goa - India's ultimate beach paradise! This trip is designed for those who want to experience the perfect blend of relaxation, adventure, and nightlife.\n\nStay at our handpicked beachfront resort with stunning ocean views and easy access to the best beaches. Enjoy daily breakfast, exclusive access to the hottest beach parties, and complimentary water sports activities. Dance the night away at premium DJ events, make new friends from across the country, and create memories that will last forever.\n\nWhether you're looking to unwind on pristine beaches, try exciting water sports, or party till sunrise, this Goa trip has it all. Our experienced team will ensure you have a hassle-free and incredible experience. Perfect for solo travelers, couples, and groups!",
     type: 'trip',
     category: 'Party',
     start_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
@@ -150,8 +208,13 @@ const MOCK_EVENTS: Record<string, any> = {
     },
     host_id: 'mock-host-5',
     currency: 'INR',
-    whats_included: 'Accommodation, Breakfast, Beach Party Access, Water Sports (2 activities)',
-    whats_not_included: 'Lunch & Dinner, Alcohol, Personal expenses',
+    whats_included: [
+      'Beachfront accommodation',
+      'Daily breakfast',
+      'Beach party access',
+      'Water sports',
+    ],
+    whats_not_included: ['Lunch and dinner', 'Alcohol', 'Personal expenses'],
     pickups: ['Koramangala', 'MG Road', 'Airport'],
     images: [
       'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -171,7 +234,7 @@ const MOCK_EVENTS: Record<string, any> = {
     location_name: 'Kasol, Himachal Pradesh',
     departure_location: 'Delhi',
     description:
-      'Trek to Kheerganga hot springs, explore Kasol cafes, and camp by the Parvati river. 4 days of Himalayan bliss!',
+      'Discover the magic of Kasol and Kheerganga on this 4-day Himalayan adventure! Known as the "Mini Israel of India," Kasol offers a unique blend of Israeli culture, stunning mountain views, and peaceful riverside vibes.\n\nTrek through pine forests and scenic mountain trails to reach the famous Kheerganga hot springs, where you can relax in natural thermal waters surrounded by snow-capped peaks. Camp under the stars, enjoy delicious local and Israeli cuisine at Kasol\'s famous cafes, and experience the laid-back hippie culture.\n\nThis trip is perfect for nature lovers, solo travelers, and anyone seeking peace away from the chaos of city life. Our experienced guides will ensure your safety and comfort throughout the trek. All camping equipment, meals during the trek, and transport from Delhi are included.',
     type: 'trip',
     category: 'Trek',
     start_date: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
@@ -185,8 +248,8 @@ const MOCK_EVENTS: Record<string, any> = {
     },
     host_id: 'mock-host-6',
     currency: 'INR',
-    whats_included: 'Transport from Delhi, Camping, All Meals, Trek Guide',
-    whats_not_included: 'Travel to Delhi, Personal expenses, Snacks',
+    whats_included: ['Transport from Delhi', 'Camping equipment', 'All meals', 'Trek guide'],
+    whats_not_included: ['Travel to Delhi', 'Personal expenses', 'Snacks'],
     pickups: ['Delhi - Kashmere Gate'],
     images: [
       'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
@@ -204,6 +267,8 @@ export default function EventDetailsScreen() {
   const router = useRouter();
   const [showAllGalleryImages, setShowAllGalleryImages] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
+  const [showAllItineraryDays, setShowAllItineraryDays] = React.useState(false);
+  const [showFullDescription, setShowFullDescription] = React.useState(false);
 
   // Check if this is a mock event
   const isMockEvent = id && MOCK_EVENTS[id];
@@ -317,7 +382,11 @@ export default function EventDetailsScreen() {
           headerTransparent: true,
           headerTitle: '',
           headerLeft: () => (
-            <Pressable style={styles.headerButton} onPress={() => router.back()}>
+            <Pressable
+              style={styles.headerButton}
+              onPress={() => router.back()}
+              android_ripple={{ color: Colors.border, radius: 20, borderless: false }}
+            >
               <Ionicons name="arrow-back" size={24} color={Colors.text} />
             </Pressable>
           ),
@@ -367,19 +436,19 @@ export default function EventDetailsScreen() {
                   {/* Departure & Pickups in one line */}
                   {(event.departure_location || (event.pickups && event.pickups.length > 0)) && (
                     <View style={styles.tripCompactRow}>
-                      <Text style={styles.tripCompactText}>
+                      <Text style={styles.tripDeparturePickupText}>
                         {event.departure_location && (
                           <>
-                            <Text style={styles.tripCompactLabel}>Departure - </Text>
+                            <Text style={styles.tripDeparturePickupLabel}>Departure - </Text>
                             {event.departure_location}
                           </>
                         )}
                         {event.pickups && event.pickups.length > 0 && (
                           <>
                             {event.departure_location && ' | '}
-                            <Text style={styles.tripCompactLabel}>Pickups - </Text>
-                            {event.pickups.slice(0, 2).join(', ')}
-                            {event.pickups.length > 2 && ` +${event.pickups.length - 2}`}
+                            <Text style={styles.tripDeparturePickupLabel}>Pickups - </Text>
+                            {event.pickups[0]}
+                            {event.pickups.length > 1 && '...'}
                           </>
                         )}
                       </Text>
@@ -499,7 +568,11 @@ export default function EventDetailsScreen() {
             {/* Host Section */}
             <Pressable
               style={styles.hostSection}
-              onPress={() => router.push(`/profile?userId=${event.host_id}`)}
+              onPress={() => {
+                if (event.host_id) {
+                  router.push(`/profile?userId=${event.host_id}`);
+                }
+              }}
             >
               <View style={styles.hostAvatar}>
                 {event.host?.avatar_url ? (
@@ -517,30 +590,6 @@ export default function EventDetailsScreen() {
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
             </Pressable>
-
-            {/* Photo Gallery */}
-            {event.images && event.images.length > 0 && (
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Photo Gallery</Text>
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.galleryContainer}
-                >
-                  {event.images.map((imageUrl, index) => (
-                    <View key={index} style={styles.galleryImageWrapper}>
-                      <Image source={{ uri: imageUrl }} style={styles.galleryImage} />
-                    </View>
-                  ))}
-                </ScrollView>
-              </View>
-            )}
-
-            {/* Description */}
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>About this Event</Text>
-              <Text style={styles.description}>{event.description}</Text>
-            </View>
 
             {/* Trip-Specific Details */}
             {event.type === 'trip' && (
@@ -586,43 +635,68 @@ export default function EventDetailsScreen() {
                   </View>
                 )}
 
-                {/* Itinerary */}
-                {event.itinerary && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Itinerary</Text>
-                    <Text style={styles.tripDetailText}>{event.itinerary}</Text>
-                  </View>
-                )}
+                {/* About this Event */}
+                <View style={styles.aboutEventContainer}>
+                  <Text style={styles.aboutEventTitle}>About this Event</Text>
+                  <Text
+                    style={styles.aboutEventText}
+                    numberOfLines={showFullDescription ? undefined : 4}
+                  >
+                    {event.description}
+                  </Text>
+                  {event.description && event.description.length > 200 && (
+                    <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+                      <Text style={styles.aboutEventSeeMore}>
+                        {showFullDescription ? 'Show less' : 'See more...'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
 
-                {/* What's Included */}
-                {event.whats_included && (
-                  <View style={styles.section}>
-                    <View style={styles.tripDetailHeader}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={22}
-                        color={Colors.success}
-                        style={styles.tripDetailHeaderIcon}
-                      />
-                      <Text style={styles.sectionTitle}>What&apos;s Included</Text>
-                    </View>
-                    <Text style={styles.tripDetailText}>{event.whats_included}</Text>
-                  </View>
-                )}
+                {/* What's Included & Not Included */}
+                {(event.whats_included || event.whats_not_included) && (
+                  <View style={styles.whatsIncludedSection}>
+                    {event.whats_included && (
+                      <View style={styles.whatsIncludedGroup}>
+                        <Text style={styles.whatsIncludedGroupTitle}>What&apos;s Included</Text>
+                        {Array.isArray(event.whats_included) ? (
+                          event.whats_included.map((item: string, index: number) => (
+                            <View key={index} style={styles.whatsIncludedItemRow}>
+                              <Text style={styles.whatsIncludedIcon}>✓</Text>
+                              <Text style={styles.whatsIncludedItemText}>{item}</Text>
+                            </View>
+                          ))
+                        ) : (
+                          <View style={styles.whatsIncludedItemRow}>
+                            <Text style={styles.whatsIncludedIcon}>✓</Text>
+                            <Text style={styles.whatsIncludedItemText}>{event.whats_included}</Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
 
-                {/* What's NOT Included */}
-                {event.whats_not_included && (
-                  <View style={styles.section}>
-                    <View style={styles.tripDetailHeader}>
-                      <Ionicons
-                        name="close-circle"
-                        size={22}
-                        color={Colors.error}
-                        style={styles.tripDetailHeaderIcon}
-                      />
-                      <Text style={styles.sectionTitle}>What&apos;s NOT Included</Text>
-                    </View>
-                    <Text style={styles.tripDetailText}>{event.whats_not_included}</Text>
+                    {event.whats_not_included && (
+                      <View style={styles.whatsNotIncludedGroup}>
+                        <Text style={styles.whatsNotIncludedGroupTitle}>
+                          What&apos;s NOT Included
+                        </Text>
+                        {Array.isArray(event.whats_not_included) ? (
+                          event.whats_not_included.map((item: string, index: number) => (
+                            <View key={index} style={styles.whatsNotIncludedItemRow}>
+                              <Text style={styles.whatsNotIncludedIcon}>✗</Text>
+                              <Text style={styles.whatsNotIncludedItemText}>{item}</Text>
+                            </View>
+                          ))
+                        ) : (
+                          <View style={styles.whatsNotIncludedItemRow}>
+                            <Text style={styles.whatsNotIncludedIcon}>✗</Text>
+                            <Text style={styles.whatsNotIncludedItemText}>
+                              {event.whats_not_included}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+                    )}
                   </View>
                 )}
 
@@ -656,6 +730,38 @@ export default function EventDetailsScreen() {
                   </View>
                 )}
 
+                {/* Itinerary */}
+                {event.itinerary && Array.isArray(event.itinerary) && (
+                  <View style={styles.itineraryContainer}>
+                    <Text style={styles.itineraryTitle}>Itinerary:</Text>
+                    {(showAllItineraryDays ? event.itinerary : event.itinerary.slice(0, 3)).map(
+                      (dayPlan: any, index: number) => (
+                        <View key={index} style={styles.itineraryDay}>
+                          <Text style={styles.itineraryDayTitle}>
+                            Day {dayPlan.day}: {dayPlan.title}
+                          </Text>
+                          {dayPlan.activities &&
+                            dayPlan.activities.map((activity: string, actIndex: number) => (
+                              <Text key={actIndex} style={styles.itineraryActivity}>
+                                • {activity}
+                              </Text>
+                            ))}
+                        </View>
+                      )
+                    )}
+                    {event.itinerary.length > 3 && (
+                      <Pressable
+                        style={styles.itinerarySeeMore}
+                        onPress={() => setShowAllItineraryDays(!showAllItineraryDays)}
+                      >
+                        <Text style={styles.itinerarySeeMoreText}>
+                          {showAllItineraryDays ? 'Show less' : 'See more...'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+
                 {/* Ideal For */}
                 {event.ideal_for && (
                   <View style={styles.section}>
@@ -672,6 +778,26 @@ export default function EventDetailsScreen() {
                   </View>
                 )}
               </>
+            )}
+
+            {/* About this Event - for non-trip events */}
+            {event.type !== 'trip' && (
+              <View style={styles.aboutEventContainer}>
+                <Text style={styles.aboutEventTitle}>About this Event</Text>
+                <Text
+                  style={styles.aboutEventText}
+                  numberOfLines={showFullDescription ? undefined : 4}
+                >
+                  {event.description}
+                </Text>
+                {event.description && event.description.length > 200 && (
+                  <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+                    <Text style={styles.aboutEventSeeMore}>
+                      {showFullDescription ? 'Show less' : 'See more...'}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
             )}
 
             {/* Ticket Types */}
@@ -809,7 +935,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Dimensions.get('window').height * 0.68, // Start content below image
+    paddingTop: Dimensions.get('window').height * 0.685, // Start content below image
     paddingBottom: 100,
   },
   headerButton: {
@@ -819,15 +945,16 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.08,
+        shadowRadius: 2,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
     }),
   },
@@ -837,7 +964,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: '100%',
-    height: Dimensions.get('window').height * 0.68, // 68% of screen height
+    height: Dimensions.get('window').height * 0.685, // 68.5% of screen height
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -860,7 +987,7 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.text,
     paddingHorizontal: Spacing.sm + 2,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
@@ -874,7 +1001,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
@@ -893,14 +1020,14 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
     letterSpacing: -0.5,
   },
   dateTimeText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.primary,
     marginBottom: Spacing.sm,
   },
@@ -911,12 +1038,12 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   price: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   quickInfoContainer: {
@@ -935,12 +1062,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: Colors.textSecondary,
     marginBottom: 4,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     letterSpacing: 0.5,
   },
   quickInfoValue: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   quickInfoSubValue: {
@@ -969,11 +1096,11 @@ const styles = StyleSheet.create({
   },
   spotsLeft: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   soldOut: {
     color: Colors.error,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   hostSection: {
     flexDirection: 'row',
@@ -1000,7 +1127,7 @@ const styles = StyleSheet.create({
   },
   hostAvatarText: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   hostInfo: {
@@ -1012,7 +1139,7 @@ const styles = StyleSheet.create({
   },
   hostName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   hostStats: {
@@ -1024,7 +1151,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -1032,33 +1159,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     lineHeight: 26,
-  },
-  galleryContainer: {
-    paddingRight: Spacing.lg,
-    gap: Spacing.md,
-  },
-  galleryImageWrapper: {
-    width: 280,
-    height: 200,
-    borderRadius: BorderRadius.lg,
-    overflow: 'hidden',
-    backgroundColor: Colors.surfaceSecondary,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
-  },
-  galleryImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
   },
   ticketTypeCard: {
     flexDirection: 'row',
@@ -1073,7 +1173,7 @@ const styles = StyleSheet.create({
   },
   ticketTypeName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 2,
   },
@@ -1083,7 +1183,7 @@ const styles = StyleSheet.create({
   },
   ticketTypePrice: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   tagsSection: {
@@ -1122,7 +1222,7 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   footer: {
@@ -1148,7 +1248,7 @@ const styles = StyleSheet.create({
   },
   footerPriceValue: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
   },
   bookButtonNested: {
@@ -1166,7 +1266,7 @@ const styles = StyleSheet.create({
   },
   bookButtonNestedText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   // Trip-specific styles
@@ -1194,14 +1294,14 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
   tripDetailValue: {
     fontSize: 16,
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   tripDetailText: {
     fontSize: 16,
@@ -1223,14 +1323,14 @@ const styles = StyleSheet.create({
   pickupChipText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   // Trip-specific compact layout styles
   imageContainerTrip: {
-    height: Dimensions.get('window').height * 0.66, // 66% instead of 68% for trips
+    height: Dimensions.get('window').height * 0.685, // 68.5% for trips
   },
   scrollContentTrip: {
-    paddingTop: Dimensions.get('window').height * 0.66, // Match trip image height
+    paddingTop: Dimensions.get('window').height * 0.685, // Match trip image height
   },
   tripCompactRow: {
     flexDirection: 'row',
@@ -1239,14 +1339,25 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   tripCompactText: {
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 12,
+    fontFamily: Fonts.medium,
     color: Colors.text,
     flex: 1,
   },
   tripCompactLabel: {
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
+  },
+  // Departure/Pickup specific styles (maroon and bold)
+  tripDeparturePickupText: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    color: Colors.maroon,
+    flex: 1,
+  },
+  tripDeparturePickupLabel: {
+    fontFamily: Fonts.bold,
+    color: Colors.maroon,
   },
   footerContainerTrip: {
     paddingHorizontal: Spacing.xl + 2,
@@ -1267,7 +1378,7 @@ const styles = StyleSheet.create({
   },
   tripGalleryTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -1295,8 +1406,132 @@ const styles = StyleSheet.create({
   tripGallerySeeAllText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     textDecorationLine: 'underline',
+  },
+  // Itinerary styles
+  itineraryContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  itineraryTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.lg,
+  },
+  itineraryDay: {
+    marginBottom: Spacing.lg,
+  },
+  itineraryDayTitle: {
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  itineraryActivity: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    marginLeft: Spacing.sm,
+  },
+  itinerarySeeMore: {
+    alignSelf: 'flex-end',
+    marginTop: Spacing.sm,
+  },
+  itinerarySeeMoreText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontFamily: Fonts.medium,
+    textDecorationLine: 'underline',
+  },
+  // About Event styles
+  aboutEventContainer: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xl,
+  },
+  aboutEventTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  aboutEventText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+  },
+  aboutEventSeeMore: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontFamily: Fonts.medium,
+    textDecorationLine: 'underline',
+    marginTop: Spacing.sm,
+    alignSelf: 'flex-end',
+  },
+  // What's Included/Not Included styles
+  whatsIncludedSection: {
+    marginBottom: Spacing.xl,
+  },
+  whatsIncludedGroup: {
+    marginBottom: Spacing.lg,
+  },
+  whatsIncludedGroupTitle: {
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  whatsIncludedItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  whatsIncludedIcon: {
+    fontSize: 14,
+    color: Colors.success,
+    marginRight: Spacing.xs,
+    lineHeight: 22,
+  },
+  whatsIncludedItemText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    flex: 1,
+  },
+  whatsNotIncludedGroup: {
+    marginBottom: Spacing.sm,
+  },
+  whatsNotIncludedGroupTitle: {
+    fontSize: 16,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
+  whatsNotIncludedItemRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
+  },
+  whatsNotIncludedIcon: {
+    fontSize: 14,
+    color: Colors.error,
+    marginRight: Spacing.xs,
+    lineHeight: 22,
+  },
+  whatsNotIncludedItemText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    lineHeight: 22,
+    flex: 1,
   },
   // Image Modal styles
   imageModalContainer: {
@@ -1331,7 +1566,7 @@ const styles = StyleSheet.create({
   imageModalCounterText: {
     fontSize: 14,
     color: Colors.textInverse,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   imageModalImageContainer: {
     flex: 1,

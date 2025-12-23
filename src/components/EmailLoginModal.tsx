@@ -1,5 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Modal, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  Modal,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
@@ -130,7 +140,7 @@ export default function EmailLoginModal({
             {/* Switch to Signup */}
             <Pressable onPress={onSwitchToSignup} style={styles.switchButton}>
               <Text style={styles.switchText}>
-                Don't have an account? <Text style={styles.switchTextBold}>Sign up</Text>
+                Don&apos;t have an account? <Text style={styles.switchTextBold}>Sign up</Text>
               </Text>
             </Pressable>
           </ScrollView>
@@ -146,10 +156,7 @@ export default function EmailLoginModal({
                 <ActivityIndicator color={Colors.background} />
               ) : (
                 <Text
-                  style={[
-                    styles.loginButtonText,
-                    !isComplete && styles.loginButtonTextDisabled,
-                  ]}
+                  style={[styles.loginButtonText, !isComplete && styles.loginButtonTextDisabled]}
                 >
                   Log in
                 </Text>

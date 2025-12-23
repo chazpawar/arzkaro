@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, Modal, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  Modal,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import { signUpWithEmail } from '../../backend/auth';
 import { useAuth } from '../contexts/auth-context';
@@ -25,7 +35,7 @@ export default function EmailSignupModal({
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
   const { refreshProfile } = useAuth();
 
   // Update email when initialEmail changes
@@ -35,7 +45,13 @@ export default function EmailSignupModal({
 
   const handleContinue = async () => {
     // Validation
-    if (!firstName.trim() || !lastName.trim() || !dateOfBirth.trim() || !email.trim() || !password.trim()) {
+    if (
+      !firstName.trim() ||
+      !lastName.trim() ||
+      !dateOfBirth.trim() ||
+      !email.trim() ||
+      !password.trim()
+    ) {
       Alert.alert('Error', 'All fields are required');
       return;
     }
@@ -74,23 +90,19 @@ export default function EmailSignupModal({
         console.log('✅ [EMAIL_SIGNUP] Account created successfully');
         // Refresh profile to get the latest data
         await refreshProfile(result.data.user.id);
-        Alert.alert(
-          'Success',
-          'Account created successfully! You can now sign in.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                onSignupSuccess();
-                // Reset form
-                setFirstName('');
-                setLastName('');
-                setDateOfBirth('');
-                setPassword('');
-              },
+        Alert.alert('Success', 'Account created successfully! You can now sign in.', [
+          {
+            text: 'OK',
+            onPress: () => {
+              onSignupSuccess();
+              // Reset form
+              setFirstName('');
+              setLastName('');
+              setDateOfBirth('');
+              setPassword('');
             },
-          ]
-        );
+          },
+        ]);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred';
@@ -242,7 +254,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   closeButton: {
@@ -259,7 +271,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
@@ -294,7 +306,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.background,
   },
   continueButtonTextDisabled: {

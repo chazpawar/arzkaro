@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, TextInput, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
 interface OTPVerificationModalProps {
@@ -134,7 +135,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   closeButton: {
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
   },
   otpInput: {
     fontSize: 32,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
     textAlign: 'center',
     letterSpacing: 20,
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   link: {
     fontSize: 15,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textDecorationLine: 'underline',
   },
   spacer: {
@@ -192,7 +193,7 @@ const styles = StyleSheet.create({
   },
   continueButtonText: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.background,
   },
   continueButtonTextDisabled: {

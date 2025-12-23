@@ -9,6 +9,7 @@ import {
   Text,
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import { Spacing, Typography } from '../../constants/Styles';
 
 interface ChatInputProps {
@@ -163,7 +164,7 @@ const styles = StyleSheet.create({
   sendText: {
     ...Typography.body,
     color: Colors.primary,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     fontSize: 16,
   },
   sendTextDisabled: {

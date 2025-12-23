@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
+import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.h4,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   headerPlaceholder: {
     width: 40,
@@ -324,7 +325,7 @@ const styles = StyleSheet.create({
   statLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   sectionContainer: {
     marginBottom: Spacing.xl,
@@ -360,7 +361,7 @@ const styles = StyleSheet.create({
   gridLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: Spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -382,7 +383,7 @@ const styles = StyleSheet.create({
   trendText: {
     ...Typography.caption,
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     marginLeft: 2,
   },
   menuList: {
@@ -412,7 +413,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   menuSubtitle: {
@@ -429,7 +430,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: Colors.textInverse,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   footer: {
     alignItems: 'center',

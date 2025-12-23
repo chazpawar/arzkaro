@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
+import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
 
@@ -479,12 +480,12 @@ const styles = StyleSheet.create({
   tagLabel: {
     fontSize: 12,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   subcategoriesContainer: {
     paddingVertical: Spacing.md,
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
   },
   subcategoriesTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
   },
@@ -519,7 +520,7 @@ const styles = StyleSheet.create({
   },
   subcategoryLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   subcategoryCardsList: {
@@ -567,13 +568,13 @@ const styles = StyleSheet.create({
   },
   subcategoryCardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
   subcategoryCardSubtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
   },
   breadcrumbContainer: {
@@ -588,12 +589,12 @@ const styles = StyleSheet.create({
   },
   breadcrumbText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   sectionHeader: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
@@ -632,7 +633,7 @@ const styles = StyleSheet.create({
   },
   clubName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 8,
     lineHeight: 18,

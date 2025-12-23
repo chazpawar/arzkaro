@@ -10,11 +10,11 @@ import {
   ActivityIndicator,
   Image,
 } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Stack } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/Colors';
+import { Fonts } from '../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../src/constants/Styles';
 import { useAuth } from '../src/contexts/auth-context';
 import * as StorageService from '../src/services/storage-service';
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   saveButton: {
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   scrollView: {
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
   },
   avatarPlaceholderText: {
     fontSize: 36,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   cameraOverlay: {
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },

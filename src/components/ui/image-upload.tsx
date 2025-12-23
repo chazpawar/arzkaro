@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../constants/Styles';
 import * as StorageService from '../../services/storage-service';
 
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
   editText: {
     ...Typography.bodySmall,
     color: Colors.textInverse,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   placeholderContent: {
     alignItems: 'center',
@@ -229,7 +230,7 @@ const styles = StyleSheet.create({
   placeholderText: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   placeholderSubtext: {
     ...Typography.caption,
@@ -276,7 +277,7 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   optionSubtitle: {
@@ -293,7 +294,7 @@ const styles = StyleSheet.create({
   cancelText: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
   },
 });
