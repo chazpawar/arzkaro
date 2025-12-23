@@ -134,6 +134,12 @@ export default function ProfileTab() {
 
   const menuItems: MenuItemType[] = [
     {
+      icon: 'create-outline',
+      label: 'Edit Profile',
+      route: '/edit-profile',
+      showArrow: true,
+    },
+    {
       icon: 'people-outline',
       label: 'Friends',
       route: '/friends',
@@ -184,6 +190,7 @@ export default function ProfileTab() {
           ? router.push(
               item.route as
                 | `/profile`
+                | `/edit-profile`
                 | `/(tabs)/tickets`
                 | `/saved`
                 | `/notifications`
