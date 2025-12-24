@@ -27,6 +27,52 @@ function isRazorpayAvailable(): boolean {
 }
 
 /**
+ * Helper: Add user to event group after booking
+ */
+async function addUserToEventGroup(userId: string, eventId: string) {
+  try {
+    // Find the event group
+    const { data: group, error: groupError } = await supabase
+      .from('event_groups')
+      .select('id')
+      .eq('event_id', eventId)
+      .maybeSingle();
+
+    if (groupError) {
+      console.error('Error fetching event group:', groupError);
+      return;
+    }
+
+    if (!group) {
+      console.error('Event group not found for event:', eventId);
+      return;
+    }
+
+    const groupData = group as Record<string, string>;
+
+    // Add user to group (ignore if already exists)
+    const { error: memberError } = await supabase.from('group_members').upsert(
+      {
+        group_id: groupData.id,
+        user_id: userId,
+        role: 'member',
+      },
+      {
+        onConflict: 'group_id,user_id',
+      }
+    );
+
+    if (memberError) {
+      console.error('Error adding user to group:', memberError);
+    } else {
+      console.log('User successfully added to event group');
+    }
+  } catch (error) {
+    console.error('Exception adding user to event group:', error);
+  }
+}
+
+/**
  * Razorpay Payment Service
  * Handles payment processing using Razorpay Payment Gateway
  */
@@ -307,6 +353,10 @@ class RazorpayService {
           error: 'Payment verified but failed to update booking',
         };
       }
+
+      // Add user to event group after successful payment
+      console.log('Adding user to event group...');
+      await addUserToEventGroup(userId, eventId);
 
       return {
         success: true,

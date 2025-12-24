@@ -13,9 +13,10 @@ import {
 } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
+import { useEvents } from '../hooks/use-events';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -26,70 +27,65 @@ interface SearchModalProps {
   searchContext?: 'all' | 'experiences' | 'trips';
 }
 
-// Suggested destinations data
-const SUGGESTED_DESTINATIONS = [
-  {
-    id: 'nearby',
-    label: 'Nearby',
-    sublabel: "Find what's around you",
-    icon: 'navigate',
-    iconColor: '#3B82F6',
-    iconBg: '#EFF6FF',
-    isLocation: false,
-  },
-  {
-    id: 'noida',
-    label: 'Noida, Uttar Pradesh',
-    sublabel: 'Near you',
-    icon: 'business',
-    iconColor: '#EF4444',
-    iconBg: '#FEF2F2',
-    isLocation: true,
-  },
-  {
-    id: 'jaipur',
-    label: 'Jaipur, Rajasthan',
-    sublabel: 'Great for a weekend getaway',
-    icon: 'cactus', // Using material community icon name for visual approximation
-    iconColor: '#6366F1',
-    iconBg: '#EEF2FF',
-    isLocation: true,
-  },
-  {
-    id: 'gurgaon',
-    label: 'Gurgaon District, Haryana',
-    sublabel: 'Popular with travellers near you',
-    icon: 'beach-access', // Placeholder
-    iconColor: '#8B5CF6',
-    iconBg: '#F5F3FF',
-    isLocation: true,
-  },
-  {
-    id: 'dehradun',
-    label: 'Dehradun, Uttarakhand',
-    sublabel: 'For nature lovers',
-    icon: 'terrain',
-    iconColor: '#10B981',
-    iconBg: '#ECFDF5',
-    isLocation: true,
-  },
-  {
-    id: 'goa',
-    label: 'North Goa, Goa',
-    sublabel: 'Popular beach destination',
-    icon: 'umbrella',
-    iconColor: '#F59E0B',
-    iconBg: '#FFFBEB',
-    isLocation: true,
-  },
-];
-
 export default function SearchModal({
   visible,
   onClose,
   onSearch,
   searchContext: _searchContext = 'all',
 }: SearchModalProps) {
+  // Fetch events to extract unique locations
+  const { events } = useEvents();
+
+  // Extract unique locations from events
+  const suggestedDestinations = React.useMemo(() => {
+    const iconColors = ['#EF4444', '#6366F1', '#8B5CF6', '#10B981', '#F59E0B', '#3B82F6'];
+    const iconBgColors = ['#FEF2F2', '#EEF2FF', '#F5F3FF', '#ECFDF5', '#FFFBEB', '#EFF6FF'];
+    const icons = ['business', 'terrain', 'umbrella', 'beach-access', 'location'];
+
+    // Always include "Nearby" as first option
+    const destinations = [
+      {
+        id: 'nearby',
+        label: 'Nearby',
+        sublabel: "Find what's around you",
+        icon: 'navigate',
+        iconColor: '#3B82F6',
+        iconBg: '#EFF6FF',
+        isLocation: false,
+      },
+    ];
+
+    // Extract unique locations from events
+    const locationSet = new Set<string>();
+
+    events.forEach((event) => {
+      // For trips, use departure_location
+      if (event.type === 'trip' && event.departure_location) {
+        locationSet.add(event.departure_location);
+      }
+      // For events/experiences, use location_name
+      else if (event.location_name) {
+        locationSet.add(event.location_name);
+      }
+    });
+
+    // Convert to array and create destination objects
+    Array.from(locationSet)
+      .slice(0, 5) // Limit to 5 locations
+      .forEach((location, index) => {
+        destinations.push({
+          id: `location-${index}`,
+          label: location,
+          sublabel: 'Event location',
+          icon: icons[index % icons.length],
+          iconColor: iconColors[index % iconColors.length],
+          iconBg: iconBgColors[index % iconBgColors.length],
+          isLocation: true,
+        });
+      });
+
+    return destinations;
+  }, [events]);
   // Animation values
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -284,7 +280,7 @@ export default function SearchModal({
       <Text style={styles.sectionSubtitle}>Suggested destinations</Text>
 
       <ScrollView style={styles.suggestionsList} showsVerticalScrollIndicator={false}>
-        {SUGGESTED_DESTINATIONS.slice(0, 3).map((item) => (
+        {suggestedDestinations.slice(0, 3).map((item) => (
           <Pressable
             key={item.id}
             style={styles.suggestionItem}
@@ -295,11 +291,7 @@ export default function SearchModal({
             }}
           >
             <View style={[styles.suggestionIcon, { backgroundColor: item.iconBg }]}>
-              {item.id === 'jaipur' ? (
-                <MaterialCommunityIcons name="cactus" size={24} color={item.iconColor} />
-              ) : (
-                <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
-              )}
+              <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
             </View>
             <View style={styles.suggestionTextContainer}>
               <Text style={styles.suggestionLabel}>{item.label}</Text>
@@ -482,7 +474,7 @@ export default function SearchModal({
       <Text style={styles.sectionSubtitle}>Suggested destinations</Text>
 
       <ScrollView style={styles.expandedList} showsVerticalScrollIndicator={false}>
-        {SUGGESTED_DESTINATIONS.map((item) => (
+        {suggestedDestinations.map((item) => (
           <Pressable
             key={item.id}
             style={styles.suggestionItem}
@@ -494,11 +486,7 @@ export default function SearchModal({
             }}
           >
             <View style={[styles.suggestionIcon, { backgroundColor: item.iconBg }]}>
-              {item.id === 'jaipur' ? (
-                <MaterialCommunityIcons name="cactus" size={24} color={item.iconColor} />
-              ) : (
-                <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
-              )}
+              <Ionicons name={item.icon as any} size={24} color={item.iconColor} />
             </View>
             <View style={styles.suggestionTextContainer}>
               <Text style={styles.suggestionLabel}>{item.label}</Text>

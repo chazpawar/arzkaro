@@ -18,185 +18,62 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
 
-// Mock data for demo experiences/trips
-const MOCK_EVENTS: Record<string, any> = {
-  exp1: {
-    id: 'exp1',
-    title: 'Pottery Workshop',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 1200,
-    location_name: 'Indiranagar',
-    location_address: 'Church Street, Indiranagar, Bangalore',
-    description:
-      'Learn the art of pottery making in this hands-on workshop. Create your own ceramic masterpiece with guidance from expert potters. All materials provided. Perfect for beginners!',
-    type: 'experience',
-    category: 'Art & Craft',
-    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 20,
-    current_bookings: 12,
-    tags: ['Art', 'Workshop', 'Creative', 'Beginner Friendly'],
-    host: {
-      full_name: 'Pottery Studio Bangalore',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-1',
-    currency: 'INR',
-  },
-  exp2: {
-    id: 'exp2',
-    title: 'Wine Tasting',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 2500,
-    location_name: 'Nandi Hills Vineyard',
-    location_address: 'Nandi Hills, Karnataka',
-    description:
-      'Discover the finest wines in a beautiful vineyard setting. Includes guided wine tasting of 5 premium wines, cheese pairing, and vineyard tour. Learn about wine making from our sommelier.',
-    type: 'experience',
-    category: 'Food & Drink',
-    start_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 30,
-    current_bookings: 18,
-    tags: ['Wine', 'Tasting', 'Vineyard', 'Food Pairing'],
-    host: {
-      full_name: 'Nandi Hills Winery',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-2',
-    currency: 'INR',
-  },
-  exp3: {
-    id: 'exp3',
-    title: 'Stand-up Comedy Night',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 499,
-    location_name: 'The Comedy Store',
-    location_address: 'Koramangala, Bangalore',
-    description:
-      'An evening of laughter with some of the best comedians in town! Featuring 4 amazing performers. Food and drinks available. 18+ only.',
-    type: 'experience',
-    category: 'Entertainment',
-    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 100,
-    current_bookings: 75,
-    tags: ['Comedy', 'Entertainment', 'Nightlife'],
-    host: {
-      full_name: 'Comedy Store Bangalore',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-3',
-    currency: 'INR',
-  },
-  trip1: {
-    id: 'trip1',
-    title: 'Manali Backpacking',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 8499,
-    location_name: 'Manali, Himachal Pradesh',
-    departure_location: 'Bangalore',
-    description:
-      '5 days of adventure in the Himalayas! Trek through scenic trails, camp under the stars, and experience the local culture. All meals, accommodation, and transport included.',
-    type: 'trip',
-    category: 'Adventure',
-    start_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 26 * 24 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 25,
-    current_bookings: 15,
-    tags: ['Trek', 'Adventure', 'Mountains', 'Camping'],
-    host: {
-      full_name: 'Mountain Explorers',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-4',
-    currency: 'INR',
-    whats_included: 'Transport, Accommodation, All Meals, Trek Guide, Safety Equipment',
-    whats_not_included: 'Personal expenses, Travel insurance, Tips',
-    pickups: ['Koramangala', 'Indiranagar', 'Whitefield'],
-    images: [
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1519904981063-b0cf448d479e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    ],
-  },
-  trip2: {
-    id: 'trip2',
-    title: 'Goa Beach Party',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 12999,
-    location_name: 'Goa',
-    departure_location: 'Bangalore',
-    description:
-      '4 nights in Goa! Beach parties, water sports, DJ nights, and more. Stay at a beachfront resort. Perfect for groups!',
-    type: 'trip',
-    category: 'Party',
-    start_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 40,
-    current_bookings: 28,
-    tags: ['Beach', 'Party', 'Water Sports', 'Nightlife'],
-    host: {
-      full_name: 'Goa Adventures',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-5',
-    currency: 'INR',
-    whats_included: 'Accommodation, Breakfast, Beach Party Access, Water Sports (2 activities)',
-    whats_not_included: 'Lunch & Dinner, Alcohol, Personal expenses',
-    pickups: ['Koramangala', 'MG Road', 'Airport'],
-    images: [
-      'https://images.unsplash.com/photo-1559827260-dc66d52bef19?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1537551621259-8d4c3e00c26c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1583198594211-9c6b5ec5c73e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1520454974749-611b7248ffdb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    ],
-  },
-  trip3: {
-    id: 'trip3',
-    title: 'Kasol & Kheerganga Trek',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1455620611406-966ca6889d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 7999,
-    location_name: 'Kasol, Himachal Pradesh',
-    departure_location: 'Delhi',
-    description:
-      'Trek to Kheerganga hot springs, explore Kasol cafes, and camp by the Parvati river. 4 days of Himalayan bliss!',
-    type: 'trip',
-    category: 'Trek',
-    start_date: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 39 * 24 * 60 * 60 * 1000).toISOString(),
-    max_capacity: 20,
-    current_bookings: 8,
-    tags: ['Trek', 'Mountains', 'Camping', 'Nature'],
-    host: {
-      full_name: 'Himalayan Trails',
-      avatar_url: null,
-    },
-    host_id: 'mock-host-6',
-    currency: 'INR',
-    whats_included: 'Transport from Delhi, Camping, All Meals, Trek Guide',
-    whats_not_included: 'Travel to Delhi, Personal expenses, Snacks',
-    pickups: ['Delhi - Kashmere Gate'],
-    images: [
-      'https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-      'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    ],
-  },
+// Expandable Text Component
+interface ExpandableTextProps {
+  text: string;
+  maxLines?: number;
+  style?: any;
+}
+
+const ExpandableText: React.FC<ExpandableTextProps> = ({ text, maxLines = 4, style }) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const [showButton, setShowButton] = React.useState(false);
+  const [textHeight, setTextHeight] = React.useState(0);
+  const [maxHeight, setMaxHeight] = React.useState(0);
+
+  const onTextLayout = (e: any) => {
+    if (!showButton) {
+      setTextHeight(e.nativeEvent.layout.height);
+    }
+  };
+
+  const onMaxTextLayout = (e: any) => {
+    if (!showButton && maxHeight === 0) {
+      const height = e.nativeEvent.layout.height;
+      setMaxHeight(height);
+      // Check if text needs truncation
+      if (textHeight > height) {
+        setShowButton(true);
+      }
+    }
+  };
+
+  return (
+    <View>
+      <Text
+        style={[style, !isExpanded && showButton && { maxHeight }]}
+        numberOfLines={!isExpanded && showButton ? maxLines : undefined}
+        onLayout={onTextLayout}
+      >
+        {text}
+      </Text>
+      {/* Hidden text to measure full height */}
+      {!showButton && (
+        <Text
+          style={[style, { position: 'absolute', opacity: 0 }]}
+          numberOfLines={maxLines}
+          onLayout={onMaxTextLayout}
+        >
+          {text}
+        </Text>
+      )}
+      {showButton && (
+        <Pressable onPress={() => setIsExpanded(!isExpanded)} style={styles.seeMoreButton}>
+          <Text style={styles.seeMoreText}>{isExpanded ? 'See less' : 'See more...'}</Text>
+        </Pressable>
+      )}
+    </View>
+  );
 };
 
 export default function EventDetailsScreen() {
@@ -205,15 +82,8 @@ export default function EventDetailsScreen() {
   const [showAllGalleryImages, setShowAllGalleryImages] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
 
-  // Check if this is a mock event
-  const isMockEvent = id && MOCK_EVENTS[id];
-  const mockEvent = isMockEvent ? MOCK_EVENTS[id] : null;
-
-  // Use real event hook (skip if mock)
-  const { event: realEvent, ticketTypes, loading, error } = useEvent(isMockEvent ? '' : id);
-
-  // Use mock event if available, otherwise real event
-  const event = mockEvent || realEvent;
+  // Fetch real event data
+  const { event, ticketTypes, loading, error } = useEvent(id);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -265,8 +135,8 @@ export default function EventDetailsScreen() {
     }
   };
 
-  // Show loading spinner while fetching event (but not for mock events)
-  if (loading && !isMockEvent) {
+  // Show loading spinner while fetching event
+  if (loading) {
     return (
       <View style={styles.container}>
         <LoadingSpinner fullScreen />
@@ -274,12 +144,13 @@ export default function EventDetailsScreen() {
     );
   }
 
-  if ((error || !event) && !isMockEvent) {
+  if (error || !event) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={Colors.error} />
           <Text style={styles.errorText}>{error || 'Event not found'}</Text>
+          <Text style={styles.errorSubtext}>No events yet</Text>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </Pressable>
@@ -518,8 +389,8 @@ export default function EventDetailsScreen() {
               <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
             </Pressable>
 
-            {/* Photo Gallery */}
-            {event.images && event.images.length > 0 && (
+            {/* Photo Gallery - Only show for non-trip events */}
+            {!isTrip && event.images && event.images.length > 0 && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Photo Gallery</Text>
                 <ScrollView
@@ -539,8 +410,20 @@ export default function EventDetailsScreen() {
             {/* Description */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>About this Event</Text>
-              <Text style={styles.description}>{event.description}</Text>
+              <ExpandableText text={event.description} style={styles.description} maxLines={5} />
             </View>
+
+            {/* Terms and Conditions */}
+            {event.terms_and_conditions && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Terms & Conditions</Text>
+                <ExpandableText
+                  text={event.terms_and_conditions}
+                  style={styles.description}
+                  maxLines={5}
+                />
+              </View>
+            )}
 
             {/* Trip-Specific Details */}
             {event.type === 'trip' && (
@@ -590,7 +473,11 @@ export default function EventDetailsScreen() {
                 {event.itinerary && (
                   <View style={styles.section}>
                     <Text style={styles.sectionTitle}>Itinerary</Text>
-                    <Text style={styles.tripDetailText}>{event.itinerary}</Text>
+                    <ExpandableText
+                      text={event.itinerary}
+                      style={styles.tripDetailText}
+                      maxLines={8}
+                    />
                   </View>
                 )}
 
@@ -604,9 +491,15 @@ export default function EventDetailsScreen() {
                         color={Colors.success}
                         style={styles.tripDetailHeaderIcon}
                       />
-                      <Text style={styles.sectionTitle}>What&apos;s Included</Text>
+                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                        What&apos;s Included
+                      </Text>
                     </View>
-                    <Text style={styles.tripDetailText}>{event.whats_included}</Text>
+                    <ExpandableText
+                      text={event.whats_included}
+                      style={styles.tripDetailText}
+                      maxLines={5}
+                    />
                   </View>
                 )}
 
@@ -620,9 +513,15 @@ export default function EventDetailsScreen() {
                         color={Colors.error}
                         style={styles.tripDetailHeaderIcon}
                       />
-                      <Text style={styles.sectionTitle}>What&apos;s NOT Included</Text>
+                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
+                        What&apos;s NOT Included
+                      </Text>
                     </View>
-                    <Text style={styles.tripDetailText}>{event.whats_not_included}</Text>
+                    <ExpandableText
+                      text={event.whats_not_included}
+                      style={styles.tripDetailText}
+                      maxLines={5}
+                    />
                   </View>
                 )}
 
@@ -666,9 +565,13 @@ export default function EventDetailsScreen() {
                         color={Colors.primary}
                         style={styles.tripDetailHeaderIcon}
                       />
-                      <Text style={styles.sectionTitle}>Ideal For</Text>
+                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Ideal For</Text>
                     </View>
-                    <Text style={styles.tripDetailText}>{event.ideal_for}</Text>
+                    <ExpandableText
+                      text={event.ideal_for}
+                      style={styles.tripDetailText}
+                      maxLines={4}
+                    />
                   </View>
                 )}
               </>
@@ -860,7 +763,7 @@ const styles = StyleSheet.create({
   },
   categoryBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.text,
     paddingHorizontal: Spacing.sm + 2,
     paddingVertical: 6,
     borderRadius: BorderRadius.full,
@@ -1111,6 +1014,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.error,
     marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: Colors.textSecondary,
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
@@ -1176,7 +1086,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   tripDetailHeaderIcon: {
-    marginRight: Spacing.xs,
+    marginRight: Spacing.sm,
+    marginTop: 0,
   },
   tripDetailRow: {
     flexDirection: 'row',
@@ -1361,5 +1272,16 @@ const styles = StyleSheet.create({
   },
   imageModalNavButtonDisabled: {
     opacity: 0.3,
+  },
+  // Expandable Text styles
+  seeMoreButton: {
+    alignSelf: 'flex-end',
+    marginTop: Spacing.xs,
+  },
+  seeMoreText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });

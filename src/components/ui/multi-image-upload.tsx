@@ -14,32 +14,31 @@ import { Colors } from '../../constants/Colors';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../constants/Styles';
 import * as StorageService from '../../services/storage-service';
 
-interface ImageUploadProps {
-  onImageSelected: (imageUrl: string, imagePath: string) => void;
-  currentImageUrl?: string | null;
-  label?: string;
-  aspectRatio?: [number, number];
+interface MultiImageUploadProps {
+  onImagesChange: (imageUrls: string[]) => void;
+  currentImages?: string[];
+  maxImages?: number;
   bucket?: string;
   folder?: string;
 }
 
-export default function ImageUpload({
-  onImageSelected,
-  currentImageUrl,
-  label = 'Add Cover Image',
+export default function MultiImageUpload({
+  onImagesChange,
+  currentImages = [],
+  maxImages = 5,
   bucket = 'event-images',
   folder,
-}: ImageUploadProps) {
+}: MultiImageUploadProps) {
   const [uploading, setUploading] = useState(false);
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [showOptions, setShowOptions] = useState(false);
-  const [localUri, setLocalUri] = useState<string | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<number>(0);
 
   const handlePickImage = async () => {
     try {
       setShowOptions(false);
       const asset = await StorageService.pickImage();
       if (asset) {
-        setLocalUri(asset.uri);
         await uploadImage(asset.uri);
       }
     } catch (error) {
@@ -53,7 +52,6 @@ export default function ImageUpload({
       setShowOptions(false);
       const asset = await StorageService.takePhoto();
       if (asset) {
-        setLocalUri(asset.uri);
         await uploadImage(asset.uri);
       }
     } catch (error) {
@@ -65,51 +63,117 @@ export default function ImageUpload({
   const uploadImage = async (uri: string) => {
     try {
       setUploading(true);
+      setUploadingIndex(selectedSlot);
       const result = await StorageService.uploadImage(uri, bucket, folder);
-      onImageSelected(result.url, result.path);
+
+      const newImages = [...currentImages];
+      if (selectedSlot < newImages.length) {
+        newImages[selectedSlot] = result.url;
+      } else {
+        newImages.push(result.url);
+      }
+
+      onImagesChange(newImages);
     } catch (error) {
       Alert.alert('Upload Failed', 'Could not upload image. Please try again.');
       console.error('Upload error:', error);
-      setLocalUri(null);
     } finally {
       setUploading(false);
+      setUploadingIndex(null);
     }
   };
 
-  const displayImage = localUri || currentImageUrl;
+  const handleRemoveImage = (index: number) => {
+    Alert.alert('Remove Image', 'Are you sure you want to remove this image?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: () => {
+          const newImages = currentImages.filter((_, i) => i !== index);
+          onImagesChange(newImages);
+        },
+      },
+    ]);
+  };
+
+  const handleAddImage = (index: number) => {
+    if (currentImages.length >= maxImages) {
+      Alert.alert('Limit Reached', `You can only upload up to ${maxImages} images.`);
+      return;
+    }
+    setSelectedSlot(index);
+    setShowOptions(true);
+  };
+
+  const renderImageSlot = (index: number) => {
+    const hasImage = currentImages[index];
+    const isUploading = uploadingIndex === index;
+
+    if (isUploading) {
+      return (
+        <View style={[styles.imageSlot, styles.imageSlotUploading]}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.uploadingText}>Uploading...</Text>
+        </View>
+      );
+    }
+
+    if (hasImage) {
+      return (
+        <View style={styles.imageSlot}>
+          <Image source={{ uri: hasImage }} style={styles.slotImage} resizeMode="cover" />
+          <Pressable
+            style={styles.removeButton}
+            onPress={() => handleRemoveImage(index)}
+            hitSlop={8}
+          >
+            <Ionicons name="close-circle" size={24} color={Colors.error} />
+          </Pressable>
+          <View style={styles.imageNumberBadge}>
+            <Text style={styles.imageNumberText}>{index + 1}</Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <Pressable
+        style={[styles.imageSlot, styles.emptySlot]}
+        onPress={() => handleAddImage(index)}
+        disabled={uploading}
+      >
+        <Ionicons name="camera-outline" size={32} color={Colors.textSecondary} />
+        <Text style={styles.emptySlotText}>Add Photo</Text>
+      </Pressable>
+    );
+  };
 
   return (
     <>
       <View style={styles.container}>
-        <Text style={styles.label}>{label}</Text>
-        <Pressable
-          style={[styles.uploadBox, displayImage && styles.uploadBoxWithImage]}
-          onPress={() => setShowOptions(true)}
-          disabled={uploading}
-        >
-          {uploading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.uploadingText}>Uploading...</Text>
+        <View style={styles.header}>
+          <Text style={styles.label}>Trip Gallery Images (Optional)</Text>
+          <Text style={styles.counter}>
+            {currentImages.length}/{maxImages}
+          </Text>
+        </View>
+        <Text style={styles.hint}>Upload 0-5 photos showcasing this trip</Text>
+
+        <View style={styles.grid}>
+          {Array.from({ length: maxImages }).map((_, index) => (
+            <View key={index} style={styles.gridItem}>
+              {renderImageSlot(index)}
             </View>
-          ) : displayImage ? (
-            <>
-              <Image source={{ uri: displayImage }} style={styles.image} resizeMode="cover" />
-              <View style={styles.editOverlay}>
-                <Ionicons name="camera" size={24} color={Colors.textInverse} />
-                <Text style={styles.editText}>Change</Text>
-              </View>
-            </>
-          ) : (
-            <View style={styles.placeholderContent}>
-              <View style={styles.iconContainer}>
-                <Ionicons name="image-outline" size={40} color={Colors.textSecondary} />
-              </View>
-              <Text style={styles.placeholderText}>Tap to add image</Text>
-              <Text style={styles.placeholderSubtext}>Any image ratio accepted</Text>
-            </View>
-          )}
-        </Pressable>
+          ))}
+        </View>
+
+        {currentImages.length > 0 && (
+          <View style={styles.infoBox}>
+            <Ionicons name="information-circle-outline" size={16} color={Colors.info} />
+            <Text style={styles.infoText}>First image will appear first in the gallery</Text>
+          </View>
+        )}
       </View>
 
       {/* Image Source Selection Modal */}
@@ -162,79 +226,115 @@ const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.lg,
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: Spacing.xs,
+  },
   label: {
     ...Typography.bodyMedium,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: Spacing.sm,
   },
-  uploadBox: {
-    height: 200,
+  counter: {
+    ...Typography.bodySmall,
+    fontWeight: '700',
+    color: Colors.primary,
+    backgroundColor: Colors.primarySoft,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+    borderRadius: BorderRadius.full,
+  },
+  hint: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+  },
+  gridItem: {
+    width: `${(100 - Spacing.sm) / 2}%`,
+  },
+  imageSlot: {
+    width: '100%',
+    aspectRatio: 1,
     borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderStyle: 'dashed',
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
     overflow: 'hidden',
-  },
-  uploadBoxWithImage: {
-    borderStyle: 'solid',
+    position: 'relative',
+    backgroundColor: Colors.surface,
     borderWidth: 1,
-    borderColor: Colors.borderDark,
+    borderColor: Colors.border,
   },
-  loadingContainer: {
+  emptySlot: {
     justifyContent: 'center',
     alignItems: 'center',
+    borderStyle: 'dashed',
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  emptySlotText: {
+    ...Typography.caption,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    fontWeight: '500',
+  },
+  imageSlotUploading: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceSecondary,
   },
   uploadingText: {
-    ...Typography.body,
+    ...Typography.caption,
     color: Colors.textSecondary,
     marginTop: Spacing.sm,
   },
-  image: {
+  slotImage: {
     width: '100%',
     height: '100%',
   },
-  editOverlay: {
+  removeButton: {
     position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    padding: Spacing.sm,
-    flexDirection: 'row',
+    top: 8,
+    right: 8,
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    ...Shadows.sm,
+  },
+  imageNumberBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    gap: Spacing.xs,
+    ...Shadows.sm,
   },
-  editText: {
-    ...Typography.bodySmall,
-    color: Colors.textInverse,
-    fontWeight: '600',
-  },
-  placeholderContent: {
-    alignItems: 'center',
-  },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.md,
-  },
-  placeholderText: {
-    ...Typography.bodyMedium,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  placeholderSubtext: {
+  imageNumberText: {
     ...Typography.caption,
-    color: Colors.textTertiary,
-    marginTop: 4,
+    fontSize: 11,
+    fontWeight: '700',
+    color: Colors.textInverse,
+  },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.infoLight,
+    padding: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  infoText: {
+    ...Typography.caption,
+    color: Colors.info,
+    flex: 1,
   },
   modalOverlay: {
     flex: 1,

@@ -5,44 +5,6 @@ import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
 
-// Dummy data generator for clubs/groups
-const generateClubs = (category: string) => {
-  return [
-    {
-      id: '1',
-      name: `${category} Club of India`,
-      image:
-        'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      location: 'Pitampura',
-      timing: '5:00 PM',
-    },
-    {
-      id: '2',
-      name: `Just ${category} It`,
-      image:
-        'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      location: 'Rohini',
-      timing: '6:00 PM',
-    },
-    {
-      id: '3',
-      name: `Northern Daredevils`,
-      image:
-        'https://images.unsplash.com/photo-1511512578047-dfb367046420?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      location: 'Pitampura',
-      timing: '7:00 PM',
-    },
-    {
-      id: '4',
-      name: `${category} Warriors`,
-      image:
-        'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-      location: 'Dwarka',
-      timing: '5:30 PM',
-    },
-  ];
-};
-
 interface CategoryDetailProps {
   type: 'events' | 'experiences';
   tags: {
@@ -68,10 +30,6 @@ export default function CategoryDetail({
   showInline = false,
 }: CategoryDetailProps) {
   const [selectedSubcategory, setSelectedSubcategory] = React.useState<string | null>(null);
-
-  const clubs = generateClubs(
-    selectedSubcategory || (selectedTag === 'all' ? 'Sports' : selectedTag)
-  );
 
   // Find the selected main category to check for subcategories
   const selectedMainCategory = tags.find((tag) => tag.id === selectedTag);
@@ -128,38 +86,6 @@ export default function CategoryDetail({
     return tags.filter((tag) => tag.id === selectedTag);
   }, [tags, selectedTag, hasSubcategories]);
 
-  const renderClubCard = (club: any) => (
-    <Pressable
-      key={club.id}
-      style={styles.clubCard}
-      onPress={() => {
-        // You can add club-specific navigation here if needed
-        // For now, we'll leave it as is since clubs are dummy data
-      }}
-    >
-      <View style={styles.clubCardInner}>
-        <Image source={{ uri: club.image }} style={styles.clubImage} />
-        <View style={styles.clubContent}>
-          <Text style={styles.clubName} numberOfLines={1}>
-            {club.name}
-          </Text>
-          <View style={styles.clubInfoRow}>
-            <View style={styles.clubLocationRow}>
-              <Ionicons name="location" size={14} color={Colors.primary} />
-              <Text style={styles.clubLocationText} numberOfLines={1}>
-                {club.location}
-              </Text>
-            </View>
-            <View style={styles.clubTimingRow}>
-              <Ionicons name="time-outline" size={14} color={Colors.primary} />
-              <Text style={styles.clubTimingText}>{club.timing}</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-
   return (
     <View style={styles.container}>
       {/* Horizontal Tags ScrollView (Circular Icons) */}
@@ -212,24 +138,6 @@ export default function CategoryDetail({
       {/* Only show content below if showInline is true OR a specific category is selected */}
       {(showInline || selectedTag !== 'all') && (
         <>
-          {/* Show clubs only when 'all' is selected or no subcategories */}
-          {(selectedTag === 'all' || !hasSubcategories) && (
-            <>
-              <Text style={styles.sectionHeader}>
-                {clubs.length}{' '}
-                {selectedSubcategory
-                  ? selectedSubcategory
-                  : selectedTag === 'all'
-                    ? 'Popular'
-                    : selectedTag}{' '}
-                Clubs
-              </Text>
-
-              {/* Clubs List */}
-              <View style={styles.clubsGrid}>{clubs.map(renderClubCard)}</View>
-            </>
-          )}
-
           <Text style={styles.sectionHeader}>
             {hasSubcategories && selectedTag !== 'all'
               ? selectedSubcategory
@@ -238,34 +146,34 @@ export default function CategoryDetail({
               : `Upcoming ${type === 'events' ? 'Events' : 'Experiences'}`}
           </Text>
 
-          {/* Events Grid - Same as Clubs Grid */}
+          {/* Events Grid */}
           <View style={styles.eventsGrid}>
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event) => (
                 <Pressable
                   key={event.id}
-                  style={styles.clubCard}
+                  style={styles.eventCard}
                   onPress={() => onEventPress(event.id)}
                 >
-                  <View style={styles.clubCardInner}>
+                  <View style={styles.eventCardInner}>
                     <Image
                       source={{ uri: event.cover_image_url || 'https://via.placeholder.com/150' }}
-                      style={styles.clubImage}
+                      style={styles.eventImage}
                     />
-                    <View style={styles.clubContent}>
-                      <Text style={styles.clubName} numberOfLines={1}>
+                    <View style={styles.eventContent}>
+                      <Text style={styles.eventName} numberOfLines={1}>
                         {event.title}
                       </Text>
-                      <View style={styles.clubInfoRow}>
-                        <View style={styles.clubLocationRow}>
+                      <View style={styles.eventInfoRow}>
+                        <View style={styles.eventLocationRow}>
                           <Ionicons name="location" size={14} color={Colors.primary} />
-                          <Text style={styles.clubLocationText} numberOfLines={1}>
+                          <Text style={styles.eventLocationText} numberOfLines={1}>
                             {event.location_name || 'Location TBA'}
                           </Text>
                         </View>
-                        <View style={styles.clubTimingRow}>
+                        <View style={styles.eventTimingRow}>
                           <Ionicons name="time-outline" size={14} color={Colors.primary} />
-                          <Text style={styles.clubTimingText}>
+                          <Text style={styles.eventTimingText}>
                             {new Date(event.start_date).toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
@@ -453,14 +361,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     textAlign: 'left',
   },
-  clubsGrid: {
+  eventsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
     justifyContent: 'space-between',
   },
-  clubCard: {
+  eventCard: {
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: BorderRadius.xl,
@@ -468,22 +376,22 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     marginBottom: Spacing.xs,
   },
-  clubCardInner: {
+  eventCardInner: {
     padding: Spacing.sm,
   },
-  clubImage: {
+  eventImage: {
     width: '100%',
     height: 180,
     borderRadius: BorderRadius.lg,
     backgroundColor: '#f0f0f0',
   },
-  clubContent: {
+  eventContent: {
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
     alignItems: 'center',
     minHeight: 50,
   },
-  clubName: {
+  eventName: {
     fontSize: 14,
     fontWeight: '700',
     color: Colors.text,
@@ -492,38 +400,31 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     height: 18,
   },
-  clubInfoRow: {
+  eventInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
   },
-  clubLocationRow: {
+  eventLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     flex: 1,
   },
-  clubLocationText: {
+  eventLocationText: {
     fontSize: 13,
     color: Colors.textSecondary,
     flex: 1,
   },
-  clubTimingRow: {
+  eventTimingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  clubTimingText: {
+  eventTimingText: {
     fontSize: 13,
     color: Colors.textSecondary,
-  },
-  eventsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: Spacing.lg,
-    gap: Spacing.sm,
-    justifyContent: 'space-between',
   },
   emptyText: {
     textAlign: 'center',

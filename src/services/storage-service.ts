@@ -35,7 +35,6 @@ export async function pickImage(): Promise<ImagePicker.ImagePickerAsset | null> 
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       allowsEditing: true,
-      aspect: [16, 9], // Good aspect ratio for event covers
       quality: 0.8,
     });
 
@@ -62,7 +61,6 @@ export async function takePhoto(): Promise<ImagePicker.ImagePickerAsset | null> 
 
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
-      aspect: [16, 9],
       quality: 0.8,
     });
 

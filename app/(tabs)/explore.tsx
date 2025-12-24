@@ -11,7 +11,7 @@ import { useEvents, useFeaturedEvents } from '../../src/hooks/use-events';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
-import TripsDetail, { DUMMY_TRIPS } from '../../src/components/TripsDetail';
+import TripsDetail from '../../src/components/TripsDetail';
 import SearchModal from '../../src/components/SearchModal';
 
 // Centralized icon map for category icons
@@ -76,314 +76,6 @@ const CATEGORIES = [
     id: 'trips',
     label: 'Trips',
     icon: TripsIcon,
-  },
-];
-
-const FEATURED_EXPERIENCES = [
-  // Cultural - Music
-  {
-    id: 'exp1',
-    title: 'Live Jazz Night',
-    image:
-      'https://images.unsplash.com/photo-1511192336575-5a79af67a629?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1511192336575-5a79af67a629?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 1200,
-    rating: 4.8,
-    location: 'Indiranagar',
-    location_name: 'Indiranagar',
-    description: 'Experience the magic of live jazz music with talented musicians.',
-    type: 'experience',
-    category: 'Music',
-    tags: ['Music', 'Cultural', 'Live Performance'],
-    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Cultural - Dance
-  {
-    id: 'exp2',
-    title: 'Salsa Dance Workshop',
-    image:
-      'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 800,
-    rating: 4.9,
-    location: 'Koramangala',
-    location_name: 'Koramangala',
-    description: 'Learn salsa dancing from professional instructors in a fun environment.',
-    type: 'experience',
-    category: 'Dance',
-    tags: ['Dance', 'Cultural', 'Workshop'],
-    start_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-  },
-  // Cultural - Theatre
-  {
-    id: 'exp3',
-    title: 'Shakespeare Play Night',
-    image:
-      'https://images.unsplash.com/photo-1503095396549-807759245b35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1503095396549-807759245b35?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 600,
-    rating: 4.7,
-    location: 'MG Road',
-    location_name: 'MG Road',
-    description: 'Watch a classic Shakespeare play performed by renowned theatre artists.',
-    type: 'experience',
-    category: 'Theatre',
-    tags: ['Theatre', 'Cultural', 'Drama'],
-    start_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Cultural - Art
-  {
-    id: 'exp4',
-    title: 'Pottery Workshop',
-    image:
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 1200,
-    rating: 4.8,
-    location: 'Whitefield',
-    location_name: 'Whitefield',
-    description:
-      'Learn the art of pottery making with expert instructors. Create your own masterpiece!',
-    type: 'experience',
-    category: 'Art',
-    tags: ['Art', 'Cultural', 'Workshop'],
-    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Games - Sports
-  {
-    id: 'exp5',
-    title: 'Sunday Football Match',
-    image:
-      'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 300,
-    rating: 4.6,
-    location: 'HSR Layout',
-    location_name: 'HSR Layout',
-    description: 'Join us for a friendly football match every Sunday morning.',
-    type: 'experience',
-    category: 'Sports',
-    tags: ['Sports', 'Games', 'Football'],
-    start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-  },
-  // Games - E-Games
-  {
-    id: 'exp6',
-    title: 'Gaming Tournament - PUBG',
-    image:
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1542751371-adc38448a05e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 500,
-    rating: 4.9,
-    location: 'Marathahalli',
-    location_name: 'Marathahalli',
-    description: 'Compete in an exciting PUBG tournament with amazing prizes!',
-    type: 'experience',
-    category: 'E-Games',
-    tags: ['E-Games', 'Games', 'Gaming'],
-    start_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
-  },
-  // Games - Board Games
-  {
-    id: 'exp7',
-    title: 'Board Game Cafe Night',
-    image:
-      'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 400,
-    rating: 4.5,
-    location: 'Jayanagar',
-    location_name: 'Jayanagar',
-    description: 'Enjoy classic and modern board games with friends in a cozy cafe.',
-    type: 'experience',
-    category: 'Board Games',
-    tags: ['Board Games', 'Games', 'Social'],
-    start_date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Entertainment
-  {
-    id: 'exp8',
-    title: 'Stand-up Comedy Night',
-    image:
-      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 499,
-    rating: 4.5,
-    location: 'Koramangala',
-    location_name: 'Koramangala',
-    description: 'An evening of laughter with some of the best comedians in town!',
-    type: 'experience',
-    category: 'Entertainment',
-    tags: ['Entertainment', 'Comedy'],
-    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-  },
-  // Outdoors - Hiking
-  {
-    id: 'exp9',
-    title: 'Nandi Hills Sunrise Trek',
-    image:
-      'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1551632811-561732d1e306?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 800,
-    rating: 4.8,
-    location: 'Nandi Hills',
-    location_name: 'Nandi Hills',
-    description: 'Experience a breathtaking sunrise trek at Nandi Hills.',
-    type: 'experience',
-    category: 'Hiking',
-    tags: ['Hiking', 'Outdoors', 'Trek'],
-    start_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(),
-  },
-  // Outdoors - Running
-  {
-    id: 'exp10',
-    title: 'Morning Run Club',
-    image:
-      'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 0,
-    rating: 4.7,
-    location: 'Cubbon Park',
-    location_name: 'Cubbon Park',
-    description: 'Join our morning running club at Cubbon Park. Free for all!',
-    type: 'experience',
-    category: 'Running',
-    tags: ['Running', 'Outdoors', 'Fitness'],
-    start_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 1 * 60 * 60 * 1000).toISOString(),
-  },
-  // Nightlife - Parties
-  {
-    id: 'exp11',
-    title: 'Weekend House Party',
-    image:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 1500,
-    rating: 4.9,
-    location: 'Indiranagar',
-    location_name: 'Indiranagar',
-    description: 'Dance the night away at the hottest house party in town!',
-    type: 'experience',
-    category: 'Parties',
-    tags: ['Parties', 'Nightlife', 'Dance'],
-    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 5 * 60 * 60 * 1000).toISOString(),
-  },
-  // Nightlife - Clubs
-  {
-    id: 'exp12',
-    title: 'DJ Night at SkyBar',
-    image:
-      'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1566737236500-c8ac43014a67?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 2000,
-    rating: 4.8,
-    location: 'UB City',
-    location_name: 'UB City',
-    description: 'Experience world-class DJs spinning at the best rooftop club.',
-    type: 'experience',
-    category: 'Clubs',
-    tags: ['Clubs', 'Nightlife', 'DJ'],
-    start_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(),
-  },
-  // Nightlife - Cafes
-  {
-    id: 'exp13',
-    title: 'Late Night Coffee & Music',
-    image:
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 300,
-    rating: 4.6,
-    location: 'Church Street',
-    location_name: 'Church Street',
-    description: 'Enjoy coffee and live acoustic music at our cozy cafe.',
-    type: 'experience',
-    category: 'Cafes',
-    tags: ['Cafes', 'Nightlife', 'Music'],
-    start_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Nightlife - Movies
-  {
-    id: 'exp14',
-    title: 'Open Air Cinema Night',
-    image:
-      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 500,
-    rating: 4.7,
-    location: 'JP Nagar',
-    location_name: 'JP Nagar',
-    description: 'Watch classic movies under the stars at our open-air cinema.',
-    type: 'experience',
-    category: 'Movies',
-    tags: ['Movies', 'Nightlife', 'Entertainment'],
-    start_date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-  },
-  // Wellness - Yoga
-  {
-    id: 'exp15',
-    title: 'Sunrise Yoga Session',
-    image:
-      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 500,
-    rating: 4.9,
-    location: 'Ulsoor Lake',
-    location_name: 'Ulsoor Lake',
-    description: 'Start your day with peaceful yoga by the lake.',
-    type: 'experience',
-    category: 'Yoga',
-    tags: ['Yoga', 'Wellness', 'Fitness'],
-    start_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-  },
-  // Wellness - Retreat
-  {
-    id: 'exp16',
-    title: 'Weekend Wellness Retreat',
-    image:
-      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 5000,
-    rating: 4.8,
-    location: 'Coorg',
-    location_name: 'Coorg',
-    description: 'Rejuvenate your mind and body at our wellness retreat in Coorg.',
-    type: 'experience',
-    category: 'Retreat',
-    tags: ['Retreat', 'Wellness', 'Meditation'],
-    start_date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];
 
@@ -506,11 +198,25 @@ export default function ExploreTab() {
     setRefreshing(false);
   };
 
-  // Combine real events with mock data
-  const allEvents = [...events, ...FEATURED_EXPERIENCES] as Event[];
+  // Helper function to shuffle array (Fisher-Yates algorithm)
+  const shuffleArray = <T,>(array: T[]): T[] => {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+
+  // Get random selection of featured items (up to 10 items)
+  const getRandomFeatured = (items: Event[], limit = 10) => {
+    if (items.length === 0) return [];
+    const shuffled = shuffleArray(items);
+    return shuffled.slice(0, Math.min(limit, items.length));
+  };
 
   // Filter logic with comprehensive keyword search
-  const filteredEvents = allEvents.filter((event: Event) => {
+  const filteredEvents = events.filter((event: Event) => {
     // Keyword search - searches across multiple fields
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
@@ -767,50 +473,44 @@ export default function ExploreTab() {
                   </Pressable>
                 </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalList}
-                >
-                  {(featuredExperiences.length > 0
-                    ? featuredExperiences
-                    : FEATURED_EXPERIENCES
-                  ).map((item) => (
-                    <Pressable
-                      key={item.id}
-                      style={styles.horizontalCard}
-                      onPress={() => router.push(`/events/${item.id}`)}
-                    >
-                      <Image
-                        source={{
-                          uri:
-                            (item as any).image ||
-                            (item as any).cover_image_url ||
-                            'https://via.placeholder.com/150',
-                        }}
-                        style={styles.horizontalCardImage}
-                      />
-                      <View style={styles.horizontalCardContent}>
-                        <Text style={styles.cardTitle} numberOfLines={1}>
-                          {item.title}
-                        </Text>
-                        <View style={styles.cardRow}>
-                          <Text style={styles.cardLocation}>
-                            {(item as any).location || (item as any).location_name || ''}
+                {getRandomFeatured(featuredExperiences).length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalList}
+                  >
+                    {getRandomFeatured(featuredExperiences).map((item) => (
+                      <Pressable
+                        key={item.id}
+                        style={styles.horizontalCard}
+                        onPress={() => router.push(`/events/${item.id}`)}
+                      >
+                        <Image
+                          source={{
+                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                          }}
+                          style={styles.horizontalCardImage}
+                        />
+                        <View style={styles.horizontalCardContent}>
+                          <Text style={styles.cardTitle} numberOfLines={1}>
+                            {item.title}
                           </Text>
-                          <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
+                          <View style={styles.cardRow}>
+                            <Text style={styles.cardLocation}>{item.location_name || ''}</Text>
+                            <Text style={styles.cardRating}>★ 4.5</Text>
+                          </View>
+                          <Text style={styles.cardPrice}>
+                            {item.price ? `₹${item.price}` : 'Free'}
+                          </Text>
                         </View>
-                        <Text style={styles.cardPrice}>
-                          {(item as any).price
-                            ? typeof (item as any).price === 'string'
-                              ? (item as any).price
-                              : `₹${(item as any).price}`
-                            : ''}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={styles.emptyStateText}>No events yet</Text>
+                  </View>
+                )}
               </View>
 
               {/* Popular Trips Section */}
@@ -822,47 +522,44 @@ export default function ExploreTab() {
                   </Pressable>
                 </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalList}
-                >
-                  {(featuredTrips.length > 0 ? featuredTrips : DUMMY_TRIPS).map((item) => (
-                    <Pressable
-                      key={item.id}
-                      style={styles.horizontalCard}
-                      onPress={() => router.push(`/events/${item.id}`)}
-                    >
-                      <Image
-                        source={{
-                          uri:
-                            (item as any).image ||
-                            (item as any).cover_image_url ||
-                            'https://via.placeholder.com/150',
-                        }}
-                        style={styles.horizontalCardImage}
-                      />
-                      <View style={styles.horizontalCardContent}>
-                        <Text style={styles.cardTitle} numberOfLines={1}>
-                          {item.title}
-                        </Text>
-                        <View style={styles.cardRow}>
-                          <Text style={styles.cardLocation}>
-                            {(item as any).location || (item as any).location_name || ''}
+                {getRandomFeatured(featuredTrips).length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalList}
+                  >
+                    {getRandomFeatured(featuredTrips).map((item) => (
+                      <Pressable
+                        key={item.id}
+                        style={styles.horizontalCard}
+                        onPress={() => router.push(`/events/${item.id}`)}
+                      >
+                        <Image
+                          source={{
+                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                          }}
+                          style={styles.horizontalCardImage}
+                        />
+                        <View style={styles.horizontalCardContent}>
+                          <Text style={styles.cardTitle} numberOfLines={1}>
+                            {item.title}
                           </Text>
-                          <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
+                          <View style={styles.cardRow}>
+                            <Text style={styles.cardLocation}>{item.location_name || ''}</Text>
+                            <Text style={styles.cardRating}>★ 4.5</Text>
+                          </View>
+                          <Text style={styles.cardPrice}>
+                            {item.price ? `₹${item.price}` : 'Free'}
+                          </Text>
                         </View>
-                        <Text style={styles.cardPrice}>
-                          {(item as any).price
-                            ? typeof (item as any).price === 'string'
-                              ? (item as any).price
-                              : `₹${(item as any).price}`
-                            : ''}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.emptyStateContainer}>
+                    <Text style={styles.emptyStateText}>No events yet</Text>
+                  </View>
+                )}
               </View>
             </>
           )}
@@ -1059,5 +756,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text,
     marginTop: 2,
+  },
+  emptyStateContainer: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

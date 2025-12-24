@@ -312,31 +312,46 @@ export async function validateTicket(ticketId: string, checkedInBy: string) {
 
 // Helper: Add user to event group
 async function addUserToEventGroup(userId: string, eventId: string) {
-  // Find the event group
-  const { data: group, error: groupError } = await supabase
-    .from('event_groups')
-    .select('id')
-    .eq('event_id', eventId)
-    .single();
+  try {
+    // Find the event group
+    const { data: group, error: groupError } = await supabase
+      .from('event_groups')
+      .select('id')
+      .eq('event_id', eventId)
+      .maybeSingle();
 
-  if (groupError || !group) {
-    console.error('Event group not found:', groupError);
-    return;
-  }
-
-  const groupData = group as Record<string, string>;
-
-  // Add user to group (ignore if already exists)
-  await supabase.from('group_members').upsert(
-    {
-      group_id: groupData.id,
-      user_id: userId,
-      role: 'member',
-    },
-    {
-      onConflict: 'group_id,user_id',
+    if (groupError) {
+      console.error('Error fetching event group:', groupError);
+      return;
     }
-  );
+
+    if (!group) {
+      console.error('Event group not found for event:', eventId);
+      return;
+    }
+
+    const groupData = group as Record<string, string>;
+
+    // Add user to group (ignore if already exists)
+    const { error: memberError } = await supabase.from('group_members').upsert(
+      {
+        group_id: groupData.id,
+        user_id: userId,
+        role: 'member',
+      },
+      {
+        onConflict: 'group_id,user_id',
+      }
+    );
+
+    if (memberError) {
+      console.error('Error adding user to group:', memberError);
+    } else {
+      console.log('User successfully added to event group');
+    }
+  } catch (error) {
+    console.error('Exception adding user to event group:', error);
+  }
 }
 
 // Get bookings for an event (for hosts)

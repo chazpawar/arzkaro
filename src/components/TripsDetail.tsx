@@ -5,40 +5,6 @@ import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
 
-// Dummy trip data since backend only has events mostly
-export const DUMMY_TRIPS = [
-  {
-    id: 'trip1',
-    title: 'Manali Backpacking',
-    image:
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    date: '15-20 Dec',
-    price: '₹8,499',
-    rating: 4.7,
-    location: 'Himachal Pradesh',
-  },
-  {
-    id: 'trip2',
-    title: 'Goa Beach Party',
-    image:
-      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    date: '24-28 Dec',
-    price: '₹12,999',
-    rating: 4.5,
-    location: 'Goa',
-  },
-  {
-    id: 'trip3',
-    title: 'Kasol & Kheerganga',
-    image:
-      'https://images.unsplash.com/photo-1455620611406-966ca6889d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    date: '10-14 Jan',
-    price: '₹7,999',
-    rating: 4.8,
-    location: 'Himachal Pradesh',
-  },
-];
-
 const TRIP_CATEGORIES = [
   { id: 'All', label: 'All', icon: 'grid-outline' },
   { id: 'Weekend', label: 'Weekend', icon: 'calendar-outline' },
@@ -55,27 +21,20 @@ interface TripsDetailProps {
 export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Use passed events if available, otherwise fallback to empty (or we could keep DUMMY_TRIPS as a fallback if we really want, but better to move to real data)
-  // For now, let's map the passed events to the structure we need, or update the UI to use Event type directly.
-  // The UI expects: id, image, location, rating, title, date, price
-
-  const displayTrips =
-    events.length > 0
-      ? events.map((event) => ({
-          id: event.id,
-          title: event.title,
-          image:
-            event.cover_image_url ||
-            'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-          date: new Date(event.start_date).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-          }),
-          price: `₹${event.price}`,
-          rating: 4.5, // Placeholder
-          location: event.location_name || 'Unknown Location',
-        }))
-      : DUMMY_TRIPS;
+  // Map events to display format
+  const displayTrips = events.map((event) => ({
+    id: event.id,
+    title: event.title,
+    image:
+      event.cover_image_url ||
+      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+    date: new Date(event.start_date).toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'short',
+    }),
+    price: `₹${event.price}`,
+    location: event.location_name || 'Unknown Location',
+  }));
 
   return (
     <View style={styles.container}>
@@ -118,33 +77,36 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
       <Text style={styles.sectionHeader}>{displayTrips.length} Popular Trips</Text>
 
       {/* Trips List */}
-      <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
-        {displayTrips.map((trip) => (
-          <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
-            <Image source={{ uri: trip.image }} style={styles.tripImage} />
-            <View style={styles.tripContent}>
-              <View style={styles.tripHeader}>
-                <Text style={styles.tripLocation}>{trip.location}</Text>
-                <View style={styles.ratingBadge}>
-                  <Text style={styles.ratingText}>{trip.rating} ★</Text>
+      {displayTrips.length > 0 ? (
+        <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
+          {displayTrips.map((trip) => (
+            <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
+              <Image source={{ uri: trip.image }} style={styles.tripImage} />
+              <View style={styles.tripContent}>
+                <View style={styles.tripHeader}>
+                  <Text style={styles.tripLocation}>{trip.location}</Text>
+                </View>
+
+                <Text style={styles.tripTitle}>{trip.title}</Text>
+                <Text style={styles.tripDate}>{trip.date}</Text>
+
+                <View style={styles.tripFooter}>
+                  <Text style={styles.tripPrice}>
+                    {trip.price} <Text style={styles.perPerson}>/ person</Text>
+                  </Text>
+                  <View style={styles.bookButton}>
+                    <Text style={styles.bookButtonText}>View</Text>
+                  </View>
                 </View>
               </View>
-
-              <Text style={styles.tripTitle}>{trip.title}</Text>
-              <Text style={styles.tripDate}>{trip.date}</Text>
-
-              <View style={styles.tripFooter}>
-                <Text style={styles.tripPrice}>
-                  {trip.price} <Text style={styles.perPerson}>/ person</Text>
-                </Text>
-                <View style={styles.bookButton}>
-                  <Text style={styles.bookButtonText}>View</Text>
-                </View>
-              </View>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>No events yet</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -263,17 +225,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textTransform: 'uppercase',
   },
-  ratingBadge: {
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#FFF',
-  },
   tripTitle: {
     fontSize: 16, // Smaller title
     fontWeight: '700',
@@ -311,5 +262,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: '#FFF',
+  },
+  emptyStateContainer: {
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    alignItems: 'center',
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

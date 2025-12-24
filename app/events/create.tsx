@@ -18,6 +18,7 @@ import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
 import ImageUpload from '../../src/components/ui/image-upload';
+import MultiImageUpload from '../../src/components/ui/multi-image-upload';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
@@ -163,6 +164,7 @@ export default function CreateEventScreen() {
   const [eventType, setEventType] = useState<EventType>('event');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [termsAndConditions, setTermsAndConditions] = useState('');
   const [category, setCategory] = useState('');
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [locationName, setLocationName] = useState('');
@@ -185,6 +187,7 @@ export default function CreateEventScreen() {
   const [whatsIncluded, setWhatsIncluded] = useState('');
   const [whatsNotIncluded, setWhatsNotIncluded] = useState('');
   const [idealFor, setIdealFor] = useState('');
+  const [tripImages, setTripImages] = useState<string[]>([]);
 
   // Date picker state
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -493,6 +496,7 @@ export default function CreateEventScreen() {
         type: eventType,
         title: title.trim(),
         description: description.trim(),
+        terms_and_conditions: termsAndConditions.trim() || undefined,
         category,
         cover_image_url: coverImageUrl || undefined,
         location_name: locationName.trim(),
@@ -515,25 +519,22 @@ export default function CreateEventScreen() {
         eventData.whats_included = whatsIncluded.trim() || undefined;
         eventData.whats_not_included = whatsNotIncluded.trim() || undefined;
         eventData.ideal_for = idealFor.trim() || undefined;
+        eventData.images = tripImages.length > 0 ? tripImages : [];
       }
 
       const event = await EventService.createEvent(eventData, user.id);
 
+      // Automatically publish the event
+      await EventService.publishEvent(event.id);
+
+      // Show success message and navigate to the event
       Alert.alert(
-        'Event Created!',
-        'Your event has been created as a draft. Would you like to publish it now?',
+        'Event Published!',
+        'Your event has been successfully published and is now live.',
         [
           {
-            text: 'Keep as Draft',
-            style: 'cancel',
-            onPress: () => router.replace('/host/dashboard'),
-          },
-          {
-            text: 'Publish Now',
-            onPress: async () => {
-              await EventService.publishEvent(event.id);
-              router.replace(`/events/${event.id}`);
-            },
+            text: 'View Event',
+            onPress: () => router.replace(`/events/${event.id}`),
           },
         ]
       );
@@ -648,6 +649,15 @@ export default function CreateEventScreen() {
                   multiline
                   numberOfLines={4}
                   error={errors.description}
+                />
+
+                <Input
+                  label="Terms & Conditions (Optional)"
+                  placeholder="Add any terms and conditions for this event..."
+                  value={termsAndConditions}
+                  onChangeText={setTermsAndConditions}
+                  multiline
+                  numberOfLines={4}
                 />
 
                 <ImageUpload
@@ -952,7 +962,7 @@ export default function CreateEventScreen() {
 
                   <Input
                     label="Departure Location"
-                    placeholder="e.g., Mumbai Central Station"
+                    placeholder="Mumbai Central Station"
                     value={departureLocation}
                     onChangeText={setDepartureLocation}
                     error={errors.departureLocation}
@@ -963,7 +973,7 @@ export default function CreateEventScreen() {
                   <View style={styles.pickupContainer}>
                     <View style={styles.pickupInputRow}>
                       <Input
-                        placeholder="Add pickup location"
+                        placeholder="Add pickup location with time "
                         value={pickupInput}
                         onChangeText={setPickupInput}
                         containerStyle={styles.pickupInput}
@@ -983,13 +993,19 @@ export default function CreateEventScreen() {
                     {pickups.length > 0 && (
                       <View style={styles.pickupsList}>
                         {pickups.map((pickup, index) => (
-                          <View key={index} style={styles.pickupChip}>
-                            <Text style={styles.pickupChipText}>{pickup}</Text>
+                          <View key={index} style={styles.pickupListItem}>
+                            <View style={styles.pickupListItemLeft}>
+                              <View style={styles.pickupNumberBadge}>
+                                <Text style={styles.pickupNumberText}>{index + 1}</Text>
+                              </View>
+                              <Text style={styles.pickupListItemText}>{pickup}</Text>
+                            </View>
                             <Pressable
                               onPress={() => setPickups(pickups.filter((_, i) => i !== index))}
                               hitSlop={8}
+                              style={styles.pickupDeleteButton}
                             >
-                              <Ionicons name="close-circle" size={18} color={Colors.error} />
+                              <Ionicons name="trash-outline" size={18} color={Colors.error} />
                             </Pressable>
                           </View>
                         ))}
@@ -1007,11 +1023,27 @@ export default function CreateEventScreen() {
 
                   <Input
                     label="Day-by-Day Itinerary"
-                    placeholder="Describe the trip schedule...&#10;Day 1: Departure at 6 AM, Arrive at destination...&#10;Day 2: Trekking and sightseeing..."
+                    placeholder="Describe the trip schedule..."
                     value={itinerary}
                     onChangeText={setItinerary}
                     multiline
                     numberOfLines={6}
+                  />
+                </View>
+
+                {/* Trip Gallery */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="images" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Trip Gallery</Text>
+                  </View>
+
+                  <MultiImageUpload
+                    maxImages={5}
+                    onImagesChange={setTripImages}
+                    currentImages={tripImages}
+                    bucket="event-images"
+                    folder={`trips/${user?.id}`}
                   />
                 </View>
 
@@ -1024,7 +1056,7 @@ export default function CreateEventScreen() {
 
                   <Input
                     label="What's Included"
-                    placeholder="e.g., Transportation, Accommodation, Meals, Guide"
+                    placeholder="Transportation, Accommodation..."
                     value={whatsIncluded}
                     onChangeText={setWhatsIncluded}
                     multiline
@@ -1033,7 +1065,7 @@ export default function CreateEventScreen() {
 
                   <Input
                     label="What's NOT Included"
-                    placeholder="e.g., Personal expenses, Insurance, Entry fees"
+                    placeholder="Personal expenses, Insurance..."
                     value={whatsNotIncluded}
                     onChangeText={setWhatsNotIncluded}
                     multiline
@@ -1050,7 +1082,7 @@ export default function CreateEventScreen() {
 
                   <Input
                     label="Ideal For"
-                    placeholder="e.g., Adventure enthusiasts, Families with kids, Solo travelers"
+                    placeholder="Adventure enthusiasts, Families..."
                     value={idealFor}
                     onChangeText={setIdealFor}
                     multiline
@@ -1082,12 +1114,6 @@ export default function CreateEventScreen() {
                   keyboardType="decimal-pad"
                   leftIcon={<Text style={styles.currencySymbol}>₹</Text>}
                 />
-
-                {parseFloat(price) === 0 && (
-                  <View style={styles.freeEventNote}>
-                    <Text style={styles.freeEventNoteText}>🎉 This will be a free event!</Text>
-                  </View>
-                )}
 
                 <Card style={styles.summaryCard} variant="outlined">
                   <Text style={styles.summaryTitle}>Event Summary</Text>
@@ -1436,7 +1462,7 @@ const styles = StyleSheet.create({
   helperCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.infoLight,
+
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
     gap: Spacing.xs,
@@ -1450,7 +1476,6 @@ const styles = StyleSheet.create({
   durationPreview: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.successLight,
     padding: Spacing.sm,
     borderRadius: BorderRadius.sm,
     gap: Spacing.xs,
@@ -1546,10 +1571,47 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   pickupsList: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.sm,
     marginTop: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  pickupListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pickupListItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    flex: 1,
+  },
+  pickupNumberBadge: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  pickupNumberText: {
+    ...Typography.bodySmall,
+    color: Colors.textInverse,
+    fontWeight: '700',
+    fontSize: 12,
+  },
+  pickupListItemText: {
+    ...Typography.body,
+    color: Colors.text,
+    flex: 1,
+  },
+  pickupDeleteButton: {
+    padding: Spacing.xs,
   },
   pickupChip: {
     flexDirection: 'row',

@@ -14,110 +14,6 @@ import type { DMConversation } from '../../src/types/chat.types';
 
 type FilterType = 'all' | 'unread';
 
-// Mock data to ensure the UI looks populated even without real data
-const MOCK_CHATS = [
-  {
-    id: 'mock-1',
-    name: 'Weekend Hiking Group',
-    lastMessage: 'Anyone bringing a portable speaker?',
-    time: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
-    unreadCount: 2,
-    avatar: 'https://images.unsplash.com/photo-1551632811-561732d1e306?w=200&h=200&fit=crop',
-    type: 'group',
-    isOnline: true,
-  },
-  {
-    id: 'mock-2',
-    name: 'Sarah Chen',
-    lastMessage: 'The tickets are booked! See you there.',
-    time: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 mins ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-    type: 'dm',
-    isOnline: true,
-  },
-  {
-    id: 'mock-3',
-    name: 'Photography Workshop',
-    lastMessage: 'Remember to charge your batteries!',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-    unreadCount: 5,
-    avatar: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=200&h=200&fit=crop',
-    type: 'group',
-    isOnline: false,
-  },
-  {
-    id: 'mock-4',
-    name: 'Alex Rivera',
-    lastMessage: 'Sent a photo',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // 5 hours ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-    type: 'dm',
-    isOnline: true,
-  },
-  {
-    id: 'mock-5',
-    name: 'Board Game Night',
-    lastMessage: 'Who is winning?',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1632501641765-e568d28b0015?w=200&h=200&fit=crop',
-    type: 'group',
-    isOnline: false,
-  },
-  {
-    id: 'mock-6',
-    name: 'David Kim',
-    lastMessage: 'Sounds good to me!',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(), // 1 day ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-    type: 'dm',
-    isOnline: false,
-  },
-  {
-    id: 'mock-7',
-    name: 'Tech Meetup Bangalore',
-    lastMessage: 'New venue announced: WeWork Galaxy',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(), // 2 days ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=200&h=200&fit=crop',
-    type: 'group',
-    isOnline: false,
-  },
-  {
-    id: 'mock-8',
-    name: 'Priya Patel',
-    lastMessage: 'Are you coming to the event?',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString(), // 2 days ago
-    unreadCount: 1,
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-    type: 'dm',
-    isOnline: true,
-  },
-  {
-    id: 'mock-9',
-    name: 'Design Team',
-    lastMessage: 'Can we review the new icons?',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(), // 3 days ago
-    unreadCount: 3,
-    avatar: 'https://images.unsplash.com/photo-1576153192396-44ccf0fda428?w=200&h=200&fit=crop',
-    type: 'group',
-    isOnline: true,
-  },
-  {
-    id: 'mock-10',
-    name: 'Rahul Gupta',
-    lastMessage: 'Thanks for the help!',
-    time: new Date(Date.now() - 1000 * 60 * 60 * 96).toISOString(), // 4 days ago
-    unreadCount: 0,
-    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop',
-    type: 'dm',
-    isOnline: false,
-  },
-];
-
 export default function ChatsTab() {
   const router = useRouter();
   const { isAuthenticated, user } = useAuth();
@@ -223,12 +119,8 @@ export default function ChatsTab() {
     isOnline: false, // In a real app we'd check online status
   }));
 
-  // Combine real and mock chats
-  // Prioritize real chats if they exist, otherwise show mock data for UI demo
-  const displayChats =
-    [...realGroupChats, ...realDirectMessages].length > 0
-      ? [...realGroupChats, ...realDirectMessages]
-      : MOCK_CHATS;
+  // Combine real chats only
+  const displayChats = [...realGroupChats, ...realDirectMessages];
 
   // Sort by time
   const sortedChats = displayChats.sort((a, b) => {

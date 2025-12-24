@@ -72,12 +72,6 @@ export async function getUserGroups(userId: string) {
 
 // Mark group messages as read
 export async function markGroupAsRead(groupId: string, userId: string) {
-  // Handle mock group IDs - just log and return
-  if (groupId.startsWith('group-mock-')) {
-    console.log('[CHAT SERVICE] Mock group detected, skipping mark as read');
-    return;
-  }
-
   const { error } = await (supabase.rpc as any)('mark_group_as_read', {
     p_group_id: groupId,
     p_user_id: userId,
@@ -113,27 +107,6 @@ export async function getGroupById(groupId: string) {
 export async function getGroupByEventId(eventId: string) {
   console.log('[CHAT SERVICE] Fetching group for event:', eventId);
 
-  // Handle mock event IDs - return mock data instead of querying database
-  if (eventId.startsWith('mock-')) {
-    console.log('[CHAT SERVICE] Detected mock event ID, returning mock group data');
-
-    // Create a mock group for demo purposes
-    const mockGroup: EventGroup = {
-      id: `group-${eventId}`,
-      event_id: eventId,
-      name: 'Mock Event Group Chat',
-      description: 'This is a demo group chat',
-      created_at: new Date().toISOString(),
-      event: {
-        id: eventId,
-        title: 'Mock Event',
-        cover_image_url: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=400',
-      },
-    };
-
-    return mockGroup;
-  }
-
   try {
     const { data, error } = await supabase
       .from('event_groups')
@@ -161,12 +134,6 @@ export async function getGroupByEventId(eventId: string) {
 
 // Check if user is a member of a group
 export async function isGroupMember(groupId: string, userId: string): Promise<boolean> {
-  // Handle mock group IDs
-  if (groupId.startsWith('group-mock-')) {
-    console.log('[CHAT SERVICE] Mock group detected, returning true for membership');
-    return true; // Always allow access to mock groups for demo purposes
-  }
-
   const { data, error } = await supabase
     .from('group_members')
     .select('id')
@@ -202,72 +169,6 @@ export async function joinGroup(groupId: string, userId: string) {
 
 // Get group members
 export async function getGroupMembers(groupId: string) {
-  // Handle mock group IDs - return mock members
-  if (groupId.startsWith('group-mock-')) {
-    console.log('[CHAT SERVICE] Mock group detected, returning mock members');
-
-    const mockMembers: GroupMember[] = [
-      {
-        id: 'member-1',
-        group_id: groupId,
-        user_id: 'user-1',
-        role: 'member',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
-        user: {
-          id: 'user-1',
-          full_name: 'Sarah Chen',
-          email: 'sarah@example.com',
-          avatar_url:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'member-2',
-        group_id: groupId,
-        user_id: 'user-2',
-        role: 'member',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 6).toISOString(),
-        user: {
-          id: 'user-2',
-          full_name: 'Alex Rivera',
-          email: 'alex@example.com',
-          avatar_url:
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'member-3',
-        group_id: groupId,
-        user_id: 'user-3',
-        role: 'member',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
-        user: {
-          id: 'user-3',
-          full_name: 'David Kim',
-          email: 'david@example.com',
-          avatar_url:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'member-4',
-        group_id: groupId,
-        user_id: 'user-4',
-        role: 'member',
-        joined_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
-        user: {
-          id: 'user-4',
-          full_name: 'Priya Patel',
-          email: 'priya@example.com',
-          avatar_url:
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-        },
-      },
-    ];
-
-    return mockMembers;
-  }
-
   const { data, error } = await supabase
     .from('group_members')
     .select(
@@ -288,91 +189,6 @@ export async function getGroupMembers(groupId: string) {
 
 // Get group messages
 export async function getGroupMessages(groupId: string, limit = 50, before?: string) {
-  // Handle mock group IDs - return mock messages
-  if (groupId.startsWith('group-mock-')) {
-    console.log('[CHAT SERVICE] Mock group detected, returning mock messages');
-
-    const mockMessages: Message[] = [
-      {
-        id: 'msg-1',
-        group_id: groupId,
-        user_id: 'user-1',
-        content: 'Hey everyone! Looking forward to this event!',
-        message_type: 'text',
-        is_deleted: false,
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
-        user: {
-          id: 'user-1',
-          full_name: 'Sarah Chen',
-          avatar_url:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'msg-2',
-        group_id: groupId,
-        user_id: 'user-2',
-        content: 'Me too! What time should we meet?',
-        message_type: 'text',
-        is_deleted: false,
-        created_at: new Date(Date.now() - 1000 * 60 * 60 * 1.5).toISOString(), // 1.5 hours ago
-        user: {
-          id: 'user-2',
-          full_name: 'Alex Rivera',
-          avatar_url:
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'msg-3',
-        group_id: groupId,
-        user_id: 'user-3',
-        content: 'How about 30 minutes before the event starts?',
-        message_type: 'text',
-        is_deleted: false,
-        created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(), // 1 hour ago
-        user: {
-          id: 'user-3',
-          full_name: 'David Kim',
-          avatar_url:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'msg-4',
-        group_id: groupId,
-        user_id: 'user-1',
-        content: 'Perfect! See you all there!',
-        message_type: 'text',
-        is_deleted: false,
-        created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 mins ago
-        user: {
-          id: 'user-1',
-          full_name: 'Sarah Chen',
-          avatar_url:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-        },
-      },
-      {
-        id: 'msg-5',
-        group_id: groupId,
-        user_id: 'user-4',
-        content: "Don't forget to bring your tickets!",
-        message_type: 'text',
-        is_deleted: false,
-        created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
-        user: {
-          id: 'user-4',
-          full_name: 'Priya Patel',
-          avatar_url:
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop',
-        },
-      },
-    ];
-
-    return mockMessages;
-  }
-
   let query = supabase
     .from('messages')
     .select(
@@ -401,28 +217,6 @@ export async function getGroupMessages(groupId: string, limit = 50, before?: str
 
 // Send a message to a group
 export async function sendGroupMessage(message: CreateMessage, userId: string) {
-  // Handle mock group IDs - return a mock sent message
-  if (message.group_id && message.group_id.startsWith('group-mock-')) {
-    console.log('[CHAT SERVICE] Mock group detected, returning mock sent message');
-
-    const mockSentMessage: Message = {
-      id: `msg-${Date.now()}`,
-      group_id: message.group_id,
-      user_id: userId,
-      content: message.content,
-      message_type: message.message_type || 'text',
-      is_deleted: false,
-      created_at: new Date().toISOString(),
-      user: {
-        id: userId,
-        full_name: 'You',
-        avatar_url: null,
-      },
-    };
-
-    return mockSentMessage;
-  }
-
   const { data, error } = await supabase
     .from('messages')
     .insert({

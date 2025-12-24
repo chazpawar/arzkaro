@@ -12,83 +12,6 @@ import { useEvent } from '../../../src/hooks/use-events';
 import { createBooking } from '../../../src/services/booking-service';
 import { razorpayService } from '../../../src/services/razorpay-service';
 
-// Mock events data - same as in [id].tsx
-const MOCK_EVENTS: Record<string, any> = {
-  exp1: {
-    id: 'exp1',
-    title: 'Pottery Workshop',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 1200,
-    location_name: 'Indiranagar',
-    start_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000 + 3 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'experience',
-  },
-  exp2: {
-    id: 'exp2',
-    title: 'Wine Tasting',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 2500,
-    location_name: 'Nandi Hills Vineyard',
-    start_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000 + 4 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'experience',
-  },
-  exp3: {
-    id: 'exp3',
-    title: 'Stand-up Comedy Night',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    price: 499,
-    location_name: 'The Comedy Store',
-    start_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'experience',
-  },
-  trip1: {
-    id: 'trip1',
-    title: 'Manali Backpacking',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 8499,
-    location_name: 'Manali, Himachal Pradesh',
-    departure_location: 'Bangalore',
-    start_date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 26 * 24 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'trip',
-  },
-  trip2: {
-    id: 'trip2',
-    title: 'Goa Beach Party',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 12999,
-    location_name: 'Goa',
-    start_date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'trip',
-  },
-  trip3: {
-    id: 'trip3',
-    title: 'Kasol & Kheerganga Trek',
-    cover_image_url:
-      'https://images.unsplash.com/photo-1455620611406-966ca6889d80?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    price: 7999,
-    location_name: 'Kasol, Himachal Pradesh',
-    start_date: new Date(Date.now() + 35 * 24 * 60 * 60 * 1000).toISOString(),
-    end_date: new Date(Date.now() + 39 * 24 * 60 * 60 * 1000).toISOString(),
-    currency: 'INR',
-    type: 'trip',
-  },
-};
-
 interface TicketType {
   id: string;
   name: string;
@@ -103,15 +26,9 @@ export default function BookEventScreen() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
 
-  // Check if this is a mock event
-  const isMockEvent = id && MOCK_EVENTS[id];
-  const mockEvent = isMockEvent ? MOCK_EVENTS[id] : null;
+  // Use real event hook
+  const { event, ticketTypes, loading, error } = useEvent(id);
 
-  // Use real event hook (skip if mock)
-  const { event: realEvent, ticketTypes, loading, error } = useEvent(isMockEvent ? '' : id);
-
-  // Use mock event if available, otherwise real event
-  const event = mockEvent || realEvent;
   const [bookingLoading, setBookingLoading] = useState(false);
 
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
@@ -176,21 +93,6 @@ export default function BookEventScreen() {
 
   const handleConfirmBooking = async () => {
     if (!user?.id || !event?.id) return;
-
-    // For mock events, just show a success message
-    if (isMockEvent) {
-      Alert.alert(
-        'Demo Booking Confirmed! 🎉',
-        `This is a demo booking for ${event.title}. In the real app, payment would be processed here. Quantity: ${quantity} tickets, Total: ₹${totalAmount.toLocaleString('en-IN')}`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.back(),
-          },
-        ]
-      );
-      return;
-    }
 
     try {
       setBookingLoading(true);
@@ -273,8 +175,8 @@ export default function BookEventScreen() {
     }
   };
 
-  // Show loading spinner while fetching event (skip for mock)
-  if (loading && !isMockEvent) {
+  // Show loading spinner while fetching event
+  if (loading) {
     return (
       <SafeAreaView style={styles.container}>
         <LoadingSpinner fullScreen />
@@ -282,7 +184,7 @@ export default function BookEventScreen() {
     );
   }
 
-  if ((error || !event) && !isMockEvent) {
+  if (error || !event) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
