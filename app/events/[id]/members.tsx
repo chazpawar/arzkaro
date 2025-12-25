@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
+import { Spacing, BorderRadius } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import * as ChatService from '../../../src/services/chat-service';
 import * as FriendsService from '../../../src/services/friends-service';
@@ -220,44 +220,41 @@ export default function GroupMembersScreen() {
     switch (status) {
       case 'loading':
         return (
-          <View style={styles.friendButton}>
+          <View style={styles.followButton}>
             <LoadingSpinner size="small" />
           </View>
         );
 
       case 'friends':
         return (
-          <View style={[styles.friendButton, styles.friendButtonFriends]}>
-            <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-            <Text style={styles.friendButtonTextFriends}>Friends</Text>
+          <View style={[styles.followButton, styles.followButtonFriends]}>
+            <Text style={styles.followButtonTextFriends}>Friends</Text>
           </View>
         );
 
       case 'sent':
         return (
           <Pressable
-            style={[styles.friendButton, styles.friendButtonSent]}
+            style={[styles.followButton, styles.followButtonSent]}
             onPress={(e) => {
               e.stopPropagation();
               handleCancelRequest(memberId);
             }}
           >
-            <Ionicons name="hourglass-outline" size={18} color={Colors.textSecondary} />
-            <Text style={styles.friendButtonTextSent}>Pending</Text>
+            <Text style={styles.followButtonTextSent}>Pending</Text>
           </Pressable>
         );
 
       case 'received':
         return (
           <Pressable
-            style={[styles.friendButton, styles.friendButtonAccept]}
+            style={[styles.followButton, styles.followButtonFollow]}
             onPress={(e) => {
               e.stopPropagation();
               handleAcceptRequest(memberId, displayName);
             }}
           >
-            <Ionicons name="person-add" size={18} color={Colors.background} />
-            <Text style={styles.friendButtonTextAccept}>Accept</Text>
+            <Text style={styles.followButtonTextFollow}>Accept</Text>
           </Pressable>
         );
 
@@ -265,14 +262,13 @@ export default function GroupMembersScreen() {
       default:
         return (
           <Pressable
-            style={[styles.friendButton, styles.friendButtonAdd]}
+            style={[styles.followButton, styles.followButtonFollow]}
             onPress={(e) => {
               e.stopPropagation();
               handleAddFriend(memberId, displayName);
             }}
           >
-            <Ionicons name="person-add-outline" size={18} color={Colors.primary} />
-            <Text style={styles.friendButtonTextAdd}>Add Friend</Text>
+            <Text style={styles.followButtonTextFollow}>Follow</Text>
           </Pressable>
         );
     }
@@ -283,66 +279,48 @@ export default function GroupMembersScreen() {
 
     const badge = getRoleBadge(item.role);
     const displayName = item.user.full_name || item.user.email.split('@')[0] || 'User';
+    const username = item.user.email.split('@')[0] || 'user';
     const isCurrentUser = item.user_id === user?.id;
 
     return (
-      <View style={[styles.memberItem, isCurrentUser && styles.memberItemCurrent]}>
-        <Pressable style={styles.memberPressable} onPress={() => handleMemberPress(item.user_id)}>
-          {/* Avatar */}
-          <View style={styles.avatarContainer}>
-            {item.user.avatar_url ? (
-              <Image source={{ uri: item.user.avatar_url }} style={styles.avatar} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarText}>{displayName.charAt(0).toUpperCase()}</Text>
-              </View>
-            )}
-            {badge && (
-              <View style={[styles.roleBadge, { backgroundColor: badge.color }]}>
-                <Text style={styles.roleBadgeText}>{badge.icon}</Text>
-              </View>
-            )}
-          </View>
-
-          {/* Member Info */}
-          <View style={styles.memberInfo}>
-            <View style={styles.memberNameRow}>
-              <Text style={styles.memberName} numberOfLines={1}>
-                {displayName}
-                {isCurrentUser && <Text style={styles.youText}> (You)</Text>}
-              </Text>
+      <Pressable
+        style={[styles.memberItem, isCurrentUser && styles.memberItemCurrent]}
+        onPress={() => handleMemberPress(item.user_id)}
+      >
+        {/* Avatar */}
+        <View style={styles.avatarContainer}>
+          {item.user.avatar_url ? (
+            <Image source={{ uri: item.user.avatar_url }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={40} color={Colors.textSecondary} />
             </View>
-            {badge && <Text style={styles.memberRole}>{badge.label}</Text>}
-            <Text style={styles.memberJoined}>
-              Joined{' '}
-              {new Date(item.joined_at).toLocaleDateString('en-IN', {
-                month: 'short',
-                day: 'numeric',
-              })}
-            </Text>
-          </View>
+          )}
+          {badge && (
+            <View>
+              <Text style={styles.roleBadgeText}></Text>
+            </View>
+          )}
+        </View>
 
-          {/* Arrow */}
-          <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
-        </Pressable>
+        {/* Member Info */}
+        <View style={styles.memberInfo}>
+          <Text style={styles.memberUsername} numberOfLines={1}>
+            {username}
+            {isCurrentUser}
+          </Text>
+          <Text style={styles.memberFullName} numberOfLines={1}>
+            {displayName.toUpperCase()}
+          </Text>
+        </View>
 
         {/* Friend Button */}
-        {renderFriendButton(item.user_id, displayName)}
-      </View>
+        {!isCurrentUser && renderFriendButton(item.user_id, displayName)}
+      </Pressable>
     );
   };
 
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.headerIcon}>
-        <Ionicons name="people" size={32} color={Colors.primary} />
-      </View>
-      <Text style={styles.headerTitle}>Group Members</Text>
-      <Text style={styles.headerSubtitle}>
-        {members.length} {members.length === 1 ? 'member' : 'members'} in this group
-      </Text>
-    </View>
-  );
+  const renderHeader = () => null;
 
   // Not authenticated
   if (!isAuthenticated) {
@@ -436,80 +414,35 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   list: {
-    padding: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-    paddingTop: Spacing.md,
-  },
-  headerIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.primarySoft,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.md,
-  },
-  headerTitle: {
-    ...Typography.h2,
-    color: Colors.text,
-    marginBottom: Spacing.xs,
-  },
-  headerSubtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
   },
   memberItem: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.borderLight,
-    overflow: 'hidden',
-  },
-  memberItemCurrent: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primarySoft,
-  },
-  memberPressable: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: Spacing.md,
+    backgroundColor: 'transparent',
+    paddingVertical: Spacing.md,
     gap: Spacing.md,
+    borderBottomWidth: 0,
+  },
+  memberItemCurrent: {
+    backgroundColor: 'transparent',
   },
   avatarContainer: {
     position: 'relative',
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
   },
   avatarPlaceholder: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: Colors.primary,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  avatarText: {
-    ...Typography.h3,
-    color: Colors.background,
-  },
-  roleBadge: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.background,
   },
   roleBadgeText: {
     fontSize: 12,
@@ -517,68 +450,57 @@ const styles = StyleSheet.create({
   memberInfo: {
     flex: 1,
   },
-  memberNameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  memberName: {
-    ...Typography.bodyMedium,
+  memberUsername: {
+    fontSize: 18,
+    fontWeight: '600',
     color: Colors.text,
-    flex: 1,
+    marginBottom: 4,
   },
-  youText: {
+  youBadge: {
+    fontSize: 14,
+    fontWeight: '400',
     color: Colors.primary,
   },
-  memberRole: {
-    ...Typography.caption,
-    color: Colors.primary,
-    marginBottom: 2,
-  },
-  memberJoined: {
-    ...Typography.caption,
+  memberFullName: {
+    fontSize: 13,
+    fontWeight: '400',
     color: Colors.textSecondary,
+    letterSpacing: 0.5,
   },
-  friendButton: {
-    flexDirection: 'row',
+  followButton: {
+    paddingHorizontal: Spacing.lg + 4,
+    paddingVertical: Spacing.sm + 2,
+    borderRadius: BorderRadius.full,
+    minWidth: 100,
     alignItems: 'center',
-    gap: 6,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.borderLight,
     justifyContent: 'center',
   },
-  friendButtonAdd: {
-    backgroundColor: Colors.primarySoft,
+  followButtonFollow: {
+    backgroundColor: Colors.primary,
   },
-  friendButtonTextAdd: {
-    ...Typography.caption,
-    color: Colors.primary,
+  followButtonTextFollow: {
+    fontSize: 15,
     fontWeight: '600',
-  },
-  friendButtonFriends: {
-    backgroundColor: Colors.successLight,
-  },
-  friendButtonTextFriends: {
-    ...Typography.caption,
-    color: Colors.success,
-    fontWeight: '600',
-  },
-  friendButtonSent: {
-    backgroundColor: Colors.surfaceSecondary,
-  },
-  friendButtonTextSent: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    fontWeight: '600',
-  },
-  friendButtonAccept: {
-    backgroundColor: Colors.success,
-  },
-  friendButtonTextAccept: {
-    ...Typography.caption,
     color: Colors.background,
+  },
+  followButtonFriends: {
+    backgroundColor: Colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  followButtonTextFriends: {
+    fontSize: 15,
     fontWeight: '600',
+    color: Colors.text,
+  },
+  followButtonSent: {
+    backgroundColor: Colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  followButtonTextSent: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: Colors.textSecondary,
   },
 });

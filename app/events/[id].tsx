@@ -9,6 +9,7 @@ import {
   Platform,
   Dimensions,
   Modal,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +18,8 @@ import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
+import { getProfile } from '../../src/services/user-service';
+import type { Profile } from '../../src/types/user.types';
 
 // Expandable Text Component
 interface ExpandableTextProps {
@@ -81,9 +84,30 @@ export default function EventDetailsScreen() {
   const router = useRouter();
   const [showAllGalleryImages, setShowAllGalleryImages] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
+  const [showHostModal, setShowHostModal] = React.useState(false);
+  const [hostProfile, setHostProfile] = React.useState<Profile | null>(null);
+  const [loadingHostProfile, setLoadingHostProfile] = React.useState(false);
 
   // Fetch real event data
   const { event, ticketTypes, loading, error } = useEvent(id);
+
+  // Fetch host profile
+  const fetchHostProfile = async (hostId: string) => {
+    setShowHostModal(true);
+    setLoadingHostProfile(true);
+    setHostProfile(null); // Clear previous profile
+
+    try {
+      const profile = await getProfile(hostId);
+      console.log('[EVENT DETAIL] Host profile loaded:', profile);
+      setHostProfile(profile);
+    } catch (err) {
+      console.error('[EVENT DETAIL] Error fetching host profile:', err);
+      setHostProfile(null);
+    } finally {
+      setLoadingHostProfile(false);
+    }
+  };
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -370,7 +394,7 @@ export default function EventDetailsScreen() {
             {/* Host Section */}
             <Pressable
               style={styles.hostSection}
-              onPress={() => router.push(`/profile?userId=${event.host_id}`)}
+              onPress={() => event.host_id && fetchHostProfile(event.host_id)}
             >
               <View style={styles.hostAvatar}>
                 {event.host?.avatar_url ? (
@@ -698,6 +722,144 @@ export default function EventDetailsScreen() {
             </View>
           </Modal>
         )}
+
+        {/* Host Profile Modal */}
+        <Modal
+          visible={showHostModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowHostModal(false)}
+        >
+          <View style={styles.hostModalContainer}>
+            <Pressable style={styles.hostModalOverlay} onPress={() => setShowHostModal(false)} />
+            <View style={styles.hostModalContent}>
+              {/* Header */}
+              <View style={styles.hostModalHeader}>
+                <Text style={styles.hostModalTitle}>Host Profile</Text>
+                <Pressable onPress={() => setShowHostModal(false)}>
+                  <Ionicons name="close" size={28} color={Colors.text} />
+                </Pressable>
+              </View>
+
+              {loadingHostProfile ? (
+                <View style={styles.hostModalLoading}>
+                  <LoadingSpinner />
+                  <Text style={styles.hostModalLoadingText}>Loading profile...</Text>
+                </View>
+              ) : hostProfile ? (
+                <ScrollView style={styles.hostModalScroll} showsVerticalScrollIndicator={false}>
+                  {/* Avatar */}
+                  <View style={styles.hostModalAvatarContainer}>
+                    {hostProfile.avatar_url ? (
+                      <Image
+                        source={{ uri: hostProfile.avatar_url }}
+                        style={styles.hostModalAvatar}
+                      />
+                    ) : (
+                      <View style={styles.hostModalAvatarPlaceholder}>
+                        <Ionicons name="person" size={60} color={Colors.textSecondary} />
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Profile Info */}
+                  <View style={styles.hostModalInfo}>
+                    {/* Full Name - Always show if available */}
+                    <View style={styles.hostModalRow}>
+                      <Ionicons name="person-outline" size={20} color={Colors.primary} />
+                      <View style={styles.hostModalRowContent}>
+                        <Text style={styles.hostModalLabel}>Full Name</Text>
+                        <Text style={styles.hostModalValue}>
+                          {hostProfile.full_name || 'Not provided'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* Username */}
+                    {hostProfile.username && (
+                      <View style={styles.hostModalRow}>
+                        <Ionicons name="at" size={20} color={Colors.primary} />
+                        <View style={styles.hostModalRowContent}>
+                          <Text style={styles.hostModalLabel}>Username</Text>
+                          <Text style={styles.hostModalValue}>{hostProfile.username}</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Email - Always show */}
+                    <View style={styles.hostModalRow}>
+                      <Ionicons name="mail-outline" size={20} color={Colors.primary} />
+                      <View style={styles.hostModalRowContent}>
+                        <Text style={styles.hostModalLabel}>Email</Text>
+                        <Text style={styles.hostModalValue}>{hostProfile.email}</Text>
+                      </View>
+                    </View>
+
+                    {/* Phone */}
+                    {hostProfile.phone && (
+                      <Pressable
+                        style={styles.hostModalRow}
+                        onPress={() => Linking.openURL(`tel:${hostProfile.phone}`)}
+                      >
+                        <Ionicons name="call-outline" size={20} color={Colors.primary} />
+                        <View style={styles.hostModalRowContent}>
+                          <Text style={styles.hostModalLabel}>Phone</Text>
+                          <Text style={[styles.hostModalValue, styles.hostModalLink]}>
+                            {hostProfile.phone}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+                      </Pressable>
+                    )}
+
+                    {/* Bio */}
+                    {hostProfile.bio && (
+                      <View style={styles.hostModalRow}>
+                        <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
+                        <View style={styles.hostModalRowContent}>
+                          <Text style={styles.hostModalLabel}>Bio</Text>
+                          <Text style={styles.hostModalValue}>{hostProfile.bio}</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Location */}
+                    {hostProfile.location && (
+                      <View style={styles.hostModalRow}>
+                        <Ionicons name="location-outline" size={20} color={Colors.primary} />
+                        <View style={styles.hostModalRowContent}>
+                          <Text style={styles.hostModalLabel}>Location</Text>
+                          <Text style={styles.hostModalValue}>{hostProfile.location}</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Website */}
+                    {hostProfile.website && (
+                      <Pressable
+                        style={styles.hostModalRow}
+                        onPress={() => Linking.openURL(hostProfile.website!)}
+                      >
+                        <Ionicons name="globe-outline" size={20} color={Colors.primary} />
+                        <View style={styles.hostModalRowContent}>
+                          <Text style={styles.hostModalLabel}>Website</Text>
+                          <Text style={[styles.hostModalValue, styles.hostModalLink]}>
+                            {hostProfile.website}
+                          </Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+                      </Pressable>
+                    )}
+                  </View>
+                </ScrollView>
+              ) : (
+                <View style={styles.hostModalLoading}>
+                  <Text style={styles.hostModalError}>Failed to load host profile</Text>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
       </View>
     </>
   );
@@ -1282,6 +1444,109 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.primary,
     fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+  // Host Modal Styles
+  hostModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  hostModalOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  hostModalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    maxHeight: '90%',
+    minHeight: 400,
+    width: '95%',
+    paddingBottom: Platform.OS === 'ios' ? Spacing.lg : Spacing.lg,
+  },
+  hostModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  hostModalTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  hostModalLoading: {
+    padding: Spacing.xl * 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 200,
+  },
+  hostModalLoadingText: {
+    marginTop: Spacing.md,
+    fontSize: 14,
+    color: Colors.textSecondary,
+  },
+  hostModalError: {
+    fontSize: 16,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+  },
+  hostModalScroll: {
+    flex: 1,
+  },
+  hostModalAvatarContainer: {
+    alignItems: 'center',
+    paddingVertical: Spacing.xl,
+  },
+  hostModalAvatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  hostModalAvatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.surfaceSecondary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hostModalInfo: {
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+    paddingBottom: Spacing.lg,
+  },
+  hostModalRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+    padding: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+  },
+  hostModalRowContent: {
+    flex: 1,
+  },
+  hostModalLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  hostModalValue: {
+    fontSize: 16,
+    color: Colors.text,
+    lineHeight: 22,
+  },
+  hostModalLink: {
+    color: Colors.primary,
     textDecorationLine: 'underline',
   },
 });
