@@ -29,11 +29,26 @@ interface MenuItemType {
 
 export default function ProfileTab() {
   const router = useRouter();
-  const { user, profile, isHost, isAdmin, role, refreshProfile, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    isHost,
+    isAdmin,
+    role,
+    effectiveRole,
+    viewAsUser,
+    toggleViewMode,
+    refreshProfile,
+    signOut,
+  } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [loadStats, setLoadStats] = useState(false);
   const [friendsCount, setFriendsCount] = useState(0);
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+
+  // For UI display, use effectiveRole
+  const showAsAdmin = effectiveRole === 'admin';
+  const showAsHost = effectiveRole === 'host' || effectiveRole === 'admin';
 
   // Lazy load stats only when needed - NOT on initial render
   const { bookings } = useBookings(loadStats ? user?.id : undefined);
@@ -111,7 +126,7 @@ export default function ProfileTab() {
   const ticketCount = tickets.length;
 
   const handleBecomeHost = () => {
-    if (isHost) {
+    if (showAsHost) {
       router.push('/host/dashboard');
     } else {
       router.push('/host/request');
@@ -146,11 +161,24 @@ export default function ProfileTab() {
       badge: pendingRequestsCount > 0 ? String(pendingRequestsCount) : undefined,
       showArrow: true,
     },
-    { icon: 'help-circle-outline', label: 'Help & Support', route: '/support', showArrow: true },
+    {
+      icon: 'settings-outline',
+      label: 'Settings',
+      route: '/settings',
+      showArrow: true,
+    },
   ];
 
+  // Add support link
+  menuItems.push({
+    icon: 'help-circle-outline',
+    label: 'Help & Support',
+    route: '/support',
+    showArrow: true,
+  });
+
   // Add "Become a Host" for normal users (not hosts, not admins)
-  if (!isHost && !isAdmin) {
+  if (!showAsHost && !showAsAdmin) {
     menuItems.push({
       icon: 'rocket-outline',
       label: 'Become a Host',
@@ -160,7 +188,7 @@ export default function ProfileTab() {
   }
 
   // Add admin panel if user is admin
-  if (isAdmin) {
+  if (showAsAdmin) {
     menuItems.splice(2, 0, {
       icon: 'shield-outline',
       label: 'Admin Panel',
@@ -170,9 +198,10 @@ export default function ProfileTab() {
     });
   }
 
-  // Add host dashboard if user is host
-  if (isHost) {
-    menuItems.splice(2, 0, {
+  // Add host dashboard if user is host (insert after admin panel if it exists)
+  if (showAsHost) {
+    const insertIndex = showAsAdmin ? 3 : 2;
+    menuItems.splice(insertIndex, 0, {
       icon: 'bar-chart-outline',
       label: 'Host Dashboard',
       route: '/host/dashboard',
@@ -218,6 +247,15 @@ export default function ProfileTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Admin View Banner */}
+      {isAdmin && viewAsUser && (
+        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
+          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
+          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
+          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
+        </Pressable>
+      )}
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -249,11 +287,11 @@ export default function ProfileTab() {
 
               {/* Role Badges */}
               <View style={styles.badgesContainer}>
-                {isAdmin ? (
+                {showAsAdmin ? (
                   <View style={[styles.roleBadge, styles.adminBadge]}>
                     <Text style={styles.roleBadgeText}>Admin</Text>
                   </View>
-                ) : isHost ? (
+                ) : showAsHost ? (
                   <View style={[styles.roleBadge, styles.hostBadge]}>
                     <Ionicons name="star" size={14} color={Colors.textInverse} />
                     <Text style={styles.roleBadgeText}>Host</Text>
@@ -536,5 +574,27 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     color: Colors.textTertiary,
+  },
+  viewModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.warningLight,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+  },
+  viewModeBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.warning,
+  },
+  viewModeBannerAction: {
+    fontSize: 12,
+    color: Colors.warning,
+    opacity: 0.8,
+    marginLeft: Spacing.xs,
   },
 });

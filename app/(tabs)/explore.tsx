@@ -8,6 +8,7 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
 import { useEvents, useFeaturedEvents } from '../../src/hooks/use-events';
+import { useAuth } from '../../src/contexts/auth-context';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
@@ -179,6 +180,7 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
 
 export default function ExploreTab() {
   const router = useRouter();
+  const { isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
 
   // State for active view - now inline on same page, default to 'events' (For You)
@@ -350,6 +352,15 @@ export default function ExploreTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Admin View Banner */}
+      {isAdmin && viewAsUser && (
+        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
+          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
+          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
+          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
+        </Pressable>
+      )}
+
       {/* Logo - Hide when a specific category (not 'all') is selected */}
       {selectedTag === 'all' && (
         <View style={styles.logoContainer}>
@@ -766,5 +777,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  viewModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.warningLight,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+  },
+  viewModeBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.warning,
+  },
+  viewModeBannerAction: {
+    fontSize: 12,
+    color: Colors.warning,
+    opacity: 0.8,
+    marginLeft: Spacing.xs,
   },
 });

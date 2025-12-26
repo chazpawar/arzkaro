@@ -17,6 +17,9 @@ interface AuthContextType {
   isHost: boolean;
   isAdmin: boolean;
   role: UserRole;
+  viewAsUser: boolean; // Admin viewing as regular user
+  effectiveRole: UserRole; // Role to use for UI display
+  toggleViewMode: () => void; // Toggle between admin and user view
   signOut: () => Promise<void>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
@@ -33,6 +36,11 @@ const AuthContext = createContext<AuthContextType>({
   isHost: false,
   isAdmin: false,
   role: 'user',
+  viewAsUser: false,
+  effectiveRole: 'user',
+  toggleViewMode: () => {
+    /* noop */
+  },
   signOut: async () => {
     /* noop */
   },
@@ -58,6 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [viewAsUser, setViewAsUser] = useState(false); // Admin view toggle
   const loadingRef = useRef(true); // Use ref to track loading state for timeout
 
   // Update ref when loading changes
@@ -348,6 +357,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(null);
       setUser(null);
       setProfile(null);
+      setViewAsUser(false); // Reset view mode on sign out
 
       console.log('✅ [AUTH] Sign out successful');
     } catch (error) {
@@ -356,6 +366,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setSession(null);
       setUser(null);
       setProfile(null);
+      setViewAsUser(false);
     }
   }, []);
 
@@ -507,6 +518,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isHost = role === 'host' || role === 'admin';
   const isAdmin = role === 'admin';
 
+  // Effective role for UI display - if admin is viewing as user, return 'user'
+  const effectiveRole: UserRole = isAdmin && viewAsUser ? 'user' : role;
+
+  // Toggle view mode - only works for admins
+  const toggleViewMode = useCallback(() => {
+    if (isAdmin) {
+      setViewAsUser((prev) => {
+        const newValue = !prev;
+        console.log(
+          `🎭 [AUTH] Admin view mode toggled: ${newValue ? 'Viewing as User' : 'Admin Mode'}`
+        );
+        return newValue;
+      });
+    }
+  }, [isAdmin]);
+
   // Log role changes
   useEffect(() => {
     console.log('🎭 [AUTH] Role state updated:', {
@@ -531,6 +558,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         isHost,
         isAdmin,
         role,
+        viewAsUser,
+        effectiveRole,
+        toggleViewMode,
         signOut,
         refreshProfile,
         updateProfile,

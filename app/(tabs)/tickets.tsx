@@ -23,7 +23,7 @@ import { useTickets } from '../../src/hooks/use-bookings';
 
 export default function TicketsTab() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
@@ -196,6 +196,15 @@ export default function TicketsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Admin View Banner */}
+      {isAdmin && viewAsUser && (
+        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
+          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
+          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
+          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
+        </Pressable>
+      )}
+
       {/* Header with Search */}
       <TabHeader
         searchPlaceholder="Search tickets..."
@@ -458,5 +467,27 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: Colors.primary,
+  },
+  viewModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.warningLight,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+  },
+  viewModeBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.warning,
+  },
+  viewModeBannerAction: {
+    fontSize: 12,
+    color: Colors.warning,
+    opacity: 0.8,
+    marginLeft: Spacing.xs,
   },
 });

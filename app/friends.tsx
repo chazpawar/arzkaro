@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   RefreshControl,
   Alert,
 } from 'react-native';
-import { useRouter, Stack } from 'expo-router';
+import { useRouter, Stack, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../src/components/ui/loading-spinner';
@@ -35,7 +35,10 @@ export default function FriendsScreen() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const [friendsData, requestsData] = await Promise.all([
@@ -54,9 +57,18 @@ export default function FriendsScreen() {
     }
   }, [user?.id]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Reload data when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Clear stale data and show loading
+      setLoading(true);
+      setFriends([]);
+      setPendingRequests([]);
+
+      // Load fresh data
+      loadData();
+    }, [loadData])
+  );
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
@@ -279,6 +291,7 @@ export default function FriendsScreen() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
         <EmptyState
           title="Sign In Required"
           emoji="🔒"
@@ -294,7 +307,12 @@ export default function FriendsScreen() {
 
   // Loading
   if (loading) {
-    return <LoadingSpinner fullScreen text="Loading friends..." />;
+    return (
+      <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <LoadingSpinner fullScreen text="Loading friends..." />
+      </SafeAreaView>
+    );
   }
 
   return (
@@ -307,11 +325,13 @@ export default function FriendsScreen() {
         </Pressable>
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Friends</Text>
-          <Text style={styles.headerSubtitle}>
-            {friends.length} friend{friends.length !== 1 ? 's' : ''}
-            {pendingRequests.length > 0 &&
-              ` • ${pendingRequests.length} request${pendingRequests.length !== 1 ? 's' : ''}`}
-          </Text>
+          {!loading && (
+            <Text style={styles.headerSubtitle}>
+              {friends.length} friend{friends.length !== 1 ? 's' : ''}
+              {pendingRequests.length > 0 &&
+                ` • ${pendingRequests.length} request${pendingRequests.length !== 1 ? 's' : ''}`}
+            </Text>
+          )}
         </View>
         <View style={styles.headerActionPlaceholder} />
       </View>
@@ -323,7 +343,7 @@ export default function FriendsScreen() {
           onPress={() => setActiveTab('friends')}
         >
           <Text style={[styles.tabText, activeTab === 'friends' && styles.tabTextActive]}>
-            Friends ({friends.length})
+            Friends{!loading && ` (${friends.length})`}
           </Text>
         </Pressable>
 
@@ -334,7 +354,7 @@ export default function FriendsScreen() {
           <Text style={[styles.tabText, activeTab === 'requests' && styles.tabTextActive]}>
             Requests
           </Text>
-          {pendingRequests.length > 0 && (
+          {!loading && pendingRequests.length > 0 && (
             <View style={styles.badge}>
               <Text style={styles.badgeText}>{pendingRequests.length}</Text>
             </View>

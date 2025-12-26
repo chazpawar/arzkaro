@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Switch, Pressable, StatusBar } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/Colors';
@@ -9,146 +9,113 @@ import { useAuth } from '../src/contexts/auth-context';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { isAdmin, isHost } = useAuth();
+  const { isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const [notifications, setNotifications] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
-  const [autoUpdate, setAutoUpdate] = useState(true);
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Custom Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Settings</Text>
-            <Text style={styles.headerSubtitle}>App configuration</Text>
+    <>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+          {/* Custom Header */}
+          <View style={styles.header}>
+            <Pressable onPress={() => router.back()} style={styles.backButton}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </Pressable>
+            <View style={styles.headerTextContainer}>
+              <Text style={styles.headerTitle}>Settings</Text>
+              <Text style={styles.headerSubtitle}>App configuration</Text>
+            </View>
+            <View style={styles.headerActionPlaceholder} />
           </View>
-          <View style={styles.headerActionPlaceholder} />
-        </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
-          {/* Admin & Host Access */}
-          {(isAdmin || isHost) && (
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Admin View Mode Toggle */}
+            {isAdmin && (
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionHeader}>Admin Tools</Text>
+                <View style={styles.menuList}>
+                  <Pressable style={styles.menuItem} onPress={toggleViewMode}>
+                    <View
+                      style={[
+                        styles.menuIcon,
+                        {
+                          backgroundColor: viewAsUser ? Colors.warning + '10' : Colors.info + '10',
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={viewAsUser ? 'eye-outline' : 'shield-checkmark-outline'}
+                        size={20}
+                        color={viewAsUser ? Colors.warning : Colors.info}
+                      />
+                    </View>
+                    <View style={styles.menuContent}>
+                      <Text style={styles.menuTitle}>
+                        {viewAsUser ? 'Viewing as User' : 'Admin Mode Active'}
+                      </Text>
+                      <Text style={styles.menuSubtitle}>
+                        {viewAsUser
+                          ? 'Tap to switch to admin view'
+                          : 'Tap to preview user experience'}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name={viewAsUser ? 'toggle-outline' : 'toggle'}
+                      size={24}
+                      color={viewAsUser ? Colors.warning : Colors.info}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {/* Preferences */}
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionHeader}>Management</Text>
+              <Text style={styles.sectionHeader}>Preferences</Text>
 
               <View style={styles.menuList}>
-                {isAdmin && (
-                  <Pressable
-                    style={styles.menuItem}
-                    onPress={() => router.push('/admin/dashboard')}
-                  >
-                    <View style={[styles.menuIcon, { backgroundColor: Colors.error + '10' }]}>
-                      <Ionicons name="shield-checkmark-outline" size={20} color={Colors.error} />
-                    </View>
-                    <View style={styles.menuContent}>
-                      <Text style={styles.menuTitle}>Admin Dashboard</Text>
-                      <Text style={styles.menuSubtitle}>Platform controls</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
-                  </Pressable>
-                )}
-
-                {isHost && (
-                  <Pressable
-                    style={[styles.menuItem, isAdmin && styles.menuItemBorder]}
-                    onPress={() => router.push('/host/dashboard')}
-                  >
-                    <View style={[styles.menuIcon, { backgroundColor: Colors.primary + '10' }]}>
-                      <Ionicons name="briefcase-outline" size={20} color={Colors.primary} />
-                    </View>
-                    <View style={styles.menuContent}>
-                      <Text style={styles.menuTitle}>Host Dashboard</Text>
-                      <Text style={styles.menuSubtitle}>Manage events</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
-          )}
-
-          {/* Preferences */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionHeader}>Preferences</Text>
-
-            <View style={styles.menuList}>
-              <View style={styles.menuItem}>
-                <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                  <Ionicons name="notifications-outline" size={20} color={Colors.text} />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Push Notifications</Text>
-                  <Text style={styles.menuSubtitle}>Stay updated</Text>
-                </View>
-                <Switch
-                  value={notifications}
-                  onValueChange={setNotifications}
-                  trackColor={{ false: Colors.border, true: Colors.primary }}
-                  thumbColor="#ffffff"
-                />
-              </View>
-
-              <View style={[styles.menuItem, styles.menuItemBorder]}>
-                <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                  <Ionicons name="moon-outline" size={20} color={Colors.text} />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Dark Mode</Text>
-                  <Text style={styles.menuSubtitle}>Coming soon</Text>
-                </View>
-                <Switch
-                  value={darkMode}
-                  onValueChange={setDarkMode}
-                  trackColor={{ false: Colors.border, true: Colors.primary }}
-                  thumbColor="#ffffff"
-                  disabled
-                />
-              </View>
-
-              <View style={[styles.menuItem, styles.menuItemBorder]}>
-                <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                  <Ionicons name="cloud-download-outline" size={20} color={Colors.text} />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Auto Update</Text>
-                  <Text style={styles.menuSubtitle}>Keep app fresh</Text>
-                </View>
-                <Switch
-                  value={autoUpdate}
-                  onValueChange={setAutoUpdate}
-                  trackColor={{ false: Colors.border, true: Colors.primary }}
-                  thumbColor="#ffffff"
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* About */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionHeader}>About</Text>
-            <View style={styles.menuList}>
-              <View style={styles.menuItem}>
-                <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                  <Ionicons name="information-circle-outline" size={20} color={Colors.text} />
-                </View>
-                <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Version</Text>
-                  <Text style={styles.menuSubtitle}>1.0.0 (Development)</Text>
+                <View style={styles.menuItem}>
+                  <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
+                    <Ionicons name="notifications-outline" size={20} color={Colors.text} />
+                  </View>
+                  <View style={styles.menuContent}>
+                    <Text style={styles.menuTitle}>Push Notifications</Text>
+                    <Text style={styles.menuSubtitle}>Stay updated</Text>
+                  </View>
+                  <Switch
+                    value={notifications}
+                    onValueChange={setNotifications}
+                    trackColor={{ false: Colors.border, true: Colors.primary }}
+                    thumbColor="#ffffff"
+                  />
                 </View>
               </View>
             </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
-    </View>
+
+            {/* About */}
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionHeader}>About</Text>
+              <View style={styles.menuList}>
+                <View style={styles.menuItem}>
+                  <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
+                    <Ionicons name="information-circle-outline" size={20} color={Colors.text} />
+                  </View>
+                  <View style={styles.menuContent}>
+                    <Text style={styles.menuTitle}>Version</Text>
+                    <Text style={styles.menuSubtitle}>1.0.0 (Development)</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </View>
+    </>
   );
 }
 

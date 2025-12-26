@@ -16,7 +16,7 @@ type FilterType = 'all' | 'unread';
 
 export default function ChatsTab() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -217,6 +217,15 @@ export default function ChatsTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Admin View Banner */}
+      {isAdmin && viewAsUser && (
+        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
+          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
+          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
+          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
+        </Pressable>
+      )}
+
       {/* Instagram-style Header */}
       <View style={styles.header}>
         <View style={styles.usernameContainer}>
@@ -439,5 +448,27 @@ const styles = StyleSheet.create({
   },
   cameraButton: {
     padding: 8,
+  },
+  viewModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.warningLight,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+  },
+  viewModeBannerText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.warning,
+  },
+  viewModeBannerAction: {
+    fontSize: 12,
+    color: Colors.warning,
+    opacity: 0.8,
+    marginLeft: Spacing.xs,
   },
 });

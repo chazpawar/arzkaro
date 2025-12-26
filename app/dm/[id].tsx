@@ -25,7 +25,7 @@ import type { DMConversation, DMMessage } from '../../src/types/chat.types';
 export default function DMChatScreen() {
   const { id: conversationId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, viewAsUser } = useAuth();
   const flatListRef = useRef<FlatList>(null);
 
   const [conversation, setConversation] = useState<DMConversation | null>(null);
@@ -333,12 +333,21 @@ export default function DMChatScreen() {
             />
           )}
 
-          {/* Chat Input */}
-          <ChatInput
-            onSend={handleSend}
-            placeholder={`Message ${otherUserName}...`}
-            sending={sending}
-          />
+          {/* Chat Input - Disabled when admin is viewing as user */}
+          {viewAsUser ? (
+            <View style={styles.disabledInputContainer}>
+              <Ionicons name="lock-closed-outline" size={16} color={Colors.textSecondary} />
+              <Text style={styles.disabledInputText}>
+                Chat input disabled in &quot;View as User&quot; mode
+              </Text>
+            </View>
+          ) : (
+            <ChatInput
+              onSend={handleSend}
+              placeholder={`Message ${otherUserName}...`}
+              sending={sending}
+            />
+          )}
         </KeyboardAvoidingView>
       </SafeAreaView>
     </>
@@ -387,5 +396,21 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.full,
     overflow: 'hidden',
+  },
+  disabledInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surfaceSecondary,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.xs,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  disabledInputText: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
   },
 });
