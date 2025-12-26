@@ -9,6 +9,7 @@ import {
   Platform,
   Pressable,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
 import ImageUpload from '../../src/components/ui/image-upload';
 import MultiImageUpload from '../../src/components/ui/multi-image-upload';
+import ItineraryBuilder, { ItineraryDay } from '../../src/components/itinerary-builder';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
@@ -167,6 +169,8 @@ export default function CreateEventScreen() {
   const [termsAndConditions, setTermsAndConditions] = useState('');
   const [category, setCategory] = useState('');
   const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [customTags, setCustomTags] = useState<string[]>([]); // For trips custom tags
+  const [customTagInput, setCustomTagInput] = useState(''); // For adding custom tags
   const [locationName, setLocationName] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -183,10 +187,9 @@ export default function CreateEventScreen() {
   const [departureLocation, setDepartureLocation] = useState('');
   const [pickups, setPickups] = useState<string[]>([]);
   const [pickupInput, setPickupInput] = useState('');
-  const [itinerary, setItinerary] = useState('');
+  const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
   const [whatsIncluded, setWhatsIncluded] = useState('');
   const [whatsNotIncluded, setWhatsNotIncluded] = useState('');
-  const [idealFor, setIdealFor] = useState('');
   const [tripImages, setTripImages] = useState<string[]>([]);
 
   // Date picker state
@@ -508,17 +511,16 @@ export default function CreateEventScreen() {
         currency: 'INR',
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         images: [],
-        tags: subcategories, // Store selected subcategories as tags
+        tags: eventType === 'trip' ? customTags : subcategories, // Custom tags for trips, subcategories for events/experiences
       };
 
       // Add trip-specific fields if creating a trip
       if (eventType === 'trip') {
         eventData.departure_location = departureLocation.trim() || undefined;
         eventData.pickups = pickups.length > 0 ? pickups : undefined;
-        eventData.itinerary = itinerary.trim() || undefined;
+        eventData.itinerary = itinerary.length > 0 ? JSON.stringify(itinerary) : undefined;
         eventData.whats_included = whatsIncluded.trim() || undefined;
         eventData.whats_not_included = whatsNotIncluded.trim() || undefined;
-        eventData.ideal_for = idealFor.trim() || undefined;
         eventData.images = tripImages.length > 0 ? tripImages : [];
       }
 
@@ -611,6 +613,8 @@ export default function CreateEventScreen() {
                           setEventType(type.value);
                           setCategory(''); // Reset category when type changes
                           setSubcategories([]); // Reset subcategories when type changes
+                          setCustomTags([]); // Reset custom tags when type changes
+                          setCustomTagInput(''); // Reset custom tag input
                         }}
                       >
                         <Text
@@ -670,7 +674,10 @@ export default function CreateEventScreen() {
                   folder={`${eventType}s/${user?.id}`}
                 />
 
-                <Text style={styles.inputLabel}>Main Category</Text>
+                {/* Category Selection */}
+                <Text style={styles.inputLabel}>
+                  {eventType === 'trip' ? 'Category' : 'Main Category'}
+                </Text>
                 <ScrollView
                   horizontal
                   showsHorizontalScrollIndicator={false}
@@ -682,7 +689,9 @@ export default function CreateEventScreen() {
                       style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
                       onPress={() => {
                         setCategory(cat);
-                        setSubcategories([]); // Reset subcategories when main category changes
+                        if (eventType !== 'trip') {
+                          setSubcategories([]); // Reset subcategories for events/experiences
+                        }
                       }}
                     >
                       <Text
@@ -698,47 +707,120 @@ export default function CreateEventScreen() {
                 </ScrollView>
                 {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
 
-                {/* Subcategories */}
-                {category && CATEGORY_SUBCATEGORIES[category]?.length > 0 && (
-                  <View style={styles.subcategorySection}>
-                    <Text style={styles.inputLabel}>Subcategories (Select all that apply)</Text>
-                    <View style={styles.subcategoryGrid}>
-                      {CATEGORY_SUBCATEGORIES[category].map((subcat) => (
-                        <Pressable
-                          key={subcat}
-                          style={[
-                            styles.subcategoryChip,
-                            subcategories.includes(subcat) && styles.subcategoryChipSelected,
-                          ]}
-                          onPress={() => {
-                            if (subcategories.includes(subcat)) {
-                              setSubcategories(subcategories.filter((s) => s !== subcat));
-                            } else {
-                              setSubcategories([...subcategories, subcat]);
-                            }
-                          }}
-                        >
-                          <View
+                {/* Subcategories - Only for Events and Experiences */}
+                {eventType !== 'trip' &&
+                  category &&
+                  CATEGORY_SUBCATEGORIES[category]?.length > 0 && (
+                    <View style={styles.subcategorySection}>
+                      <Text style={styles.inputLabel}>Subcategories (Select all that apply)</Text>
+                      <View style={styles.subcategoryGrid}>
+                        {CATEGORY_SUBCATEGORIES[category].map((subcat) => (
+                          <Pressable
+                            key={subcat}
                             style={[
-                              styles.checkbox,
-                              subcategories.includes(subcat) && styles.checkboxChecked,
+                              styles.subcategoryChip,
+                              subcategories.includes(subcat) && styles.subcategoryChipSelected,
                             ]}
+                            onPress={() => {
+                              if (subcategories.includes(subcat)) {
+                                setSubcategories(subcategories.filter((s) => s !== subcat));
+                              } else {
+                                setSubcategories([...subcategories, subcat]);
+                              }
+                            }}
                           >
-                            {subcategories.includes(subcat) && (
-                              <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                            )}
-                          </View>
-                          <Text
-                            style={[
-                              styles.subcategoryChipText,
-                              subcategories.includes(subcat) && styles.subcategoryChipTextSelected,
-                            ]}
-                          >
-                            {subcat}
-                          </Text>
-                        </Pressable>
-                      ))}
+                            <View
+                              style={[
+                                styles.checkbox,
+                                subcategories.includes(subcat) && styles.checkboxChecked,
+                              ]}
+                            >
+                              {subcategories.includes(subcat) && (
+                                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
+                              )}
+                            </View>
+                            <Text
+                              style={[
+                                styles.subcategoryChipText,
+                                subcategories.includes(subcat) &&
+                                  styles.subcategoryChipTextSelected,
+                              ]}
+                            >
+                              {subcat}
+                            </Text>
+                          </Pressable>
+                        ))}
+                      </View>
                     </View>
+                  )}
+
+                {/* Custom Tags - Only for Trips */}
+                {eventType === 'trip' && (
+                  <View style={styles.customTagsSection}>
+                    <Text style={styles.inputLabel}>Tags (Add multiple tags)</Text>
+                    <Text style={styles.tagsHint}>
+                      Add tags like &quot;Adventure&quot;, &quot;Beach&quot;, &quot;Relaxing&quot;,
+                      &quot;Photography&quot; etc.
+                    </Text>
+                    <View style={styles.customTagInputRow}>
+                      <View style={styles.customTagInputWrapper}>
+                        <View style={styles.customTagInputContainer}>
+                          <TextInput
+                            style={styles.customTagTextInput}
+                            placeholder="Type a tag and press Add"
+                            placeholderTextColor={Colors.textSecondary}
+                            value={customTagInput}
+                            onChangeText={setCustomTagInput}
+                            onSubmitEditing={() => {
+                              const tag = customTagInput.trim();
+                              if (tag && !customTags.includes(tag)) {
+                                setCustomTags([...customTags, tag]);
+                                setCustomTagInput('');
+                              }
+                            }}
+                            returnKeyType="done"
+                            blurOnSubmit={false}
+                          />
+                        </View>
+                      </View>
+                      <Pressable
+                        style={[
+                          styles.addTagButton,
+                          !customTagInput.trim() && styles.addTagButtonDisabled,
+                        ]}
+                        onPress={() => {
+                          const tag = customTagInput.trim();
+                          if (tag && !customTags.includes(tag)) {
+                            setCustomTags([...customTags, tag]);
+                            setCustomTagInput('');
+                          }
+                        }}
+                        disabled={!customTagInput.trim()}
+                      >
+                        <Ionicons
+                          name="add"
+                          size={24}
+                          color={!customTagInput.trim() ? Colors.textTertiary : Colors.textInverse}
+                        />
+                      </Pressable>
+                    </View>
+                    {customTags.length > 0 && (
+                      <View style={styles.customTagsList}>
+                        {customTags.map((tag, index) => (
+                          <View key={index} style={styles.customTagChip}>
+                            <Text style={styles.customTagChipText}>{tag}</Text>
+                            <Pressable
+                              onPress={() => {
+                                setCustomTags(customTags.filter((t) => t !== tag));
+                              }}
+                              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                              <Ionicons name="close-circle" size={18} color={Colors.primary} />
+                            </Pressable>
+                          </View>
+                        ))}
+                      </View>
+                    )}
                   </View>
                 )}
               </View>
@@ -1021,14 +1103,7 @@ export default function CreateEventScreen() {
                     <Text style={styles.sectionHeaderText}>Itinerary</Text>
                   </View>
 
-                  <Input
-                    label="Day-by-Day Itinerary"
-                    placeholder="Describe the trip schedule..."
-                    value={itinerary}
-                    onChangeText={setItinerary}
-                    multiline
-                    numberOfLines={6}
-                  />
+                  <ItineraryBuilder value={itinerary} onChange={setItinerary} />
                 </View>
 
                 {/* Trip Gallery */}
@@ -1070,23 +1145,6 @@ export default function CreateEventScreen() {
                     onChangeText={setWhatsNotIncluded}
                     multiline
                     numberOfLines={3}
-                  />
-                </View>
-
-                {/* Ideal For */}
-                <View style={styles.sectionCard}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="people" size={20} color={Colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Target Audience</Text>
-                  </View>
-
-                  <Input
-                    label="Ideal For"
-                    placeholder="Adventure enthusiasts, Families..."
-                    value={idealFor}
-                    onChangeText={setIdealFor}
-                    multiline
-                    numberOfLines={2}
                   />
                 </View>
               </View>
@@ -1555,6 +1613,76 @@ const styles = StyleSheet.create({
   checkboxChecked: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
+  },
+  // Custom Tags Section (for Trips)
+  customTagsSection: {
+    marginTop: Spacing.lg,
+  },
+  tagsHint: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  customTagInputRow: {
+    flexDirection: 'row',
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  customTagInputWrapper: {
+    flex: 1,
+  },
+  customTagInputContainer: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
+    paddingHorizontal: Spacing.md,
+    height: 48,
+    justifyContent: 'center',
+  },
+  customTagTextInput: {
+    fontSize: 16,
+    color: Colors.text,
+    padding: 0,
+    margin: 0,
+  },
+  customTagInput: {
+    marginBottom: 0,
+  },
+  addTagButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: Colors.primary,
+    borderRadius: BorderRadius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addTagButtonDisabled: {
+    backgroundColor: Colors.border,
+    opacity: 0.6,
+  },
+  customTagsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.sm,
+    marginTop: Spacing.md,
+  },
+  customTagChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  customTagChipText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '600',
   },
   // Trip-specific styles
   pickupContainer: {

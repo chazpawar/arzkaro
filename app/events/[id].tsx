@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import ItineraryDisplay from '../../src/components/itinerary-display';
 import { useEvent } from '../../src/hooks/use-events';
 import { getProfile } from '../../src/services/user-service';
 import type { Profile } from '../../src/types/user.types';
@@ -247,7 +248,7 @@ export default function EventDetailsScreen() {
               {/* Category Tags */}
               {event.tags && event.tags.length > 0 && (
                 <View style={styles.categoryTagsRow}>
-                  {event.tags.slice(0, 2).map((tag, index) => (
+                  {event.tags.map((tag, index) => (
                     <View key={index} style={styles.categoryBadge}>
                       <Text style={styles.categoryText}>{tag}</Text>
                     </View>
@@ -493,59 +494,60 @@ export default function EventDetailsScreen() {
                   </View>
                 )}
 
-                {/* Itinerary */}
-                {event.itinerary && (
-                  <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>Itinerary</Text>
-                    <ExpandableText
-                      text={event.itinerary}
-                      style={styles.tripDetailText}
-                      maxLines={8}
-                    />
-                  </View>
-                )}
-
                 {/* What's Included */}
                 {event.whats_included && (
                   <View style={styles.section}>
-                    <View style={styles.tripDetailHeader}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={22}
-                        color={Colors.success}
-                        style={styles.tripDetailHeaderIcon}
-                      />
-                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
-                        What&apos;s Included
-                      </Text>
+                    <Text style={styles.sectionTitle}>What&apos;s Included</Text>
+                    <View style={styles.includesContainer}>
+                      {event.whats_included.split('\n').map((item, index) => {
+                        const trimmed = item.trim();
+                        if (!trimmed) return null;
+                        const cleaned = trimmed.replace(/^[•\-\*·✓✔]\s*/, '');
+                        return (
+                          <View key={index} style={styles.includeItem}>
+                            <Ionicons
+                              name="checkmark-circle"
+                              size={20}
+                              color={Colors.success}
+                              style={styles.includeIcon}
+                            />
+                            <Text style={styles.includeText}>{cleaned}</Text>
+                          </View>
+                        );
+                      })}
                     </View>
-                    <ExpandableText
-                      text={event.whats_included}
-                      style={styles.tripDetailText}
-                      maxLines={5}
-                    />
                   </View>
                 )}
 
                 {/* What's NOT Included */}
                 {event.whats_not_included && (
                   <View style={styles.section}>
-                    <View style={styles.tripDetailHeader}>
-                      <Ionicons
-                        name="close-circle"
-                        size={22}
-                        color={Colors.error}
-                        style={styles.tripDetailHeaderIcon}
-                      />
-                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>
-                        What&apos;s NOT Included
-                      </Text>
+                    <Text style={styles.sectionTitle}>What&apos;s NOT Included</Text>
+                    <View style={styles.includesContainer}>
+                      {event.whats_not_included.split('\n').map((item, index) => {
+                        const trimmed = item.trim();
+                        if (!trimmed) return null;
+                        const cleaned = trimmed.replace(/^[•\-\*·✗✘]\s*/, '');
+                        return (
+                          <View key={index} style={styles.includeItem}>
+                            <Ionicons
+                              name="close-circle"
+                              size={20}
+                              color={Colors.error}
+                              style={styles.includeIcon}
+                            />
+                            <Text style={styles.includeText}>{cleaned}</Text>
+                          </View>
+                        );
+                      })}
                     </View>
-                    <ExpandableText
-                      text={event.whats_not_included}
-                      style={styles.tripDetailText}
-                      maxLines={5}
-                    />
+                  </View>
+                )}
+
+                {/* Itinerary */}
+                {event.itinerary && (
+                  <View style={styles.section}>
+                    <ItineraryDisplay itinerary={event.itinerary} maxDays={3} />
                   </View>
                 )}
 
@@ -578,26 +580,6 @@ export default function EventDetailsScreen() {
                     )}
                   </View>
                 )}
-
-                {/* Ideal For */}
-                {event.ideal_for && (
-                  <View style={styles.section}>
-                    <View style={styles.tripDetailHeader}>
-                      <Ionicons
-                        name="people"
-                        size={22}
-                        color={Colors.primary}
-                        style={styles.tripDetailHeaderIcon}
-                      />
-                      <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Ideal For</Text>
-                    </View>
-                    <ExpandableText
-                      text={event.ideal_for}
-                      style={styles.tripDetailText}
-                      maxLines={4}
-                    />
-                  </View>
-                )}
               </>
             )}
 
@@ -614,17 +596,6 @@ export default function EventDetailsScreen() {
                       </Text>
                     </View>
                     <Text style={styles.ticketTypePrice}>{formatPrice(ticket.price)}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-
-            {/* Tags */}
-            {event.tags && event.tags.length > 0 && (
-              <View style={styles.tagsSection}>
-                {event.tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
                   </View>
                 ))}
               </View>
@@ -1548,5 +1519,23 @@ const styles = StyleSheet.create({
   hostModalLink: {
     color: Colors.primary,
     textDecorationLine: 'underline',
+  },
+  // Includes/Excludes styles
+  includesContainer: {
+    gap: Spacing.sm,
+  },
+  includeItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+  },
+  includeIcon: {
+    marginTop: 2,
+  },
+  includeText: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    lineHeight: 24,
   },
 });

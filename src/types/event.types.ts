@@ -33,7 +33,6 @@ export interface Event {
   itinerary: string | null;
   whats_included: string | null;
   whats_not_included: string | null;
-  ideal_for: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields
@@ -70,7 +69,6 @@ export interface CreateEvent {
   itinerary?: string;
   whats_included?: string;
   whats_not_included?: string;
-  ideal_for?: string;
 }
 
 export interface UpdateEvent extends Partial<CreateEvent> {
