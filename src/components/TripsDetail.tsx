@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import { Colors } from '../constants/Colors';
 import { Fonts } from '../constants/Fonts';
 import { Spacing, BorderRadius } from '../constants/Styles';
-import type { Event } from '../types';
 
 // Dummy trip data since backend only has events mostly
 export const DUMMY_TRIPS = [
@@ -49,34 +48,31 @@ const TRIP_CATEGORIES = [
 ];
 
 interface TripsDetailProps {
-  events: Event[];
   onTripPress?: (tripId: string) => void;
 }
 
-export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
+export default function TripsDetail({ onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Use passed events if available, otherwise fallback to empty (or we could keep DUMMY_TRIPS as a fallback if we really want, but better to move to real data)
-  // For now, let's map the passed events to the structure we need, or update the UI to use Event type directly.
-  // The UI expects: id, image, location, rating, title, date, price
-
+  // Filter DUMMY_TRIPS based on category
   const displayTrips =
-    events.length > 0
-      ? events.map((event) => ({
-          id: event.id,
-          title: event.title,
-          image:
-            event.cover_image_url ||
-            'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-          date: new Date(event.start_date).toLocaleDateString('en-GB', {
-            day: 'numeric',
-            month: 'short',
-          }),
-          price: `₹${event.price}`,
-          rating: 4.5, // Placeholder
-          location: event.location_name || 'Unknown Location',
-        }))
-      : DUMMY_TRIPS;
+    activeFilter === 'All'
+      ? DUMMY_TRIPS
+      : DUMMY_TRIPS.filter((trip) => {
+          // Simple category filtering based on trip properties
+          switch (activeFilter) {
+            case 'Weekend':
+              return trip.price.includes('₹7,999') || trip.price.includes('₹8,499');
+            case 'Budget':
+              return trip.price.includes('₹7,999');
+            case 'Luxury':
+              return trip.price.includes('₹12,999');
+            case 'Adventure':
+              return trip.location.includes('Himachal');
+            default:
+              return true;
+          }
+        });
 
   return (
     <View style={styles.container}>

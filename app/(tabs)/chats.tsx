@@ -423,10 +423,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: -15,
+    marginTop: -10,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 180,
+    height: 80,
   },
   usernameContainer: {
     flexDirection: 'row',
@@ -456,7 +457,7 @@ const styles = StyleSheet.create({
   searchContainer: {
     paddingHorizontal: Spacing.lg,
     paddingTop: 0,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.xs,
   },
   searchBar: {
     flexDirection: 'row',
@@ -474,6 +475,7 @@ const styles = StyleSheet.create({
   filterTabs: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
     gap: Spacing.sm,
   },

@@ -48,10 +48,11 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: -15,
+    marginTop: -10,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 180,
+    height: 80,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.primary,
     marginTop: 0,
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
   },
   searchInput: {
     flex: 1,

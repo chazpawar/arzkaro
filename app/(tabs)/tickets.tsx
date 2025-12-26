@@ -311,14 +311,17 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
+    marginBottom: -15,
+    marginTop: -10,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 180,
+    height: 80,
   },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
     gap: Spacing.sm,
   },

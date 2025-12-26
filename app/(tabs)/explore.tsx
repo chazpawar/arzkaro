@@ -8,7 +8,7 @@ import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import type { Event } from '../../src/types';
-import { useEvents, useFeaturedEvents } from '../../src/hooks/use-events';
+import { useEvents } from '../../src/hooks/use-events';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
@@ -498,8 +498,7 @@ export default function ExploreTab() {
   const [searchLocation, setSearchLocation] = useState('All Locations');
 
   const { events, loading, refresh } = useEvents();
-  const { events: featuredExperiences } = useFeaturedEvents(5, 'experience');
-  const { events: featuredTrips } = useFeaturedEvents(5, 'trip');
+  // All mock data - no backend fetching for experiences/trips
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -767,10 +766,7 @@ export default function ExploreTab() {
           {/* 3. Show trips detail as full page when Trips is clicked */}
           {activeView === 'trips' && selectedTag === 'trips' && (
             <View>
-              <TripsDetail
-                events={filteredEvents}
-                onTripPress={(id) => router.push(`/events/${id}`)}
-              />
+              <TripsDetail onTripPress={(id) => router.push(`/events/${id}`)} />
             </View>
           )}
 
@@ -791,10 +787,7 @@ export default function ExploreTab() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.horizontalList}
                 >
-                  {(featuredExperiences.length > 0
-                    ? featuredExperiences
-                    : FEATURED_EXPERIENCES
-                  ).map((item) => (
+                  {FEATURED_EXPERIENCES.map((item) => (
                     <Pressable
                       key={item.id}
                       style={styles.horizontalCard}
@@ -846,7 +839,7 @@ export default function ExploreTab() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.horizontalList}
                 >
-                  {(featuredTrips.length > 0 ? featuredTrips : DUMMY_TRIPS).map((item) => (
+                  {DUMMY_TRIPS.map((item) => (
                     <Pressable
                       key={item.id}
                       style={styles.horizontalCard}
@@ -929,17 +922,18 @@ const styles = StyleSheet.create({
     paddingTop: 0,
     paddingBottom: 0,
     marginBottom: -15,
+    marginTop: -10,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 180,
+    height: 80,
   },
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.lg,
     paddingTop: 0,
-    paddingBottom: Spacing.sm,
+    paddingBottom: Spacing.xs,
     gap: Spacing.md,
   },
   backButton: {
@@ -975,7 +969,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-around', // Distribute evenly
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.sm,
   },
   categoryCircleContainer: {
     alignItems: 'center',
@@ -1018,7 +1013,7 @@ const styles = StyleSheet.create({
   },
   // Featured Sections
   sectionContainer: {
-    marginTop: Spacing.xl,
+    marginTop: Spacing.md,
     gap: Spacing.md,
   },
   sectionHeaderRow: {
