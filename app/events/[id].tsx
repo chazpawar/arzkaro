@@ -19,6 +19,10 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
 
+// Icon imports from assets/others
+const LocationIcon = require("../../assets/others/location.png");
+const DateTimeIcon = require("../../assets/others/dateandtime.png");
+
 // Mock data for demo experiences/trips
 const MOCK_EVENTS: Record<string, any> = {
   exp1: {
@@ -570,14 +574,14 @@ export default function EventDetailsScreen() {
                   {/* Destination Location */}
                   {event.location_name && (
                     <View style={styles.tripCompactRow}>
-                      <Ionicons name="location" size={16} color={Colors.primary} />
+                      <Image source={LocationIcon} style={{ width: 20, height: 20 }} resizeMode="contain" />
                       <Text style={styles.tripCompactText}>{event.location_name}</Text>
                     </View>
                   )}
 
                   {/* Trip Duration & Dates */}
                   <View style={styles.tripCompactRow}>
-                    <Ionicons name="calendar" size={16} color={Colors.primary} />
+                    <Image source={DateTimeIcon} style={{ width: 24, height: 24 }} resizeMode="contain" />
                     <Text style={styles.tripCompactText}>
                       {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                       {getTripDuration() > 0 && ` (${getTripDuration()} days)`}
@@ -594,7 +598,7 @@ export default function EventDetailsScreen() {
                   {/* Location */}
                   {event.location_name && (
                     <View style={styles.locationRow}>
-                      <Ionicons name="location" size={18} color={Colors.primary} />
+                      <Image source={LocationIcon} style={{ width: 22, height: 22 }} resizeMode="contain" />
                       <Text style={styles.locationText}>{event.location_name}</Text>
                     </View>
                   )}
@@ -606,12 +610,7 @@ export default function EventDetailsScreen() {
             {!isTrip && (
               <View style={styles.quickInfoContainer}>
                 <View style={styles.quickInfoCard}>
-                  <Ionicons
-                    name="calendar-outline"
-                    size={22}
-                    color={Colors.primary}
-                    style={styles.quickInfoIcon}
-                  />
+                  <Image source={DateTimeIcon} style={[styles.quickInfoIcon, { width: 28, height: 28 }]} resizeMode="contain" />
                   <View>
                     <Text style={styles.quickInfoLabel}>DATE</Text>
                     <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
@@ -619,12 +618,7 @@ export default function EventDetailsScreen() {
                 </View>
 
                 <View style={styles.quickInfoCard}>
-                  <Ionicons
-                    name="time-outline"
-                    size={22}
-                    color={Colors.primary}
-                    style={styles.quickInfoIcon}
-                  />
+                  <Image source={DateTimeIcon} style={[styles.quickInfoIcon, { width: 28, height: 28 }]} resizeMode="contain" />
                   <View>
                     <Text style={styles.quickInfoLabel}>TIME</Text>
                     <Text style={styles.quickInfoValue}>
@@ -634,12 +628,7 @@ export default function EventDetailsScreen() {
                 </View>
 
                 <View style={styles.quickInfoCard}>
-                  <Ionicons
-                    name="location-outline"
-                    size={22}
-                    color={Colors.primary}
-                    style={styles.quickInfoIcon}
-                  />
+                  <Image source={LocationIcon} style={[styles.quickInfoIcon, { width: 24, height: 24 }]} resizeMode="contain" />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.quickInfoLabel}>VENUE</Text>
                     <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
@@ -648,32 +637,6 @@ export default function EventDetailsScreen() {
                     )}
                   </View>
                 </View>
-              </View>
-            )}
-
-            {/* Availability - Only for trips */}
-            {event.type === 'trip' && event.max_capacity && (
-              <View style={styles.availabilitySection}>
-                <View style={styles.availabilityBar}>
-                  <View
-                    style={[
-                      styles.availabilityFill,
-                      {
-                        width: `${((event.current_bookings || 0) / event.max_capacity) * 100}%`,
-                      },
-                    ]}
-                  />
-                </View>
-                <Text style={styles.availabilityText}>
-                  {isSoldOut ? (
-                    <Text style={styles.soldOut}>Sold Out</Text>
-                  ) : (
-                    <>
-                      <Text style={styles.spotsLeft}>{spotsLeft} spots left</Text>
-                      <Text> out of {event.max_capacity}</Text>
-                    </>
-                  )}
-                </Text>
               </View>
             )}
 
@@ -1043,16 +1006,6 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Tags - Only for trips */}
-            {event.type === 'trip' && event.tags && event.tags.length > 0 && (
-              <View style={styles.tagsSection}>
-                {event.tags.map((tag, index) => (
-                  <View key={index} style={styles.tag}>
-                    <Text style={styles.tagText}>{tag}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
           </View>
         </ScrollView>
 
@@ -1217,7 +1170,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Dimensions.get('window').height * 0.685, // Start content below image
+    paddingTop: Dimensions.get('window').height * 0.69, // Start content below image
     paddingBottom: 100,
   },
   headerButton: {
@@ -1246,7 +1199,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: '100%',
-    height: Dimensions.get('window').height * 0.685, // 68.5% of screen height
+    height: Dimensions.get('window').height * 0.69, // 69% of screen height
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1298,7 +1251,7 @@ const styles = StyleSheet.create({
     minHeight: Dimensions.get('window').height, // Ensure content is scrollable
   },
   titleSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   title: {
     fontSize: 28,
@@ -1330,7 +1283,7 @@ const styles = StyleSheet.create({
   },
   quickInfoContainer: {
     gap: Spacing.md,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   quickInfoCard: {
     flexDirection: 'row',
@@ -1358,7 +1311,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   availabilitySection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   availabilityBar: {
     height: 6,
@@ -1391,7 +1344,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: Colors.border,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   hostAvatar: {
     width: 44,
@@ -1429,7 +1382,7 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   section: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   sectionTitle: {
     fontSize: 18,
@@ -1573,7 +1526,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tripDetailLabel: {
-    fontSize: 13,
+    fontSize: 14,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
     fontFamily: Fonts.semiBold,
@@ -1609,10 +1562,10 @@ const styles = StyleSheet.create({
   },
   // Trip-specific compact layout styles
   imageContainerTrip: {
-    height: Dimensions.get('window').height * 0.685, // 68.5% for trips
+    height: Dimensions.get('window').height * 0.69, // 69% for trips
   },
   scrollContentTrip: {
-    paddingTop: Dimensions.get('window').height * 0.685, // Match trip image height
+    paddingTop: Dimensions.get('window').height * 0.69, // Match trip image height
   },
   tripCompactRow: {
     flexDirection: 'row',
@@ -1621,23 +1574,25 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   tripCompactText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: Fonts.medium,
     color: Colors.text,
     flex: 1,
   },
   tripCompactLabel: {
     fontFamily: Fonts.bold,
+    fontSize: 14,
     color: Colors.primary,
   },
   // Departure/Pickup specific styles (maroon and bold)
   tripDeparturePickupText: {
-    fontSize: 12,
+    fontSize: 14,
     fontFamily: Fonts.bold,
     color: Colors.maroon,
     flex: 1,
   },
   tripDeparturePickupLabel: {
+    fontSize: 14,
     fontFamily: Fonts.bold,
     color: Colors.maroon,
   },
@@ -1656,7 +1611,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.lg,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   tripGalleryTitle: {
     fontSize: 18,
@@ -1698,7 +1653,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.lg,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   itineraryTitle: {
     fontSize: 18,
@@ -1738,7 +1693,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.lg,
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   aboutEventTitle: {
     fontSize: 18,
@@ -1761,7 +1716,7 @@ const styles = StyleSheet.create({
   },
   // What's Included/Not Included styles
   whatsIncludedSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   whatsIncludedGroup: {
     marginBottom: Spacing.lg,
@@ -1881,7 +1836,7 @@ const styles = StyleSheet.create({
   },
   // Experience Host Profile Card Styles (copied from profile.tsx)
   hostProfileSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
   },
   hostProfileCard: {
     backgroundColor: Colors.background,
@@ -1978,7 +1933,7 @@ const styles = StyleSheet.create({
   },
   // Things to Know Styles (no border, just text with dividers)
   thingsToKnowSection: {
-    marginBottom: Spacing.xl,
+    marginBottom: Spacing.lg,
     paddingHorizontal: Spacing.lg,
   },
   thingsToKnowTitle: {

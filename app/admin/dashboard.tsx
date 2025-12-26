@@ -179,7 +179,7 @@ export default function AdminDashboard() {
 
                 <View style={styles.gridItem}>
                   <Text style={styles.gridValue}>{stats.totalEvents}</Text>
-                  <Text style={styles.gridLabel}>Events</Text>
+                  <Text style={styles.gridLabel}>Listings</Text>
                   <Text style={styles.gridSubText}>{stats.activeEvents} active</Text>
                 </View>
 
@@ -242,8 +242,8 @@ export default function AdminDashboard() {
                   <Ionicons name="calendar-outline" size={20} color={Colors.text} />
                 </View>
                 <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Events</Text>
-                  <Text style={styles.menuSubtitle}>Monitor and manage events</Text>
+                  <Text style={styles.menuTitle}>Trips & Experiences</Text>
+                  <Text style={styles.menuSubtitle}>Monitor and manage listings</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
               </Pressable>

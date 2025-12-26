@@ -18,9 +18,7 @@ export default function HostRequestScreen() {
   const { user, isHost, isAdmin } = useAuth();
   const [loading, setLoading] = useState(true);
   const [existingRequest, setExistingRequest] = useState<HostRequest | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<'experience' | 'event' | 'trip' | null>(
-    null
-  );
+  const [selectedCategory, setSelectedCategory] = useState<'experience' | 'trip' | null>(null);
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
@@ -58,7 +56,7 @@ export default function HostRequestScreen() {
 
   const getHostTypeFromCategory = () => {
     if (selectedCategory === 'experience') return 'activity';
-    return 'full';
+    return 'full'; // 'trip' returns 'full'
   };
 
   // Back handler for the selection screen
@@ -80,7 +78,7 @@ export default function HostRequestScreen() {
             <Text style={styles.statusIcon}>🎉</Text>
             <Text style={styles.statusTitle}>You&apos;re a Host!</Text>
             <Text style={styles.statusText}>
-              You have full access to host features. Start creating amazing events!
+              You have full access to host features. Start creating amazing trips and experiences!
             </Text>
             <Button
               title="Go to Dashboard"
@@ -203,21 +201,6 @@ export default function HostRequestScreen() {
               <View style={styles.choiceTextContainer}>
                 <Text style={styles.choiceLabel}>Experience</Text>
                 <Text style={styles.choiceDescription}>Host workshops, activities or sessions</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.choiceCard, selectedCategory === 'event' && styles.selectedChoiceCard]}
-              onPress={() => setSelectedCategory('event')}
-            >
-              <View style={styles.choiceIconContainer}>
-                <Text style={styles.emojiIcon}>🎟️</Text>
-              </View>
-              <View style={styles.choiceTextContainer}>
-                <Text style={styles.choiceLabel}>Events</Text>
-                <Text style={styles.choiceDescription}>
-                  Host meetups, parties or large gatherings
-                </Text>
               </View>
             </TouchableOpacity>
 

@@ -20,11 +20,11 @@ import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import * as AdminService from '../../src/services/admin-service';
 import type { Event } from '../../src/types/event.types';
 
-type TabType = 'events' | 'experiences' | 'trips';
+type TabType = 'experiences' | 'trips';
 
 export default function EventsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>('events');
+  const [activeTab, setActiveTab] = useState<TabType>('experiences');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<Event[]>([]);
@@ -74,7 +74,6 @@ export default function EventsPage() {
         const allEvents = result.events as Event[];
         // Filter by the active tab type (singular form vs plural tab name)
         const typeMap: Record<string, string> = {
-          events: 'event',
           experiences: 'experience',
           trips: 'trip',
         };
@@ -229,7 +228,7 @@ export default function EventsPage() {
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
-          {(['events', 'experiences', 'trips'] as TabType[]).map((tab) => (
+          {(['experiences', 'trips'] as TabType[]).map((tab) => (
             <Pressable
               key={tab}
               style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}

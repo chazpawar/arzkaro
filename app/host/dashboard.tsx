@@ -68,7 +68,7 @@ export default function HostDashboard() {
         <EmptyState
           title="Become a Host"
           emoji="🎭"
-          message="Apply to become a host and start creating amazing events for your community."
+          message="Apply to become a host and start creating amazing trips and experiences for your community."
           action={{
             label: 'Apply Now',
             onPress: () => router.push('/host/request'),
@@ -161,7 +161,7 @@ export default function HostDashboard() {
             <View style={styles.gridContainer}>
               <View style={styles.gridItem}>
                 <Text style={styles.gridValue}>{stats.totalEvents}</Text>
-                <Text style={styles.gridLabel}>Events</Text>
+                <Text style={styles.gridLabel}>Listings</Text>
                 <Text style={styles.gridSubText}>Created</Text>
               </View>
 
@@ -183,7 +183,7 @@ export default function HostDashboard() {
               <View style={styles.gridItem}>
                 <Text style={styles.gridValue}>{stats.totalEvents - stats.upcomingEvents}</Text>
                 <Text style={styles.gridLabel}>Completed</Text>
-                <Text style={styles.gridSubText}>Events</Text>
+                <Text style={styles.gridSubText}>Listings</Text>
               </View>
             </View>
           </View>
@@ -192,7 +192,7 @@ export default function HostDashboard() {
         {/* Quick Actions */}
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionHeader}>Quick Actions</Text>
-          <Text style={styles.sectionSubHeader}>Manage your events</Text>
+          <Text style={styles.sectionSubHeader}>Manage your listings</Text>
 
           <View style={styles.menuList}>
             <Pressable style={styles.menuItem} onPress={() => router.push('/events/create')}>
@@ -200,8 +200,8 @@ export default function HostDashboard() {
                 <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
               </View>
               <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>Create Event</Text>
-                <Text style={styles.menuSubtitle}>Launch a new event or experience</Text>
+                <Text style={styles.menuTitle}>Create Listing</Text>
+                <Text style={styles.menuSubtitle}>Launch a new trip or experience</Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
             </Pressable>
@@ -222,8 +222,8 @@ export default function HostDashboard() {
                 <Ionicons name="calendar-outline" size={20} color={Colors.text} />
               </View>
               <View style={styles.menuContent}>
-                <Text style={styles.menuTitle}>My Events</Text>
-                <Text style={styles.menuSubtitle}>View and manage your events</Text>
+                <Text style={styles.menuTitle}>My Listings</Text>
+                <Text style={styles.menuSubtitle}>View and manage your listings</Text>
               </View>
               {stats && stats.upcomingEvents > 0 && (
                 <View style={styles.badge}>

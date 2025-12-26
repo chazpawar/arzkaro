@@ -722,11 +722,6 @@ export default function ExploreTab() {
                   >
                     <View style={styles.categoryIconContainer}>
                       <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
-                      {isActive && (
-                        <View style={styles.categoryCheckBadge}>
-                          <Ionicons name="checkmark" size={10} color="#FFF" />
-                        </View>
-                      )}
                     </View>
                     <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
                       {cat.label}
@@ -987,20 +982,6 @@ const styles = StyleSheet.create({
   categoryIcon: {
     width: 56,
     height: 56,
-  },
-  categoryCheckBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    backgroundColor: Colors.primary,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: Colors.background,
-    zIndex: 10,
   },
   categoryLabel: {
     fontSize: 12,
