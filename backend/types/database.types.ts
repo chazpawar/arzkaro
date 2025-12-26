@@ -622,58 +622,79 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          date_of_birth: string | null
           email: string
           full_name: string | null
+          gender: string | null
           host_approved_at: string | null
           host_requested_at: string | null
           host_type: Database["public"]["Enums"]["host_type"] | null
           id: string
+          instagram: string | null
+          interests: string[] | null
           is_host_approved: boolean
           is_public: boolean
+          linkedin: string | null
           location: string | null
           phone: string | null
           role: Database["public"]["Enums"]["user_role"]
+          twitter: string | null
           updated_at: string
           username: string | null
           website: string | null
+          youtube: string | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email: string
           full_name?: string | null
+          gender?: string | null
           host_approved_at?: string | null
           host_requested_at?: string | null
           host_type?: Database["public"]["Enums"]["host_type"] | null
           id: string
+          instagram?: string | null
+          interests?: string[] | null
           is_host_approved?: boolean
           is_public?: boolean
+          linkedin?: string | null
           location?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          twitter?: string | null
           updated_at?: string
           username?: string | null
           website?: string | null
+          youtube?: string | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          date_of_birth?: string | null
           email?: string
           full_name?: string | null
+          gender?: string | null
           host_approved_at?: string | null
           host_requested_at?: string | null
           host_type?: Database["public"]["Enums"]["host_type"] | null
           id?: string
+          instagram?: string | null
+          interests?: string[] | null
           is_host_approved?: boolean
           is_public?: boolean
+          linkedin?: string | null
           location?: string | null
           phone?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          twitter?: string | null
           updated_at?: string
           username?: string | null
           website?: string | null
+          youtube?: string | null
         }
         Relationships: []
       }

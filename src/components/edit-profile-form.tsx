@@ -9,15 +9,16 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
-  Platform,
+  Pressable,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Button from './ui/button';
 import { Colors } from '../constants/Colors';
-import { BorderRadius, Spacing, Typography } from '../constants/Styles';
+import { BorderRadius, Spacing } from '../constants/Styles';
 import { updateProfile, isUsernameAvailable } from '../services/user-service';
 import { uploadImage, pickImage } from '../services/storage-service';
-import type { Profile } from '../types/user.types';
+import type { Profile, Gender } from '../types/user.types';
 
 interface EditProfileFormProps {
   profile: Profile;
@@ -25,16 +26,58 @@ interface EditProfileFormProps {
   onCancel: () => void;
 }
 
+// Available interests
+const AVAILABLE_INTERESTS = [
+  'Travelling',
+  'Music',
+  'Party',
+  'Dance',
+  'Outdoor',
+  'Board Games',
+  'Sports',
+  'Yoga',
+  'Meditation',
+  'Food',
+  'Art',
+  'Photography',
+  'Gaming',
+  'Reading',
+  'Fitness',
+  'Cooking',
+];
+
+const GENDER_OPTIONS: Gender[] = ['Male', 'Female', 'Other', 'Prefer not to say'];
+
 export default function EditProfileForm({ profile, onSuccess, onCancel }: EditProfileFormProps) {
-  const [fullName, setFullName] = useState(profile.full_name || '');
+  // Basic fields
+  const [fullName] = useState(profile.full_name || ''); // Non-editable
   const [username, setUsername] = useState(profile.username || '');
-  const [bio, setBio] = useState(profile.bio || '');
   const [phone, setPhone] = useState(profile.phone || '');
+  const [bio, setBio] = useState(profile.bio || '');
+
+  // Non-editable fields (can only be set once)
+  const [dateOfBirth, setDateOfBirth] = useState(profile.date_of_birth || '');
+  const [gender, setGender] = useState<Gender | null>(profile.gender || null);
+
+  // Social fields
+  const [instagram, setInstagram] = useState(profile.instagram || '');
+  const [youtube, setYoutube] = useState(profile.youtube || '');
+  const [linkedin, setLinkedin] = useState(profile.linkedin || '');
+  const [twitter, setTwitter] = useState(profile.twitter || '');
+
+  // Interests
+  const [selectedInterests, setSelectedInterests] = useState<string[]>(profile.interests || []);
+  const [showAllInterests, setShowAllInterests] = useState(false);
+
+  // Avatar
   const [avatarUri, setAvatarUri] = useState<string | null>(profile.avatar_url);
   const [newAvatarLocalUri, setNewAvatarLocalUri] = useState<string | null>(null);
+
+  // UI states
   const [loading, setLoading] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showGenderModal, setShowGenderModal] = useState(false);
 
   const handlePickAvatar = async () => {
     try {
@@ -51,6 +94,12 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
     } finally {
       setUploadingAvatar(false);
     }
+  };
+
+  const toggleInterest = (interest: string) => {
+    setSelectedInterests((prev) =>
+      prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]
+    );
   };
 
   const validateForm = async (): Promise<boolean> => {
@@ -70,7 +119,6 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
       } else if (!/^[a-zA-Z0-9_]+$/.test(username.trim())) {
         newErrors.username = 'Username can only contain letters, numbers, and underscores';
       } else if (username.trim() !== profile.username) {
-        // Check if username is available (only if changed)
         const available = await isUsernameAvailable(username.trim(), profile.id);
         if (!available) {
           newErrors.username = 'Username is already taken';
@@ -83,6 +131,16 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
       newErrors.phone = 'Please enter a valid phone number';
     }
 
+    // Validate bio length
+    if (bio.length > 500) {
+      newErrors.bio = 'Bio must be 500 characters or less';
+    }
+
+    // Validate date of birth format (YYYY-MM-DD)
+    if (dateOfBirth && !/^\d{4}-\d{2}-\d{2}$/.test(dateOfBirth)) {
+      newErrors.dateOfBirth = 'Date must be in YYYY-MM-DD format';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -91,7 +149,6 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
     try {
       setLoading(true);
 
-      // Validate form
       const isValid = await validateForm();
       if (!isValid) {
         return;
@@ -102,29 +159,40 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
       // Upload new avatar if selected
       if (newAvatarLocalUri) {
         try {
-          const uploadResult = await uploadImage(newAvatarLocalUri, 'avatars', profile.id);
-          finalAvatarUrl = uploadResult.url;
+          const uploadResult = await uploadImage(newAvatarLocalUri, `avatars/${profile.id}`);
+          finalAvatarUrl = typeof uploadResult === 'string' ? uploadResult : uploadResult.url;
         } catch (error) {
           console.error('Error uploading avatar:', error);
-          Alert.alert('Error', 'Failed to upload avatar. Saving other changes...');
+          Alert.alert('Error', 'Failed to upload avatar. Please try again.');
+          return;
         }
       }
 
-      // Update profile
-      const updatedProfile = await updateProfile(profile.id, {
+      // Prepare update data
+      const updates: any = {
         full_name: fullName.trim() || null,
         username: username.trim() || null,
-        bio: bio.trim() || null,
         phone: phone.trim() || null,
+        bio: bio.trim() || null,
         avatar_url: finalAvatarUrl,
-      });
+        instagram: instagram.trim() || null,
+        youtube: youtube.trim() || null,
+        linkedin: linkedin.trim() || null,
+        twitter: twitter.trim() || null,
+        interests: selectedInterests,
+      };
 
-      Alert.alert('Success', 'Profile updated successfully!', [
-        {
-          text: 'OK',
-          onPress: () => onSuccess(updatedProfile),
-        },
-      ]);
+      // Only update DOB and gender if they haven't been set before
+      if (!profile.date_of_birth && dateOfBirth) {
+        updates.date_of_birth = dateOfBirth;
+      }
+      if (!profile.gender && gender) {
+        updates.gender = gender;
+      }
+
+      const updatedProfile = await updateProfile(profile.id, updates);
+      Alert.alert('Success', 'Profile updated successfully!');
+      onSuccess(updatedProfile);
     } catch (error) {
       console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
@@ -133,127 +201,311 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
     }
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Edit Profile</Text>
-        <TouchableOpacity onPress={onCancel} disabled={loading}>
-          <Ionicons name="close" size={28} color={Colors.text} />
-        </TouchableOpacity>
-      </View>
+  const interestsToShow = showAllInterests ? AVAILABLE_INTERESTS : AVAILABLE_INTERESTS.slice(0, 6);
 
+  return (
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Avatar Section */}
       <View style={styles.avatarSection}>
-        <TouchableOpacity onPress={handlePickAvatar} disabled={loading || uploadingAvatar}>
-          <View style={styles.avatarContainer}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>
-                  {fullName.charAt(0).toUpperCase() || '?'}
-                </Text>
-              </View>
-            )}
-            <View style={styles.avatarEditBadge}>
-              {uploadingAvatar ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Ionicons name="camera" size={20} color="#FFF" />
-              )}
+        <View style={styles.avatarContainer}>
+          {avatarUri ? (
+            <Image source={{ uri: avatarUri }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={60} color={Colors.textSecondary} />
             </View>
+          )}
+          {uploadingAvatar && (
+            <View style={styles.avatarLoading}>
+              <ActivityIndicator color={Colors.primary} />
+            </View>
+          )}
+        </View>
+        <TouchableOpacity
+          style={styles.addEditButton}
+          onPress={handlePickAvatar}
+          disabled={uploadingAvatar}
+        >
+          <Text style={styles.addEditButtonText}>Add/Edit</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Text style={styles.sectionHeading}>My Profile</Text>
+
+      {/* Full Name - Non Editable */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          Full name <Text style={styles.nonEditableTag}>(Non editable)</Text>
+        </Text>
+        <TextInput
+          style={[styles.input, styles.inputDisabled]}
+          value={fullName}
+          editable={false}
+          placeholder="Full name"
+          placeholderTextColor={Colors.textTertiary}
+        />
+        {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+      </View>
+
+      {/* Username - Editable */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          username <Text style={styles.editableTag}>(Editable)</Text>
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={username}
+          onChangeText={setUsername}
+          placeholder="username"
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
+        />
+        {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+      </View>
+
+      {/* DOB - Non Editable after first set */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          DOB <Text style={styles.nonEditableTag}>(Non Editable)</Text>
+        </Text>
+        <TextInput
+          style={[styles.input, profile.date_of_birth ? styles.inputDisabled : null]}
+          value={dateOfBirth}
+          onChangeText={setDateOfBirth}
+          placeholder="YYYY-MM-DD"
+          placeholderTextColor={Colors.textTertiary}
+          editable={!profile.date_of_birth}
+        />
+        {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
+      </View>
+
+      {/* Gender Picker */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          Gender <Text style={styles.nonEditableTag}>(Non Editable)</Text>
+        </Text>
+        {profile.gender ? (
+          <TextInput
+            style={[styles.input, styles.inputDisabled]}
+            value={profile.gender}
+            editable={false}
+          />
+        ) : (
+          <TouchableOpacity
+            style={styles.dropdownButton}
+            onPress={() => setShowGenderModal(true)}
+            disabled={!!profile.gender}
+          >
+            <Text style={[styles.dropdownButtonText, !gender && styles.dropdownPlaceholder]}>
+              {gender || 'Select Gender'}
+            </Text>
+            <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Gender Selection Modal */}
+      <Modal
+        visible={showGenderModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowGenderModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowGenderModal(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Select Gender</Text>
+              <TouchableOpacity onPress={() => setShowGenderModal(false)}>
+                <Ionicons name="close" size={24} color={Colors.text} />
+              </TouchableOpacity>
+            </View>
+            {GENDER_OPTIONS.map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[styles.modalOption, gender === option && styles.modalOptionSelected]}
+                onPress={() => {
+                  setGender(option);
+                  setShowGenderModal(false);
+                }}
+              >
+                <Text
+                  style={[
+                    styles.modalOptionText,
+                    gender === option && styles.modalOptionTextSelected,
+                  ]}
+                >
+                  {option}
+                </Text>
+                {gender === option && (
+                  <Ionicons name="checkmark" size={20} color={Colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
         </TouchableOpacity>
-        <Text style={styles.avatarHint}>Tap to change profile picture</Text>
-      </View>
+      </Modal>
 
-      {/* Form Fields */}
-      <View style={styles.form}>
-        {/* Full Name */}
-        <View style={styles.field}>
-          <Text style={styles.label}>
-            Full Name <Text style={styles.required}>*</Text>
-          </Text>
-          <TextInput
-            style={[styles.input, errors.fullName && styles.inputError]}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Enter your full name"
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            autoCapitalize="words"
-          />
-          {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
-        </View>
-
-        {/* Username */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            style={[styles.input, errors.username && styles.inputError]}
-            value={username}
-            onChangeText={setUsername}
-            placeholder="Choose a unique username"
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-        </View>
-
-        {/* Bio */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Bio</Text>
-          <TextInput
-            style={[styles.input, styles.textArea, errors.bio && styles.inputError]}
-            value={bio}
-            onChangeText={setBio}
-            placeholder="Tell us about yourself..."
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-          />
-          {errors.bio && <Text style={styles.errorText}>{errors.bio}</Text>}
-        </View>
-
-        {/* Phone */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Phone</Text>
-          <TextInput
-            style={[styles.input, errors.phone && styles.inputError]}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+1 234 567 8900"
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            keyboardType="phone-pad"
-          />
-          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-        </View>
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actions}>
-        <Button
-          title="Cancel"
-          onPress={onCancel}
-          variant="secondary"
-          size="large"
-          fullWidth
-          disabled={loading}
+      {/* Phone Number - Editable */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          Phone number <Text style={styles.editableTag}>(Editable)</Text>
+        </Text>
+        <TextInput
+          style={styles.input}
+          value={phone}
+          onChangeText={setPhone}
+          placeholder="Phone number"
+          placeholderTextColor={Colors.textTertiary}
+          keyboardType="phone-pad"
         />
+        {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+      </View>
+
+      {/* Email - Editable */}
+      <View style={styles.inputGroup}>
+        <Text style={styles.label}>
+          Email <Text style={styles.editableTag}>(Editable)</Text>
+        </Text>
+        <TextInput
+          style={[styles.input, styles.inputDisabled]}
+          value={profile.email}
+          editable={false}
+          placeholderTextColor={Colors.textTertiary}
+        />
+      </View>
+
+      {/* Enter Your Socials Section */}
+      <Text style={styles.sectionHeading}>Enter Your Socials</Text>
+
+      {/* Instagram */}
+      <View style={styles.socialInputGroup}>
+        <View style={styles.socialIconContainer}>
+          <Ionicons name="logo-instagram" size={24} color={Colors.text} />
+        </View>
+        <TextInput
+          style={styles.socialInput}
+          value={instagram}
+          onChangeText={setInstagram}
+          placeholder="instagram.com/username"
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* YouTube */}
+      <View style={styles.socialInputGroup}>
+        <View style={styles.socialIconContainer}>
+          <Ionicons name="logo-youtube" size={24} color={Colors.text} />
+        </View>
+        <TextInput
+          style={styles.socialInput}
+          value={youtube}
+          onChangeText={setYoutube}
+          placeholder="youtube.com/"
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* LinkedIn */}
+      <View style={styles.socialInputGroup}>
+        <View style={styles.socialIconContainer}>
+          <Ionicons name="logo-linkedin" size={24} color={Colors.text} />
+        </View>
+        <TextInput
+          style={styles.socialInput}
+          value={linkedin}
+          onChangeText={setLinkedin}
+          placeholder="linkedin.com/"
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* Twitter/X */}
+      <View style={styles.socialInputGroup}>
+        <View style={styles.socialIconContainer}>
+          <Ionicons name="logo-twitter" size={24} color={Colors.text} />
+        </View>
+        <TextInput
+          style={styles.socialInput}
+          value={twitter}
+          onChangeText={setTwitter}
+          placeholder="x.com/"
+          placeholderTextColor={Colors.textTertiary}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* About Me Section */}
+      <Text style={styles.sectionHeading}>About Me</Text>
+      <View style={styles.inputGroup}>
+        <TextInput
+          style={[styles.input, styles.bioInput]}
+          value={bio}
+          onChangeText={setBio}
+          placeholder="Tell us about yourself..."
+          placeholderTextColor={Colors.textTertiary}
+          multiline
+          numberOfLines={5}
+          maxLength={500}
+        />
+        <Text style={styles.characterCount}>{bio.length}/500 characters</Text>
+        {errors.bio && <Text style={styles.errorText}>{errors.bio}</Text>}
+      </View>
+
+      {/* My Interests Section */}
+      <Text style={styles.sectionHeading}>My Interests</Text>
+      <View style={styles.interestsContainer}>
+        {interestsToShow.map((interest) => (
+          <Pressable
+            key={interest}
+            style={[
+              styles.interestChip,
+              selectedInterests.includes(interest) && styles.interestChipSelected,
+            ]}
+            onPress={() => toggleInterest(interest)}
+          >
+            <Text
+              style={[
+                styles.interestChipText,
+                selectedInterests.includes(interest) && styles.interestChipTextSelected,
+              ]}
+            >
+              {interest}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {!showAllInterests && (
+        <Pressable style={styles.showAllButton} onPress={() => setShowAllInterests(true)}>
+          <Text style={styles.showAllText}>Show all &gt;</Text>
+        </Pressable>
+      )}
+
+      {/* Save/Cancel Buttons */}
+      <View style={styles.buttonContainer}>
         <Button
           title={loading ? 'Saving...' : 'Save Changes'}
           onPress={handleSave}
-          variant="primary"
-          size="large"
-          fullWidth
           disabled={loading}
+          style={styles.saveButton}
+        />
+        <Button
+          title="Cancel"
+          onPress={onCancel}
+          variant="ghost"
+          disabled={loading}
+          style={styles.cancelButton}
         />
       </View>
+
+      <View style={styles.bottomSpacer} />
     </ScrollView>
   );
 }
@@ -263,150 +515,236 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
-  contentContainer: {
-    padding: Spacing.lg,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text,
-    fontWeight: 'bold',
-  },
   avatarSection: {
     alignItems: 'center',
-    marginBottom: Spacing.xl,
+    paddingVertical: Spacing.xl,
   },
   avatarContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
     position: 'relative',
   },
-  avatarImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    borderWidth: 3,
-    borderColor: Colors.primary,
+  avatar: {
+    width: '100%',
+    height: '100%',
   },
   avatarPlaceholder: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: Colors.primary,
+    width: '100%',
+    height: '100%',
+    backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: Colors.primaryLight,
   },
-  avatarPlaceholderText: {
-    fontSize: 48,
-    color: '#FFF',
-    fontWeight: 'bold',
-  },
-  avatarEditBadge: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.primary,
+  avatarLoading: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: Colors.background,
   },
-  avatarHint: {
-    ...Typography.bodySmall,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
+  addEditButton: {
+    marginTop: Spacing.md,
+    paddingHorizontal: Spacing.lg + 4,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
-  form: {
-    gap: Spacing.lg,
+  addEditButtonText: {
+    color: Colors.primary,
+    fontSize: 14,
+    fontWeight: '500',
   },
-  field: {
-    gap: Spacing.xs,
+  sectionHeading: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    marginTop: Spacing.xl,
+    marginBottom: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  inputGroup: {
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   label: {
-    ...Typography.body,
-    color: Colors.text,
-    fontWeight: '600',
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
   },
-  required: {
-    color: Colors.error,
+  nonEditableTag: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+  },
+  editableTag: {
+    fontSize: 12,
+    color: Colors.textTertiary,
   },
   input: {
     backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    ...Typography.body,
+    fontSize: 16,
     color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
   },
-  inputError: {
-    borderColor: Colors.error,
+  inputDisabled: {
+    backgroundColor: Colors.surfaceSecondary,
+    color: Colors.textSecondary,
   },
-  textArea: {
-    minHeight: 100,
+  bioInput: {
+    minHeight: 120,
+    textAlignVertical: 'top',
     paddingTop: Spacing.md,
   },
-  errorText: {
-    ...Typography.bodySmall,
-    color: Colors.error,
+  characterCount: {
+    fontSize: 12,
+    color: Colors.textTertiary,
+    textAlign: 'right',
     marginTop: Spacing.xs,
   },
-  toggleField: {
+  errorText: {
+    color: Colors.error,
+    fontSize: 12,
+    marginTop: Spacing.xs,
+  },
+  dropdownButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
   },
-  toggleInfo: {
+  dropdownButtonText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  dropdownPlaceholder: {
+    color: Colors.textTertiary,
+  },
+  modalOverlay: {
     flex: 1,
-    gap: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.lg,
   },
-  toggleHint: {
-    ...Typography.bodySmall,
-    color: Colors.textSecondary,
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.lg,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
   },
-  toggle: {
-    width: 56,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.border,
-    padding: 2,
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: Spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  modalOptionSelected: {
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
+  modalOptionTextSelected: {
+    color: Colors.primary,
+    fontWeight: '500',
+  },
+  socialInputGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
+    gap: Spacing.md,
+  },
+  socialIconContainer: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  toggleActive: {
+  socialInput: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    fontSize: 16,
+    color: Colors.text,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  interestsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  interestChip: {
+    paddingHorizontal: Spacing.md + 4,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  interestChipSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  interestChipText: {
+    fontSize: 14,
+    color: Colors.text,
+  },
+  interestChipTextSelected: {
+    color: Colors.background,
+    fontWeight: '500',
+  },
+  showAllButton: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  showAllText: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    textDecorationLine: 'underline',
+  },
+  buttonContainer: {
+    paddingHorizontal: Spacing.lg,
+    marginTop: Spacing.xl,
+    gap: Spacing.md,
+  },
+  saveButton: {
     backgroundColor: Colors.primary,
   },
-  toggleThumb: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#FFF',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 2,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+  cancelButton: {
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  toggleThumbActive: {
-    transform: [{ translateX: 24 }],
-  },
-  actions: {
-    gap: Spacing.md,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xl,
+  bottomSpacer: {
+    height: Spacing.xl * 2,
   },
 });
