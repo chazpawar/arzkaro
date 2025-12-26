@@ -38,11 +38,31 @@ const MOCK_EVENTS: Record<string, any> = {
     current_bookings: 75,
     tags: ['Music', 'Cultural', 'Live Performance'],
     host: {
-      full_name: 'Jazz Club Bangalore',
-      avatar_url: null,
+      full_name: 'Aditya Negi',
+      avatar_url: 'https://i.pravatar.cc/150?img=12',
+      bio: 'Aditya born in Bangalore. Have studied Computer Science, even...',
+      reviews: 267,
+      rating: 4.9,
+      years_hosting: 2,
     },
     host_id: 'mock-host-1',
     currency: 'INR',
+    things_to_know: [
+      'Live jazz performance by professional musicians',
+      'Food and beverages available at venue',
+      'Outside food and drinks not allowed',
+      'Age limit: 18+ only',
+      'Dress code: Smart casual',
+    ],
+    terms_and_conditions: `• All bookings are subject to availability
+• Full payment required at time of booking
+• Participants must be 18+ years old
+• Valid ID proof required for verification
+• Follow all safety guidelines during the event`,
+    cancellation_policy: `• 100% refund if cancelled 15+ days before event
+• 50% refund if cancelled 7-14 days before event
+• No refund if cancelled less than 7 days before event
+• Refunds processed within 7-10 business days`,
   },
   exp2: {
     id: 'exp2',
@@ -358,6 +378,9 @@ export default function EventDetailsScreen() {
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
   const [showAllItineraryDays, setShowAllItineraryDays] = React.useState(false);
   const [showFullDescription, setShowFullDescription] = React.useState(false);
+  const [showTermsModal, setShowTermsModal] = React.useState(false);
+  const [showCancellationModal, setShowCancellationModal] = React.useState(false);
+  const [showAllThingsToKnow, setShowAllThingsToKnow] = React.useState(false);
 
   // Check if this is a mock event
   const isMockEvent = id && MOCK_EVENTS[id];
@@ -628,8 +651,8 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Availability */}
-            {event.max_capacity && (
+            {/* Availability - Only for trips */}
+            {event.type === 'trip' && event.max_capacity && (
               <View style={styles.availabilitySection}>
                 <View style={styles.availabilityBar}>
                   <View
@@ -654,31 +677,91 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Host Section */}
-            <Pressable
-              style={styles.hostSection}
-              onPress={() => {
-                if (event.host_id) {
-                  router.push(`/profile?userId=${event.host_id}`);
-                }
-              }}
-            >
-              <View style={styles.hostAvatar}>
-                {event.host?.avatar_url ? (
-                  <Image source={{ uri: event.host.avatar_url }} style={styles.hostAvatarImage} />
-                ) : (
-                  <Text style={styles.hostAvatarText}>
-                    {event.host?.full_name?.charAt(0) || 'H'}
-                  </Text>
-                )}
+            {/* Host Section - Different for trips vs experiences */}
+            {event.type === 'trip' ? (
+              <Pressable
+                style={styles.hostSection}
+                onPress={() => {
+                  if (event.host_id) {
+                    router.push(`/profile?userId=${event.host_id}`);
+                  }
+                }}
+              >
+                <View style={styles.hostAvatar}>
+                  {event.host?.avatar_url ? (
+                    <Image source={{ uri: event.host.avatar_url }} style={styles.hostAvatarImage} />
+                  ) : (
+                    <Text style={styles.hostAvatarText}>
+                      {event.host?.full_name?.charAt(0) || 'H'}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.hostInfo}>
+                  <Text style={styles.hostedBy}>Hosted by</Text>
+                  <Text style={styles.hostName}>{event.host?.full_name || 'Host'}</Text>
+                  <Text style={styles.hostStats}>View profile</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+              </Pressable>
+            ) : (
+              <View style={styles.hostProfileSection}>
+                <View style={styles.hostProfileCard}>
+                  <View style={styles.hostProfileHeader}>
+                    {/* Avatar */}
+                    {event.host?.avatar_url ? (
+                      <Image
+                        source={{ uri: event.host.avatar_url }}
+                        style={styles.hostProfileAvatarImage}
+                      />
+                    ) : (
+                      <View style={styles.hostProfileAvatar}>
+                        <Text style={styles.hostProfileAvatarText}>
+                          {event.host?.full_name?.charAt(0).toUpperCase() || 'H'}
+                        </Text>
+                      </View>
+                    )}
+
+                    {/* Host Info */}
+                    <View style={styles.hostProfileInfo}>
+                      <Text style={styles.hostProfileName}>{event.host?.full_name || 'Host'}</Text>
+                      {event.host?.bio && (
+                        <Text style={styles.hostProfileBio} numberOfLines={2}>
+                          {event.host.bio}
+                        </Text>
+                      )}
+
+                      {/* Social Icons */}
+                      <View style={styles.socialIcons}>
+                        <View style={styles.socialIcon}>
+                          <Ionicons name="logo-instagram" size={20} color="#E4405F" />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* Stats Row */}
+                  <View style={styles.statsRow}>
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{event.host?.reviews || 0}</Text>
+                      <Text style={styles.statLabel}>Reviews</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                      <View style={styles.ratingContainer}>
+                        <Text style={styles.statValue}>{event.host?.rating || 0}</Text>
+                        <Ionicons name="star" size={16} color="#FFB800" />
+                      </View>
+                      <Text style={styles.statLabel}>Ratings</Text>
+                    </View>
+                    <View style={styles.statDivider} />
+                    <View style={styles.statItem}>
+                      <Text style={styles.statValue}>{event.host?.years_hosting || 0}</Text>
+                      <Text style={styles.statLabel}>Years of hosting</Text>
+                    </View>
+                  </View>
+                </View>
               </View>
-              <View style={styles.hostInfo}>
-                <Text style={styles.hostedBy}>Hosted by</Text>
-                <Text style={styles.hostName}>{event.host?.full_name || 'Host'}</Text>
-                <Text style={styles.hostStats}>View profile</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
-            </Pressable>
+            )}
 
             {/* Trip-Specific Details */}
             {event.type === 'trip' && (
@@ -871,22 +954,75 @@ export default function EventDetailsScreen() {
 
             {/* About this Event - for non-trip events */}
             {event.type !== 'trip' && (
-              <View style={styles.aboutEventContainer}>
-                <Text style={styles.aboutEventTitle}>About this Event</Text>
-                <Text
-                  style={styles.aboutEventText}
-                  numberOfLines={showFullDescription ? undefined : 4}
-                >
-                  {event.description}
-                </Text>
-                {event.description && event.description.length > 200 && (
-                  <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
-                    <Text style={styles.aboutEventSeeMore}>
-                      {showFullDescription ? 'Show less' : 'See more...'}
-                    </Text>
+              <>
+                <View style={styles.aboutEventContainer}>
+                  <Text style={styles.aboutEventTitle}>About this Event</Text>
+                  <Text
+                    style={styles.aboutEventText}
+                    numberOfLines={showFullDescription ? undefined : 4}
+                  >
+                    {event.description}
+                  </Text>
+                  {event.description && event.description.length > 200 && (
+                    <Pressable onPress={() => setShowFullDescription(!showFullDescription)}>
+                      <Text style={styles.aboutEventSeeMore}>
+                        {showFullDescription ? 'Show less' : 'See more...'}
+                      </Text>
+                    </Pressable>
+                  )}
+                </View>
+
+                {/* Things to Know Section */}
+                {event.things_to_know && event.things_to_know.length > 0 && (
+                  <View style={styles.thingsToKnowSection}>
+                    <Text style={styles.thingsToKnowTitle}>Things to know:</Text>
+                    <View style={styles.thingsToKnowList}>
+                      {(showAllThingsToKnow
+                        ? event.things_to_know
+                        : event.things_to_know.slice(0, 3)
+                      ).map((item: string, index: number, array: string[]) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.thingsToKnowItem,
+                            index === array.length - 1 && styles.thingsToKnowItemLast,
+                          ]}
+                        >
+                          <Text style={styles.thingsToKnowBullet}>•</Text>
+                          <Text style={styles.thingsToKnowText}>{item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    {event.things_to_know.length > 3 && (
+                      <Pressable
+                        style={styles.thingsToKnowSeeAll}
+                        onPress={() => setShowAllThingsToKnow(!showAllThingsToKnow)}
+                      >
+                        <Text style={styles.thingsToKnowSeeAllText}>
+                          {showAllThingsToKnow ? 'Show less' : 'See all...'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+
+                {/* Terms & Conditions Button */}
+                {event.terms_and_conditions && (
+                  <Pressable style={styles.policyButton} onPress={() => setShowTermsModal(true)}>
+                    <Text style={styles.policyButtonText}>Terms & Conditions</Text>
                   </Pressable>
                 )}
-              </View>
+
+                {/* Cancellation Policy Button */}
+                {event.cancellation_policy && (
+                  <Pressable
+                    style={styles.policyButton}
+                    onPress={() => setShowCancellationModal(true)}
+                  >
+                    <Text style={styles.policyButtonText}>Cancellation policy</Text>
+                  </Pressable>
+                )}
+              </>
             )}
 
             {/* Ticket Types */}
@@ -907,8 +1043,8 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Tags */}
-            {event.tags && event.tags.length > 0 && (
+            {/* Tags - Only for trips */}
+            {event.type === 'trip' && event.tags && event.tags.length > 0 && (
               <View style={styles.tagsSection}>
                 {event.tags.map((tag, index) => (
                   <View key={index} style={styles.tag}>
@@ -1008,6 +1144,63 @@ export default function EventDetailsScreen() {
                 </View>
               </SafeAreaView>
             </View>
+          </Modal>
+        )}
+
+        {/* Terms & Conditions Modal */}
+        {showTermsModal && (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowTermsModal(false)}
+          >
+            <Pressable style={styles.policyModalContainer} onPress={() => setShowTermsModal(false)}>
+              <Pressable style={styles.policyModalContent} onPress={(e) => e.stopPropagation()}>
+                <View style={styles.policyModalHeader}>
+                  <Text style={styles.policyModalTitle}>Terms & Conditions</Text>
+                  <Pressable
+                    onPress={() => setShowTermsModal(false)}
+                    style={styles.policyModalClose}
+                  >
+                    <Ionicons name="close" size={24} color={Colors.text} />
+                  </Pressable>
+                </View>
+                <ScrollView style={styles.policyModalScroll}>
+                  <Text style={styles.policyModalText}>{event?.terms_and_conditions}</Text>
+                </ScrollView>
+              </Pressable>
+            </Pressable>
+          </Modal>
+        )}
+
+        {/* Cancellation Policy Modal */}
+        {showCancellationModal && (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowCancellationModal(false)}
+          >
+            <Pressable
+              style={styles.policyModalContainer}
+              onPress={() => setShowCancellationModal(false)}
+            >
+              <Pressable style={styles.policyModalContent} onPress={(e) => e.stopPropagation()}>
+                <View style={styles.policyModalHeader}>
+                  <Text style={styles.policyModalTitle}>Cancellation Policy</Text>
+                  <Pressable
+                    onPress={() => setShowCancellationModal(false)}
+                    style={styles.policyModalClose}
+                  >
+                    <Ionicons name="close" size={24} color={Colors.text} />
+                  </Pressable>
+                </View>
+                <ScrollView style={styles.policyModalScroll}>
+                  <Text style={styles.policyModalText}>{event?.cancellation_policy}</Text>
+                </ScrollView>
+              </Pressable>
+            </Pressable>
           </Modal>
         )}
       </View>
@@ -1685,5 +1878,209 @@ const styles = StyleSheet.create({
   },
   imageModalNavButtonDisabled: {
     opacity: 0.3,
+  },
+  // Experience Host Profile Card Styles (copied from profile.tsx)
+  hostProfileSection: {
+    marginBottom: Spacing.xl,
+  },
+  hostProfileCard: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.xl,
+    borderWidth: 2,
+    borderColor: Colors.text,
+    padding: Spacing.lg,
+  },
+  hostProfileHeader: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  hostProfileAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  hostProfileAvatarImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+  },
+  hostProfileAvatarText: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontFamily: Fonts.bold,
+  },
+  hostProfileInfo: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  hostProfileName: {
+    fontSize: 18,
+    color: Colors.text,
+    fontFamily: Fonts.bold,
+    marginBottom: 4,
+  },
+  hostProfileBio: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.sm,
+    lineHeight: 18,
+  },
+  socialIcons: {
+    flexDirection: 'row',
+    gap: Spacing.xs,
+    marginTop: 4,
+  },
+  socialIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  statValue: {
+    fontSize: 24,
+    color: Colors.text,
+    fontFamily: Fonts.bold,
+  },
+  statLabel: {
+    fontSize: 12,
+    color: Colors.textSecondary,
+    marginTop: 4,
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: Colors.border,
+  },
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  // Things to Know Styles (no border, just text with dividers)
+  thingsToKnowSection: {
+    marginBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  thingsToKnowTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  thingsToKnowList: {
+    alignSelf: 'stretch',
+  },
+  thingsToKnowItem: {
+    flexDirection: 'row',
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    alignItems: 'flex-start',
+  },
+  thingsToKnowItemLast: {
+    borderBottomWidth: 0,
+  },
+  thingsToKnowBullet: {
+    fontSize: 16,
+    color: Colors.text,
+    marginRight: Spacing.xs,
+    width: 15,
+    flexShrink: 0,
+  },
+  thingsToKnowText: {
+    fontSize: 15,
+    fontFamily: Fonts.regular,
+    color: Colors.text,
+    lineHeight: 22,
+    paddingRight: Spacing.xl,
+  },
+  thingsToKnowSeeAll: {
+    alignSelf: 'flex-start',
+    marginTop: Spacing.xs,
+  },
+  thingsToKnowSeeAllText: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontFamily: Fonts.medium,
+    textDecorationLine: 'underline',
+  },
+  // Policy Button Styles
+  policyButton: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: Spacing.md,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+  },
+  policyButtonText: {
+    fontSize: 15,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+  },
+  // Policy Modal Styles
+  policyModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  policyModalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: BorderRadius.xl,
+    borderTopRightRadius: BorderRadius.xl,
+    maxHeight: '80%',
+    paddingTop: Spacing.lg,
+  },
+  policyModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  policyModalTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+  },
+  policyModalClose: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  policyModalScroll: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.lg,
+  },
+  policyModalText: {
+    fontSize: 15,
+    color: Colors.text,
+    lineHeight: 24,
   },
 });
