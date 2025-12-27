@@ -60,16 +60,17 @@ export default function HostScannerScreen() {
           </View>
 
           <Text style={styles.title}>Validate Ticket</Text>
-          <Text style={styles.subtitle}>Enter the ticket ID to validate entry</Text>
+          <Text style={styles.subtitle}>Enter the 6-character verification code</Text>
 
           <View style={styles.inputContainer}>
             <TextInput
               style={styles.input}
               value={ticketId}
-              onChangeText={setTicketId}
-              placeholder="e.g., 123e4567-e89b-12d3..."
+              onChangeText={(text) => setTicketId(text.toUpperCase())}
+              placeholder="e.g., A3B7K9"
               placeholderTextColor={Colors.textTertiary}
-              autoCapitalize="none"
+              autoCapitalize="characters"
+              maxLength={6}
               autoCorrect={false}
               editable={!validating}
             />
@@ -157,11 +158,11 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 32,
+    fontWeight: '700',
     color: Colors.text,
     textAlign: 'center',
-    letterSpacing: 1,
+    letterSpacing: 8,
   },
   validateButton: {
     width: '100%',

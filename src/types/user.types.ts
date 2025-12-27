@@ -2,7 +2,6 @@
 
 export type UserRole = 'user' | 'host' | 'admin';
 export type HostType = 'full' | 'activity';
-export type Gender = 'Male' | 'Female' | 'Other' | 'Prefer not to say';
 
 export interface Profile {
   id: string;
@@ -20,14 +19,6 @@ export interface Profile {
   is_public: boolean;
   location: string | null;
   website: string | null;
-  // New fields
-  date_of_birth: string | null;
-  gender: Gender | null;
-  instagram: string | null;
-  youtube: string | null;
-  linkedin: string | null;
-  twitter: string | null;
-  interests: string[];
   created_at: string;
   updated_at: string;
 }

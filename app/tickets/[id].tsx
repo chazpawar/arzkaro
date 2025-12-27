@@ -94,10 +94,10 @@ export default function TicketDetailsScreen() {
                 <Ionicons name="ticket" size={80} color={Colors.primary} />
               </View>
               <Text style={styles.sectionTitle}>Your Ticket</Text>
-              <Text style={styles.ticketIdLabel}>TICKET ID</Text>
-              <Text style={styles.ticketCode}>{ticket.id}</Text>
+              <Text style={styles.ticketIdLabel}>VERIFICATION CODE</Text>
+              <Text style={styles.ticketCode}>{ticket.verification_code}</Text>
               <Text style={styles.qrHint}>
-                Show this Ticket ID at the venue entrance for verification
+                Show this 6-character code at the venue entrance for verification
               </Text>
             </View>
 
@@ -159,8 +159,8 @@ export default function TicketDetailsScreen() {
           <View style={styles.infoNote}>
             <Ionicons name="information-circle-outline" size={20} color={Colors.textSecondary} />
             <Text style={styles.infoNoteText}>
-              Screenshot this ticket for offline access. Show your Ticket ID to event staff for
-              entry verification.
+              Screenshot this ticket for offline access. Share your 6-character verification code
+              with event staff for entry.
             </Text>
           </View>
         </ScrollView>
@@ -294,10 +294,10 @@ const styles = StyleSheet.create({
   },
   ticketCode: {
     marginBottom: Spacing.sm,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    letterSpacing: 1,
+    fontSize: 48,
+    fontWeight: '700',
+    color: Colors.primary,
+    letterSpacing: 12,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
     textAlign: 'center',
     paddingHorizontal: Spacing.md,

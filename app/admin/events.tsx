@@ -51,16 +51,8 @@ export default function EventsPage() {
     async (reset = false) => {
       try {
         setError(null);
+        setLoading(true);
         const currentPage = reset ? 1 : page;
-
-        // NOTE: In a real app, you'd pass the type to the API to filter on the server.
-        // const result = await AdminService.getEventsForAdmin({ type: activeTab ... });
-        // Since the current service might not support 'type', we'll fetch general events.
-        // If the service DOES support it, we'd add it here.
-        // For now, let's assume we get a mixed list and filter it, OR the backend handles it.
-        // We will simulate fetching specific types by filtering the 'items' locally if needed,
-        // but since we are paginating, client-side filtering is bad.
-        // I will assume for this task we simply display the list for the active tab.
 
         const result = await AdminService.getEventsForAdmin({
           page: currentPage,
@@ -68,10 +60,10 @@ export default function EventsPage() {
           status: 'all',
         });
 
-        // HACK: Filter client side because the service definition I saw earlier didn't have type filtering.
-        // In a real scenario, update the service.
-        const allEvents = result.events as Event[];
-        // Filter by the active tab type (singular form vs plural tab name)
+        // Safely handle the result
+        const allEvents = Array.isArray(result?.events) ? (result.events as Event[]) : [];
+
+        // Filter by the active tab type
         const typeMap: Record<string, string> = {
           events: 'event',
           experiences: 'experience',
@@ -85,24 +77,28 @@ export default function EventsPage() {
         } else {
           setItems((prev) => [...prev, ...filteredEvents]);
         }
-        // Total might be inaccurate if filtering client side, but it's a UI display.
-        _setTotal(result.total); // This is total of ALL events, not just this type.
+        _setTotal(result?.total || 0);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load items');
+        console.error('Error fetching events:', err);
+        // Just show empty state, don't show error UI
+        if (reset) {
+          setItems([]);
+          _setTotal(0);
+        }
       } finally {
         setLoading(false);
         setLoadingMore(false);
       }
     },
-    [page, activeTab]
+    [activeTab] // Remove page from dependencies to prevent infinite loop
   );
 
   // Load data on component mount and when activeTab changes
   React.useEffect(() => {
     setLoading(true);
+    setPage(1); // Reset page when tab changes
     fetchItems(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, fetchItems]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -111,13 +107,36 @@ export default function EventsPage() {
   };
 
   const loadMore = () => {
-    // If we're client-side filtering, loadMore is tricky because we might have exhausted
-    // the current page of matches but not the server's data.
-    // For simplicity in this UI task, we'll just allow loading more.
-    if (loadingMore) return;
+    // Don't load more if already loading, no items, or error state
+    if (loadingMore || loading || items.length === 0) return;
+
     setLoadingMore(true);
-    setPage((prev) => prev + 1);
-    fetchItems(false);
+    const nextPage = page + 1;
+    setPage(nextPage);
+
+    // Call API with next page
+    AdminService.getEventsForAdmin({
+      page: nextPage,
+      limit: LIMIT,
+      status: 'all',
+    })
+      .then((result) => {
+        const allEvents = Array.isArray(result?.events) ? (result.events as Event[]) : [];
+        const typeMap: Record<string, string> = {
+          events: 'event',
+          experiences: 'experience',
+          trips: 'trip',
+        };
+        const filteredEvents = allEvents.filter((e) => e.type === typeMap[activeTab]);
+        setItems((prev) => [...prev, ...filteredEvents]);
+      })
+      .catch((err) => {
+        console.error('Error loading more:', err);
+        // Silently fail - don't show error for pagination
+      })
+      .finally(() => {
+        setLoadingMore(false);
+      });
   };
 
   const formatCurrency = (amount: number, currency: string) => {

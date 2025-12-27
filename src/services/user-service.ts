@@ -1,5 +1,5 @@
 import { supabase } from '../../backend/supabase';
-import type { Profile, Gender } from '../types/user.types';
+import type { Profile } from '../types/user.types';
 
 export interface UpdateProfileData {
   full_name?: string;
@@ -10,13 +10,6 @@ export interface UpdateProfileData {
   location?: string;
   website?: string;
   is_public?: boolean;
-  date_of_birth?: string;
-  gender?: Gender;
-  instagram?: string;
-  youtube?: string;
-  linkedin?: string;
-  twitter?: string;
-  interests?: string[];
 }
 
 /**
@@ -31,10 +24,7 @@ export async function getProfile(userId: string): Promise<Profile | null> {
       throw error;
     }
 
-    return {
-      ...data,
-      interests: data.interests || [],
-    } as Profile;
+    return data;
   } catch (error) {
     console.error('Error in getProfile:', error);
     return null;
@@ -65,10 +55,7 @@ export async function updateProfile(userId: string, updates: UpdateProfileData):
       throw new Error('Profile update failed - no data returned');
     }
 
-    return {
-      ...data,
-      interests: data.interests || [],
-    } as Profile;
+    return data;
   } catch (error) {
     console.error('Error in updateProfile:', error);
     throw error;
