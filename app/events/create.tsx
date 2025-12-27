@@ -23,6 +23,7 @@ import MultiImageUpload from '../../src/components/ui/multi-image-upload';
 import ItineraryBuilder, { ItineraryDay } from '../../src/components/itinerary-builder';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as EventService from '../../src/services/event-service';
 import { HOST_TYPE_LABELS } from '../../src/services/host-service';
@@ -49,13 +50,12 @@ const EVENT_CATEGORIES = [
 ];
 
 const EXPERIENCE_CATEGORIES = [
-  'Adventure',
+  'Cultural',
+  'Games',
+  'Entertainment',
+  'Outdoors',
+  'Nightlife',
   'Wellness',
-  'Photography',
-  'Food & Drink',
-  'Art & Culture',
-  'Learning',
-  'Outdoor Activity',
   'Other',
 ];
 
@@ -88,18 +88,6 @@ const CATEGORY_SUBCATEGORIES: Record<string, string[]> = {
     'Fine Dining',
     'Street Food',
   ],
-  Adventure: [
-    'Skydiving',
-    'Scuba Diving',
-    'Paragliding',
-    'Rock Climbing',
-    'Rafting',
-    'Bungee Jumping',
-  ],
-  Photography: ['Portrait', 'Landscape', 'Wildlife', 'Street', 'Wedding', 'Event'],
-  'Art & Culture': ['Painting', 'Sculpture', 'Pottery', 'Calligraphy', 'Crafts', 'Museum Visit'],
-  Learning: ['Language', 'Skill Development', 'Technology', 'Cooking', 'Music', 'Art'],
-  'Outdoor Activity': ['Hiking', 'Cycling', 'Kayaking', 'Fishing', 'Bird Watching', 'Nature Walk'],
   Travel: ['Sightseeing', 'Adventure Travel', 'Cultural Tour', 'Beach', 'Mountain', 'City Break'],
   'Beach Trip': [
     'Swimming',
@@ -1309,7 +1297,7 @@ const styles = StyleSheet.create({
   },
   typeLabelSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   typeLabelDisabled: {
     color: Colors.textTertiary,
@@ -1327,7 +1315,7 @@ const styles = StyleSheet.create({
   hostTypeBadgeText: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: Spacing.xs,
   },
   permissionMessage: {
@@ -1359,7 +1347,7 @@ const styles = StyleSheet.create({
   },
   categoryChipTextSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   errorText: {
     ...Typography.caption,
@@ -1467,12 +1455,12 @@ const styles = StyleSheet.create({
   sectionHeaderText: {
     ...Typography.h4,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   subsectionLabel: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginTop: Spacing.md,
     marginBottom: Spacing.sm,
   },
@@ -1488,7 +1476,7 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   datePickerButton: {
     flexDirection: 'row',
@@ -1542,7 +1530,7 @@ const styles = StyleSheet.create({
   durationText: {
     ...Typography.bodySmall,
     color: Colors.success,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   templateSection: {
     marginTop: Spacing.md,
@@ -1567,7 +1555,7 @@ const styles = StyleSheet.create({
   templateChipText: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   subcategorySection: {
     marginTop: Spacing.lg,
@@ -1598,7 +1586,7 @@ const styles = StyleSheet.create({
   },
   subcategoryChipTextSelected: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   checkbox: {
     width: 18,
@@ -1682,7 +1670,7 @@ const styles = StyleSheet.create({
   customTagChipText: {
     fontSize: 14,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   // Trip-specific styles
   pickupContainer: {
@@ -1730,7 +1718,7 @@ const styles = StyleSheet.create({
   pickupNumberText: {
     ...Typography.bodySmall,
     color: Colors.textInverse,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     fontSize: 12,
   },
   pickupListItemText: {
@@ -1753,6 +1741,6 @@ const styles = StyleSheet.create({
   pickupChipText: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
 });

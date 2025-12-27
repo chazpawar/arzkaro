@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
 
@@ -178,7 +179,7 @@ export default function AdminDashboard() {
 
                 <View style={styles.gridItem}>
                   <Text style={styles.gridValue}>{stats.totalEvents}</Text>
-                  <Text style={styles.gridLabel}>Events</Text>
+                  <Text style={styles.gridLabel}>Listings</Text>
                   <Text style={styles.gridSubText}>{stats.activeEvents} active</Text>
                 </View>
 
@@ -241,8 +242,8 @@ export default function AdminDashboard() {
                   <Ionicons name="calendar-outline" size={20} color={Colors.text} />
                 </View>
                 <View style={styles.menuContent}>
-                  <Text style={styles.menuTitle}>Events</Text>
-                  <Text style={styles.menuSubtitle}>Monitor and manage events</Text>
+                  <Text style={styles.menuTitle}>Trips & Experiences</Text>
+                  <Text style={styles.menuSubtitle}>Monitor and manage listings</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
               </Pressable>
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -341,7 +342,7 @@ const styles = StyleSheet.create({
   },
   alertTitle: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.warning,
     marginBottom: 2,
   },
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
   statLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   sectionContainer: {
     marginBottom: Spacing.xl,
@@ -421,7 +422,7 @@ const styles = StyleSheet.create({
   gridLabel: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: Spacing.xs,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -443,7 +444,7 @@ const styles = StyleSheet.create({
   trendText: {
     ...Typography.caption,
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     marginLeft: 2,
   },
   menuList: {
@@ -473,7 +474,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   menuSubtitle: {
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: Colors.textInverse,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   footer: {
     alignItems: 'center',

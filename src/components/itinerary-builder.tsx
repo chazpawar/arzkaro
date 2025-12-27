@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 import Button from './ui/button';
 import Card from './ui/card';
 
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   emptyCard: {
@@ -181,12 +182,12 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   emptySubtext: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textTertiary,
     textAlign: 'center',
   },
@@ -214,13 +215,13 @@ const styles = StyleSheet.create({
   },
   dayNumberText: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
   },
   dayTitleInput: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     paddingVertical: Spacing.xs,
     paddingHorizontal: Spacing.sm,
@@ -234,7 +235,7 @@ const styles = StyleSheet.create({
   },
   activitiesLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
   },
@@ -250,7 +251,7 @@ const styles = StyleSheet.create({
   activityInput: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.text,
     paddingVertical: Spacing.sm,
     paddingHorizontal: Spacing.sm,
@@ -273,7 +274,7 @@ const styles = StyleSheet.create({
   },
   addActivityText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.primary,
   },
 });

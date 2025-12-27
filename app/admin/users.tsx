@@ -18,6 +18,7 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import * as AdminService from '../../src/services/admin-service';
 import type { Profile } from '../../src/types/user.types';
 
@@ -327,7 +328,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -385,7 +386,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   filterButtonTextActive: {
     color: Colors.textInverse,
@@ -424,7 +425,7 @@ const styles = StyleSheet.create({
   avatarText: {
     ...Typography.bodyMedium,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   userInfo: {
     flex: 1,
@@ -439,7 +440,7 @@ const styles = StyleSheet.create({
   userName: {
     ...Typography.bodySmall,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     flexShrink: 1,
   },
   userEmail: {
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
   },
   roleText: {
     ...Typography.caption,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     fontSize: 9,
     textTransform: 'uppercase',
   },

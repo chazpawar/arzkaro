@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@/contexts/auth-context';
 import { Colors } from '@/constants/Colors';
 import { BorderRadius, Spacing } from '@/constants/Styles';
+import { Fonts } from '../../constants/Fonts';
 
 interface AdminViewToggleProps {
   variant?: 'floating' | 'inline';
@@ -81,7 +82,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   text: {
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   floatingText: {
     fontSize: 13,

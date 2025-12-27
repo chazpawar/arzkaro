@@ -59,6 +59,9 @@ export const Colors = {
 
   // Badge colors
   badgeUnread: '#ff785a',
+
+  // Trip details color
+  maroon: '#831E0F',
 };
 
 // Export type for type safety

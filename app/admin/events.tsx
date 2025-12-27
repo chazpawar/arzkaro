@@ -16,14 +16,15 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import * as AdminService from '../../src/services/admin-service';
 import type { Event } from '../../src/types/event.types';
 
-type TabType = 'events' | 'experiences' | 'trips';
+type TabType = 'experiences' | 'trips';
 
 export default function EventsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>('events');
+  const [activeTab, setActiveTab] = useState<TabType>('experiences');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<Event[]>([]);
@@ -63,9 +64,7 @@ export default function EventsPage() {
         // Safely handle the result
         const allEvents = Array.isArray(result?.events) ? (result.events as Event[]) : [];
 
-        // Filter by the active tab type
         const typeMap: Record<string, string> = {
-          events: 'event',
           experiences: 'experience',
           trips: 'trip',
         };
@@ -247,7 +246,7 @@ export default function EventsPage() {
 
         {/* Tab Navigation */}
         <View style={styles.tabContainer}>
-          {(['events', 'experiences', 'trips'] as TabType[]).map((tab) => (
+          {(['experiences', 'trips'] as TabType[]).map((tab) => (
             <Pressable
               key={tab}
               style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
@@ -338,7 +337,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -370,7 +369,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     ...Typography.caption,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   tabTextActive: {
@@ -424,7 +423,7 @@ const styles = StyleSheet.create({
   statusText: {
     color: 'white',
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     textTransform: 'uppercase',
   },
   detailsContainer: {
@@ -434,7 +433,7 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 4,
     lineHeight: 20,
@@ -473,7 +472,7 @@ const styles = StyleSheet.create({
   },
   hostAvatarText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   hostName: {
@@ -491,7 +490,7 @@ const styles = StyleSheet.create({
   },
   priceText: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   statsContainer: {
@@ -502,7 +501,7 @@ const styles = StyleSheet.create({
   statsText: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,

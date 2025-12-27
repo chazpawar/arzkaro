@@ -8,6 +8,7 @@ import { useAuth } from '../../src/contexts/auth-context';
 import { useTicketValidation } from '../../src/hooks/use-bookings';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 
 export default function HostScannerScreen() {
   const router = useRouter();
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
     fontSize: 32,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     textAlign: 'center',
     letterSpacing: 8,

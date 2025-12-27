@@ -1,9 +1,19 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, Pressable, Platform } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Image,
+  Pressable,
+  Platform,
+  Animated,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import type { Event } from '../types';
+import { Fonts } from '../constants/Fonts';
 
 interface CategoryDetailProps {
   type: 'events' | 'experiences';
@@ -30,11 +40,32 @@ export default function CategoryDetail({
   showInline = false,
 }: CategoryDetailProps) {
   const [selectedSubcategory, setSelectedSubcategory] = React.useState<string | null>(null);
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const scaleAnims = React.useRef<Record<string, Animated.Value>>({});
 
   // Find the selected main category to check for subcategories
   const selectedMainCategory = tags.find((tag) => tag.id === selectedTag);
   const hasSubcategories =
     selectedMainCategory?.subcategories && selectedMainCategory.subcategories.length > 0;
+
+  // Initialize scale animations for all tags
+  React.useEffect(() => {
+    tags.forEach((tag) => {
+      if (!scaleAnims.current[tag.id]) {
+        scaleAnims.current[tag.id] = new Animated.Value(1);
+      }
+    });
+    // Also initialize for subcategories
+    tags.forEach((tag) => {
+      if (tag.subcategories) {
+        tag.subcategories.forEach((sub) => {
+          if (!scaleAnims.current[sub.id]) {
+            scaleAnims.current[sub.id] = new Animated.Value(1);
+          }
+        });
+      }
+    });
+  }, [tags]);
 
   // Reset subcategory when main category changes
   React.useEffect(() => {
@@ -63,46 +94,139 @@ export default function CategoryDetail({
     });
   }, [events, selectedSubcategory]);
 
-  // Prepare tags to display based on selection
+  // Prepare tags to display based on selection - with reordering
   const displayTags = React.useMemo(() => {
+    let result: any[] = [];
+
     if (selectedTag === 'all') {
       // Show all tags when 'all' is selected
-      return tags;
+      result = tags;
     } else if (hasSubcategories) {
       // Show selected category + its subcategories
       const mainCategory = tags.find((tag) => tag.id === selectedTag);
       if (mainCategory && mainCategory.subcategories) {
-        return [
+        // Create a structure with main category first, then subcategories
+        result = [
           mainCategory,
           ...mainCategory.subcategories.map((sub) => ({
             id: sub.id,
             label: sub.label,
             icon: sub.icon,
+            isSubcategory: true,
           })),
         ];
       }
+    } else {
+      // If no subcategories, show all tags but reordered
+      const selectedIndex = tags.findIndex((tag) => tag.id === selectedTag);
+      if (selectedIndex > 0) {
+        // Move selected to first position
+        result = [
+          tags[selectedIndex],
+          ...tags.slice(0, selectedIndex),
+          ...tags.slice(selectedIndex + 1),
+        ];
+      } else {
+        result = tags;
+      }
     }
-    // If no subcategories, just show the selected category
-    return tags.filter((tag) => tag.id === selectedTag);
+
+    return result;
   }, [tags, selectedTag, hasSubcategories]);
+
+  // Scroll to start and animate scale when selection changes
+  React.useEffect(() => {
+    if (selectedTag !== 'all' && scrollViewRef.current) {
+      // Scroll to beginning
+      scrollViewRef.current.scrollTo({ x: 0, animated: true });
+
+      // Animate scale for selected tag
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        const isSelected = tagId === selectedTag;
+        Animated.spring(scaleAnims.current[tagId], {
+          toValue: isSelected ? 1.15 : 1,
+          useNativeDriver: true,
+          friction: 6,
+        }).start();
+      });
+    } else if (selectedTag === 'all') {
+      // Reset all scales when back to 'all'
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        Animated.spring(scaleAnims.current[tagId], {
+          toValue: 1,
+          useNativeDriver: true,
+          friction: 6,
+        }).start();
+      });
+    }
+  }, [selectedTag]);
+
+  // Animate scale for subcategory selection
+  React.useEffect(() => {
+    if (selectedSubcategory && scaleAnims.current[selectedSubcategory]) {
+      // Scale the selected subcategory
+      Object.keys(scaleAnims.current).forEach((tagId) => {
+        if (selectedMainCategory?.subcategories?.some((sub) => sub.id === tagId)) {
+          const isSelected = tagId === selectedSubcategory;
+          Animated.spring(scaleAnims.current[tagId], {
+            toValue: isSelected ? 1.15 : 1,
+            useNativeDriver: true,
+            friction: 6,
+          }).start();
+        }
+      });
+    } else if (!selectedSubcategory && selectedMainCategory) {
+      // Reset subcategory scales when none selected
+      selectedMainCategory.subcategories?.forEach((sub) => {
+        if (scaleAnims.current[sub.id]) {
+          Animated.spring(scaleAnims.current[sub.id], {
+            toValue: 1,
+            useNativeDriver: true,
+            friction: 6,
+          }).start();
+        }
+      });
+    }
+  }, [selectedSubcategory, selectedMainCategory]);
 
   return (
     <View style={styles.container}>
       {/* Horizontal Tags ScrollView (Circular Icons) */}
       <View style={styles.tagsContainer}>
         <ScrollView
+          ref={scrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tagsContent}
         >
+          {/* Back Button - Show when not on 'all' */}
+          {selectedTag !== 'all' && (
+            <Pressable
+              style={styles.backButtonContainer}
+              onPress={() => {
+                onSelectTag('all');
+                setSelectedSubcategory(null);
+              }}
+            >
+              <View style={styles.backButtonCircle}>
+                <Ionicons name="chevron-back" size={18} color={Colors.text} />
+              </View>
+            </Pressable>
+          )}
+
           {displayTags.map((tag) => {
             // For subcategories, check if it matches the selected subcategory
-            const isSubcategory = selectedMainCategory?.subcategories?.some(
-              (sub) => sub.id === tag.id
-            );
+            const isSubcategory =
+              tag.isSubcategory ||
+              selectedMainCategory?.subcategories?.some((sub) => sub.id === tag.id);
             const isSelected = isSubcategory
               ? selectedSubcategory === tag.id
               : selectedTag === tag.id;
+
+            // Get or create animation value for this tag
+            if (!scaleAnims.current[tag.id]) {
+              scaleAnims.current[tag.id] = new Animated.Value(1);
+            }
 
             return (
               <Pressable
@@ -118,14 +242,21 @@ export default function CategoryDetail({
                   }
                 }}
               >
-                <View style={styles.tagIconContainer}>
+                <Animated.View
+                  style={[
+                    styles.tagIconContainer,
+                    {
+                      transform: [{ scale: scaleAnims.current[tag.id] }],
+                    },
+                  ]}
+                >
                   <Image source={tag.icon} style={styles.tagIcon} resizeMode="contain" />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
-                </View>
+                </Animated.View>
                 <Text style={[styles.tagLabel, isSelected && styles.tagLabelSelected]}>
                   {tag.label}
                 </Text>
@@ -135,8 +266,8 @@ export default function CategoryDetail({
         </ScrollView>
       </View>
 
-      {/* Only show content below if showInline is true OR a specific category is selected */}
-      {(showInline || selectedTag !== 'all') && (
+      {/* Show content when: 1) Not inline mode (dedicated page), or 2) specific category is selected */}
+      {(!showInline || selectedTag !== 'all') && (
         <>
           <Text style={styles.sectionHeader}>
             {hasSubcategories && selectedTag !== 'all'
@@ -146,34 +277,34 @@ export default function CategoryDetail({
               : `Upcoming ${type === 'events' ? 'Events' : 'Experiences'}`}
           </Text>
 
-          {/* Events Grid */}
+          {/* Events Grid - Same as Clubs Grid */}
           <View style={styles.eventsGrid}>
             {filteredEvents.length > 0 ? (
               filteredEvents.map((event) => (
                 <Pressable
                   key={event.id}
-                  style={styles.eventCard}
+                  style={styles.clubCard}
                   onPress={() => onEventPress(event.id)}
                 >
-                  <View style={styles.eventCardInner}>
+                  <View style={styles.clubCardInner}>
                     <Image
                       source={{ uri: event.cover_image_url || 'https://via.placeholder.com/150' }}
-                      style={styles.eventImage}
+                      style={styles.clubImage}
                     />
-                    <View style={styles.eventContent}>
-                      <Text style={styles.eventName} numberOfLines={1}>
+                    <View style={styles.clubContent}>
+                      <Text style={styles.clubName} numberOfLines={1}>
                         {event.title}
                       </Text>
-                      <View style={styles.eventInfoRow}>
-                        <View style={styles.eventLocationRow}>
+                      <View style={styles.clubInfoRow}>
+                        <View style={styles.clubLocationRow}>
                           <Ionicons name="location" size={14} color={Colors.primary} />
-                          <Text style={styles.eventLocationText} numberOfLines={1}>
+                          <Text style={styles.clubLocationText} numberOfLines={1}>
                             {event.location_name || 'Location TBA'}
                           </Text>
                         </View>
-                        <View style={styles.eventTimingRow}>
+                        <View style={styles.clubTimingRow}>
                           <Ionicons name="time-outline" size={14} color={Colors.primary} />
-                          <Text style={styles.eventTimingText}>
+                          <Text style={styles.clubTimingText}>
                             {new Date(event.start_date).toLocaleTimeString('en-US', {
                               hour: 'numeric',
                               minute: '2-digit',
@@ -206,46 +337,63 @@ const styles = StyleSheet.create({
   },
   tagsContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
+    alignItems: 'center',
+  },
+  backButtonContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.xs,
+  },
+  backButtonCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
   },
   tagIconContainer: {
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 72,
-    height: 72,
+    width: 68,
+    height: 68,
   },
   tagIcon: {
-    width: 64,
-    height: 64,
+    width: 56,
+    height: 56,
   },
   checkBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     backgroundColor: Colors.primary,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+    zIndex: 10,
   },
   tagLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.textSecondary,
-    fontWeight: '500',
-    marginTop: 6,
+    fontFamily: Fonts.medium,
+    marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   subcategoriesContainer: {
     paddingVertical: Spacing.md,
@@ -256,7 +404,7 @@ const styles = StyleSheet.create({
   },
   subcategoriesTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     marginBottom: Spacing.sm,
   },
@@ -280,7 +428,7 @@ const styles = StyleSheet.create({
   },
   subcategoryLabel: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   subcategoryCardsList: {
@@ -328,13 +476,13 @@ const styles = StyleSheet.create({
   },
   subcategoryCardTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
   subcategoryCardSubtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
   },
   breadcrumbContainer: {
@@ -349,26 +497,26 @@ const styles = StyleSheet.create({
   },
   breadcrumbText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   sectionHeader: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
     textAlign: 'left',
   },
-  eventsGrid: {
+  clubsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: Spacing.lg,
     gap: Spacing.sm,
     justifyContent: 'space-between',
   },
-  eventCard: {
+  clubCard: {
     width: '48%',
     backgroundColor: '#fff',
     borderRadius: BorderRadius.xl,
@@ -376,55 +524,62 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     marginBottom: Spacing.xs,
   },
-  eventCardInner: {
+  clubCardInner: {
     padding: Spacing.sm,
   },
-  eventImage: {
+  clubImage: {
     width: '100%',
     height: 180,
     borderRadius: BorderRadius.lg,
     backgroundColor: '#f0f0f0',
   },
-  eventContent: {
+  clubContent: {
     paddingTop: Spacing.sm,
     paddingBottom: Spacing.xs,
     alignItems: 'center',
     minHeight: 50,
   },
-  eventName: {
+  clubName: {
     fontSize: 14,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 8,
     lineHeight: 18,
     textAlign: 'center',
     height: 18,
   },
-  eventInfoRow: {
+  clubInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     width: '100%',
   },
-  eventLocationRow: {
+  clubLocationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     flex: 1,
   },
-  eventLocationText: {
+  clubLocationText: {
     fontSize: 13,
     color: Colors.textSecondary,
     flex: 1,
   },
-  eventTimingRow: {
+  clubTimingRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  eventTimingText: {
+  clubTimingText: {
     fontSize: 13,
     color: Colors.textSecondary,
+  },
+  eventsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.sm,
+    justifyContent: 'space-between',
   },
   emptyText: {
     textAlign: 'center',

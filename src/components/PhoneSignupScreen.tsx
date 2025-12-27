@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 
 interface PhoneSignupScreenProps {
   onBack: () => void;
@@ -240,7 +241,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.h3,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   placeholder: {
@@ -253,7 +254,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h2,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -278,7 +279,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.bodySmall,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
   countryCode: {
     ...Typography.body,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginRight: Spacing.sm,
   },
   input: {
@@ -325,7 +326,7 @@ const styles = StyleSheet.create({
   resendText: {
     ...Typography.bodySmall,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   primaryButton: {
     backgroundColor: Colors.primary,
@@ -336,7 +337,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     ...Typography.body,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   buttonPressed: {
@@ -355,6 +356,6 @@ const styles = StyleSheet.create({
   },
   termsLink: {
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
 });

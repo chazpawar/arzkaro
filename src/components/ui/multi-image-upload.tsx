@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { Spacing, Typography, BorderRadius, Shadows } from '../../constants/Styles';
+import { Fonts } from '../../constants/Fonts';
 import * as StorageService from '../../services/storage-service';
 
 interface MultiImageUploadProps {
@@ -234,12 +235,12 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   counter: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
     backgroundColor: Colors.primarySoft,
     paddingHorizontal: Spacing.sm,
@@ -280,7 +281,7 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.textSecondary,
     marginTop: Spacing.xs,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   imageSlotUploading: {
     justifyContent: 'center',
@@ -319,7 +320,7 @@ const styles = StyleSheet.create({
   imageNumberText: {
     ...Typography.caption,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
   },
   infoBox: {
@@ -376,7 +377,7 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     ...Typography.bodyMedium,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   optionSubtitle: {
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
   cancelText: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
   },
 });

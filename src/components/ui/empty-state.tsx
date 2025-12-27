@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-n
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Spacing, BorderRadius } from '@/constants/Styles';
+import { Fonts } from '../../constants/Fonts';
 
 interface EmptyStateProps {
   /**
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
     textAlign: 'center',
@@ -106,7 +107,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
 });

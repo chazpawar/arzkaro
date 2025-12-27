@@ -14,6 +14,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import TabHeader from '../../src/components/TabHeader';
 import EmptyState from '../../src/components/ui/empty-state';
@@ -24,7 +25,7 @@ import { useTickets } from '../../src/hooks/use-bookings';
 export default function TicketsTab() {
   const router = useRouter();
   const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
-  const insets = useSafeAreaInsets();
+  const _insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
   const [refreshing, setRefreshing] = useState(false);
@@ -66,12 +67,15 @@ export default function TicketsTab() {
   // Not authenticated
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>arz</Text>
-            <Text style={styles.logoDot}>.</Text>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -310,26 +314,23 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: Colors.background,
   },
   logoContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: -15,
+    marginTop: -10,
   },
-  logoText: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  logoDot: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.primary,
+  logo: {
+    width: 180,
+    height: 80,
   },
   tabsContainer: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xs,
     paddingBottom: Spacing.md,
     gap: Spacing.sm,
   },
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   tabTextActive: {
@@ -366,7 +367,7 @@ const styles = StyleSheet.create({
   },
   tabBadgeText: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.textInverse,
   },
   ticketsList: {
@@ -417,7 +418,7 @@ const styles = StyleSheet.create({
   },
   statusPillText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.xs,
   },
@@ -455,7 +456,7 @@ const styles = StyleSheet.create({
   },
   ticketPrice: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   viewTicketCta: {
@@ -465,7 +466,7 @@ const styles = StyleSheet.create({
   },
   viewTicketText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   viewModeBanner: {
@@ -481,7 +482,7 @@ const styles = StyleSheet.create({
   },
   viewModeBannerText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.warning,
   },
   viewModeBannerAction: {

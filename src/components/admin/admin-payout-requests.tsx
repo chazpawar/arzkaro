@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import {
   getAllPayoutRequests,
   approvePayoutRequest,
@@ -546,7 +547,7 @@ const styles = StyleSheet.create({
   },
   statNumber: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
@@ -557,7 +558,7 @@ const styles = StyleSheet.create({
   },
   statAmount: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   filterContainer: {
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
   },
   filterText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   filterTextActive: {
@@ -597,7 +598,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginTop: 16,
     color: Colors.text,
   },
@@ -636,7 +637,7 @@ const styles = StyleSheet.create({
   },
   hostName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 2,
   },
@@ -656,7 +657,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   amountSection: {
     backgroundColor: '#f5f5f5',
@@ -671,7 +672,7 @@ const styles = StyleSheet.create({
   },
   amountValue: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   bankDetails: {
@@ -682,7 +683,7 @@ const styles = StyleSheet.create({
   },
   bankDetailsTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#1976D2',
     marginBottom: 8,
   },
@@ -697,7 +698,7 @@ const styles = StyleSheet.create({
   },
   bankValue: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#0D47A1',
   },
   noteSection: {
@@ -708,7 +709,7 @@ const styles = StyleSheet.create({
   },
   noteLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#F57F17',
     marginBottom: 4,
   },
@@ -727,7 +728,7 @@ const styles = StyleSheet.create({
   },
   dateValue: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   actions: {
@@ -758,7 +759,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   modalOverlay: {
     flex: 1,
@@ -776,7 +777,7 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 8,
   },
@@ -791,7 +792,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     marginBottom: 8,
     color: Colors.text,
   },
@@ -823,7 +824,7 @@ const styles = StyleSheet.create({
   modalCancelText: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   modalConfirmButton: {
     backgroundColor: '#4CAF50',
@@ -834,6 +835,6 @@ const styles = StyleSheet.create({
   modalConfirmText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
 });

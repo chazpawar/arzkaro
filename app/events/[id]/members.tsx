@@ -7,6 +7,7 @@ import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../../src/constants/Styles';
+import { Fonts } from '../../../src/constants/Fonts';
 import { useAuth } from '../../../src/contexts/auth-context';
 import * as ChatService from '../../../src/services/chat-service';
 import * as FriendsService from '../../../src/services/friends-service';
@@ -452,18 +453,18 @@ const styles = StyleSheet.create({
   },
   memberUsername: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: 4,
   },
   youBadge: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.primary,
   },
   memberFullName: {
     fontSize: 13,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textSecondary,
     letterSpacing: 0.5,
   },
@@ -480,7 +481,7 @@ const styles = StyleSheet.create({
   },
   followButtonTextFollow: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.background,
   },
   followButtonFriends: {
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
   },
   followButtonTextFriends: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   followButtonSent: {
@@ -500,7 +501,7 @@ const styles = StyleSheet.create({
   },
   followButtonTextSent: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
 });

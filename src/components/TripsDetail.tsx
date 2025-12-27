@@ -3,7 +3,10 @@ import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Image } from '
 import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 import type { Event } from '../types';
+
+// Dummy trip data since backend only has events mostly
 
 const TRIP_CATEGORIES = [
   { id: 'All', label: 'All', icon: 'grid-outline' },
@@ -21,20 +24,27 @@ interface TripsDetailProps {
 export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
-  // Map events to display format
-  const displayTrips = events.map((event) => ({
-    id: event.id,
-    title: event.title,
-    image:
-      event.cover_image_url ||
-      'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-    date: new Date(event.start_date).toLocaleDateString('en-GB', {
-      day: 'numeric',
-      month: 'short',
-    }),
-    price: `₹${event.price}`,
-    location: event.location_name || 'Unknown Location',
-  }));
+  // Use passed events for real trip data
+  // For now, let's map the passed events to the structure we need, or update the UI to use Event type directly.
+  // The UI expects: id, image, location, rating, title, date, price
+
+  const displayTrips =
+    events.length > 0
+      ? events.map((event) => ({
+          id: event.id,
+          title: event.title,
+          image:
+            event.cover_image_url ||
+            'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
+          date: new Date(event.start_date).toLocaleDateString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+          }),
+          price: `₹${event.price}`,
+          rating: 4.5, // Placeholder
+          location: event.location_name || 'Unknown Location',
+        }))
+      : [];
 
   return (
     <View style={styles.container}>
@@ -56,12 +66,12 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Ionicons
                     name={cat.icon as any}
-                    size={32}
+                    size={28}
                     color={isSelected ? '#FFF' : Colors.primary}
                   />
                   {isSelected && (
                     <View style={styles.checkBadge}>
-                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                      <Ionicons name="checkmark" size={10} color="#FFF" />
                     </View>
                   )}
                 </View>
@@ -77,36 +87,33 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
       <Text style={styles.sectionHeader}>{displayTrips.length} Popular Trips</Text>
 
       {/* Trips List */}
-      {displayTrips.length > 0 ? (
-        <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
-          {displayTrips.map((trip) => (
-            <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
-              <Image source={{ uri: trip.image }} style={styles.tripImage} />
-              <View style={styles.tripContent}>
-                <View style={styles.tripHeader}>
-                  <Text style={styles.tripLocation}>{trip.location}</Text>
-                </View>
-
-                <Text style={styles.tripTitle}>{trip.title}</Text>
-                <Text style={styles.tripDate}>{trip.date}</Text>
-
-                <View style={styles.tripFooter}>
-                  <Text style={styles.tripPrice}>
-                    {trip.price} <Text style={styles.perPerson}>/ person</Text>
-                  </Text>
-                  <View style={styles.bookButton}>
-                    <Text style={styles.bookButtonText}>View</Text>
-                  </View>
+      <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
+        {displayTrips.map((trip) => (
+          <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
+            <Image source={{ uri: trip.image }} style={styles.tripImage} />
+            <View style={styles.tripContent}>
+              <View style={styles.tripHeader}>
+                <Text style={styles.tripLocation}>{trip.location}</Text>
+                <View style={styles.ratingBadge}>
+                  <Text style={styles.ratingText}>{trip.rating} ★</Text>
                 </View>
               </View>
-            </Pressable>
-          ))}
-        </ScrollView>
-      ) : (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>No events yet</Text>
-        </View>
-      )}
+
+              <Text style={styles.tripTitle}>{trip.title}</Text>
+              <Text style={styles.tripDate}>{trip.date}</Text>
+
+              <View style={styles.tripFooter}>
+                <Text style={styles.tripPrice}>
+                  {trip.price} <Text style={styles.perPerson}>/ person</Text>
+                </Text>
+                <View style={styles.bookButton}>
+                  <Text style={styles.bookButtonText}>View</Text>
+                </View>
+              </View>
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -122,17 +129,17 @@ const styles = StyleSheet.create({
   },
   tagsContent: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
   },
   tagItem: {
     alignItems: 'center',
     gap: Spacing.xs,
-    paddingHorizontal: Spacing.xs,
+    paddingHorizontal: 2,
   },
   tagIconCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     backgroundColor: Colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
@@ -146,31 +153,32 @@ const styles = StyleSheet.create({
   },
   checkBadge: {
     position: 'absolute',
-    top: 0,
-    right: 0,
+    top: 2,
+    right: 2,
     backgroundColor: Colors.primary,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: Colors.background,
+    zIndex: 10,
   },
   tagLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: Colors.textSecondary,
-    fontWeight: '500',
-    marginTop: 6,
+    fontFamily: Fonts.medium,
+    marginTop: 4,
   },
   tagLabelSelected: {
     color: Colors.text,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
   },
   // Section Header
   sectionHeader: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginHorizontal: Spacing.lg,
     marginTop: Spacing.xl,
@@ -221,13 +229,24 @@ const styles = StyleSheet.create({
   },
   tripLocation: {
     fontSize: 12, // Smaller font
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     textTransform: 'uppercase',
   },
+  ratingBadge: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    color: '#FFF',
+  },
   tripTitle: {
     fontSize: 16, // Smaller title
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
@@ -244,12 +263,12 @@ const styles = StyleSheet.create({
   },
   tripPrice: {
     fontSize: 16, // Smaller price
-    fontWeight: '800',
+    fontFamily: Fonts.extraBold,
     color: Colors.primary,
   },
   perPerson: {
     fontSize: 12,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textSecondary,
   },
   bookButton: {
@@ -260,17 +279,7 @@ const styles = StyleSheet.create({
   },
   bookButtonText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#FFF',
-  },
-  emptyStateContainer: {
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
-    alignItems: 'center',
-  },
-  emptyStateText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    textAlign: 'center',
   },
 });

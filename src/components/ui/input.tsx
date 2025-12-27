@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, TextInput, Text, StyleSheet, ViewStyle, TextInputProps } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { BorderRadius, Spacing, Typography } from '@/constants/Styles';
+import { Fonts } from '../../constants/Fonts';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -60,7 +61,7 @@ const styles = StyleSheet.create({
   },
   label: {
     ...Typography.caption,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     marginBottom: Spacing.xs,
     marginLeft: Spacing.xs,

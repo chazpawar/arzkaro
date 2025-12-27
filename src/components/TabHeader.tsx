@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, TextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 
@@ -16,10 +15,8 @@ export default function TabHeader({
   searchQuery,
   onSearchChange,
 }: TabHeaderProps) {
-  const insets = useSafeAreaInsets();
-
   return (
-    <View style={[styles.header, { paddingTop: insets.top > 0 ? insets.top - 60 : 0 }]}>
+    <View style={styles.header}>
       {/* Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../../assets/arz.png')} style={styles.logo} resizeMode="contain" />
@@ -43,17 +40,19 @@ export default function TabHeader({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
+    paddingTop: 0,
+    paddingBottom: 0,
     backgroundColor: Colors.background,
     zIndex: 10,
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: Spacing.xs,
+    marginBottom: -15,
+    marginTop: -10,
   },
   logo: {
-    width: 200,
-    height: 100,
+    width: 180,
+    height: 80,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -64,6 +63,8 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.sm + 2,
     borderWidth: 2,
     borderColor: Colors.primary,
+    marginTop: 0,
+    marginBottom: Spacing.xs,
   },
   searchInput: {
     flex: 1,

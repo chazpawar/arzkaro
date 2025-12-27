@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import AdminPayoutRequests from '../../src/components/admin/admin-payout-requests';
 import EmptyState from '../../src/components/ui/empty-state';
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...Typography.h4,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   headerPlaceholder: {
     width: 40,

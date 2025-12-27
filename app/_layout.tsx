@@ -2,8 +2,48 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '../src/contexts/auth-context';
 import { Colors } from '../src/constants/Colors';
+import { Fonts } from '../src/constants/Fonts';
+import {
+  useFonts,
+  LeagueSpartan_100Thin,
+  LeagueSpartan_200ExtraLight,
+  LeagueSpartan_300Light,
+  LeagueSpartan_400Regular,
+  LeagueSpartan_500Medium,
+  LeagueSpartan_600SemiBold,
+  LeagueSpartan_700Bold,
+  LeagueSpartan_800ExtraBold,
+  LeagueSpartan_900Black,
+} from '@expo-google-fonts/league-spartan';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+
+// Keep the splash screen visible while we fetch resources
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({
+    LeagueSpartan_100Thin,
+    LeagueSpartan_200ExtraLight,
+    LeagueSpartan_300Light,
+    LeagueSpartan_400Regular,
+    LeagueSpartan_500Medium,
+    LeagueSpartan_600SemiBold,
+    LeagueSpartan_700Bold,
+    LeagueSpartan_800ExtraBold,
+    LeagueSpartan_900Black,
+  });
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontsLoaded, fontError]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
+
   return (
     <AuthProvider>
       <StatusBar style="dark" />
@@ -14,7 +54,7 @@ export default function RootLayout() {
           },
           headerTintColor: Colors.text,
           headerTitleStyle: {
-            fontWeight: '600',
+            fontFamily: Fonts.semiBold,
           },
           contentStyle: {
             backgroundColor: Colors.background,
@@ -77,13 +117,19 @@ export default function RootLayout() {
         <Stack.Screen
           name="profile"
           options={{
-            title: 'Edit Profile',
+            headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="edit-profile"
+          options={{
+            headerShown: false,
           }}
         />
         <Stack.Screen
           name="settings"
           options={{
-            headerShown: false,
+            title: 'Settings',
           }}
         />
         <Stack.Screen

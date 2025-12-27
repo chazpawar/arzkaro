@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing } from '../../src/constants/Styles';
+import { Spacing, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
@@ -17,7 +18,7 @@ type FilterType = 'all' | 'unread';
 export default function ChatsTab() {
   const router = useRouter();
   const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
-  const insets = useSafeAreaInsets();
+  const _insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
   const [refreshing, setRefreshing] = useState(false);
   const [dmConversations, setDmConversations] = useState<DMConversation[]>([]);
@@ -139,10 +140,14 @@ export default function ChatsTab() {
   if (!isAuthenticated) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
-        {/* Header */}
-        <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>Chats</Text>
+        {/* Header with Logo */}
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
           </View>
         </View>
 
@@ -163,9 +168,15 @@ export default function ChatsTab() {
   if ((loading || loadingDMs) && !refreshing && displayChats.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header with Logo */}
         <View style={styles.header}>
-          <Text style={styles.usernameText}>{user?.user_metadata?.full_name || 'Messages'}</Text>
-          <View style={styles.headerIcons} />
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
         </View>
         <LoadingSpinner />
       </SafeAreaView>
@@ -226,13 +237,15 @@ export default function ChatsTab() {
         </Pressable>
       )}
 
-      {/* Instagram-style Header */}
+      {/* Logo Header - Consistent with Explore and Tickets */}
       <View style={styles.header}>
-        <View style={styles.usernameContainer}>
-          <Text style={styles.usernameText}>{user?.user_metadata?.full_name || 'Messages'}</Text>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/arz.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
         </View>
-
-        <View style={styles.headerIcons} />
       </View>
 
       {/* Search Bar */}
@@ -249,6 +262,11 @@ export default function ChatsTab() {
           style={[styles.filterTab, activeFilter === 'all' && styles.filterTabActive]}
           onPress={() => setActiveFilter('all')}
         >
+          <Ionicons
+            name="chatbubbles"
+            size={16}
+            color={activeFilter === 'all' ? Colors.textInverse : Colors.textSecondary}
+          />
           <Text
             style={[styles.filterTabText, activeFilter === 'all' && styles.filterTabTextActive]}
           >
@@ -260,6 +278,11 @@ export default function ChatsTab() {
           style={[styles.filterTab, activeFilter === 'unread' && styles.filterTabActive]}
           onPress={() => setActiveFilter('unread')}
         >
+          <Ionicons
+            name="mail-unread"
+            size={16}
+            color={activeFilter === 'unread' ? Colors.textInverse : Colors.textSecondary}
+          />
           <Text
             style={[styles.filterTabText, activeFilter === 'unread' && styles.filterTabTextActive]}
           >
@@ -300,41 +323,26 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   header: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    height: 56,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
-  usernameContainer: {
-    flexDirection: 'row',
+  logoContainer: {
     alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: -15,
+    marginTop: -10,
   },
-  usernameText: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  headerIcons: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 20,
-  },
-  headerIcon: {
-    padding: 4,
-  },
-  headerTitleContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.text,
+  logo: {
+    width: 180,
+    height: 80,
   },
   searchContainer: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
+    paddingTop: 0,
+    paddingBottom: Spacing.xs,
   },
   searchBar: {
     flexDirection: 'row',
@@ -352,24 +360,31 @@ const styles = StyleSheet.create({
   filterTabs: {
     flexDirection: 'row',
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.lg,
-    marginBottom: Spacing.xs,
+    paddingTop: Spacing.xs,
+    paddingBottom: Spacing.md,
+    gap: Spacing.sm,
   },
   filterTab: {
-    paddingVertical: Spacing.xs,
-    position: 'relative',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.surfaceSecondary,
+    gap: Spacing.xs,
   },
   filterTabActive: {
-    // Active styling usually handled by text or underline in simpler designs
+    backgroundColor: Colors.text,
   },
   filterTabText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
   },
   filterTabTextActive: {
-    color: Colors.text,
+    color: Colors.textInverse,
   },
   listContent: {
     paddingBottom: Spacing.xl,
@@ -421,7 +436,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nameUnread: {
-    fontWeight: '700', // Unread names are bold
+    fontFamily: Fonts.bold, // Unread names are bold
   },
   message: {
     fontSize: 14,
@@ -429,7 +444,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messageUnread: {
-    fontWeight: '600', // Unread messages are bolder
+    fontFamily: Fonts.semiBold, // Unread messages are bolder
     color: Colors.text,
   },
   timeDot: {
@@ -462,7 +477,7 @@ const styles = StyleSheet.create({
   },
   viewModeBannerText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.warning,
   },
   viewModeBannerAction: {

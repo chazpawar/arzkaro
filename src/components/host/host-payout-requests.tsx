@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
+import { Fonts } from '../../constants/Fonts';
 import {
   getHostEarnings,
   getHostPayoutRequests,
@@ -369,7 +370,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: 16,
     color: Colors.text,
   },
@@ -388,7 +389,7 @@ const styles = StyleSheet.create({
   },
   earningAmount: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   divider: {
@@ -407,7 +408,7 @@ const styles = StyleSheet.create({
   },
   availableAmount: {
     fontSize: 32,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.primary,
   },
   statsRow: {
@@ -437,7 +438,7 @@ const styles = StyleSheet.create({
   requestButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   requestForm: {
     backgroundColor: '#fff',
@@ -459,7 +460,7 @@ const styles = StyleSheet.create({
   },
   formTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   inputContainer: {
@@ -467,7 +468,7 @@ const styles = StyleSheet.create({
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
     marginBottom: 8,
     color: Colors.text,
   },
@@ -505,7 +506,7 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: Colors.text,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   submitButton: {
     backgroundColor: Colors.primary,
@@ -513,7 +514,7 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   requestsSection: {
     margin: 16,
@@ -521,7 +522,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginBottom: 12,
     color: Colors.text,
   },
@@ -533,7 +534,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     marginTop: 16,
     color: Colors.text,
   },
@@ -567,11 +568,11 @@ const styles = StyleSheet.create({
   },
   statusText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   requestAmount: {
     fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   requestDetails: {
@@ -588,7 +589,7 @@ const styles = StyleSheet.create({
   detailValue: {
     fontSize: 14,
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   adminNoteContainer: {
     marginTop: 8,
@@ -598,7 +599,7 @@ const styles = StyleSheet.create({
   },
   adminNoteLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#1976D2',
     marginBottom: 4,
   },
@@ -614,7 +615,7 @@ const styles = StyleSheet.create({
   },
   rejectionLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: '#C62828',
     marginBottom: 4,
   },

@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Colors } from '@/constants/Colors';
 import { BorderRadius, Spacing } from '@/constants/Styles';
+import { Fonts } from '../../constants/Fonts';
 
 interface ButtonProps {
   title: string;
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   text: {
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textAlign: 'center',
   },
   primaryText: {

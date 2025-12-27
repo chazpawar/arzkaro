@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 
 interface PhoneLoginScreenProps {
   onBack: () => void;
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.h3,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   placeholder: {
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h2,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -236,7 +237,7 @@ const styles = StyleSheet.create({
   },
   countryCode: {
     ...Typography.body,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginRight: Spacing.sm,
     paddingRight: Spacing.sm,
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     ...Typography.body,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   buttonPressed: {
@@ -286,7 +287,7 @@ const styles = StyleSheet.create({
   resendText: {
     ...Typography.body,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   signupContainer: {
     flexDirection: 'row',
@@ -301,6 +302,6 @@ const styles = StyleSheet.create({
   signupLink: {
     ...Typography.body,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
 });

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useBookings, useTickets } from '../../src/hooks/use-bookings';
 import { getFriendCounts } from '../../src/services/friends-service';
@@ -392,7 +393,7 @@ const styles = StyleSheet.create({
   },
   avatarText: {
     fontSize: 40,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   profileInfo: {
@@ -414,7 +415,7 @@ const styles = StyleSheet.create({
   },
   displayName: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: 4,
   },
@@ -453,7 +454,7 @@ const styles = StyleSheet.create({
   },
   roleBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   statsContainer: {
@@ -472,7 +473,7 @@ const styles = StyleSheet.create({
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
   },
   statLabel: {
@@ -495,7 +496,7 @@ const styles = StyleSheet.create({
   statBadgeText: {
     fontSize: 11,
     color: Colors.background,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   statDivider: {
     width: 1,
@@ -531,7 +532,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: Colors.text,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   menuBadge: {
     backgroundColor: Colors.primary,
@@ -542,7 +543,7 @@ const styles = StyleSheet.create({
   },
   menuBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
   },
   footer: {
@@ -568,7 +569,7 @@ const styles = StyleSheet.create({
   },
   signOutButtonText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.error,
   },
   versionText: {
@@ -588,7 +589,7 @@ const styles = StyleSheet.create({
   },
   viewModeBannerText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.warning,
   },
   viewModeBannerAction: {

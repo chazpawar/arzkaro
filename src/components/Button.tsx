@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Colors } from '../constants/Colors';
 import { BorderRadius, Spacing, Typography } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 
 interface ButtonProps {
   title: string;
@@ -64,7 +65,7 @@ const styles = StyleSheet.create({
   },
   text: {
     ...Typography.body,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   primaryText: {
     color: '#ffffff',

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 import Card from './ui/card';
 
 export interface ItineraryDay {
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
   },
   mainTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
   },
@@ -161,7 +162,7 @@ const styles = StyleSheet.create({
   },
   dayTitle: {
     fontSize: 17,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.sm,
   },
@@ -179,7 +180,7 @@ const styles = StyleSheet.create({
   },
   activityText: {
     fontSize: 15,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textSecondary,
     flex: 1,
     lineHeight: 22,
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   },
   seeMoreText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.primary,
   },
   underline: {
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 14,
-    fontWeight: '400',
+    fontFamily: Fonts.regular,
     color: Colors.textTertiary,
   },
 });

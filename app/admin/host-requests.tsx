@@ -22,6 +22,7 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
 import { HOST_TYPE_LABELS } from '../../src/services/host-service';
@@ -702,7 +703,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...Typography.bodyLarge,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   headerSubtitle: {
@@ -740,7 +741,7 @@ const styles = StyleSheet.create({
   filterButtonText: {
     ...Typography.caption,
     color: Colors.textSecondary,
-    fontWeight: '500',
+    fontFamily: Fonts.medium,
   },
   filterButtonTextActive: {
     color: Colors.textInverse,
@@ -786,7 +787,7 @@ const styles = StyleSheet.create({
   avatarText: {
     ...Typography.h3,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   userDetails: {
     marginLeft: Spacing.md,
@@ -795,7 +796,7 @@ const styles = StyleSheet.create({
   userName: {
     ...Typography.bodyMedium,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   userEmail: {
     ...Typography.caption,
@@ -809,7 +810,7 @@ const styles = StyleSheet.create({
   },
   statusText: {
     ...Typography.caption,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     fontSize: 9,
     textTransform: 'uppercase',
   },
@@ -836,7 +837,7 @@ const styles = StyleSheet.create({
   hostTypeText: {
     color: Colors.textInverse,
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
   },
   organizerName: {
@@ -859,7 +860,7 @@ const styles = StyleSheet.create({
   tapText: {
     ...Typography.caption,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   loadingMore: {
     paddingVertical: Spacing.lg,
@@ -941,7 +942,7 @@ const styles = StyleSheet.create({
   modalAvatarText: {
     fontSize: 32,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   applicantName: {
     ...Typography.h2,
@@ -962,7 +963,7 @@ const styles = StyleSheet.create({
   statusChipText: {
     ...Typography.caption,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     textTransform: 'uppercase',
   },
   infoGroup: {
@@ -975,7 +976,7 @@ const styles = StyleSheet.create({
   },
   groupTitle: {
     ...Typography.bodySmall,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
     marginBottom: Spacing.md,
     textTransform: 'uppercase',
@@ -1036,7 +1037,7 @@ const styles = StyleSheet.create({
   },
   rejectionTitle: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.error,
     marginBottom: 4,
   },
@@ -1080,7 +1081,7 @@ const styles = StyleSheet.create({
   },
   documentTitle: {
     ...Typography.bodySmall,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
   documentUrl: {
@@ -1103,7 +1104,7 @@ const styles = StyleSheet.create({
   viewDocText: {
     ...Typography.caption,
     color: Colors.primary,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   documentNote: {
     flexDirection: 'row',
@@ -1130,7 +1131,7 @@ const styles = StyleSheet.create({
   },
   warningTitle: {
     ...Typography.bodySmall,
-    fontWeight: '700',
+    fontFamily: Fonts.bold,
     color: Colors.warning,
     marginBottom: 4,
   },

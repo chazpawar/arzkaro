@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from './ui/button';
 import { Colors } from '../constants/Colors';
 import { BorderRadius, Spacing, Typography } from '../constants/Styles';
+import { Fonts } from '../constants/Fonts';
 import { updateProfile, isUsernameAvailable } from '../services/user-service';
 import { uploadImage, pickImage } from '../services/storage-service';
 import type { Profile } from '../types/user.types';
@@ -275,7 +276,7 @@ const styles = StyleSheet.create({
   title: {
     ...Typography.h2,
     color: Colors.text,
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
   avatarSection: {
     alignItems: 'center',
@@ -304,7 +305,7 @@ const styles = StyleSheet.create({
   avatarPlaceholderText: {
     fontSize: 48,
     color: '#FFF',
-    fontWeight: 'bold',
+    fontFamily: Fonts.bold,
   },
   avatarEditBadge: {
     position: 'absolute',
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   label: {
     ...Typography.body,
     color: Colors.text,
-    fontWeight: '600',
+    fontFamily: Fonts.semiBold,
   },
   required: {
     color: Colors.error,
