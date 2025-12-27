@@ -90,6 +90,7 @@ export default function EventsPage() {
         setLoadingMore(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [activeTab] // Remove page from dependencies to prevent infinite loop
   );
 

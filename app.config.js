@@ -54,6 +54,13 @@ module.exports = {
           cameraPermission: 'The app needs access to your camera to take event photos.',
         },
       ],
+      [
+        'expo-contacts',
+        {
+          contactsPermission:
+            'Allow ArzKaro to access your contacts to find friends on the platform.',
+        },
+      ],
     ],
   },
 };

@@ -333,7 +333,9 @@ export default function FriendsScreen() {
             </Text>
           )}
         </View>
-        <View style={styles.headerActionPlaceholder} />
+        <Pressable onPress={() => router.push('/find-friends')} style={styles.findFriendsButton}>
+          <Ionicons name="person-add" size={24} color={Colors.text} />
+        </Pressable>
       </View>
 
       {/* Tabs */}
@@ -448,6 +450,10 @@ const styles = StyleSheet.create({
   },
   headerActionPlaceholder: {
     width: 32,
+  },
+  findFriendsButton: {
+    padding: Spacing.xs,
+    marginRight: -Spacing.xs,
   },
   tabsContainer: {
     flexDirection: 'row',
