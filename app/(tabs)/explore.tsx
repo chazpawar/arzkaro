@@ -201,7 +201,6 @@ export default function ExploreTab() {
     setRefreshing(false);
   };
 
-  // Combine real events with mock data
   const allEvents = events as Event[];
 
   // Filter logic with comprehensive keyword search

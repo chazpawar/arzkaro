@@ -20,8 +20,8 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
 
 // Icon imports from assets/others
-const LocationIcon = require("../../assets/others/location.png");
-const DateTimeIcon = require("../../assets/others/dateandtime.png");
+const LocationIcon = require('../../assets/others/location.png');
+const DateTimeIcon = require('../../assets/others/dateandtime.png');
 
 // Mock data for demo experiences/trips
 
@@ -102,7 +102,7 @@ export default function EventDetailsScreen() {
     );
   }
 
-  if ((error || !event)) {
+  if (error || !event) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -221,14 +221,22 @@ export default function EventDetailsScreen() {
                   {/* Destination Location */}
                   {event.location_name && (
                     <View style={styles.tripCompactRow}>
-                      <Image source={LocationIcon} style={{ width: 20, height: 20 }} resizeMode="contain" />
+                      <Image
+                        source={LocationIcon}
+                        style={{ width: 20, height: 20 }}
+                        resizeMode="contain"
+                      />
                       <Text style={styles.tripCompactText}>{event.location_name}</Text>
                     </View>
                   )}
 
                   {/* Trip Duration & Dates */}
                   <View style={styles.tripCompactRow}>
-                    <Image source={DateTimeIcon} style={{ width: 24, height: 24 }} resizeMode="contain" />
+                    <Image
+                      source={DateTimeIcon}
+                      style={{ width: 24, height: 24 }}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.tripCompactText}>
                       {formatDateShort(event.start_date)} - {formatDateShort(event.end_date)}
                       {getTripDuration() > 0 && ` (${getTripDuration()} days)`}
@@ -245,7 +253,11 @@ export default function EventDetailsScreen() {
                   {/* Location */}
                   {event.location_name && (
                     <View style={styles.locationRow}>
-                      <Image source={LocationIcon} style={{ width: 22, height: 22 }} resizeMode="contain" />
+                      <Image
+                        source={LocationIcon}
+                        style={{ width: 22, height: 22 }}
+                        resizeMode="contain"
+                      />
                       <Text style={styles.locationText}>{event.location_name}</Text>
                     </View>
                   )}
@@ -257,7 +269,11 @@ export default function EventDetailsScreen() {
             {!isTrip && (
               <View style={styles.quickInfoContainer}>
                 <View style={styles.quickInfoCard}>
-                  <Image source={DateTimeIcon} style={[styles.quickInfoIcon, { width: 28, height: 28 }]} resizeMode="contain" />
+                  <Image
+                    source={DateTimeIcon}
+                    style={[styles.quickInfoIcon, { width: 28, height: 28 }]}
+                    resizeMode="contain"
+                  />
                   <View>
                     <Text style={styles.quickInfoLabel}>DATE</Text>
                     <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
@@ -265,7 +281,11 @@ export default function EventDetailsScreen() {
                 </View>
 
                 <View style={styles.quickInfoCard}>
-                  <Image source={DateTimeIcon} style={[styles.quickInfoIcon, { width: 28, height: 28 }]} resizeMode="contain" />
+                  <Image
+                    source={DateTimeIcon}
+                    style={[styles.quickInfoIcon, { width: 28, height: 28 }]}
+                    resizeMode="contain"
+                  />
                   <View>
                     <Text style={styles.quickInfoLabel}>TIME</Text>
                     <Text style={styles.quickInfoValue}>
@@ -275,7 +295,11 @@ export default function EventDetailsScreen() {
                 </View>
 
                 <View style={styles.quickInfoCard}>
-                  <Image source={LocationIcon} style={[styles.quickInfoIcon, { width: 24, height: 24 }]} resizeMode="contain" />
+                  <Image
+                    source={LocationIcon}
+                    style={[styles.quickInfoIcon, { width: 24, height: 24 }]}
+                    resizeMode="contain"
+                  />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.quickInfoLabel}>VENUE</Text>
                     <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
@@ -489,37 +513,48 @@ export default function EventDetailsScreen() {
                 )}
 
                 {/* Itinerary */}
-                {event.itinerary && Array.isArray(event.itinerary) && (
-                  <View style={styles.itineraryContainer}>
-                    <Text style={styles.itineraryTitle}>Itinerary:</Text>
-                    {(showAllItineraryDays ? event.itinerary : event.itinerary.slice(0, 3)).map(
-                      (dayPlan: any, index: number) => (
-                        <View key={index} style={styles.itineraryDay}>
-                          <Text style={styles.itineraryDayTitle}>
-                            Day {dayPlan.day}: {dayPlan.title}
-                          </Text>
-                          {dayPlan.activities &&
-                            dayPlan.activities.map((activity: string, actIndex: number) => (
-                              <Text key={actIndex} style={styles.itineraryActivity}>
-                                • {activity}
+                {event.itinerary &&
+                  typeof event.itinerary === 'string' &&
+                  (() => {
+                    try {
+                      const parsedItinerary = JSON.parse(event.itinerary);
+                      if (!Array.isArray(parsedItinerary)) return null;
+                      return (
+                        <View style={styles.itineraryContainer}>
+                          <Text style={styles.itineraryTitle}>Itinerary:</Text>
+                          {(showAllItineraryDays
+                            ? parsedItinerary
+                            : parsedItinerary.slice(0, 3)
+                          ).map((dayPlan: any, index: number) => (
+                            <View key={index} style={styles.itineraryDay}>
+                              <Text style={styles.itineraryDayTitle}>
+                                Day {dayPlan.day}: {dayPlan.title}
                               </Text>
-                            ))}
+                              {dayPlan.activities &&
+                                dayPlan.activities.map((activity: string, actIndex: number) => (
+                                  <Text key={actIndex} style={styles.itineraryActivity}>
+                                    • {activity}
+                                  </Text>
+                                ))}
+                            </View>
+                          ))}
+                          {parsedItinerary.length > 3 && (
+                            <Pressable
+                              style={styles.itinerarySeeMore}
+                              onPress={() => setShowAllItineraryDays(!showAllItineraryDays)}
+                            >
+                              <Text style={styles.itinerarySeeMoreText}>
+                                {showAllItineraryDays ? 'Show less' : 'See more...'}
+                              </Text>
+                            </Pressable>
+                          )}
                         </View>
-                      )
-                    )}
-                    {event.itinerary.length > 3 && (
-                      <Pressable
-                        style={styles.itinerarySeeMore}
-                        onPress={() => setShowAllItineraryDays(!showAllItineraryDays)}
-                      >
-                        <Text style={styles.itinerarySeeMoreText}>
-                          {showAllItineraryDays ? 'Show less' : 'See more...'}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
-                )}
-
+                      );
+                    } catch (_e) {
+                      return null;
+                    }
+                  })()}
+              </>
             )}
 
             {/* About this Event - for non-trip events */}
@@ -612,7 +647,6 @@ export default function EventDetailsScreen() {
                 ))}
               </View>
             )}
-
           </View>
         </ScrollView>
 

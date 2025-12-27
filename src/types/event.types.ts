@@ -33,6 +33,8 @@ export interface Event {
   itinerary: string | null;
   whats_included: string | null;
   whats_not_included: string | null;
+  things_to_know: string[] | null;
+  cancellation_policy: string | null;
   created_at: string;
   updated_at: string;
   // Joined fields
