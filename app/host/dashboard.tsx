@@ -231,6 +231,17 @@ export default function HostDashboard() {
               )}
               <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
             </Pressable>
+
+            <Pressable style={styles.menuItem} onPress={() => router.push('/host/payouts')}>
+              <View style={[styles.menuIcon, { backgroundColor: Colors.successLight }]}>
+                <Ionicons name="cash-outline" size={20} color={Colors.success} />
+              </View>
+              <View style={styles.menuContent}>
+                <Text style={styles.menuTitle}>Payout Requests</Text>
+                <Text style={styles.menuSubtitle}>Request withdrawals for your earnings</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
+            </Pressable>
           </View>
         </View>
 

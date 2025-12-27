@@ -698,6 +698,75 @@ export type Database = {
         }
         Relationships: []
       }
+      payout_requests: {
+        Row: {
+          admin_note: string | null
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          created_at: string
+          currency: string
+          earned_amount: number
+          host_id: string
+          id: string
+          processing_started_at: string | null
+          rejection_reason: string | null
+          request_note: string | null
+          requested_amount: number
+          status: Database["public"]["Enums"]["payout_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          earned_amount: number
+          host_id: string
+          id?: string
+          processing_started_at?: string | null
+          rejection_reason?: string | null
+          request_note?: string | null
+          requested_amount: number
+          status?: Database["public"]["Enums"]["payout_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_note?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          created_at?: string
+          currency?: string
+          earned_amount?: number
+          host_id?: string
+          id?: string
+          processing_started_at?: string | null
+          rejection_reason?: string | null
+          request_note?: string | null
+          requested_amount?: number
+          status?: Database["public"]["Enums"]["payout_request_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payout_requests_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ticket_types: {
         Row: {
           created_at: string
@@ -899,6 +968,7 @@ export type Database = {
       host_type: "full" | "activity"
       message_type: "text" | "image" | "system"
       payment_status: "pending" | "completed" | "failed" | "refunded"
+      payout_request_status: "pending" | "approved" | "rejected" | "processing" | "completed"
       ticket_status: "valid" | "used" | "cancelled" | "expired"
       user_role: "user" | "host" | "admin"
     }
