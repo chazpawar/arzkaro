@@ -384,7 +384,25 @@ export async function getEventsForAdmin(options: {
   const { data, error, count } = await query;
 
   if (error) {
-    throw new Error(error.message);
+    console.error('Supabase error in getEventsForAdmin:', JSON.stringify(error));
+
+    // Handle malformed error messages from Supabase
+    let errorMessage = 'Failed to fetch events';
+
+    if (
+      error.message &&
+      error.message !== '""' &&
+      error.message !== '\"\"' &&
+      error.message.trim() !== ''
+    ) {
+      errorMessage = error.message;
+    } else if (error.details) {
+      errorMessage = error.details;
+    } else if (error.hint) {
+      errorMessage = error.hint;
+    }
+
+    throw new Error(errorMessage);
   }
 
   return {

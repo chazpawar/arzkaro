@@ -195,21 +195,25 @@ export async function getTicketById(id: string) {
 }
 
 // Validate and check-in a ticket (for hosts)
-export async function validateTicket(ticketId: string, checkedInBy: string) {
+export async function validateTicket(ticketIdOrCode: string, checkedInBy: string) {
   try {
-    // Find ticket by ID with event details
-    const { data: ticket, error: fetchError } = await supabase
-      .from('tickets')
-      .select(
-        `
+    // Determine if input is UUID (ticket ID) or 6-char alphanumeric code (verification_code)
+    const isVerificationCode = /^[A-Z0-9]{6}$/i.test(ticketIdOrCode);
+
+    // Find ticket by ID or verification_code with event details
+    const query = supabase.from('tickets').select(
+      `
         *,
         event:events!inner(id, title, host_id, end_date, start_date),
         user:profiles!user_id(id, full_name, email),
         booking:bookings!inner(id, quantity, total_amount, status)
       `
-      )
-      .eq('id', ticketId)
-      .single();
+    );
+
+    // Apply filter based on input type (case-insensitive for verification codes)
+    const { data: ticket, error: fetchError } = isVerificationCode
+      ? await query.ilike('verification_code', ticketIdOrCode).single()
+      : await query.eq('id', ticketIdOrCode).single();
 
     if (fetchError) {
       console.error('Ticket fetch error:', fetchError);
@@ -271,7 +275,7 @@ export async function validateTicket(ticketId: string, checkedInBy: string) {
 
     if (now > eventEnd) {
       // Automatically mark as expired
-      await supabase.from('tickets').update({ status: 'expired' }).eq('id', ticketId);
+      await supabase.from('tickets').update({ status: 'expired' }).eq('id', ticket.id);
       return { valid: false, message: 'Event has already ended', ticket };
     }
 
@@ -283,7 +287,7 @@ export async function validateTicket(ticketId: string, checkedInBy: string) {
         checked_in_at: new Date().toISOString(),
         checked_in_by: checkedInBy,
       })
-      .eq('id', ticketId);
+      .eq('id', ticket.id);
 
     if (updateError) {
       console.error('Error updating ticket:', updateError);

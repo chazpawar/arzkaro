@@ -201,13 +201,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               host_approved_at: null,
               location: null,
               website: null,
-              date_of_birth: null,
-              gender: null,
-              instagram: null,
-              youtube: null,
-              linkedin: null,
-              twitter: null,
-              interests: [],
               created_at: user.created_at || new Date().toISOString(),
               updated_at: new Date().toISOString(),
             };

@@ -12,31 +12,6 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5"
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
       bookings: {
@@ -473,6 +448,36 @@ export type Database = {
           },
         ]
       }
+      host_balances: {
+        Row: {
+          available_balance: number | null
+          created_at: string
+          host_id: string
+          id: string
+          total_revenue: number
+          total_withdrawn: number
+          updated_at: string
+        }
+        Insert: {
+          available_balance?: number | null
+          created_at?: string
+          host_id: string
+          id?: string
+          total_revenue?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+        Update: {
+          available_balance?: number | null
+          created_at?: string
+          host_id?: string
+          id?: string
+          total_revenue?: number
+          total_withdrawn?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       host_requests: {
         Row: {
           account_holder_name: string
@@ -823,6 +828,60 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          account_holder_name: string | null
+          account_number: string | null
+          admin_notes: string | null
+          amount: number
+          bank_name: string | null
+          created_at: string
+          host_id: string
+          id: string
+          ifsc_code: string | null
+          requested_at: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+          upi_id: string | null
+        }
+        Insert: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount: number
+          bank_name?: string | null
+          created_at?: string
+          host_id: string
+          id?: string
+          ifsc_code?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Update: {
+          account_holder_name?: string | null
+          account_number?: string | null
+          admin_notes?: string | null
+          amount?: number
+          bank_name?: string | null
+          created_at?: string
+          host_id?: string
+          id?: string
+          ifsc_code?: string | null
+          requested_at?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+          upi_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -838,6 +897,14 @@ export type Database = {
           message: string
           success: boolean
         }[]
+      }
+      approve_withdrawal_request: {
+        Args: {
+          p_admin_id: string
+          p_admin_notes?: string
+          p_request_id: string
+        }
+        Returns: boolean
       }
       can_user_create_event_type: {
         Args: {
@@ -856,7 +923,13 @@ export type Database = {
         }
         Returns: string
       }
+      create_withdrawal_request: {
+        Args: { p_amount: number; p_host_id: string }
+        Returns: string
+      }
       delete_expired_event_groups: { Args: never; Returns: number }
+      generate_unique_verification_code: { Args: never; Returns: string }
+      get_admin_withdrawal_stats: { Args: never; Returns: Json }
       get_event_for_payment: {
         Args: { event_uuid: string }
         Returns: {
@@ -866,6 +939,11 @@ export type Database = {
           title: string
         }[]
       }
+      get_host_available_balance: {
+        Args: { p_host_id: string }
+        Returns: number
+      }
+      get_host_withdrawal_stats: { Args: { p_host_id: string }; Returns: Json }
       get_pending_host_requests_count: { Args: never; Returns: number }
       get_unread_count: {
         Args: { p_group_id: string; p_user_id: string }
@@ -888,6 +966,14 @@ export type Database = {
           message: string
           success: boolean
         }[]
+      }
+      reject_withdrawal_request: {
+        Args: {
+          p_admin_id: string
+          p_admin_notes: string
+          p_request_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
@@ -1026,9 +1112,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
       booking_status: ["pending", "confirmed", "cancelled", "refunded"],
