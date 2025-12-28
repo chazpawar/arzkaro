@@ -9,7 +9,7 @@ export default function HostLayout() {
           backgroundColor: Colors.background,
         },
         headerTintColor: Colors.text,
-        headerBackTitle: 'Back',
+        headerBackTitle: '',
       }}
     >
       <Stack.Screen

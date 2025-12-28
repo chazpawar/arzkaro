@@ -51,7 +51,6 @@ function MessageBubble({ message, isOwn, showAvatar = true, onAvatarPress }: Mes
       {!isOwn && !showAvatar && <View style={styles.avatarSpacer} />}
 
       <View style={[styles.bubble, isOwn ? styles.bubbleOwn : styles.bubbleOther]}>
-        {!isOwn && showAvatar && <Text style={styles.senderName}>{userName}</Text>}
         <Text style={[styles.messageText, isOwn && styles.messageTextOwn]}>{message.content}</Text>
         <Text style={[styles.timestamp, isOwn && styles.timestampOwn]}>
           {formatTime(message.created_at)}
@@ -66,8 +65,8 @@ function MessageBubble({ message, isOwn, showAvatar = true, onAvatarPress }: Mes
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    marginVertical: Spacing.xs,
-    paddingHorizontal: Spacing.md,
+    marginVertical: 2,
+    paddingHorizontal: Spacing.lg,
     maxWidth: '100%',
   },
   containerOwn: {
@@ -77,69 +76,64 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   avatarContainer: {
-    marginRight: Spacing.sm,
+    marginRight: Spacing.xs,
     alignSelf: 'flex-end',
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   avatarPlaceholder: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
-    ...Typography.bodySmallMedium,
+    fontSize: 12,
+    fontWeight: '600',
     color: Colors.textInverse,
   },
   avatarSpacer: {
-    width: 32 + Spacing.sm,
+    width: 28 + Spacing.xs,
   },
   bubble: {
-    maxWidth: '75%',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.lg,
+    maxWidth: '70%',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 18,
   },
   bubbleOwn: {
     backgroundColor: Colors.primary,
-    borderRadius: BorderRadius.xl,
-    borderBottomRightRadius: BorderRadius.xs,
+    borderBottomRightRadius: 4,
   },
   bubbleOther: {
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.xl,
-    borderBottomLeftRadius: BorderRadius.xs,
-  },
-  senderName: {
-    ...Typography.captionMedium,
-    color: Colors.textSecondary,
-    marginBottom: 2,
+    backgroundColor: '#EFEFEF',
+    borderBottomLeftRadius: 4,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
   },
   messageText: {
-    ...Typography.bodyMedium,
-    color: Colors.text,
     fontSize: 15,
+    lineHeight: 20,
+    color: Colors.text,
   },
   messageTextOwn: {
     color: Colors.textInverse,
   },
   timestamp: {
-    ...Typography.caption,
-    fontSize: 10,
+    fontSize: 9,
     color: Colors.textTertiary,
     alignSelf: 'flex-end',
-    marginTop: 2,
-    opacity: 0.7,
+    marginTop: 3,
+    opacity: 0.6,
   },
   timestampOwn: {
     color: Colors.textInverse,
-    opacity: 0.8,
+    opacity: 0.7,
   },
   // System message
   systemContainer: {
@@ -148,7 +142,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
   },
   systemText: {
-    ...Typography.caption,
+    fontSize: 11,
     color: Colors.textTertiary,
     backgroundColor: Colors.surfaceSecondary,
     paddingHorizontal: Spacing.md,

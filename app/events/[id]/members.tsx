@@ -151,7 +151,7 @@ export default function GroupMembersScreen() {
   };
 
   const handleMemberPress = (userId: string) => {
-    router.push(`/profile/${userId}`);
+    router.push(`/user-profile?userId=${userId}`);
   };
 
   const handleAddFriend = async (memberId: string, memberName: string) => {

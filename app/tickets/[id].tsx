@@ -56,7 +56,7 @@ export default function TicketDetailsScreen() {
       <Stack.Screen
         options={{
           title: '',
-          headerBackTitle: 'Back',
+          headerBackTitle: '',
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>

@@ -549,7 +549,7 @@ export default function CreateEventScreen() {
       <Stack.Screen
         options={{
           title: 'Create Event',
-          headerBackTitle: 'Cancel',
+          headerBackTitle: '',
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>

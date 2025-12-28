@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -165,7 +166,7 @@ export default function DMChatScreen() {
 
   const handleViewProfile = useCallback(() => {
     if (!conversation?.other_user) return;
-    router.push(`/profile?userId=${conversation.other_user.id}`);
+    router.push(`/user-profile?userId=${conversation.other_user.id}`);
   }, [conversation, router]);
 
   const renderMessage = useCallback(
@@ -251,20 +252,36 @@ export default function DMChatScreen() {
 
   // Loading conversation
   if (loading) {
-    return <LoadingSpinner fullScreen text="Loading conversation..." />;
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Chat</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          <LoadingSpinner fullScreen text="Loading conversation..." />
+        </SafeAreaView>
+      </>
+    );
   }
 
   // No conversation found
   if (!conversation) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Direct Message',
-            headerBackTitle: '',
-          }}
-        />
-        <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Chat</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
           <EmptyState
             title="Conversation Not Found"
             emoji="💬"
@@ -284,18 +301,17 @@ export default function DMChatScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: otherUserName,
-          headerBackTitle: '',
-          headerRight: () => (
-            <Pressable onPress={handleViewProfile} style={styles.headerButton}>
-              <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
-            </Pressable>
-          ),
-        }}
-      />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.customHeader}>
+          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.customHeaderTitle}>{otherUserName}</Text>
+          <TouchableOpacity onPress={handleViewProfile} style={styles.customBackButton}>
+            <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
         <KeyboardAvoidingView
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -311,11 +327,13 @@ export default function DMChatScreen() {
 
           {/* Messages List */}
           {messages.length === 0 ? (
-            <EmptyState
-              title="No Messages Yet"
-              emoji="👋"
-              message={`Start a conversation with ${otherUserName}!`}
-            />
+            <View style={styles.emptyStateContainer}>
+              <EmptyState
+                title="No Messages Yet"
+                emoji="👋"
+                message={`Start a conversation with ${otherUserName}!`}
+              />
+            </View>
           ) : (
             <FlatList
               ref={flatListRef}
@@ -376,25 +394,31 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   connectionText: {
-    ...Typography.caption,
+    fontSize: 12,
     color: Colors.warning,
   },
   messagesList: {
-    paddingVertical: Spacing.md,
-    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.md,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingBottom: 100,
   },
   dateHeader: {
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     marginBottom: Spacing.xs,
   },
   dateHeaderText: {
-    ...Typography.caption,
-    color: Colors.textTertiary,
-    backgroundColor: Colors.surfaceSecondary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
+    backgroundColor: '#F0F0F0',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   disabledInputContainer: {
@@ -405,12 +429,44 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.lg,
     gap: Spacing.xs,
-    borderTopWidth: 1,
+    borderTopWidth: 0.5,
     borderTopColor: Colors.borderLight,
   },
   disabledInputText: {
     fontSize: 13,
     color: Colors.textSecondary,
     fontStyle: 'italic',
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.borderLight,
+    backgroundColor: Colors.background,
+  },
+  customBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  customHeaderTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerPlaceholder: {
+    width: 40,
   },
 });

@@ -43,7 +43,7 @@ export default function HostScannerScreen() {
       <Stack.Screen
         options={{
           title: 'Validate Ticket',
-          headerBackTitle: 'Back',
+          headerBackTitle: '',
         }}
       />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>

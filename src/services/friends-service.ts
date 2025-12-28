@@ -281,3 +281,42 @@ export async function getFriendCounts(userId: string) {
     pendingRequestsCount: pendingData.count || 0,
   };
 }
+
+// Check friendship status between two users
+export async function checkFriendshipStatus(
+  userId: string,
+  otherUserId: string
+): Promise<'none' | 'friends' | 'pending_sent' | 'pending_received'> {
+  // Check if they are friends
+  const { data: friendship } = await supabase
+    .from('friendships')
+    .select('id')
+    .or(
+      `and(user_id_1.eq.${userId},user_id_2.eq.${otherUserId}),and(user_id_1.eq.${otherUserId},user_id_2.eq.${userId})`
+    )
+    .maybeSingle();
+
+  if (friendship) {
+    return 'friends';
+  }
+
+  // Check for pending friend requests
+  const { data: request } = await supabase
+    .from('friend_requests')
+    .select('sender_id, receiver_id')
+    .or(
+      `and(sender_id.eq.${userId},receiver_id.eq.${otherUserId}),and(sender_id.eq.${otherUserId},receiver_id.eq.${userId})`
+    )
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (request) {
+    if (request.sender_id === userId) {
+      return 'pending_sent';
+    } else {
+      return 'pending_received';
+    }
+  }
+
+  return 'none';
+}
