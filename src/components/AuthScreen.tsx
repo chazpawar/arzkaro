@@ -1,5 +1,15 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, TextInput, Animated } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  Image,
+  TextInput,
+  Animated,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -36,7 +46,7 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [showEmailLoginModal, setShowEmailLoginModal] = useState(false);
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const opacityAnim = useRef(new Animated.Value(1)).current;
-  const { refreshProfile } = useAuth();
+  const { refreshProfile, enableGuestMode } = useAuth();
 
   const toggleInputMode = () => {
     // Scale down and fade out
@@ -71,8 +81,8 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   };
 
   const handleSkip = () => {
-    // Placeholder - No action needed for now
-    console.log('Skip button clicked (placeholder)');
+    console.log('🎭 [AUTH_SCREEN] Skip button clicked - enabling guest mode');
+    enableGuestMode();
   };
 
   const handlePhoneContinue = () => {
@@ -170,120 +180,127 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   // Main auth screen
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Skip Button - Top Right */}
-      <View style={styles.header}>
-        <Pressable onPress={handleSkip} style={styles.skipButton}>
-          <Text style={styles.skipText}>Skip</Text>
-        </Pressable>
-      </View>
-
-      {/* Main Content - White Background */}
-      <View style={styles.content}>
-        {/* Logo Section */}
-        <View style={styles.logoSection}>
-          <Image source={require('../../assets/arz.png')} style={styles.appLogo} />
-          <Text style={styles.tagline}>Discover experiences{'\n'}happening in your city</Text>
-        </View>
-      </View>
-
-      {/* Bottom Section - White Card with Orange Border */}
-      <View style={styles.bottomSection}>
-        <View style={styles.cardContainer}>
-          {/* Error Message */}
-          {error && (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-            </View>
-          )}
-
-          <Text style={styles.cardTitle}>Log in or Sign up</Text>
-
-          {/* Animated Input Container */}
-          <Animated.View
-            style={[
-              styles.inputContainer,
-              {
-                opacity: opacityAnim,
-                transform: [{ scale: scaleAnim }],
-              },
-            ]}
-          >
-            {inputMode === 'phone' ? (
-              <>
-                <Text style={styles.inputLabel}>Phone Number</Text>
-                <View style={styles.phoneInputWrapper}>
-                  <Text style={styles.countryCode}>+91</Text>
-                  <TextInput
-                    style={styles.phoneInput}
-                    value={phoneNumber}
-                    onChangeText={setPhoneNumber}
-                    placeholder="Enter your phone number"
-                    placeholderTextColor={Colors.textTertiary}
-                    keyboardType="phone-pad"
-                  />
-                </View>
-                <Text style={styles.inputHint}>We will verify your phone number through OTP.</Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.inputLabel}>Email</Text>
-                <TextInput
-                  style={styles.emailInput}
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Enter your email"
-                  placeholderTextColor={Colors.textTertiary}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </>
-            )}
-          </Animated.View>
-
-          {/* Continue Button */}
-          <Pressable
-            style={({ pressed }) => [styles.continueButton, pressed && styles.buttonPressed]}
-            onPress={handleContinue}
-          >
-            <Text style={styles.continueButtonText}>Continue</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        {/* Skip Button - Top Right */}
+        <View style={styles.header}>
+          <Pressable onPress={handleSkip} style={styles.skipButton}>
+            <Text style={styles.skipText}>Skip</Text>
           </Pressable>
+        </View>
 
-          {/* Divider */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>Or</Text>
-            <View style={styles.dividerLine} />
+        {/* Main Content - White Background */}
+        <View style={styles.content}>
+          {/* Logo Section */}
+          <View style={styles.logoSection}>
+            <Image source={require('../../assets/arz.png')} style={styles.appLogo} />
+            <Text style={styles.tagline}>Discover experiences{'\n'}happening in your city</Text>
           </View>
-
-          {/* Toggle Email/Phone Button */}
-          <Pressable
-            style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-            onPress={toggleInputMode}
-          >
-            <Ionicons
-              name={inputMode === 'phone' ? 'mail-outline' : 'call-outline'}
-              size={22}
-              color={Colors.text}
-              style={styles.emailIcon}
-            />
-            <Text style={styles.secondaryButtonText}>
-              {inputMode === 'phone' ? 'Continue with email' : 'Continue with phone'}
-            </Text>
-          </Pressable>
-
-          {/* Google Sign In Button */}
-          <Pressable
-            style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
-            onPress={handleGoogleSignIn}
-            disabled={loading}
-          >
-            <SvgXml xml={GOOGLE_SVG} width={24} height={24} style={styles.googleIconSvg} />
-            <Text style={styles.googleButtonText}>
-              {loading ? 'Signing in...' : 'Continue with Google'}
-            </Text>
-          </Pressable>
         </View>
-      </View>
+
+        {/* Bottom Section - White Card with Orange Border */}
+        <View style={styles.bottomSection}>
+          <View style={styles.cardContainer}>
+            {/* Error Message */}
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
+              </View>
+            )}
+
+            <Text style={styles.cardTitle}>Log in or Sign up</Text>
+
+            {/* Animated Input Container */}
+            <Animated.View
+              style={[
+                styles.inputContainer,
+                {
+                  opacity: opacityAnim,
+                  transform: [{ scale: scaleAnim }],
+                },
+              ]}
+            >
+              {inputMode === 'phone' ? (
+                <>
+                  <Text style={styles.inputLabel}>Phone Number</Text>
+                  <View style={styles.phoneInputWrapper}>
+                    <Text style={styles.countryCode}>+91</Text>
+                    <TextInput
+                      style={styles.phoneInput}
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                      placeholder="Enter your phone number"
+                      placeholderTextColor={Colors.textTertiary}
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                  <Text style={styles.inputHint}>
+                    We will verify your phone number through OTP.
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.inputLabel}>Email</Text>
+                  <TextInput
+                    style={styles.emailInput}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </>
+              )}
+            </Animated.View>
+
+            {/* Continue Button */}
+            <Pressable
+              style={({ pressed }) => [styles.continueButton, pressed && styles.buttonPressed]}
+              onPress={handleContinue}
+            >
+              <Text style={styles.continueButtonText}>Continue</Text>
+            </Pressable>
+
+            {/* Divider */}
+            <View style={styles.dividerContainer}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>Or</Text>
+              <View style={styles.dividerLine} />
+            </View>
+
+            {/* Toggle Email/Phone Button */}
+            <Pressable
+              style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
+              onPress={toggleInputMode}
+            >
+              <Ionicons
+                name={inputMode === 'phone' ? 'mail-outline' : 'call-outline'}
+                size={22}
+                color={Colors.text}
+                style={styles.emailIcon}
+              />
+              <Text style={styles.secondaryButtonText}>
+                {inputMode === 'phone' ? 'Continue with email' : 'Continue with phone'}
+              </Text>
+            </Pressable>
+
+            {/* Google Sign In Button */}
+            <Pressable
+              style={({ pressed }) => [styles.googleButton, pressed && styles.buttonPressed]}
+              onPress={handleGoogleSignIn}
+              disabled={loading}
+            >
+              <SvgXml xml={GOOGLE_SVG} width={24} height={24} style={styles.googleIconSvg} />
+              <Text style={styles.googleButtonText}>
+                {loading ? 'Signing in...' : 'Continue with Google'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
 
       {/* OTP Verification Modal */}
       <OTPVerificationModal
@@ -318,6 +335,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
   },
   header: {
     paddingHorizontal: Spacing.lg,

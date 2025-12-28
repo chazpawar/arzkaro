@@ -25,7 +25,7 @@ interface TicketType {
 export default function BookEventScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isGuestMode } = useAuth();
 
   // Use real event hook
   const { event, ticketTypes, loading, error } = useEvent(id);
@@ -35,13 +35,13 @@ export default function BookEventScreen() {
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
 
-  // If not authenticated, redirect
+  // If not authenticated and not guest mode, redirect
   React.useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated && !isGuestMode) {
       router.replace('/');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isGuestMode]);
 
   // Auto-select first ticket type or use default pricing
   React.useEffect(() => {
@@ -93,6 +93,19 @@ export default function BookEventScreen() {
   };
 
   const handleConfirmBooking = async () => {
+    // If guest mode, show login prompt
+    if (isGuestMode) {
+      Alert.alert('Login Required', 'Please log in or sign up to book tickets for this event.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Login',
+          onPress: () => router.replace('/'),
+          style: 'default',
+        },
+      ]);
+      return;
+    }
+
     if (!user?.id || !event?.id) return;
 
     try {

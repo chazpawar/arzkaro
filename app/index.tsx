@@ -5,13 +5,13 @@ import AuthScreen from '../src/components/AuthScreen';
 import { useAuth } from '../src/contexts/auth-context';
 
 export default function HomeScreen() {
-  const { user, loading } = useAuth();
+  const { user, loading, isGuestMode } = useAuth();
 
   if (loading) {
     return <LoadingSpinner fullScreen text="Loading..." />;
   }
 
-  if (!user) {
+  if (!user && !isGuestMode) {
     return <AuthScreen />;
   }
 

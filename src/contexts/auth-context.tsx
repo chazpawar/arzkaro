@@ -19,10 +19,13 @@ interface AuthContextType {
   role: UserRole;
   viewAsUser: boolean; // Admin viewing as regular user
   effectiveRole: UserRole; // Role to use for UI display
+  isGuestMode: boolean; // Guest mode flag
   toggleViewMode: () => void; // Toggle between admin and user view
   signOut: () => Promise<void>;
   refreshProfile: (userId?: string) => Promise<Profile | null>;
   updateProfile: (updates: Partial<Profile>) => Promise<{ error: Error | null }>;
+  enableGuestMode: () => void; // Enable guest mode
+  disableGuestMode: () => void; // Disable guest mode (go to login)
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -38,6 +41,7 @@ const AuthContext = createContext<AuthContextType>({
   role: 'user',
   viewAsUser: false,
   effectiveRole: 'user',
+  isGuestMode: false,
   toggleViewMode: () => {
     /* noop */
   },
@@ -46,6 +50,12 @@ const AuthContext = createContext<AuthContextType>({
   },
   refreshProfile: async () => null,
   updateProfile: async () => ({ error: null }),
+  enableGuestMode: () => {
+    /* noop */
+  },
+  disableGuestMode: () => {
+    /* noop */
+  },
 });
 
 export const useAuth = () => {
@@ -67,6 +77,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(false);
   const [viewAsUser, setViewAsUser] = useState(false); // Admin view toggle
+  const [isGuestMode, setIsGuestMode] = useState(false); // Guest mode state
   const loadingRef = useRef(true); // Use ref to track loading state for timeout
 
   // Update ref when loading changes
@@ -203,6 +214,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               website: null,
               created_at: user.created_at || new Date().toISOString(),
               updated_at: new Date().toISOString(),
+              date_of_birth: null,
+              gender: null,
+              instagram: null,
+              youtube: null,
+              linkedin: null,
+              twitter: null,
+              interests: null,
             };
             console.log('✅ [AUTH] Using fallback profile from session metadata');
             return fallbackProfile;
@@ -267,6 +285,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
               host_type: null,
               is_host_approved: false,
               is_public: true,
+              date_of_birth: null,
+              gender: null,
+              instagram: null,
+              youtube: null,
+              linkedin: null,
+              twitter: null,
+              interests: null,
             };
 
             // Use upsert to safely create or update
@@ -518,21 +543,33 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const isHost = role === 'host' || role === 'admin';
   const isAdmin = role === 'admin';
 
-  // Effective role for UI display - if admin is viewing as user, return 'user'
-  const effectiveRole: UserRole = isAdmin && viewAsUser ? 'user' : role;
+  // Effective role for UI display - if admin/host is viewing as user, return 'user'
+  const effectiveRole: UserRole = (isAdmin || isHost) && viewAsUser ? 'user' : role;
 
-  // Toggle view mode - only works for admins
+  // Toggle view mode - works for both admins and hosts
   const toggleViewMode = useCallback(() => {
-    if (isAdmin) {
+    if (isAdmin || isHost) {
       setViewAsUser((prev) => {
         const newValue = !prev;
         console.log(
-          `🎭 [AUTH] Admin view mode toggled: ${newValue ? 'Viewing as User' : 'Admin Mode'}`
+          `🎭 [AUTH] ${isAdmin ? 'Admin' : 'Host'} view mode toggled: ${newValue ? 'Viewing as User' : `${isAdmin ? 'Admin' : 'Host'} Mode`}`
         );
         return newValue;
       });
     }
-  }, [isAdmin]);
+  }, [isAdmin, isHost]);
+
+  // Guest mode functions
+  const enableGuestMode = useCallback(() => {
+    console.log('🎭 [AUTH] Enabling guest mode');
+    setIsGuestMode(true);
+    setLoading(false);
+  }, []);
+
+  const disableGuestMode = useCallback(() => {
+    console.log('🎭 [AUTH] Disabling guest mode');
+    setIsGuestMode(false);
+  }, []);
 
   // Log role changes
   useEffect(() => {
@@ -560,10 +597,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         role,
         viewAsUser,
         effectiveRole,
+        isGuestMode,
         toggleViewMode,
         signOut,
         refreshProfile,
         updateProfile,
+        enableGuestMode,
+        disableGuestMode,
       }}
     >
       {children}

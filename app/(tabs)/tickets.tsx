@@ -24,7 +24,8 @@ import { useTickets } from '../../src/hooks/use-bookings';
 
 export default function TicketsTab() {
   const router = useRouter();
-  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
+  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode, disableGuestMode } =
+    useAuth();
   const _insets = useSafeAreaInsets();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'valid' | 'used' | 'expired'>('valid');
@@ -85,7 +86,10 @@ export default function TicketsTab() {
           icon="ticket-outline"
           action={{
             label: 'Sign In',
-            onPress: () => router.push('/'),
+            onPress: () => {
+              disableGuestMode();
+              router.replace('/');
+            },
           }}
         />
       </SafeAreaView>

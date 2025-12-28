@@ -87,33 +87,41 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
       <Text style={styles.sectionHeader}>{displayTrips.length} Popular Trips</Text>
 
       {/* Trips List */}
-      <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
-        {displayTrips.map((trip) => (
-          <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
-            <Image source={{ uri: trip.image }} style={styles.tripImage} />
-            <View style={styles.tripContent}>
-              <View style={styles.tripHeader}>
-                <Text style={styles.tripLocation}>{trip.location}</Text>
-                <View style={styles.ratingBadge}>
-                  <Text style={styles.ratingText}>{trip.rating} ★</Text>
+      {displayTrips.length > 0 ? (
+        <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
+          {displayTrips.map((trip) => (
+            <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
+              <Image source={{ uri: trip.image }} style={styles.tripImage} />
+              <View style={styles.tripContent}>
+                <View style={styles.tripHeader}>
+                  <Text style={styles.tripLocation}>{trip.location}</Text>
+                  <View style={styles.ratingBadge}>
+                    <Text style={styles.ratingText}>{trip.rating} ★</Text>
+                  </View>
+                </View>
+
+                <Text style={styles.tripTitle}>{trip.title}</Text>
+                <Text style={styles.tripDate}>{trip.date}</Text>
+
+                <View style={styles.tripFooter}>
+                  <Text style={styles.tripPrice}>
+                    {trip.price} <Text style={styles.perPerson}>/ person</Text>
+                  </Text>
+                  <View style={styles.bookButton}>
+                    <Text style={styles.bookButtonText}>View</Text>
+                  </View>
                 </View>
               </View>
-
-              <Text style={styles.tripTitle}>{trip.title}</Text>
-              <Text style={styles.tripDate}>{trip.date}</Text>
-
-              <View style={styles.tripFooter}>
-                <Text style={styles.tripPrice}>
-                  {trip.price} <Text style={styles.perPerson}>/ person</Text>
-                </Text>
-                <View style={styles.bookButton}>
-                  <Text style={styles.bookButtonText}>View</Text>
-                </View>
-              </View>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyState}>
+          <Ionicons name="location-outline" size={64} color={Colors.textSecondary} />
+          <Text style={styles.emptyText}>No trips found</Text>
+          <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -281,5 +289,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Fonts.semiBold,
     color: '#FFF',
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xxl * 2,
+    paddingHorizontal: Spacing.lg,
+  },
+  emptyText: {
+    fontSize: 18,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+    marginTop: Spacing.md,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+    textAlign: 'center',
   },
 });

@@ -79,6 +79,13 @@ export default function ProfileScreen() {
           is_public: true,
           location: 'Bangalore, India',
           website: null,
+          date_of_birth: '1995-06-15',
+          gender: 'male',
+          instagram: 'adityanegi',
+          youtube: null,
+          linkedin: null,
+          twitter: null,
+          interests: ['Hiking', 'Photography', 'Travel'],
           created_at: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000).toISOString(),
           updated_at: new Date().toISOString(),
         });

@@ -10,6 +10,13 @@ export interface UpdateProfileData {
   location?: string;
   website?: string;
   is_public?: boolean;
+  date_of_birth?: string;
+  gender?: string;
+  instagram?: string;
+  youtube?: string;
+  linkedin?: string;
+  twitter?: string;
+  interests?: string[];
 }
 
 /**

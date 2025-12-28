@@ -1,5 +1,14 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Image } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  Image,
+  TextInput,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,9 +26,11 @@ type FilterType = 'all' | 'unread';
 
 export default function ChatsTab() {
   const router = useRouter();
-  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode } = useAuth();
+  const { isAuthenticated, user, isAdmin, viewAsUser, toggleViewMode, disableGuestMode } =
+    useAuth();
   const _insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<FilterType>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [dmConversations, setDmConversations] = useState<DMConversation[]>([]);
   const [loadingDMs, setLoadingDMs] = useState(false);
@@ -128,8 +139,16 @@ export default function ChatsTab() {
     return new Date(b.time).getTime() - new Date(a.time).getTime();
   });
 
-  // Filter chats based on active filter
+  // Filter chats based on active filter and search query
   const filteredChats = sortedChats.filter((chat) => {
+    // Search filter
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      const nameMatch = chat.name.toLowerCase().includes(query);
+      const messageMatch = chat.lastMessage.toLowerCase().includes(query);
+      if (!nameMatch && !messageMatch) return false;
+    }
+
     // Type filter
     if (activeFilter === 'all') return true;
     if (activeFilter === 'unread') return chat.unreadCount > 0;
@@ -157,7 +176,10 @@ export default function ChatsTab() {
           icon="chatbubbles-outline"
           action={{
             label: 'Sign In',
-            onPress: () => router.push('/'),
+            onPress: () => {
+              disableGuestMode();
+              router.replace('/');
+            },
           }}
         />
       </SafeAreaView>
@@ -252,7 +274,23 @@ export default function ChatsTab() {
       <View style={styles.searchContainer}>
         <View style={styles.searchBar}>
           <Ionicons name="search" size={18} color={Colors.textSecondary} />
-          <Text style={styles.searchPlaceholder}>Search</Text>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search"
+            placeholderTextColor={Colors.textSecondary}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable
+              onPress={() => setSearchQuery('')}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
+            </Pressable>
+          )}
         </View>
       </View>
 
@@ -352,6 +390,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: Spacing.md,
     gap: Spacing.xs,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: Colors.text,
+    fontFamily: Fonts.medium,
+    paddingVertical: 0,
   },
   searchPlaceholder: {
     fontSize: 16,

@@ -10,7 +10,7 @@ import { useAuth } from '../src/contexts/auth-context';
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { isAdmin, viewAsUser, toggleViewMode } = useAuth();
+  const { isAdmin, isHost, viewAsUser, toggleViewMode } = useAuth();
   const [notifications, setNotifications] = useState(true);
 
   return (
@@ -69,6 +69,48 @@ export default function SettingsScreen() {
                       name={viewAsUser ? 'toggle-outline' : 'toggle'}
                       size={24}
                       color={viewAsUser ? Colors.warning : Colors.info}
+                    />
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {/* Host View Mode Toggle */}
+            {isHost && !isAdmin && (
+              <View style={styles.sectionContainer}>
+                <Text style={styles.sectionHeader}>Host Tools</Text>
+                <View style={styles.menuList}>
+                  <Pressable style={styles.menuItem} onPress={toggleViewMode}>
+                    <View
+                      style={[
+                        styles.menuIcon,
+                        {
+                          backgroundColor: viewAsUser
+                            ? Colors.warning + '10'
+                            : Colors.success + '10',
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={viewAsUser ? 'eye-outline' : 'people-outline'}
+                        size={20}
+                        color={viewAsUser ? Colors.warning : Colors.success}
+                      />
+                    </View>
+                    <View style={styles.menuContent}>
+                      <Text style={styles.menuTitle}>
+                        {viewAsUser ? 'Viewing as User' : 'Host Mode Active'}
+                      </Text>
+                      <Text style={styles.menuSubtitle}>
+                        {viewAsUser
+                          ? 'Tap to switch to host view'
+                          : 'Tap to preview user experience'}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name={viewAsUser ? 'toggle-outline' : 'toggle'}
+                      size={24}
+                      color={viewAsUser ? Colors.warning : Colors.success}
                     />
                   </Pressable>
                 </View>

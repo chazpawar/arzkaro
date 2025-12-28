@@ -18,6 +18,7 @@ import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useBookings, useTickets } from '../../src/hooks/use-bookings';
 import { getFriendCounts } from '../../src/services/friends-service';
+import EmptyState from '../../src/components/ui/empty-state';
 
 interface MenuItemType {
   icon: keyof typeof Ionicons.glyphMap;
@@ -41,6 +42,8 @@ export default function ProfileTab() {
     toggleViewMode,
     refreshProfile,
     signOut,
+    isAuthenticated,
+    disableGuestMode,
   } = useAuth();
   const [refreshing, setRefreshing] = useState(false);
   const [loadStats, setLoadStats] = useState(false);
@@ -245,6 +248,26 @@ export default function ProfileTab() {
       {item.showArrow && <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />}
     </Pressable>
   );
+
+  // Not authenticated - Show guest mode screen
+  if (!isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <EmptyState
+          title="Sign In to View Profile"
+          message="Create an account or sign in to access your profile, manage bookings, and connect with friends."
+          icon="person-outline"
+          action={{
+            label: 'Sign In',
+            onPress: () => {
+              disableGuestMode();
+              router.replace('/');
+            },
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>

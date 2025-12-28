@@ -399,6 +399,19 @@ export default function ExploreTab() {
               ? `${searchQuery}${searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
               : 'Search events, activities...'}
           </Text>
+          {searchQuery && (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                setSearchQuery('');
+                setSearchLocation('All Locations');
+              }}
+              style={styles.clearSearchButton}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
+            </Pressable>
+          )}
         </Pressable>
 
         {selectedTag === 'all' && activeView === 'events' && (
@@ -444,6 +457,16 @@ export default function ExploreTab() {
             </View>
           )}
 
+          {/* Search Results Indicator */}
+          {searchQuery && (
+            <View style={styles.searchResultsContainer}>
+              <Text style={styles.searchResultsText}>
+                {filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''} for &quot;
+                {searchQuery}&quot;{searchLocation !== 'All Locations' && ` in ${searchLocation}`}
+              </Text>
+            </View>
+          )}
+
           {/* 2. Show experiences category page when Experiences is clicked */}
           {(() => {
             const shouldShow = activeView === 'experiences';
@@ -480,8 +503,8 @@ export default function ExploreTab() {
             </View>
           )}
 
-          {/* 4. Show featured sections when For You is selected with 'all' tag */}
-          {activeView === 'events' && selectedTag === 'all' && (
+          {/* 4. Show featured sections when For You is selected with 'all' tag and no search active */}
+          {activeView === 'events' && selectedTag === 'all' && !searchQuery && (
             <>
               {/* Top Experiences Section */}
               <View style={styles.sectionContainer}>
@@ -591,6 +614,23 @@ export default function ExploreTab() {
             </>
           )}
 
+          {/* Show search results when searching in For You view */}
+          {activeView === 'events' && selectedTag === 'all' && searchQuery && (
+            <View>
+              <CategoryDetail
+                type="events"
+                tags={[]}
+                selectedTag="all"
+                onSelectTag={() => {
+                  // No-op: search results don't need tag filtering
+                }}
+                events={filteredEvents}
+                onEventPress={(id) => router.push(`/events/${id}`)}
+                showInline={false}
+              />
+            </View>
+          )}
+
           {/* 5. Show events detail when a specific category is selected within For You */}
           {activeView === 'events' && selectedTag !== 'all' && (
             <View>
@@ -660,12 +700,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: BorderRadius.full,
     gap: Spacing.sm,
+    borderWidth: 2,
+    borderColor: Colors.primary,
   },
   searchPlaceholder: {
     flex: 1,
     fontSize: 16,
     color: Colors.textSecondary,
     fontFamily: Fonts.medium,
+  },
+  clearSearchButton: {
+    padding: 4,
   },
   notificationButton: {
     padding: 4,
@@ -708,6 +753,21 @@ const styles = StyleSheet.create({
   categoryLabelActive: {
     color: Colors.primary,
     fontFamily: Fonts.bold,
+  },
+  // Search Results
+  searchResultsContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surfaceSecondary,
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.md,
+    borderRadius: BorderRadius.md,
+  },
+  searchResultsText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: Colors.text,
+    textAlign: 'center',
   },
   // Featured Sections
   sectionContainer: {

@@ -21,7 +21,7 @@ import * as HostService from '../../src/services/host-service';
 
 export default function HostDashboard() {
   const router = useRouter();
-  const { user, profile, isHost, isAdmin } = useAuth();
+  const { user, profile, isHost, isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [stats, setStats] = useState<HostService.HostStats | null>(null);
@@ -99,6 +99,15 @@ export default function HostDashboard() {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+
+      {/* Host View Mode Banner */}
+      {isHost && viewAsUser && (
+        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
+          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
+          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
+          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
+        </Pressable>
+      )}
 
       {/* Header with Back Button */}
       <View style={styles.header}>
@@ -474,5 +483,27 @@ const styles = StyleSheet.create({
   retryButtonText: {
     ...Typography.bodyMedium,
     color: Colors.text,
+  },
+  viewModeBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.warningLight,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.warning,
+  },
+  viewModeBannerText: {
+    fontSize: 13,
+    fontFamily: Fonts.semiBold,
+    color: Colors.warning,
+  },
+  viewModeBannerAction: {
+    fontSize: 12,
+    color: Colors.warning,
+    opacity: 0.8,
+    marginLeft: Spacing.xs,
   },
 });
