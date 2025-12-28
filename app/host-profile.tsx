@@ -7,6 +7,7 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -44,6 +45,32 @@ export default function HostProfileScreen() {
 
     loadHostProfile();
   }, [userId]);
+
+  const handleSocialLink = (platform: string, url: string | undefined) => {
+    if (!url) return;
+
+    let fullUrl = url;
+
+    // Add https:// if not present
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // Handle platform-specific URL formats
+      if (platform === 'instagram' && !url.includes('instagram.com')) {
+        fullUrl = `https://instagram.com/${url.replace('@', '')}`;
+      } else if (platform === 'twitter' && !url.includes('twitter.com')) {
+        fullUrl = `https://twitter.com/${url.replace('@', '')}`;
+      } else if (platform === 'linkedin' && !url.includes('linkedin.com')) {
+        fullUrl = `https://linkedin.com/in/${url}`;
+      } else if (platform === 'youtube' && !url.includes('youtube.com')) {
+        fullUrl = `https://youtube.com/@${url}`;
+      } else {
+        fullUrl = `https://${url}`;
+      }
+    }
+
+    Linking.openURL(fullUrl).catch((err) => {
+      console.error('Failed to open URL:', err);
+    });
+  };
 
   // Loading state
   if (loadingProfile) {
@@ -113,34 +140,50 @@ export default function HostProfileScreen() {
 
             {/* Social Icons Row */}
             <View style={styles.socialIconsRow}>
-              <View style={styles.socialIconItem}>
+              <TouchableOpacity
+                style={styles.socialIconItem}
+                onPress={() => handleSocialLink('instagram', viewedProfile.instagram)}
+                disabled={!viewedProfile.instagram}
+              >
                 <Ionicons
                   name="logo-instagram"
                   size={24}
                   color={viewedProfile.instagram ? '#E4405F' : Colors.textTertiary}
                 />
-              </View>
-              <View style={styles.socialIconItem}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.socialIconItem}
+                onPress={() => handleSocialLink('youtube', viewedProfile.youtube)}
+                disabled={!viewedProfile.youtube}
+              >
                 <Ionicons
                   name="logo-youtube"
                   size={24}
                   color={viewedProfile.youtube ? '#FF0000' : Colors.textTertiary}
                 />
-              </View>
-              <View style={styles.socialIconItem}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.socialIconItem}
+                onPress={() => handleSocialLink('linkedin', viewedProfile.linkedin)}
+                disabled={!viewedProfile.linkedin}
+              >
                 <Ionicons
                   name="logo-linkedin"
                   size={24}
                   color={viewedProfile.linkedin ? '#0077B5' : Colors.textTertiary}
                 />
-              </View>
-              <View style={styles.socialIconItem}>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.socialIconItem}
+                onPress={() => handleSocialLink('twitter', viewedProfile.twitter)}
+                disabled={!viewedProfile.twitter}
+              >
                 <Ionicons
                   name="logo-twitter"
                   size={24}
                   color={viewedProfile.twitter ? '#1DA1F2' : Colors.textTertiary}
                 />
-              </View>
+              </TouchableOpacity>
             </View>
           </View>
         </View>

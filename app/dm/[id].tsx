@@ -244,9 +244,6 @@ export default function DMChatScreen() {
             month: 'short',
             day: 'numeric',
           });
-
-        // Add time
-        dateLabel += ` ${currentDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
       }
 
       return (
@@ -454,13 +451,12 @@ const styles = StyleSheet.create({
   dateHeader: {
     alignItems: 'center',
     paddingVertical: Spacing.md,
-    marginBottom: Spacing.xs,
   },
   dateHeaderText: {
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textSecondary,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: Colors.surfaceSecondary,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 12,

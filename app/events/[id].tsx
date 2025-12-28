@@ -9,6 +9,8 @@ import {
   Platform,
   Dimensions,
   Modal,
+  Linking,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -67,6 +69,32 @@ export default function EventDetailsScreen() {
 
   const handleBookNow = () => {
     router.push(`/events/${id}/book`);
+  };
+
+  const handleSocialLink = (platform: string, url: string | undefined) => {
+    if (!url) return;
+
+    let fullUrl = url;
+
+    // Add https:// if not present
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      // Handle platform-specific URL formats
+      if (platform === 'instagram' && !url.includes('instagram.com')) {
+        fullUrl = `https://instagram.com/${url.replace('@', '')}`;
+      } else if (platform === 'twitter' && !url.includes('twitter.com')) {
+        fullUrl = `https://twitter.com/${url.replace('@', '')}`;
+      } else if (platform === 'linkedin' && !url.includes('linkedin.com')) {
+        fullUrl = `https://linkedin.com/in/${url}`;
+      } else if (platform === 'youtube' && !url.includes('youtube.com')) {
+        fullUrl = `https://youtube.com/@${url}`;
+      } else {
+        fullUrl = `https://${url}`;
+      }
+    }
+
+    Linking.openURL(fullUrl).catch((err) => {
+      console.error('Failed to open URL:', err);
+    });
   };
 
   const handleImagePress = (index: number) => {
@@ -365,54 +393,66 @@ export default function EventDetailsScreen() {
 
                       {/* Social Icons - Always show */}
                       <View style={styles.socialIcons}>
-                        <View
+                        <TouchableOpacity
                           style={[
                             styles.socialIcon,
                             !(event.host as any)?.instagram && styles.socialIconDisabled,
                           ]}
+                          onPress={() =>
+                            handleSocialLink('instagram', (event.host as any)?.instagram)
+                          }
+                          disabled={!(event.host as any)?.instagram}
                         >
                           <Ionicons
                             name="logo-instagram"
                             size={20}
                             color={(event.host as any)?.instagram ? '#E4405F' : Colors.textTertiary}
                           />
-                        </View>
-                        <View
+                        </TouchableOpacity>
+                        <TouchableOpacity
                           style={[
                             styles.socialIcon,
                             !(event.host as any)?.youtube && styles.socialIconDisabled,
                           ]}
+                          onPress={() => handleSocialLink('youtube', (event.host as any)?.youtube)}
+                          disabled={!(event.host as any)?.youtube}
                         >
                           <Ionicons
                             name="logo-youtube"
                             size={20}
                             color={(event.host as any)?.youtube ? '#FF0000' : Colors.textTertiary}
                           />
-                        </View>
-                        <View
+                        </TouchableOpacity>
+                        <TouchableOpacity
                           style={[
                             styles.socialIcon,
                             !(event.host as any)?.linkedin && styles.socialIconDisabled,
                           ]}
+                          onPress={() =>
+                            handleSocialLink('linkedin', (event.host as any)?.linkedin)
+                          }
+                          disabled={!(event.host as any)?.linkedin}
                         >
                           <Ionicons
                             name="logo-linkedin"
                             size={20}
                             color={(event.host as any)?.linkedin ? '#0077B5' : Colors.textTertiary}
                           />
-                        </View>
-                        <View
+                        </TouchableOpacity>
+                        <TouchableOpacity
                           style={[
                             styles.socialIcon,
                             !(event.host as any)?.twitter && styles.socialIconDisabled,
                           ]}
+                          onPress={() => handleSocialLink('twitter', (event.host as any)?.twitter)}
+                          disabled={!(event.host as any)?.twitter}
                         >
                           <Ionicons
                             name="logo-twitter"
                             size={20}
                             color={(event.host as any)?.twitter ? '#1DA1F2' : Colors.textTertiary}
                           />
-                        </View>
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>

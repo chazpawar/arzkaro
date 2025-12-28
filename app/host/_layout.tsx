@@ -33,6 +33,12 @@ export default function HostLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="payouts"
+        options={{
+          headerShown: false,
+        }}
+      />
     </Stack>
   );
 }

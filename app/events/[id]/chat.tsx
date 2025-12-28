@@ -191,9 +191,6 @@ export default function EventChatScreen() {
             month: 'short',
             day: 'numeric',
           });
-
-        // Append time for Instagram style if needed, or just date
-        dateLabel += ` ${currentDate.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`;
       }
 
       return (
@@ -554,15 +551,16 @@ const styles = StyleSheet.create({
   },
   dateHeader: {
     alignItems: 'center',
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   dateHeaderText: {
-    ...Typography.caption,
-    color: Colors.textTertiary,
+    fontSize: 11,
+    fontWeight: '600',
+    color: Colors.textSecondary,
     backgroundColor: Colors.surfaceSecondary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
     overflow: 'hidden',
   },
   disabledInputContainer: {
