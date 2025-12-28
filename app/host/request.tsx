@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,10 @@ import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as HostService from '../../src/services/host-service';
 import type { HostRequest } from '../../src/types/host.types';
+
+// Icon imports
+const ExperienceIcon = require('../../assets/others/experiences.png');
+const TripIcon = require('../../assets/others/trips.png');
 
 export default function HostRequestScreen() {
   const router = useRouter();
@@ -198,7 +202,7 @@ export default function HostRequestScreen() {
               onPress={() => setSelectedCategory('experience')}
             >
               <View style={styles.choiceIconContainer}>
-                <Text style={styles.emojiIcon}>🎈</Text>
+                <Image source={ExperienceIcon} style={styles.choiceIcon} resizeMode="contain" />
               </View>
               <View style={styles.choiceTextContainer}>
                 <Text style={styles.choiceLabel}>Experience</Text>
@@ -227,7 +231,7 @@ export default function HostRequestScreen() {
               onPress={() => setSelectedCategory('trip')}
             >
               <View style={styles.choiceIconContainer}>
-                <Text style={styles.emojiIcon}>🎒</Text>
+                <Image source={TripIcon} style={styles.choiceIcon} resizeMode="contain" />
               </View>
               <View style={styles.choiceTextContainer}>
                 <Text style={styles.choiceLabel}>Trips</Text>
@@ -317,6 +321,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: Spacing.lg,
+  },
+  choiceIcon: {
+    width: 40,
+    height: 40,
   },
   emojiIcon: {
     fontSize: 32,

@@ -25,8 +25,7 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
   // Use passed events for real trip data
-  // For now, let's map the passed events to the structure we need, or update the UI to use Event type directly.
-  // The UI expects: id, image, location, rating, title, date, price
+  // Map the passed events to the structure needed for display
 
   const displayTrips =
     events.length > 0
@@ -41,7 +40,6 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
             month: 'short',
           }),
           price: `₹${event.price}`,
-          rating: 4.5, // Placeholder
           location: event.location_name || 'Unknown Location',
         }))
       : [];
@@ -93,12 +91,7 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
             <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
               <Image source={{ uri: trip.image }} style={styles.tripImage} />
               <View style={styles.tripContent}>
-                <View style={styles.tripHeader}>
-                  <Text style={styles.tripLocation}>{trip.location}</Text>
-                  <View style={styles.ratingBadge}>
-                    <Text style={styles.ratingText}>{trip.rating} ★</Text>
-                  </View>
-                </View>
+                <Text style={styles.tripLocation}>{trip.location}</Text>
 
                 <Text style={styles.tripTitle}>{trip.title}</Text>
                 <Text style={styles.tripDate}>{trip.date}</Text>
@@ -229,28 +222,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: Spacing.sm, // Reduced padding
   },
-  tripHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4, // Reduced margin
-  },
   tripLocation: {
     fontSize: 12, // Smaller font
     fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
     textTransform: 'uppercase',
-  },
-  ratingBadge: {
-    backgroundColor: '#FFB400',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  ratingText: {
-    fontSize: 12,
-    fontFamily: Fonts.bold,
-    color: '#FFF',
   },
   tripTitle: {
     fontSize: 16, // Smaller title

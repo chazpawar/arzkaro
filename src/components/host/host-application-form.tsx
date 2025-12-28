@@ -4,7 +4,7 @@ import Input from '../ui/input';
 import Button from '../ui/button';
 import Card from '../ui/card';
 import { Colors } from '@/constants/Colors';
-import { BorderRadius, Spacing, Typography } from '@/constants/Styles';
+import { Spacing, Typography } from '@/constants/Styles';
 import { Fonts } from '../../constants/Fonts';
 import { HostRequestFormData, HOST_TYPE_LABELS } from '@/types/host.types';
 import { submitHostRequest, validateHostRequest } from '@/services/host-service';
@@ -24,6 +24,7 @@ export default function HostApplicationForm({
 }: HostApplicationFormProps) {
   const [hostType, setHostType] = useState<'full' | 'activity'>(initialHostType);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const [formData, setFormData] = useState<HostRequestFormData>({
     host_type: initialHostType,
@@ -61,7 +62,101 @@ export default function HostApplicationForm({
     }
   };
 
+  const validateCurrentStep = (): boolean => {
+    const newErrors: Record<string, string> = {};
+
+    if (currentStep === 1) {
+      // Personal Information validation
+      if (!formData.organizer_name.trim()) {
+        newErrors.organizer_name = 'Full name is required';
+      }
+      if (!formData.contact_number.trim()) {
+        newErrors.contact_number = 'Contact number is required';
+      } else if (!/^\d{10}$/.test(formData.contact_number)) {
+        newErrors.contact_number = 'Enter a valid 10-digit number';
+      }
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+        newErrors.email = 'Enter a valid email address';
+      }
+    } else if (currentStep === 2) {
+      // Address validation
+      if (!formData.street_address.trim()) {
+        newErrors.street_address = 'Street address is required';
+      }
+      if (!formData.city.trim()) {
+        newErrors.city = 'City is required';
+      }
+      if (!formData.state.trim()) {
+        newErrors.state = 'State is required';
+      }
+      if (!formData.pin_code.trim()) {
+        newErrors.pin_code = 'PIN code is required';
+      } else if (!/^\d{6}$/.test(formData.pin_code)) {
+        newErrors.pin_code = 'Enter a valid 6-digit PIN code';
+      }
+    } else if (currentStep === 3) {
+      // KYC validation
+      if (!formData.pan_number.trim()) {
+        newErrors.pan_number = 'PAN number is required';
+      } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]$/.test(formData.pan_number)) {
+        newErrors.pan_number = 'Enter a valid PAN number';
+      }
+      if (!formData.pan_card_photo_url.trim()) {
+        newErrors.pan_card_photo_url = 'PAN card photo URL is required';
+      }
+      if (
+        hostType === 'full' &&
+        formData.gstin &&
+        !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z][Z][0-9A-Z]$/.test(formData.gstin)
+      ) {
+        newErrors.gstin = 'Enter a valid GSTIN';
+      }
+    } else if (currentStep === 4) {
+      // Bank Details validation
+      if (!formData.account_holder_name.trim()) {
+        newErrors.account_holder_name = 'Account holder name is required';
+      }
+      if (!formData.account_number.trim()) {
+        newErrors.account_number = 'Account number is required';
+      }
+      if (!formData.ifsc_code.trim()) {
+        newErrors.ifsc_code = 'IFSC code is required';
+      } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifsc_code)) {
+        newErrors.ifsc_code = 'Enter a valid IFSC code';
+      }
+      if (!formData.beneficiary_name.trim()) {
+        newErrors.beneficiary_name = 'Beneficiary name is required';
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleNext = () => {
+    if (validateCurrentStep()) {
+      if (currentStep < 4) {
+        setCurrentStep(currentStep + 1);
+      }
+    } else {
+      Alert.alert('Validation Error', 'Please fill in all required fields correctly.');
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const handleSubmit = async () => {
+    if (!validateCurrentStep()) {
+      Alert.alert('Validation Error', 'Please fill in all required fields correctly.');
+      return;
+    }
+
     // Map form data to request data format for validation and submission
     const requestData = {
       user_id: userId,
@@ -109,9 +204,209 @@ export default function HostApplicationForm({
     }
   };
 
-  // Application form
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={styles.sectionDescription}>
+              Please provide your personal details as per your official documents
+            </Text>
+            <Input
+              label="Full Name"
+              value={formData.organizer_name}
+              onChangeText={(value) => handleInputChange('organizer_name', value)}
+              placeholder="As per PAN"
+              error={errors.organizer_name}
+              required
+            />
+            <Input
+              label="Contact Number"
+              value={formData.contact_number}
+              onChangeText={(value) => handleInputChange('contact_number', value)}
+              placeholder="10-digit mobile"
+              keyboardType="phone-pad"
+              maxLength={10}
+              error={errors.contact_number}
+              required
+              leftIcon={
+                <View style={styles.countryCodeContainer}>
+                  <Text style={styles.countryCodeText}>+91</Text>
+                </View>
+              }
+            />
+            <Input
+              label="Email Address"
+              value={formData.email}
+              onChangeText={(value) => handleInputChange('email', value)}
+              placeholder="your@email.com"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              error={errors.email}
+              required
+            />
+          </Card>
+        );
+
+      case 2:
+        return (
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Address</Text>
+            <Text style={styles.sectionDescription}>
+              Enter your complete address for verification purposes
+            </Text>
+            <Input
+              label="Street Address"
+              value={formData.street_address}
+              onChangeText={(value) => handleInputChange('street_address', value)}
+              placeholder="Building, street, area"
+              error={errors.street_address}
+              required
+            />
+            <View style={styles.row}>
+              <View style={styles.flex2}>
+                <Input
+                  label="City"
+                  value={formData.city}
+                  onChangeText={(value) => handleInputChange('city', value)}
+                  placeholder="City"
+                  error={errors.city}
+                  required
+                />
+              </View>
+              <View style={styles.flex1}>
+                <Input
+                  label="PIN Code"
+                  value={formData.pin_code}
+                  onChangeText={(value) => handleInputChange('pin_code', value)}
+                  placeholder="6-digit"
+                  keyboardType="number-pad"
+                  maxLength={6}
+                  error={errors.pin_code}
+                  required
+                />
+              </View>
+            </View>
+            <Input
+              label="State"
+              value={formData.state}
+              onChangeText={(value) => handleInputChange('state', value)}
+              placeholder="Enter state"
+              error={errors.state}
+              required
+            />
+          </Card>
+        );
+
+      case 3:
+        return (
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>KYC Documents</Text>
+            <Text style={styles.sectionDescription}>
+              Upload your KYC documents for verification
+            </Text>
+            <Input
+              label="PAN Number"
+              value={formData.pan_number}
+              onChangeText={(value) => handleInputChange('pan_number', value.toUpperCase())}
+              placeholder="ABCDE1234F"
+              autoCapitalize="characters"
+              maxLength={10}
+              error={errors.pan_number}
+              required
+            />
+            <Input
+              label="PAN Photo URL"
+              value={formData.pan_card_photo_url}
+              onChangeText={(value) => handleInputChange('pan_card_photo_url', value)}
+              placeholder="Share link to PAN card image"
+              autoCapitalize="none"
+              error={errors.pan_card_photo_url}
+              required
+            />
+            {hostType === 'full' && (
+              <>
+                <Input
+                  label="GSTIN (Optional)"
+                  value={formData.gstin}
+                  onChangeText={(value) => handleInputChange('gstin', value.toUpperCase())}
+                  placeholder="22AAAAA0000A1Z5"
+                  autoCapitalize="characters"
+                  maxLength={15}
+                  error={errors.gstin}
+                />
+                <Input
+                  label="GST Photo URL (Optional)"
+                  value={formData.gst_certificate_url}
+                  onChangeText={(value) => handleInputChange('gst_certificate_url', value)}
+                  placeholder="Share link to GST certificate"
+                  autoCapitalize="none"
+                  error={errors.gst_certificate_url}
+                />
+              </>
+            )}
+          </Card>
+        );
+
+      case 4:
+        return (
+          <Card style={styles.section}>
+            <Text style={styles.sectionTitle}>Bank Details</Text>
+            <Text style={styles.sectionDescription}>
+              Provide your bank account details for receiving payouts
+            </Text>
+            <Input
+              label="Account Holder Name"
+              value={formData.account_holder_name}
+              onChangeText={(value) => handleInputChange('account_holder_name', value)}
+              placeholder="As per bank records"
+              error={errors.account_holder_name}
+              required
+            />
+            <Input
+              label="Account Number"
+              value={formData.account_number}
+              onChangeText={(value) => handleInputChange('account_number', value)}
+              placeholder="Enter account number"
+              keyboardType="number-pad"
+              error={errors.account_number}
+              required
+            />
+            <View style={styles.row}>
+              <View style={styles.flex1}>
+                <Input
+                  label="IFSC Code"
+                  value={formData.ifsc_code}
+                  onChangeText={(value) => handleInputChange('ifsc_code', value.toUpperCase())}
+                  placeholder="ABCD0123456"
+                  autoCapitalize="characters"
+                  maxLength={11}
+                  error={errors.ifsc_code}
+                  required
+                />
+              </View>
+              <View style={styles.flex1}>
+                <Input
+                  label="Beneficiary"
+                  value={formData.beneficiary_name}
+                  onChangeText={(value) => handleInputChange('beneficiary_name', value)}
+                  placeholder="Name"
+                  error={errors.beneficiary_name}
+                  required
+                />
+              </View>
+            </View>
+          </Card>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle} numberOfLines={2}>
           {HOST_TYPE_LABELS[hostType]}
@@ -121,296 +416,86 @@ export default function HostApplicationForm({
         </TouchableOpacity>
       </View>
 
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>Personal Information</Text>
-        <View style={styles.row}>
-          <View style={styles.flex1}>
-            <Input
-              label="Full Name"
-              value={formData.organizer_name}
-              onChangeText={(value) => handleInputChange('organizer_name', value)}
-              placeholder="As per PAN"
-              error={errors.organizer_name}
-              required
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Input
-              label="Contact Number"
-              value={formData.contact_number}
-              onChangeText={(value) => handleInputChange('contact_number', value)}
-              placeholder="10-digit mobile"
-              keyboardType="phone-pad"
-              error={errors.contact_number}
-              required
-            />
-          </View>
-        </View>
-
-        <Input
-          label="Email Address"
-          value={formData.email}
-          onChangeText={(value) => handleInputChange('email', value)}
-          placeholder="your@email.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          error={errors.email}
-          required
-        />
-      </Card>
-
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>Address</Text>
-        <Input
-          label="Street Address"
-          value={formData.street_address}
-          onChangeText={(value) => handleInputChange('street_address', value)}
-          placeholder="Building, street, area"
-          error={errors.street_address}
-          required
-        />
-        <View style={styles.row}>
-          <View style={styles.flex2}>
-            <Input
-              label="City"
-              value={formData.city}
-              onChangeText={(value) => handleInputChange('city', value)}
-              placeholder="City"
-              error={errors.city}
-              required
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Input
-              label="PIN Code"
-              value={formData.pin_code}
-              onChangeText={(value) => handleInputChange('pin_code', value)}
-              placeholder="6-digit"
-              keyboardType="number-pad"
-              maxLength={6}
-              error={errors.pin_code}
-              required
-            />
-          </View>
-        </View>
-        <Input
-          label="State"
-          value={formData.state}
-          onChangeText={(value) => handleInputChange('state', value)}
-          placeholder="Enter state"
-          error={errors.state}
-          required
-        />
-      </Card>
-
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>KYC Documents</Text>
-        <Input
-          label="PAN Number"
-          value={formData.pan_number}
-          onChangeText={(value) => handleInputChange('pan_number', value.toUpperCase())}
-          placeholder="ABCDE1234F"
-          autoCapitalize="characters"
-          maxLength={10}
-          error={errors.pan_number}
-          required
-        />
-
-        {hostType === 'full' && (
-          <Input
-            label="GSTIN (Optional)"
-            value={formData.gstin}
-            onChangeText={(value) => handleInputChange('gstin', value.toUpperCase())}
-            placeholder="22AAAAA0000A1Z5"
-            autoCapitalize="characters"
-            maxLength={15}
-            error={errors.gstin}
-          />
-        )}
-
-        <View style={styles.row}>
-          <View style={styles.flex1}>
-            <Input
-              label="PAN Photo URL"
-              value={formData.pan_card_photo_url}
-              onChangeText={(value) => handleInputChange('pan_card_photo_url', value)}
-              placeholder="Share link"
-              autoCapitalize="none"
-              error={errors.pan_card_photo_url}
-              required
-            />
-          </View>
-          {hostType === 'full' && (
-            <View style={styles.flex1}>
-              <Input
-                label="GST Photo URL"
-                value={formData.gst_certificate_url}
-                onChangeText={(value) => handleInputChange('gst_certificate_url', value)}
-                placeholder="Share link"
-                autoCapitalize="none"
-                error={errors.gst_certificate_url}
-              />
-            </View>
-          )}
-        </View>
-      </Card>
-
-      <Card style={styles.section}>
-        <Text style={styles.sectionTitle}>Bank Details</Text>
-        <Input
-          label="Account Holder Name"
-          value={formData.account_holder_name}
-          onChangeText={(value) => handleInputChange('account_holder_name', value)}
-          placeholder="As per bank records"
-          error={errors.account_holder_name}
-          required
-        />
-        <Input
-          label="Account Number"
-          value={formData.account_number}
-          onChangeText={(value) => handleInputChange('account_number', value)}
-          placeholder="Enter account number"
-          keyboardType="number-pad"
-          error={errors.account_number}
-          required
-        />
-        <View style={styles.row}>
-          <View style={styles.flex1}>
-            <Input
-              label="IFSC Code"
-              value={formData.ifsc_code}
-              onChangeText={(value) => handleInputChange('ifsc_code', value.toUpperCase())}
-              placeholder="ABCD0123456"
-              autoCapitalize="characters"
-              maxLength={11}
-              error={errors.ifsc_code}
-              required
-            />
-          </View>
-          <View style={styles.flex1}>
-            <Input
-              label="Beneficiary"
-              value={formData.beneficiary_name}
-              onChangeText={(value) => handleInputChange('beneficiary_name', value)}
-              placeholder="Name"
-              error={errors.beneficiary_name}
-              required
-            />
-          </View>
-        </View>
-      </Card>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {renderStepContent()}
+      </ScrollView>
 
       <View style={styles.buttonContainer}>
-        <Button
-          title={isSubmitting ? 'Submitting...' : 'Submit Application'}
-          onPress={handleSubmit}
-          variant="primary"
-          size="large"
-          fullWidth
-          disabled={isSubmitting}
-          loading={isSubmitting}
-        />
-        {onCancel && (
-          <Button
-            title="Cancel"
-            onPress={onCancel}
-            variant="outline"
-            size="large"
-            fullWidth
-            disabled={isSubmitting}
-          />
-        )}
+        <View style={styles.buttonRow}>
+          {currentStep > 1 && (
+            <Button
+              title="Back"
+              onPress={handleBack}
+              variant="outline"
+              size="large"
+              style={styles.backButton}
+              disabled={isSubmitting}
+            />
+          )}
+          {currentStep < 4 ? (
+            <Button
+              title="Next"
+              onPress={handleNext}
+              variant="primary"
+              size="large"
+              style={styles.nextButton}
+            />
+          ) : (
+            <Button
+              title={isSubmitting ? 'Submitting...' : 'Submit Application'}
+              onPress={handleSubmit}
+              variant="primary"
+              size="large"
+              style={styles.nextButton}
+              disabled={isSubmitting}
+              loading={isSubmitting}
+            />
+          )}
+        </View>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: Spacing.lg,
+    backgroundColor: Colors.background,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
     gap: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   headerTitle: {
-    ...Typography.h2,
+    ...Typography.h3,
     color: Colors.text,
     fontFamily: Fonts.bold,
     flex: 1,
     flexShrink: 1,
     marginRight: Spacing.sm,
   },
-  title: {
-    ...Typography.h2,
-    color: Colors.text,
-    fontFamily: Fonts.bold,
-    marginBottom: Spacing.sm,
-  },
   changeTypeButton: {
     flexShrink: 0,
     paddingVertical: Spacing.xs,
-  },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xl,
   },
   changeLink: {
     ...Typography.bodySmall,
     color: Colors.primary,
     fontFamily: Fonts.semiBold,
   },
-  hostTypeCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  hostTypeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  hostTypeTitle: {
-    ...Typography.h3,
-    color: Colors.text,
-    fontFamily: Fonts.bold,
-  },
-  hostTypeBadge: {
-    ...Typography.caption,
-    color: Colors.primary,
-    backgroundColor: Colors.primaryLight,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.sm,
-    fontFamily: Fonts.semiBold,
-  },
-  hostTypeBadgePremium: {
-    color: Colors.success,
-    backgroundColor: Colors.successLight,
-  },
-  hostTypeDescription: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.md,
-  },
-  hostTypeFeatures: {
-    gap: Spacing.xs,
-  },
-  hostTypeFeature: {
-    ...Typography.bodySmall,
-    color: Colors.text,
+  scrollView: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
   },
   section: {
-    marginBottom: Spacing.lg,
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.md,
   },
   sectionTitle: {
     ...Typography.h4,
@@ -418,15 +503,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bold,
     marginBottom: Spacing.xs,
   },
-  sectionHint: {
-    ...Typography.caption,
+  sectionDescription: {
+    ...Typography.bodySmall,
     color: Colors.textSecondary,
     marginBottom: Spacing.md,
-  },
-  buttonContainer: {
-    gap: Spacing.md,
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.xl,
+    lineHeight: 20,
   },
   row: {
     flexDirection: 'row',
@@ -438,5 +519,33 @@ const styles = StyleSheet.create({
   },
   flex2: {
     flex: 2,
+  },
+  buttonContainer: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: Spacing.md,
+  },
+  backButton: {
+    flex: 1,
+  },
+  nextButton: {
+    flex: 2,
+  },
+  countryCodeContainer: {
+    paddingRight: Spacing.sm,
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
+    marginRight: Spacing.sm,
+  },
+  countryCodeText: {
+    fontSize: 16,
+    fontFamily: Fonts.medium,
+    color: Colors.text,
   },
 });

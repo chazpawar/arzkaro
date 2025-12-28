@@ -20,6 +20,7 @@ import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
+import { getEventBookings } from '../../src/services/booking-service';
 
 // Icon imports from assets/others
 const LocationIcon = require('../../assets/others/location.png');
@@ -37,11 +38,40 @@ export default function EventDetailsScreen() {
   const [showTermsModal, setShowTermsModal] = React.useState(false);
   const [showCancellationModal, setShowCancellationModal] = React.useState(false);
   const [showAllThingsToKnow, setShowAllThingsToKnow] = React.useState(false);
+  const [bookedUsers, setBookedUsers] = React.useState<
+    { id: string; full_name: string | null; avatar_url: string | null }[]
+  >([]);
 
   // Check if this is a mock event
 
   // Use real event hook (skip if mock)
   const { event, ticketTypes, loading, error } = useEvent(id);
+
+  // Fetch booked users for avatar display
+  React.useEffect(() => {
+    if (event?.id) {
+      getEventBookings(event.id)
+        .then((bookings) => {
+          const users = bookings
+            .filter((b) => b.user)
+            .slice(0, 3) // Only get first 3 users for display
+            .map((b) => ({
+              id: (b.user as { id: string; full_name: string | null; avatar_url: string | null })
+                .id,
+              full_name: (
+                b.user as { id: string; full_name: string | null; avatar_url: string | null }
+              ).full_name,
+              avatar_url: (
+                b.user as { id: string; full_name: string | null; avatar_url: string | null }
+              ).avatar_url,
+            }));
+          setBookedUsers(users);
+        })
+        .catch((err) => {
+          console.error('Error fetching booked users:', err);
+        });
+    }
+  }, [event?.id]);
 
   // Use mock event if available, otherwise real event
 
@@ -207,6 +237,51 @@ export default function EventDetailsScreen() {
           <View style={styles.content}>
             {/* Title & Price */}
             <View style={styles.titleSection}>
+              {/* Joined Users Count - Top Right */}
+              {event.current_bookings > 0 && (
+                <View style={styles.joinedUsersContainer}>
+                  <View style={styles.joinedAvatarsStack}>
+                    {/* Display real user avatars */}
+                    {bookedUsers.length > 0
+                      ? bookedUsers.map((user, index) => (
+                          <View
+                            key={user.id}
+                            style={[
+                              styles.joinedAvatar,
+                              { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
+                            ]}
+                          >
+                            {user.avatar_url ? (
+                              <Image
+                                source={{ uri: user.avatar_url }}
+                                style={styles.joinedAvatarImage}
+                              />
+                            ) : (
+                              <Text style={styles.joinedAvatarText}>
+                                {user.full_name?.charAt(0).toUpperCase() || '?'}
+                              </Text>
+                            )}
+                          </View>
+                        ))
+                      : // Fallback placeholder while loading
+                        [...Array(Math.min(3, event.current_bookings))].map((_, index) => (
+                          <View
+                            key={index}
+                            style={[
+                              styles.joinedAvatar,
+                              { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
+                            ]}
+                          >
+                            <Text style={styles.joinedAvatarText}>
+                              {String.fromCharCode(65 + index)}
+                            </Text>
+                          </View>
+                        ))}
+                  </View>
+                  <Text style={styles.joinedUsersText}>+{event.current_bookings} have joined</Text>
+                </View>
+              )}
+
               {/* Category Tags */}
               {event.tags && event.tags.length > 0 && (
                 <View style={styles.categoryTagsRow}>
@@ -294,18 +369,6 @@ export default function EventDetailsScreen() {
             {/* Quick Info Cards - Only show for non-trip events */}
             {!isTrip && (
               <View style={styles.quickInfoContainer}>
-                <View style={styles.quickInfoCard}>
-                  <Image
-                    source={DateTimeIcon}
-                    style={[styles.quickInfoIcon, { width: 28, height: 28 }]}
-                    resizeMode="contain"
-                  />
-                  <View>
-                    <Text style={styles.quickInfoLabel}>DATE</Text>
-                    <Text style={styles.quickInfoValue}>{formatDate(event.start_date)}</Text>
-                  </View>
-                </View>
-
                 <View style={styles.quickInfoCard}>
                   <Image
                     source={DateTimeIcon}
@@ -1012,6 +1075,7 @@ const styles = StyleSheet.create({
     minHeight: Dimensions.get('window').height, // Ensure content is scrollable
   },
   titleSection: {
+    position: 'relative',
     marginBottom: Spacing.lg,
   },
   title: {
@@ -1035,6 +1099,43 @@ const styles = StyleSheet.create({
   locationText: {
     fontSize: 16,
     fontFamily: Fonts.semiBold,
+    color: Colors.text,
+  },
+  joinedUsersContainer: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  joinedAvatarsStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  joinedAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.background,
+    overflow: 'hidden',
+  },
+  joinedAvatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  joinedAvatarText: {
+    fontSize: 12,
+    fontFamily: Fonts.bold,
+    color: '#FFF',
+  },
+  joinedUsersText: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
     color: Colors.text,
   },
   price: {
@@ -1694,11 +1795,6 @@ const styles = StyleSheet.create({
     width: 1,
     height: 40,
     backgroundColor: Colors.border,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
   },
   // Things to Know Styles (no border, just text with dividers)
   thingsToKnowSection: {

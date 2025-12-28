@@ -428,12 +428,6 @@ export default function ExploreTab() {
             </Pressable>
           )}
         </Pressable>
-
-        {selectedTag === 'all' && activeView === 'events' && (
-          <Pressable style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={Colors.text} />
-          </Pressable>
-        )}
       </View>
 
       <ScrollView
@@ -544,10 +538,7 @@ export default function ExploreTab() {
                       >
                         <Image
                           source={{
-                            uri:
-                              (item as any).image ||
-                              (item as any).cover_image_url ||
-                              'https://via.placeholder.com/150',
+                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
                           }}
                           style={styles.horizontalCardImage}
                         />
@@ -555,19 +546,10 @@ export default function ExploreTab() {
                           <Text style={styles.cardTitle} numberOfLines={1}>
                             {item.title}
                           </Text>
-                          <View style={styles.cardRow}>
-                            <Text style={styles.cardLocation}>
-                              {(item as any).location || (item as any).location_name || ''}
-                            </Text>
-                            <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
-                          </View>
-                          <Text style={styles.cardPrice}>
-                            {(item as any).price
-                              ? typeof (item as any).price === 'string'
-                                ? (item as any).price
-                                : `₹${(item as any).price}`
-                              : ''}
+                          <Text style={styles.cardLocation}>
+                            {item.location_name || item.departure_location || ''}
                           </Text>
+                          <Text style={styles.cardPrice}>₹{item.price}</Text>
                         </View>
                       </Pressable>
                     ))}
@@ -606,10 +588,7 @@ export default function ExploreTab() {
                       >
                         <Image
                           source={{
-                            uri:
-                              (item as any).image ||
-                              (item as any).cover_image_url ||
-                              'https://via.placeholder.com/150',
+                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
                           }}
                           style={styles.horizontalCardImage}
                         />
@@ -617,19 +596,10 @@ export default function ExploreTab() {
                           <Text style={styles.cardTitle} numberOfLines={1}>
                             {item.title}
                           </Text>
-                          <View style={styles.cardRow}>
-                            <Text style={styles.cardLocation}>
-                              {(item as any).location || (item as any).location_name || ''}
-                            </Text>
-                            <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
-                          </View>
-                          <Text style={styles.cardPrice}>
-                            {(item as any).price
-                              ? typeof (item as any).price === 'string'
-                                ? (item as any).price
-                                : `₹${(item as any).price}`
-                              : ''}
+                          <Text style={styles.cardLocation}>
+                            {item.location_name || item.departure_location || ''}
                           </Text>
+                          <Text style={styles.cardPrice}>₹{item.price}</Text>
                         </View>
                       </Pressable>
                     ))}
@@ -745,9 +715,6 @@ const styles = StyleSheet.create({
   clearSearchButton: {
     padding: 4,
   },
-  notificationButton: {
-    padding: 4,
-  },
   scrollView: {
     flex: 1,
   },
@@ -849,19 +816,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
-  cardRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
   cardLocation: {
     fontSize: 12,
     color: Colors.textSecondary,
-  },
-  cardRating: {
-    fontSize: 12,
-    fontFamily: Fonts.semiBold,
-    color: '#FFB400',
   },
   cardPrice: {
     fontSize: 14,

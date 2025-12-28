@@ -277,7 +277,7 @@ export default function GroupMembersScreen() {
               handleAddFriend(memberId, displayName);
             }}
           >
-            <Text style={styles.followButtonTextFollow}>Follow</Text>
+            <Text style={styles.followButtonTextFollow}>Add Friend</Text>
           </Pressable>
         );
     }

@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     marginVertical: 2,
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.xs,
     maxWidth: '100%',
   },
   containerOwn: {
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     width: 28 + Spacing.xs,
   },
   bubble: {
-    maxWidth: '70%',
+    maxWidth: '80%',
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 18,
