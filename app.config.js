@@ -23,6 +23,8 @@ module.exports = {
         NSPhotoLibraryUsageDescription:
           'This app needs access to your photo library to upload event images.',
         NSCameraUsageDescription: 'This app needs access to your camera to take event photos.',
+        NSLocationWhenInUseUsageDescription:
+          'Allow ArzKaro to use your location to find nearby events and experiences.',
       },
     },
     android: {
@@ -34,6 +36,7 @@ module.exports = {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       softwareKeyboardLayoutMode: 'resize',
+      permissions: ['ACCESS_COARSE_LOCATION', 'ACCESS_FINE_LOCATION'],
     },
     web: {
       favicon: './assets/favicon.png',
@@ -52,6 +55,13 @@ module.exports = {
         {
           photosPermission: 'The app needs access to your photo library to upload event images.',
           cameraPermission: 'The app needs access to your camera to take event photos.',
+        },
+      ],
+      [
+        'expo-location',
+        {
+          locationAlwaysAndWhenInUsePermission:
+            'Allow ArzKaro to use your location to find nearby events and experiences.',
         },
       ],
     ],

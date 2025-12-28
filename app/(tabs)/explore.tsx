@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,6 +15,7 @@ import { useAuth } from '../../src/contexts/auth-context';
 import CategoryDetail from '../../src/components/CategoryDetail';
 import TripsDetail from '../../src/components/TripsDetail';
 import SearchModal from '../../src/components/SearchModal';
+import EmptyState from '../../src/components/ui/empty-state';
 
 // Centralized icon map for category icons
 // Pre-load icons with spaces in filenames to avoid require() issues
@@ -26,6 +27,21 @@ const DJNightIcon = require('../../assets/categoriesicons/DJ Night.png');
 const ForYouIcon = require('../../assets/others/foryou.png');
 const ExperiencesIcon = require('../../assets/others/experiences.png');
 const TripsIcon = require('../../assets/others/trips.png');
+
+// Haversine distance calculation (returns distance in kilometers)
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 const CATEGORY_ICONS: Record<string, any> = {
   All: require('../../assets/categoriesicons/Play.png'), // For "All" categories
@@ -188,9 +204,25 @@ export default function ExploreTab() {
   const [selectedTag, setSelectedTag] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchLocation, setSearchLocation] = useState('All Locations');
+  const [searchLocation, setSearchLocation] = useState('');
+  const [searchRadius, setSearchRadius] = useState(10);
+  const [userCoordinates, setUserCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   const { events, loading, refresh } = useEvents();
+
+  // Log search state changes for debugging
+  useEffect(() => {
+    if (searchQuery || searchLocation !== 'All Locations') {
+      console.log('[EXPLORE] Search state updated:', {
+        query: searchQuery,
+        location: searchLocation,
+        radius: searchRadius,
+      });
+    }
+  }, [searchQuery, searchLocation, searchRadius]);
 
   // For "Top Experiences" - show all published events
   const topExperiences = events.filter((e) => e.type === 'experience').slice(0, 10);
@@ -234,8 +266,8 @@ export default function ExploreTab() {
       // Search in category
       const categoryMatch = event.category?.toLowerCase().includes(query) || false;
 
-      // Search in tags
-      const tagsMatch = event.tags.some((tag) => tag.toLowerCase().includes(query));
+      // Search in tags (with null check)
+      const tagsMatch = event.tags?.some((tag) => tag.toLowerCase().includes(query)) || false;
 
       // Search in location fields
       const locationNameMatch = event.location_name?.toLowerCase().includes(query) || false;
@@ -258,38 +290,105 @@ export default function ExploreTab() {
       }
     }
 
-    // Location filter
-    if (searchLocation && searchLocation !== 'All Locations') {
-      const locationLower = searchLocation.toLowerCase();
+    // Location filter with enhanced matching
+    if (
+      searchLocation &&
+      searchLocation !== 'All Locations' &&
+      searchLocation !== 'Current Location'
+    ) {
+      const locationLower = searchLocation.toLowerCase().trim();
+      let locationMatch = false;
 
       // For trips, check departure_location
       if (event.type === 'trip') {
-        const tripLocationMatch =
-          event.departure_location?.toLowerCase().includes(locationLower) || false;
-        if (!tripLocationMatch) return false;
+        const departureLocation = (event.departure_location?.toLowerCase() || '').trim();
+
+        // More flexible matching: check if either contains the other
+        // This handles "Bangalore" matching "Bangalore, Karnataka" or vice versa
+        locationMatch =
+          departureLocation.includes(locationLower) ||
+          locationLower.includes(departureLocation) ||
+          departureLocation.split(',').some((part) => part.trim() === locationLower) ||
+          locationLower.split(',').some((part) => part.trim() === departureLocation);
+
+        if (!locationMatch && departureLocation) {
+          console.log('[EXPLORE] Trip location mismatch:', {
+            searchFor: locationLower,
+            eventLocation: departureLocation,
+            eventTitle: event.title,
+          });
+        }
       }
-      // For experiences/events, check location_name
+      // For experiences/events, check location_name and location_address
       else {
-        const eventLocationMatch =
-          event.location_name?.toLowerCase().includes(locationLower) || false;
-        if (!eventLocationMatch) return false;
+        const locationName = (event.location_name?.toLowerCase() || '').trim();
+        const locationAddress = (event.location_address?.toLowerCase() || '').trim();
+
+        // Check multiple location fields with flexible matching
+        locationMatch =
+          locationName.includes(locationLower) ||
+          locationLower.includes(locationName) ||
+          locationAddress.includes(locationLower) ||
+          locationLower.includes(locationAddress) ||
+          locationName.split(',').some((part) => part.trim() === locationLower) ||
+          locationAddress.split(',').some((part) => part.trim() === locationLower);
+
+        if (!locationMatch && (locationName || locationAddress)) {
+          console.log('[EXPLORE] Event location mismatch:', {
+            searchFor: locationLower,
+            eventName: locationName,
+            eventAddress: locationAddress,
+            eventTitle: event.title,
+          });
+        }
+      }
+
+      if (!locationMatch) return false;
+    }
+
+    // Radius-based filtering (when using current location)
+    if (searchLocation === 'Current Location' && userCoordinates) {
+      // Check if event has coordinates
+      if (event.location_lat && event.location_lng) {
+        const distance = haversineDistance(
+          userCoordinates.latitude,
+          userCoordinates.longitude,
+          event.location_lat,
+          event.location_lng
+        );
+
+        if (distance > searchRadius) {
+          console.log('[EXPLORE] Event outside radius:', {
+            eventTitle: event.title,
+            distance: distance.toFixed(2) + ' km',
+            radius: searchRadius + ' km',
+          });
+          return false;
+        }
+      } else {
+        // Event has no coordinates - exclude from radius search
+        console.log('[EXPLORE] Event has no coordinates, excluding from radius search:', {
+          eventTitle: event.title,
+        });
+        return false;
       }
     }
 
-    // Type mapping
+    // Type mapping - skip type filter when actively searching with a query
     const typeMap: Record<string, string> = {
       events: 'event',
       experiences: 'experience',
       trips: 'trip',
     };
 
-    if (activeView) {
+    // Only apply type filter if NOT actively searching
+    if (activeView && !searchQuery) {
       const eventType = typeMap[activeView];
       if (eventType && event.type !== eventType) return false;
     }
 
-    // Category filtering with subcategory support
-    if (activeView !== 'trips' && selectedTag !== 'all') {
+    // Category filtering with subcategory support - skip if actively searching
+    if (activeView !== 'trips' && selectedTag !== 'all' && !searchQuery) {
       // Find the selected category configuration
       const categoryTags = CATEGORY_TAGS_BY_TYPE[activeView] || [];
       const selectedCategory = categoryTags.find((cat) => cat.id === selectedTag);
@@ -321,6 +420,23 @@ export default function ExploreTab() {
     return true;
   });
 
+  // Log search results for debugging
+  useEffect(() => {
+    if (searchQuery || (searchLocation && searchLocation !== 'All Locations')) {
+      console.log('[EXPLORE] Filtered results:', {
+        totalEvents: allEvents.length,
+        filteredCount: filteredEvents.length,
+        searchQuery,
+        searchLocation,
+        searchRadius,
+      });
+
+      if (filteredEvents.length === 0) {
+        console.warn('[EXPLORE] No results found for search criteria');
+      }
+    }
+  }, [filteredEvents.length, searchQuery, searchLocation, searchRadius, allEvents.length]);
+
   const handleCategoryPress = (categoryId: string) => {
     console.log('[EXPLORE] Category pressed:', categoryId, 'Current activeView:', activeView);
     if (categoryId === 'trips') {
@@ -346,10 +462,37 @@ export default function ExploreTab() {
     }
   };
 
-  const handleSearch = (location: string, query: string, _radius: number) => {
+  const handleSearch = (
+    location: string,
+    query: string,
+    radius: number,
+    coordinates?: { latitude: number; longitude: number }
+  ) => {
+    console.log('[EXPLORE] Search triggered:', { location, query, radius, coordinates });
     setSearchLocation(location);
     setSearchQuery(query);
-    // TODO: Use radius for nearby search filtering
+    setSearchRadius(radius);
+    setUserCoordinates(coordinates || null);
+
+    // Close the search modal
+    setSearchModalVisible(false);
+
+    // If searching with a query, show all event types (don't filter by activeView)
+    // The filter logic will handle showing all matching events
+    if (query) {
+      console.log('[EXPLORE] Search active - showing all matching events');
+    }
+
+    // Log search summary
+    if (query || location !== 'All Locations') {
+      console.log('[EXPLORE] Search summary:', {
+        query: query || 'none',
+        location: location,
+        radius: radius + ' km',
+        hasCoordinates: !!coordinates,
+        resultsWillShow: 'All matching events across all types',
+      });
+    }
   };
 
   if (loading && !refreshing) {
@@ -411,7 +554,7 @@ export default function ExploreTab() {
           <Ionicons name="search" size={20} color={Colors.text} />
           <Text style={styles.searchPlaceholder} numberOfLines={1}>
             {searchQuery
-              ? `${searchQuery}${searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
+              ? `${searchQuery}${searchLocation && searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
               : 'Search experiences, trips...'}
           </Text>
           {searchQuery && (
@@ -419,7 +562,7 @@ export default function ExploreTab() {
               onPress={(e) => {
                 e.stopPropagation();
                 setSearchQuery('');
-                setSearchLocation('All Locations');
+                setSearchLocation('');
               }}
               style={styles.clearSearchButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -477,10 +620,33 @@ export default function ExploreTab() {
             <View style={styles.searchResultsContainer}>
               <Text style={styles.searchResultsText}>
                 {filteredEvents.length} result{filteredEvents.length !== 1 ? 's' : ''} for &quot;
-                {searchQuery}&quot;{searchLocation !== 'All Locations' && ` in ${searchLocation}`}
+                {searchQuery}&quot;
+                {searchLocation && searchLocation !== 'All Locations' && ` in ${searchLocation}`}
               </Text>
             </View>
           )}
+
+          {/* Empty State for Search with No Results */}
+          {(searchQuery || (searchLocation && searchLocation !== 'All Locations')) &&
+            filteredEvents.length === 0 && (
+              <EmptyState
+                emoji="🔍"
+                title="No Results Found"
+                message={`No events found${searchQuery ? ` for "${searchQuery}"` : ''}${
+                  searchLocation && searchLocation !== 'All Locations'
+                    ? ` in ${searchLocation}`
+                    : ''
+                }. Try adjusting your search filters.`}
+                action={{
+                  label: 'Clear Search',
+                  onPress: () => {
+                    setSearchQuery('');
+                    setSearchLocation('');
+                    setUserCoordinates(null);
+                  },
+                }}
+              />
+            )}
 
           {/* 2. Show experiences category page when Experiences is clicked */}
           {(() => {

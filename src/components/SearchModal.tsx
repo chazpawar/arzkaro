@@ -11,10 +11,14 @@ import {
   Keyboard,
   LayoutAnimation,
   UIManager,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import Slider from '@react-native-community/slider';
+import * as Location from 'expo-location';
+import * as Device from 'expo-device';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
@@ -22,7 +26,12 @@ import { Fonts } from '../constants/Fonts';
 interface SearchModalProps {
   visible: boolean;
   onClose: () => void;
-  onSearch: (location: string, query: string, radius: number) => void;
+  onSearch: (
+    location: string,
+    query: string,
+    radius: number,
+    coordinates?: { latitude: number; longitude: number }
+  ) => void;
   searchContext?: 'all' | 'experiences' | 'trips';
 }
 
@@ -70,6 +79,11 @@ export default function SearchModal({
   const [locationSearchQuery, setLocationSearchQuery] = useState('');
   const [useCurrentLocation, setUseCurrentLocation] = useState(false);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [userCoordinates, setUserCoordinates] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const searchInputRef = useRef<TextInput>(null);
 
   // Reset to main search view when modal closes
@@ -81,8 +95,8 @@ export default function SearchModal({
   }, [visible]);
 
   const handleSearch = () => {
-    const location = useCurrentLocation ? 'Current Location' : selectedLocation;
-    onSearch(location || 'All Locations', searchQuery.trim(), selectedRadius);
+    const location = useCurrentLocation ? 'Current Location' : selectedLocation || 'All Locations';
+    onSearch(location, searchQuery.trim(), selectedRadius, userCoordinates || undefined);
     onClose();
   };
 
@@ -95,12 +109,75 @@ export default function SearchModal({
     setSelectedLocation('');
     setSelectedRadius(10);
     setUseCurrentLocation(false);
+    setUserCoordinates(null);
   };
 
-  const handleCurrentLocation = () => {
-    setUseCurrentLocation(true);
-    setSelectedLocation('Current Location');
-    setShowLocationPicker(false);
+  const handleCurrentLocation = async () => {
+    try {
+      setIsLoadingLocation(true);
+      console.log('[SEARCH] Requesting location permissions...');
+
+      // Request location permissions
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      console.log('[SEARCH] Permission status:', status);
+
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Denied',
+          'Location permission is required to find nearby events. Please enable location access in your device settings.',
+          [{ text: 'OK' }]
+        );
+        setIsLoadingLocation(false);
+        return;
+      }
+
+      console.log('[SEARCH] Getting current position...');
+      // Get current position with timeout
+      const location = await Promise.race([
+        Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Location timeout')), 10000)
+        ),
+      ]);
+
+      const { latitude, longitude } = location.coords;
+      console.log('[SEARCH] Got current location:', {
+        latitude: latitude.toFixed(4),
+        longitude: longitude.toFixed(4),
+      });
+
+      // Store coordinates
+      setUserCoordinates({ latitude, longitude });
+      setUseCurrentLocation(true);
+      setSelectedLocation('Current Location');
+      setShowLocationPicker(false);
+
+      // Show success feedback after a brief delay to allow UI to update
+      setTimeout(() => {
+        Alert.alert(
+          'Location Set ✓',
+          `Lat: ${latitude.toFixed(4)}, Lon: ${longitude.toFixed(4)}\n\nYou can now search for events within ${selectedRadius} km of this location.`,
+          [{ text: 'Got it' }]
+        );
+      }, 100);
+    } catch (error) {
+      console.error('[SEARCH] Error getting location:', error);
+
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const isSimulator = Platform.OS === 'ios' && !Device.isDevice;
+
+      Alert.alert(
+        'Location Error',
+        isSimulator
+          ? `Failed to get location (Simulator detected)\n\nTo test location on iOS Simulator:\n1. In Simulator menu: Features → Location → Custom Location\n2. Enter: Lat: 12.9716, Lon: 77.5946 (Bangalore)\n3. Try again\n\nError: ${errorMessage}`
+          : `Failed to get your location: ${errorMessage}\n\nPlease ensure:\n- Location services are enabled\n- App has location permission\n- You're not in Airplane mode`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   const handleSelectLocation = () => {
@@ -252,42 +329,71 @@ export default function SearchModal({
                       }}
                     >
                       <View style={styles.locationSelectLeft}>
-                        <Ionicons name="location-outline" size={22} color={Colors.primary} />
+                        <Ionicons
+                          name={useCurrentLocation ? 'navigate' : 'location-outline'}
+                          size={22}
+                          color={Colors.primary}
+                        />
                         <Text style={styles.locationSelectText}>
                           {selectedLocation || 'Select Location'}
                         </Text>
                       </View>
-                      <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
-                    </Pressable>
-                  </View>
-                </Pressable>
-
-                {/* Radius Section - Slider */}
-                <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
-                  <View style={styles.section}>
-                    <View style={styles.radiusHeader}>
-                      <Text style={styles.sectionTitle}>Search Radius</Text>
-                      <Text style={styles.radiusValue}>{selectedRadius} km</Text>
-                    </View>
-                    <Pressable onPress={(e) => e.stopPropagation()}>
-                      <Slider
-                        style={styles.slider}
-                        minimumValue={1}
-                        maximumValue={50}
-                        step={1}
-                        value={selectedRadius}
-                        onValueChange={setSelectedRadius}
-                        minimumTrackTintColor={Colors.primary}
-                        maximumTrackTintColor={Colors.border}
-                        thumbTintColor={Colors.primary}
-                      />
-                      <View style={styles.sliderLabels}>
-                        <Text style={styles.sliderLabel}>1 km</Text>
-                        <Text style={styles.sliderLabel}>50 km</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        {selectedLocation ? (
+                          <>
+                            <Pressable
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                setSelectedLocation('');
+                                setUseCurrentLocation(false);
+                                setUserCoordinates(null);
+                              }}
+                              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                            >
+                              <Ionicons
+                                name="close-circle"
+                                size={22}
+                                color={Colors.textSecondary}
+                              />
+                            </Pressable>
+                            <Ionicons name="checkmark-circle" size={22} color={Colors.primary} />
+                          </>
+                        ) : (
+                          <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                        )}
                       </View>
                     </Pressable>
                   </View>
                 </Pressable>
+
+                {/* Radius Section - Show when any location is selected */}
+                {selectedLocation && (
+                  <Pressable onPress={isSearchFocused ? handleDismissKeyboard : undefined}>
+                    <View style={styles.section}>
+                      <View style={styles.radiusHeader}>
+                        <Text style={styles.sectionTitle}>Search Radius</Text>
+                        <Text style={styles.radiusValue}>{selectedRadius} km</Text>
+                      </View>
+                      <Pressable onPress={(e) => e.stopPropagation()}>
+                        <Slider
+                          style={styles.slider}
+                          minimumValue={1}
+                          maximumValue={50}
+                          step={1}
+                          value={selectedRadius}
+                          onValueChange={setSelectedRadius}
+                          minimumTrackTintColor={Colors.primary}
+                          maximumTrackTintColor={Colors.border}
+                          thumbTintColor={Colors.primary}
+                        />
+                        <View style={styles.sliderLabels}>
+                          <Text style={styles.sliderLabel}>1 km</Text>
+                          <Text style={styles.sliderLabel}>50 km</Text>
+                        </View>
+                      </Pressable>
+                    </View>
+                  </Pressable>
+                )}
 
                 <View style={{ height: 100 }} />
               </ScrollView>
@@ -319,12 +425,27 @@ export default function SearchModal({
               <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
                 {/* Current Location Option */}
                 <View style={styles.section}>
-                  <Pressable style={styles.locationOption} onPress={handleCurrentLocation}>
+                  <Pressable
+                    style={[
+                      styles.locationOption,
+                      isLoadingLocation && styles.locationOptionDisabled,
+                    ]}
+                    onPress={handleCurrentLocation}
+                    disabled={isLoadingLocation}
+                  >
                     <View style={styles.locationOptionLeft}>
-                      <Ionicons name="navigate" size={22} color={Colors.primary} />
-                      <Text style={styles.locationOptionText}>Use Current Location</Text>
+                      {isLoadingLocation ? (
+                        <ActivityIndicator size="small" color={Colors.primary} />
+                      ) : (
+                        <Ionicons name="navigate" size={22} color={Colors.primary} />
+                      )}
+                      <Text style={styles.locationOptionText}>
+                        {isLoadingLocation ? 'Getting location...' : 'Use Current Location'}
+                      </Text>
                     </View>
-                    <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                    {!isLoadingLocation && (
+                      <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                    )}
                   </Pressable>
                 </View>
 
@@ -552,6 +673,9 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.lg,
     padding: Spacing.md,
     height: 56,
+  },
+  locationOptionDisabled: {
+    opacity: 0.6,
   },
   locationOptionLeft: {
     flexDirection: 'row',
