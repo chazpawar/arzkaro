@@ -246,13 +246,6 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Edit Profile</Text>
-        <TouchableOpacity onPress={onCancel} disabled={loading}>
-          <Ionicons name="close" size={28} color={Colors.text} />
-        </TouchableOpacity>
-      </View>
-
       {/* Avatar Section */}
       <View style={styles.avatarSection}>
         <TouchableOpacity onPress={handlePickAvatar} disabled={loading || uploadingAvatar}>
@@ -588,18 +581,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   contentContainer: {
-    padding: Spacing.lg,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    ...Typography.h2,
-    color: Colors.text,
-    fontFamily: Fonts.bold,
+    paddingHorizontal: Spacing.lg,
   },
   avatarSection: {
     alignItems: 'center',

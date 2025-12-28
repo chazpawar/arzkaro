@@ -108,8 +108,8 @@ export default function EventDetailsScreen() {
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={64} color={Colors.error} />
           <Text style={styles.errorText}>{error || 'Event not found'}</Text>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Text style={styles.backButtonText}>Go Back</Text>
+          <Pressable style={styles.errorBackButton} onPress={() => router.back()}>
+            <Text style={styles.errorBackButtonText}>Go Back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -142,19 +142,17 @@ export default function EventDetailsScreen() {
     <>
       <Stack.Screen
         options={{
-          headerTransparent: true,
-          headerTitle: '',
-          headerLeft: () => (
-            <Pressable
-              style={styles.headerButton}
-              onPress={() => router.back()}
-              android_ripple={{ color: Colors.border, radius: 20, borderless: false }}
-            >
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </Pressable>
-          ),
+          headerShown: false,
         }}
       />
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        {/* Back Button */}
+        <View style={styles.headerContainer}>
+          <Pressable style={styles.backButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+        </View>
+      </SafeAreaView>
       <View style={styles.container}>
         {/* Sticky Cover Image */}
         <View style={[styles.imageContainer, isTrip && styles.imageContainerTrip]}>
@@ -357,18 +355,67 @@ export default function EventDetailsScreen() {
 
                     {/* Host Info */}
                     <View style={styles.hostProfileInfo}>
+                      <Text style={styles.hostedBy}>Hosted by</Text>
                       <Text style={styles.hostProfileName}>{event.host?.full_name || 'Host'}</Text>
 
-                      {/* Social Icons */}
+                      {/* Bio - Always show */}
+                      <Text style={styles.hostProfileBio} numberOfLines={2}>
+                        {(event.host as any)?.bio || 'No bio available'}
+                      </Text>
+
+                      {/* Social Icons - Always show */}
                       <View style={styles.socialIcons}>
-                        <View style={styles.socialIcon}>
-                          <Ionicons name="logo-instagram" size={20} color="#E4405F" />
+                        <View
+                          style={[
+                            styles.socialIcon,
+                            !(event.host as any)?.instagram && styles.socialIconDisabled,
+                          ]}
+                        >
+                          <Ionicons
+                            name="logo-instagram"
+                            size={20}
+                            color={(event.host as any)?.instagram ? '#E4405F' : Colors.textTertiary}
+                          />
+                        </View>
+                        <View
+                          style={[
+                            styles.socialIcon,
+                            !(event.host as any)?.youtube && styles.socialIconDisabled,
+                          ]}
+                        >
+                          <Ionicons
+                            name="logo-youtube"
+                            size={20}
+                            color={(event.host as any)?.youtube ? '#FF0000' : Colors.textTertiary}
+                          />
+                        </View>
+                        <View
+                          style={[
+                            styles.socialIcon,
+                            !(event.host as any)?.linkedin && styles.socialIconDisabled,
+                          ]}
+                        >
+                          <Ionicons
+                            name="logo-linkedin"
+                            size={20}
+                            color={(event.host as any)?.linkedin ? '#0077B5' : Colors.textTertiary}
+                          />
+                        </View>
+                        <View
+                          style={[
+                            styles.socialIcon,
+                            !(event.host as any)?.twitter && styles.socialIconDisabled,
+                          ]}
+                        >
+                          <Ionicons
+                            name="logo-twitter"
+                            size={20}
+                            color={(event.host as any)?.twitter ? '#1DA1F2' : Colors.textTertiary}
+                          />
                         </View>
                       </View>
                     </View>
                   </View>
-
-                  {/* Stats Row */}
                 </View>
               </View>
             )}
@@ -811,26 +858,39 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingTop: Dimensions.get('window').height * 0.69, // Start content below image
+    paddingTop: Dimensions.get('window').height * 0.675, // Start content below image
     paddingBottom: 100,
   },
-  headerButton: {
+  safeArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: 'transparent',
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: Colors.background,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.08,
-        shadowRadius: 2,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
   },
@@ -840,7 +900,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     width: '100%',
-    height: Dimensions.get('window').height * 0.69, // 69% of screen height
+    height: Dimensions.get('window').height * 0.675, // 67.5% of screen height
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1011,7 +1071,9 @@ const styles = StyleSheet.create({
   },
   hostedBy: {
     fontSize: 12,
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
+    marginBottom: 2,
   },
   hostName: {
     fontSize: 16,
@@ -1090,13 +1152,13 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
     textAlign: 'center',
   },
-  backButton: {
+  errorBackButton: {
     backgroundColor: Colors.primary,
     paddingHorizontal: Spacing.xl,
     paddingVertical: Spacing.md,
     borderRadius: BorderRadius.full,
   },
-  backButtonText: {
+  errorBackButtonText: {
     fontSize: 16,
     fontFamily: Fonts.semiBold,
     color: Colors.textInverse,
@@ -1203,10 +1265,10 @@ const styles = StyleSheet.create({
   },
   // Trip-specific compact layout styles
   imageContainerTrip: {
-    height: Dimensions.get('window').height * 0.69, // 69% for trips
+    height: Dimensions.get('window').height * 0.675, // 67.5% for trips
   },
   scrollContentTrip: {
-    paddingTop: Dimensions.get('window').height * 0.69, // Match trip image height
+    paddingTop: Dimensions.get('window').height * 0.675, // Match trip image height
   },
   tripCompactRow: {
     flexDirection: 'row',
@@ -1484,12 +1546,12 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     borderWidth: 2,
     borderColor: Colors.text,
-    padding: Spacing.lg,
+    padding: Spacing.md,
   },
   hostProfileHeader: {
     flexDirection: 'row',
     gap: Spacing.md,
-    marginBottom: Spacing.lg,
+    alignItems: 'flex-start',
   },
   hostProfileAvatar: {
     width: 64,
@@ -1517,18 +1579,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.text,
     fontFamily: Fonts.bold,
-    marginBottom: 4,
+    marginBottom: Spacing.xs,
   },
   hostProfileBio: {
     fontSize: 13,
+    fontFamily: Fonts.regular,
     color: Colors.textSecondary,
-    marginBottom: Spacing.sm,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.xs,
     lineHeight: 18,
   },
   socialIcons: {
     flexDirection: 'row',
     gap: Spacing.xs,
-    marginTop: 4,
+    marginTop: Spacing.xs,
   },
   socialIcon: {
     width: 28,
@@ -1539,6 +1603,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.border,
+  },
+  socialIconDisabled: {
+    backgroundColor: '#F5F5F5',
+    opacity: 0.6,
   },
   statsRow: {
     flexDirection: 'row',

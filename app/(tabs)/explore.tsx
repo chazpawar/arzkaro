@@ -191,8 +191,23 @@ export default function ExploreTab() {
   const [searchLocation, setSearchLocation] = useState('All Locations');
 
   const { events, loading, refresh } = useEvents();
-  const { events: featuredExperiences } = useFeaturedEvents(5, 'experience');
-  const { events: featuredTrips } = useFeaturedEvents(5, 'trip');
+
+  // For "Top Experiences" - show all published events
+  const topExperiences = events.filter((e) => e.type === 'experience').slice(0, 10);
+  const popularTrips = events.filter((e) => e.type === 'trip').slice(0, 10);
+
+  console.log('[EXPLORE] Total events:', events.length);
+  console.log(
+    '[EXPLORE] Top experiences:',
+    topExperiences.length,
+    topExperiences.map((e) => e.title)
+  );
+  console.log(
+    '[EXPLORE] Popular trips:',
+    popularTrips.length,
+    popularTrips.map((e) => e.title)
+  );
+
   const { isAdmin, viewAsUser, toggleViewMode } = useAuth();
 
   const onRefresh = async () => {
@@ -507,21 +522,21 @@ export default function ExploreTab() {
           {activeView === 'events' && selectedTag === 'all' && !searchQuery && (
             <>
               {/* Top Experiences Section */}
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>Top Experiences</Text>
-                  <Pressable onPress={() => handleCategoryPress('experiences')}>
-                    <Text style={styles.seeAllText}>See All</Text>
-                  </Pressable>
-                </View>
+              {topExperiences.length > 0 && (
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>Top Experiences</Text>
+                    <Pressable onPress={() => handleCategoryPress('experiences')}>
+                      <Text style={styles.seeAllText}>See All</Text>
+                    </Pressable>
+                  </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalList}
-                >
-                  {(featuredExperiences.length > 0 ? featuredExperiences : featuredExperiences).map(
-                    (item) => (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalList}
+                  >
+                    {topExperiences.map((item) => (
                       <Pressable
                         key={item.id}
                         style={styles.horizontalCard}
@@ -555,10 +570,10 @@ export default function ExploreTab() {
                           </Text>
                         </View>
                       </Pressable>
-                    )
-                  )}
-                </ScrollView>
-              </View>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
 
               {/* Popular Trips Section */}
               <View style={styles.sectionContainer}>
@@ -574,7 +589,7 @@ export default function ExploreTab() {
                   showsHorizontalScrollIndicator={false}
                   contentContainerStyle={styles.horizontalList}
                 >
-                  {(featuredTrips.length > 0 ? featuredTrips : featuredTrips).map((item) => (
+                  {popularTrips.map((item) => (
                     <Pressable
                       key={item.id}
                       style={styles.horizontalCard}

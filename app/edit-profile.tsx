@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import LoadingSpinner from '../src/components/ui/loading-spinner';
 import EmptyState from '../src/components/ui/empty-state';
 import { Colors } from '../src/constants/Colors';
 import { Spacing } from '../src/constants/Styles';
+import { Fonts } from '../src/constants/Fonts';
 import { useAuth } from '../src/contexts/auth-context';
 
 export default function EditProfileScreen() {
@@ -56,6 +57,7 @@ export default function EditProfileScreen() {
         <Pressable onPress={handleCancel} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </Pressable>
+        <Text style={styles.title}>Edit Profile</Text>
       </View>
 
       {/* Edit Profile Form */}
@@ -79,5 +81,11 @@ const styles = StyleSheet.create({
   backButton: {
     padding: Spacing.xs,
     marginLeft: -Spacing.xs,
+  },
+  title: {
+    fontSize: 24,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginLeft: Spacing.md,
   },
 });

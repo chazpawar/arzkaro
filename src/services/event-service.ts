@@ -212,7 +212,7 @@ export async function getEventById(id: string) {
     .select(
       `
       *,
-      host:profiles!host_id(id, full_name, avatar_url, bio)
+      host:profiles!host_id(id, full_name, avatar_url, bio, instagram, youtube, linkedin, twitter)
     `
     )
     .eq('id', id)
@@ -355,6 +355,8 @@ export async function deleteTicketType(id: string) {
 
 // Get featured/upcoming events for home screen
 export async function getFeaturedEvents(limit = 5, type?: EventType) {
+  console.log(`🔍 [FEATURED] Fetching featured events: limit=${limit}, type=${type}`);
+
   let query = supabase
     .from('events')
     .select(
@@ -370,13 +372,25 @@ export async function getFeaturedEvents(limit = 5, type?: EventType) {
     .limit(limit);
 
   if (type) {
+    console.log(`🔍 [FEATURED] Filtering by type: ${type}`);
     query = query.eq('type', type);
   }
 
   const { data, error } = await query;
 
   if (error) {
+    console.error(`❌ [FEATURED] Error fetching featured events:`, error);
     throw new Error(error.message);
+  }
+
+  console.log(
+    `✅ [FEATURED] Fetched ${data?.length || 0} featured events (type: ${type || 'all'})`
+  );
+  if (data && data.length > 0) {
+    console.log(
+      `📋 [FEATURED] Event types:`,
+      data.map((e) => ({ id: e.id, title: e.title, type: e.type }))
+    );
   }
 
   return data as Event[];

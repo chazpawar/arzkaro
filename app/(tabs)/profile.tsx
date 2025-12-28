@@ -153,22 +153,10 @@ export default function ProfileTab() {
 
   const menuItems: MenuItemType[] = [
     {
-      icon: 'create-outline',
-      label: 'Edit Profile',
-      route: '/edit-profile',
-      showArrow: true,
-    },
-    {
       icon: 'people-outline',
       label: 'Friends',
       route: '/friends',
       badge: pendingRequestsCount > 0 ? String(pendingRequestsCount) : undefined,
-      showArrow: true,
-    },
-    {
-      icon: 'settings-outline',
-      label: 'Settings',
-      route: '/settings',
       showArrow: true,
     },
   ];
@@ -181,19 +169,9 @@ export default function ProfileTab() {
     showArrow: true,
   });
 
-  // Add "Become a Host" for normal users (not hosts, not admins)
-  if (!showAsHost && !showAsAdmin) {
-    menuItems.push({
-      icon: 'rocket-outline',
-      label: 'Become a Host',
-      action: handleBecomeHost,
-      showArrow: true,
-    });
-  }
-
   // Add admin panel if user is admin
   if (showAsAdmin) {
-    menuItems.splice(2, 0, {
+    menuItems.splice(1, 0, {
       icon: 'shield-outline',
       label: 'Admin Panel',
       route: '/admin/dashboard',
@@ -202,14 +180,34 @@ export default function ProfileTab() {
     });
   }
 
-  // Add host dashboard if user is host (insert after admin panel if it exists)
+  // Add host dashboard if user is host or admin
   if (showAsHost) {
-    const insertIndex = showAsAdmin ? 3 : 2;
+    const insertIndex = showAsAdmin ? 2 : 1;
     menuItems.splice(insertIndex, 0, {
       icon: 'bar-chart-outline',
       label: 'Host Dashboard',
       route: '/host/dashboard',
       badge: 'Host',
+      showArrow: true,
+    });
+  }
+
+  // Add "Switch to User" / "Switch to Host" for HOSTS ONLY (not admins)
+  if (isHost && !isAdmin) {
+    menuItems.push({
+      icon: 'swap-horizontal-outline',
+      label: viewAsUser ? 'Switch to Host' : 'Switch to User',
+      action: toggleViewMode,
+      showArrow: true,
+    });
+  }
+
+  // Add "Become a Host" for regular users (not hosts, not admins)
+  if (!isHost && !isAdmin) {
+    menuItems.push({
+      icon: 'rocket-outline',
+      label: 'Become a Host',
+      action: handleBecomeHost,
       showArrow: true,
     });
   }
@@ -271,15 +269,6 @@ export default function ProfileTab() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Admin View Banner */}
-      {isAdmin && viewAsUser && (
-        <Pressable style={styles.viewModeBanner} onPress={toggleViewMode}>
-          <Ionicons name="eye-outline" size={16} color={Colors.warning} />
-          <Text style={styles.viewModeBannerText}>Viewing as User</Text>
-          <Text style={styles.viewModeBannerAction}>Tap to exit</Text>
-        </Pressable>
-      )}
-
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -295,15 +284,22 @@ export default function ProfileTab() {
         {/* Profile Card */}
         <View style={styles.profileCardContainer}>
           <View style={styles.profileCard}>
-            <View style={styles.avatarContainer}>
-              {profile?.avatar_url ? (
-                <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-              ) : (
-                <View style={styles.avatarPlaceholder}>
-                  <Text style={styles.avatarText}>{avatarLetter}</Text>
+            <Pressable onPress={() => router.push('/edit-profile')}>
+              <View style={styles.avatarContainer}>
+                {profile?.avatar_url ? (
+                  <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+                ) : (
+                  <View style={styles.avatarPlaceholder}>
+                    <Text style={styles.avatarText}>{avatarLetter}</Text>
+                  </View>
+                )}
+
+                {/* Edit Badge */}
+                <View style={styles.editBadge}>
+                  <Ionicons name="pencil" size={16} color={Colors.textInverse} />
                 </View>
-              )}
-            </View>
+              </View>
+            </Pressable>
 
             <View style={styles.profileInfo}>
               <Text style={styles.displayName}>{displayName}</Text>
@@ -598,27 +594,5 @@ const styles = StyleSheet.create({
   versionText: {
     fontSize: 12,
     color: Colors.textTertiary,
-  },
-  viewModeBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.warningLight,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.warning,
-  },
-  viewModeBannerText: {
-    fontSize: 13,
-    fontFamily: Fonts.semiBold,
-    color: Colors.warning,
-  },
-  viewModeBannerAction: {
-    fontSize: 12,
-    color: Colors.warning,
-    opacity: 0.8,
-    marginLeft: Spacing.xs,
   },
 });
