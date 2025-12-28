@@ -9,6 +9,7 @@ import {
   Pressable,
   Image,
   Alert,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
+import { Fonts } from '../../../src/constants/Fonts';
 import { useAuth } from '../../../src/contexts/auth-context';
 import { useGroupChat } from '../../../src/hooks/use-chat';
 import * as ChatService from '../../../src/services/chat-service';
@@ -251,20 +253,36 @@ export default function EventChatScreen() {
 
   // Loading group info
   if (loadingGroup) {
-    return <LoadingSpinner fullScreen text="Loading chat..." />;
+    return (
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Group Chat</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          <LoadingSpinner fullScreen text="Loading chat..." />
+        </SafeAreaView>
+      </>
+    );
   }
 
   // No group found
   if (!groupId) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Event Chat',
-            headerBackTitle: 'Event',
-          }}
-        />
-        <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Group Chat</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
           <EmptyState
             title="Chat Not Available"
             emoji="💬"
@@ -283,13 +301,15 @@ export default function EventChatScreen() {
   if (isMember === false) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: group?.name || 'Group Chat',
-            headerBackTitle: 'Event',
-          }}
-        />
-        <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
           <EmptyState
             title="Join to Chat"
             emoji="🎟️"
@@ -308,34 +328,37 @@ export default function EventChatScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Event Chat',
-            headerBackTitle: 'Event',
-          }}
-        />
-        <LoadingSpinner fullScreen text="Loading messages..." />
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          <LoadingSpinner fullScreen text="Loading messages..." />
+        </SafeAreaView>
       </>
     );
   }
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: group?.name || 'Group Chat',
-          headerBackTitle: 'Event',
-          headerRight: () => (
-            <Pressable
-              onPress={() => router.push(`/events/${eventId}/members`)}
-              style={styles.headerButton}
-            >
-              <Ionicons name="people" size={24} color={Colors.primary} />
-            </Pressable>
-          ),
-        }}
-      />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View style={styles.customHeader}>
+          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
+          <TouchableOpacity
+            onPress={() => router.push(`/events/${eventId}/members`)}
+            style={styles.customBackButton}
+          >
+            <Ionicons name="people" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
         <KeyboardAvoidingView
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -558,5 +581,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     fontStyle: 'italic',
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  customBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  customHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerPlaceholder: {
+    width: 40,
   },
 });

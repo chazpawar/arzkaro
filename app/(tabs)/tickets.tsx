@@ -297,7 +297,7 @@ export default function TicketsTab() {
             action={
               activeTab === 'valid'
                 ? {
-                    label: 'Explore Events',
+                    label: 'Explore Experiences',
                     icon: 'search-outline',
                     onPress: () => router.push('/(tabs)/explore'),
                   }

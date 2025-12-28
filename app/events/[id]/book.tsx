@@ -216,7 +216,7 @@ export default function BookEventScreen() {
       <Stack.Screen
         options={{
           title: 'Book Tickets',
-          headerBackTitle: 'Event',
+          headerBackTitle: '',
         }}
       />
       <SafeAreaView style={styles.container} edges={['bottom']}>

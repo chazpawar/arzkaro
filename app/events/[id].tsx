@@ -315,7 +315,7 @@ export default function EventDetailsScreen() {
                 style={styles.hostSection}
                 onPress={() => {
                   if (event.host_id) {
-                    router.push(`/profile?userId=${event.host_id}`);
+                    router.push(`/host-profile?userId=${event.host_id}`);
                   }
                 }}
               >
@@ -488,19 +488,30 @@ export default function EventDetailsScreen() {
                     {event.whats_included && (
                       <View style={styles.whatsIncludedGroup}>
                         <Text style={styles.whatsIncludedGroupTitle}>What&apos;s Included</Text>
-                        {Array.isArray(event.whats_included) ? (
-                          event.whats_included.map((item: string, index: number) => (
+                        {(() => {
+                          // Parse JSON string if needed
+                          const includedItems = (() => {
+                            if (Array.isArray(event.whats_included)) {
+                              return event.whats_included;
+                            }
+                            if (typeof event.whats_included === 'string') {
+                              try {
+                                const parsed = JSON.parse(event.whats_included);
+                                return Array.isArray(parsed) ? parsed : [event.whats_included];
+                              } catch {
+                                return [event.whats_included];
+                              }
+                            }
+                            return [];
+                          })();
+
+                          return includedItems.map((item: string, index: number) => (
                             <View key={index} style={styles.whatsIncludedItemRow}>
                               <Text style={styles.whatsIncludedIcon}>✓</Text>
                               <Text style={styles.whatsIncludedItemText}>{item}</Text>
                             </View>
-                          ))
-                        ) : (
-                          <View style={styles.whatsIncludedItemRow}>
-                            <Text style={styles.whatsIncludedIcon}>✓</Text>
-                            <Text style={styles.whatsIncludedItemText}>{event.whats_included}</Text>
-                          </View>
-                        )}
+                          ));
+                        })()}
                       </View>
                     )}
 
@@ -509,21 +520,30 @@ export default function EventDetailsScreen() {
                         <Text style={styles.whatsNotIncludedGroupTitle}>
                           What&apos;s NOT Included
                         </Text>
-                        {Array.isArray(event.whats_not_included) ? (
-                          event.whats_not_included.map((item: string, index: number) => (
+                        {(() => {
+                          // Parse JSON string if needed
+                          const notIncludedItems = (() => {
+                            if (Array.isArray(event.whats_not_included)) {
+                              return event.whats_not_included;
+                            }
+                            if (typeof event.whats_not_included === 'string') {
+                              try {
+                                const parsed = JSON.parse(event.whats_not_included);
+                                return Array.isArray(parsed) ? parsed : [event.whats_not_included];
+                              } catch {
+                                return [event.whats_not_included];
+                              }
+                            }
+                            return [];
+                          })();
+
+                          return notIncludedItems.map((item: string, index: number) => (
                             <View key={index} style={styles.whatsNotIncludedItemRow}>
                               <Text style={styles.whatsNotIncludedIcon}>✗</Text>
                               <Text style={styles.whatsNotIncludedItemText}>{item}</Text>
                             </View>
-                          ))
-                        ) : (
-                          <View style={styles.whatsNotIncludedItemRow}>
-                            <Text style={styles.whatsNotIncludedIcon}>✗</Text>
-                            <Text style={styles.whatsNotIncludedItemText}>
-                              {event.whats_not_included}
-                            </Text>
-                          </View>
-                        )}
+                          ));
+                        })()}
                       </View>
                     )}
                   </View>

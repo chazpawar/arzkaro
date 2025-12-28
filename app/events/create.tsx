@@ -21,6 +21,7 @@ import Input from '../../src/components/ui/input';
 import ImageUpload from '../../src/components/ui/image-upload';
 import MultiImageUpload from '../../src/components/ui/multi-image-upload';
 import ItineraryBuilder, { ItineraryDay } from '../../src/components/itinerary-builder';
+import InclusionsBuilder from '../../src/components/inclusions-builder';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -31,7 +32,7 @@ import { HOST_TYPE_LABELS } from '../../src/services/host-service';
 type EventType = 'event' | 'experience' | 'trip';
 
 const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] = [
-  { value: 'event', label: 'Event', emoji: '🎉' },
+  // { value: 'event', label: 'Event', emoji: '🎉' }, // Commented out - Events disabled
   { value: 'experience', label: 'Experience', emoji: '✨' },
   { value: 'trip', label: 'Trip', emoji: '🏔️' },
 ];
@@ -155,6 +156,7 @@ export default function CreateEventScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [termsAndConditions, setTermsAndConditions] = useState('');
+  const [cancellationPolicy, setCancellationPolicy] = useState('');
   const [category, setCategory] = useState('');
   const [subcategories, setSubcategories] = useState<string[]>([]);
   const [customTags, setCustomTags] = useState<string[]>([]); // For trips custom tags
@@ -176,8 +178,8 @@ export default function CreateEventScreen() {
   const [pickups, setPickups] = useState<string[]>([]);
   const [pickupInput, setPickupInput] = useState('');
   const [itinerary, setItinerary] = useState<ItineraryDay[]>([]);
-  const [whatsIncluded, setWhatsIncluded] = useState('');
-  const [whatsNotIncluded, setWhatsNotIncluded] = useState('');
+  const [whatsIncluded, setWhatsIncluded] = useState<string[]>([]);
+  const [whatsNotIncluded, setWhatsNotIncluded] = useState<string[]>([]);
   const [tripImages, setTripImages] = useState<string[]>([]);
 
   // Date picker state
@@ -488,6 +490,7 @@ export default function CreateEventScreen() {
         title: title.trim(),
         description: description.trim(),
         terms_and_conditions: termsAndConditions.trim() || undefined,
+        cancellation_policy: cancellationPolicy.trim() || undefined,
         category,
         cover_image_url: coverImageUrl || undefined,
         location_name: locationName.trim(),
@@ -507,8 +510,14 @@ export default function CreateEventScreen() {
         eventData.departure_location = departureLocation.trim() || undefined;
         eventData.pickups = pickups.length > 0 ? pickups : undefined;
         eventData.itinerary = itinerary.length > 0 ? JSON.stringify(itinerary) : undefined;
-        eventData.whats_included = whatsIncluded.trim() || undefined;
-        eventData.whats_not_included = whatsNotIncluded.trim() || undefined;
+        eventData.whats_included =
+          whatsIncluded.length > 0
+            ? JSON.stringify(whatsIncluded.filter((i) => i.trim()))
+            : undefined;
+        eventData.whats_not_included =
+          whatsNotIncluded.length > 0
+            ? JSON.stringify(whatsNotIncluded.filter((i) => i.trim()))
+            : undefined;
         eventData.images = tripImages.length > 0 ? tripImages : [];
       }
 
@@ -648,6 +657,15 @@ export default function CreateEventScreen() {
                   placeholder="Add any terms and conditions for this event..."
                   value={termsAndConditions}
                   onChangeText={setTermsAndConditions}
+                  multiline
+                  numberOfLines={4}
+                />
+
+                <Input
+                  label="Cancellation Policy (Optional)"
+                  placeholder="Add cancellation policy details..."
+                  value={cancellationPolicy}
+                  onChangeText={setCancellationPolicy}
                   multiline
                   numberOfLines={4}
                 />
@@ -1117,22 +1135,11 @@ export default function CreateEventScreen() {
                     <Text style={styles.sectionHeaderText}>Package Details</Text>
                   </View>
 
-                  <Input
-                    label="What's Included"
-                    placeholder="Transportation, Accommodation..."
-                    value={whatsIncluded}
-                    onChangeText={setWhatsIncluded}
-                    multiline
-                    numberOfLines={3}
-                  />
-
-                  <Input
-                    label="What's NOT Included"
-                    placeholder="Personal expenses, Insurance..."
-                    value={whatsNotIncluded}
-                    onChangeText={setWhatsNotIncluded}
-                    multiline
-                    numberOfLines={3}
+                  <InclusionsBuilder
+                    includedItems={whatsIncluded}
+                    notIncludedItems={whatsNotIncluded}
+                    onIncludedChange={setWhatsIncluded}
+                    onNotIncludedChange={setWhatsNotIncluded}
                   />
                 </View>
               </View>

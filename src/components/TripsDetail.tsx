@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   ratingBadge: {
-    backgroundColor: '#4CAF50',
+    backgroundColor: '#FFB400',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,

@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, Image, Pressable, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Image,
+  Pressable,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -326,17 +335,27 @@ export default function GroupMembersScreen() {
   // Not authenticated
   if (!isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container}>
-        <EmptyState
-          title="Sign In Required"
-          emoji="🔒"
-          message="Please sign in to view group members."
-          action={{
-            label: 'Sign In',
-            onPress: () => router.push('/'),
-          }}
-        />
-      </SafeAreaView>
+      <>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Group Members</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          <EmptyState
+            title="Sign In Required"
+            emoji="🔒"
+            message="Please sign in to view group members."
+            action={{
+              label: 'Sign In',
+              onPress: () => router.push('/'),
+            }}
+          />
+        </SafeAreaView>
+      </>
     );
   }
 
@@ -344,13 +363,17 @@ export default function GroupMembersScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Group Members',
-            headerBackTitle: 'Chat',
-          }}
-        />
-        <LoadingSpinner fullScreen text="Loading members..." />
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Group Members</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
+          <LoadingSpinner fullScreen text="Loading members..." />
+        </SafeAreaView>
       </>
     );
   }
@@ -359,13 +382,15 @@ export default function GroupMembersScreen() {
   if (error) {
     return (
       <>
-        <Stack.Screen
-          options={{
-            title: 'Group Members',
-            headerBackTitle: 'Chat',
-          }}
-        />
-        <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ headerShown: false }} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <View style={styles.customHeader}>
+            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <Text style={styles.customHeaderTitle}>Group Members</Text>
+            <View style={styles.headerPlaceholder} />
+          </View>
           <EmptyState
             title="Unable to Load Members"
             emoji="😕"
@@ -382,13 +407,15 @@ export default function GroupMembersScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          title: groupName || 'Group Members',
-          headerBackTitle: 'Chat',
-        }}
-      />
-      <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.customHeader}>
+          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </TouchableOpacity>
+          <Text style={styles.customHeaderTitle}>Group Members</Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
         <FlatList
           data={members}
           renderItem={renderMember}
@@ -503,5 +530,37 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: Fonts.semiBold,
     color: Colors.textSecondary,
+  },
+  customHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  customBackButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  customHeaderTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  headerPlaceholder: {
+    width: 40,
   },
 });

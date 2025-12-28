@@ -239,7 +239,7 @@ export default function EventsPage() {
             <Ionicons name="arrow-back" size={24} color={Colors.text} />
           </Pressable>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Events & Activities</Text>
+            <Text style={styles.headerTitle}>Experiences & Trips</Text>
             <Text style={styles.headerSubtitle}>Manage platform content</Text>
           </View>
           <View style={styles.headerActionPlaceholder} />

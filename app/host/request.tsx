@@ -206,7 +206,8 @@ export default function HostRequestScreen() {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
+            {/* Commented out - Events disabled */}
+            {/* <TouchableOpacity
               style={[styles.choiceCard, selectedCategory === 'event' && styles.selectedChoiceCard]}
               onPress={() => setSelectedCategory('event')}
             >
@@ -219,7 +220,7 @@ export default function HostRequestScreen() {
                   Host meetups, parties or large gatherings
                 </Text>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
             <TouchableOpacity
               style={[styles.choiceCard, selectedCategory === 'trip' && styles.selectedChoiceCard]}

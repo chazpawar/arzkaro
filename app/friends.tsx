@@ -177,7 +177,7 @@ export default function FriendsScreen() {
     return (
       <Pressable
         style={styles.listItem}
-        onPress={() => router.push(`/profile?userId=${item.friend?.id}`)}
+        onPress={() => router.push(`/host-profile?userId=${item.friend?.id}`)}
       >
         <View style={styles.avatarContainer}>
           {item.friend.avatar_url ? (

@@ -183,7 +183,7 @@ export default function ExploreTab() {
   const router = useRouter();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
 
-  // State for active view - now inline on same page, default to 'events' (For You)
+  // State for active view - default to 'events' (For You page)
   const [activeView, setActiveView] = useState<string | null>('events');
   const [selectedTag, setSelectedTag] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
@@ -398,7 +398,7 @@ export default function ExploreTab() {
           <Pressable
             onPress={() => {
               setSelectedTag('all');
-              // Reset to 'events' view when going back
+              // Reset to 'events' view (For You) when going back
               setActiveView('events');
             }}
             style={styles.backButton}
@@ -412,7 +412,7 @@ export default function ExploreTab() {
           <Text style={styles.searchPlaceholder} numberOfLines={1}>
             {searchQuery
               ? `${searchQuery}${searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
-              : 'Search events, activities...'}
+              : 'Search experiences, trips...'}
           </Text>
           {searchQuery && (
             <Pressable
@@ -521,16 +521,16 @@ export default function ExploreTab() {
           {/* 4. Show featured sections when For You is selected with 'all' tag and no search active */}
           {activeView === 'events' && selectedTag === 'all' && !searchQuery && (
             <>
-              {/* Top Experiences Section */}
-              {topExperiences.length > 0 && (
-                <View style={styles.sectionContainer}>
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>Top Experiences</Text>
-                    <Pressable onPress={() => handleCategoryPress('experiences')}>
-                      <Text style={styles.seeAllText}>See All</Text>
-                    </Pressable>
-                  </View>
+              {/* Top Experiences Section - Always show */}
+              <View style={styles.sectionContainer}>
+                <View style={styles.sectionHeaderRow}>
+                  <Text style={styles.sectionTitle}>Top Experiences</Text>
+                  <Pressable onPress={() => handleCategoryPress('experiences')}>
+                    <Text style={styles.seeAllText}>See All</Text>
+                  </Pressable>
+                </View>
 
+                {topExperiences.length > 0 ? (
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -572,8 +572,16 @@ export default function ExploreTab() {
                       </Pressable>
                     ))}
                   </ScrollView>
-                </View>
-              )}
+                ) : (
+                  <View style={styles.emptyExperiencesContainer}>
+                    <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
+                    <Text style={styles.emptyExperiencesText}>No top experiences yet</Text>
+                    <Text style={styles.emptyExperiencesSubtext}>
+                      Check back soon for exciting experiences
+                    </Text>
+                  </View>
+                )}
+              </View>
 
               {/* Popular Trips Section */}
               <View style={styles.sectionContainer}>
@@ -584,47 +592,57 @@ export default function ExploreTab() {
                   </Pressable>
                 </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.horizontalList}
-                >
-                  {popularTrips.map((item) => (
-                    <Pressable
-                      key={item.id}
-                      style={styles.horizontalCard}
-                      onPress={() => router.push(`/events/${item.id}`)}
-                    >
-                      <Image
-                        source={{
-                          uri:
-                            (item as any).image ||
-                            (item as any).cover_image_url ||
-                            'https://via.placeholder.com/150',
-                        }}
-                        style={styles.horizontalCardImage}
-                      />
-                      <View style={styles.horizontalCardContent}>
-                        <Text style={styles.cardTitle} numberOfLines={1}>
-                          {item.title}
-                        </Text>
-                        <View style={styles.cardRow}>
-                          <Text style={styles.cardLocation}>
-                            {(item as any).location || (item as any).location_name || ''}
+                {popularTrips.length > 0 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.horizontalList}
+                  >
+                    {popularTrips.map((item) => (
+                      <Pressable
+                        key={item.id}
+                        style={styles.horizontalCard}
+                        onPress={() => router.push(`/events/${item.id}`)}
+                      >
+                        <Image
+                          source={{
+                            uri:
+                              (item as any).image ||
+                              (item as any).cover_image_url ||
+                              'https://via.placeholder.com/150',
+                          }}
+                          style={styles.horizontalCardImage}
+                        />
+                        <View style={styles.horizontalCardContent}>
+                          <Text style={styles.cardTitle} numberOfLines={1}>
+                            {item.title}
                           </Text>
-                          <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
+                          <View style={styles.cardRow}>
+                            <Text style={styles.cardLocation}>
+                              {(item as any).location || (item as any).location_name || ''}
+                            </Text>
+                            <Text style={styles.cardRating}>★ {(item as any).rating || '4.5'}</Text>
+                          </View>
+                          <Text style={styles.cardPrice}>
+                            {(item as any).price
+                              ? typeof (item as any).price === 'string'
+                                ? (item as any).price
+                                : `₹${(item as any).price}`
+                              : ''}
+                          </Text>
                         </View>
-                        <Text style={styles.cardPrice}>
-                          {(item as any).price
-                            ? typeof (item as any).price === 'string'
-                              ? (item as any).price
-                              : `₹${(item as any).price}`
-                            : ''}
-                        </Text>
-                      </View>
-                    </Pressable>
-                  ))}
-                </ScrollView>
+                      </Pressable>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.emptyExperiencesContainer}>
+                    <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
+                    <Text style={styles.emptyExperiencesText}>No popular trips yet</Text>
+                    <Text style={styles.emptyExperiencesSubtext}>
+                      Check back soon for amazing adventures
+                    </Text>
+                  </View>
+                )}
               </View>
             </>
           )}
@@ -843,7 +861,7 @@ const styles = StyleSheet.create({
   cardRating: {
     fontSize: 12,
     fontFamily: Fonts.semiBold,
-    color: Colors.primary,
+    color: '#FFB400',
   },
   cardPrice: {
     fontSize: 14,
@@ -872,5 +890,33 @@ const styles = StyleSheet.create({
     color: Colors.warning,
     opacity: 0.8,
     marginLeft: Spacing.xs,
+  },
+  emptyExperiencesContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    marginHorizontal: Spacing.lg,
+    backgroundColor: Colors.surfaceSecondary,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+  },
+  emptyExperiencesEmoji: {
+    fontSize: 48,
+    marginBottom: Spacing.sm,
+  },
+  emptyExperiencesText: {
+    fontSize: 16,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+    marginBottom: Spacing.xs,
+  },
+  emptyExperiencesSubtext: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    textAlign: 'center',
   },
 });

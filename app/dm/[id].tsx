@@ -261,7 +261,7 @@ export default function DMChatScreen() {
         <Stack.Screen
           options={{
             title: 'Direct Message',
-            headerBackTitle: 'Back',
+            headerBackTitle: '',
           }}
         />
         <SafeAreaView style={styles.container}>
@@ -287,7 +287,7 @@ export default function DMChatScreen() {
       <Stack.Screen
         options={{
           title: otherUserName,
-          headerBackTitle: 'Back',
+          headerBackTitle: '',
           headerRight: () => (
             <Pressable onPress={handleViewProfile} style={styles.headerButton}>
               <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />

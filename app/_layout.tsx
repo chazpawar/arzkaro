@@ -77,9 +77,7 @@ export default function RootLayout() {
         <Stack.Screen
           name="events/[id]"
           options={{
-            headerShown: true,
-            headerTransparent: true,
-            headerTitle: '',
+            headerShown: false,
           }}
         />
         <Stack.Screen
@@ -109,13 +107,13 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
-          name="chats/dm/[id]"
+          name="dm/[id]"
           options={{
             title: 'Chat',
           }}
         />
         <Stack.Screen
-          name="profile"
+          name="host-profile"
           options={{
             headerShown: false,
           }}
