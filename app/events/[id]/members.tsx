@@ -42,7 +42,6 @@ export default function GroupMembersScreen() {
   const { user, isAuthenticated } = useAuth();
 
   const [members, setMembers] = useState<Member[]>([]);
-  const [groupName, setGroupName] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [friendStatuses, setFriendStatuses] = useState<Record<string, FriendStatus>>({});
@@ -68,7 +67,7 @@ export default function GroupMembersScreen() {
           return;
         }
 
-        setGroupName(group.name);
+        // Group name not needed since we're not displaying it
 
         // Get group members
         const groupMembers = await ChatService.getGroupMembers(group.id);

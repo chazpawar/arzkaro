@@ -20,6 +20,7 @@ import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useUserGroups } from '../../src/hooks/use-chat';
 import * as DMService from '../../src/services/dm-service';
+import { supabase } from '../../backend/supabase';
 import type { DMConversation } from '../../src/types/chat.types';
 
 type FilterType = 'all' | 'unread';
@@ -73,6 +74,92 @@ export default function ChatsTab() {
   React.useEffect(() => {
     loadDMs();
   }, [loadDMs]);
+
+  // Reload DMs when tab comes into focus ONLY if needed (not relying on realtime)
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     console.log('[CHATS TAB] Tab focused, reloading DMs');
+  //     loadDMs();
+  //   }, [loadDMs])
+  // );
+
+  // Subscribe to realtime updates for DM messages (for unread count updates)
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[CHATS TAB] Setting up realtime subscription for DM updates, userId:', user.id);
+
+    // Create a channel to listen for all dm_messages updates
+    const channel = supabase
+      .channel('dm_messages_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to all events (INSERT, UPDATE)
+          schema: 'public',
+          table: 'dm_messages',
+        },
+        async (payload) => {
+          console.log('[CHATS TAB] ✨ DM message event received!');
+          console.log('[CHATS TAB] Event type:', payload.eventType);
+          console.log('[CHATS TAB] Payload:', JSON.stringify(payload, null, 2));
+
+          const messageData = payload.new as any;
+          const conversationId = messageData?.conversation_id;
+
+          if (!conversationId) {
+            console.log('[CHATS TAB] No conversation_id in payload, skipping');
+            return;
+          }
+
+          console.log('[CHATS TAB] Updating conversation:', conversationId);
+
+          // Fetch updated unread count and last message for this conversation
+          try {
+            const [unreadCount, messages] = await Promise.all([
+              DMService.getUnreadCount(conversationId, user.id),
+              DMService.getMessages(conversationId, 1),
+            ]);
+
+            console.log(
+              `[CHATS TAB] ✅ Updated unread count for ${conversationId}: ${unreadCount}`
+            );
+
+            // Update the specific conversation in state
+            setDmConversations((prev) => {
+              console.log('[CHATS TAB] Current conversations count:', prev.length);
+              const updated = prev.map((conv) => {
+                if (conv.id === conversationId) {
+                  console.log(
+                    '[CHATS TAB] Found matching conversation, updating unread:',
+                    unreadCount
+                  );
+                  return {
+                    ...conv,
+                    last_message: messages[0] || conv.last_message,
+                    unread_count: unreadCount,
+                    updated_at: new Date().toISOString(),
+                  };
+                }
+                return conv;
+              });
+              console.log('[CHATS TAB] State updated');
+              return updated;
+            });
+          } catch (error) {
+            console.error('[CHATS TAB] ❌ Error updating conversation:', error);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[CHATS TAB] 📡 DM subscription status:', status);
+      });
+
+    return () => {
+      console.log('[CHATS TAB] Cleaning up DM subscription');
+      channel?.unsubscribe();
+    };
+  }, [user?.id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

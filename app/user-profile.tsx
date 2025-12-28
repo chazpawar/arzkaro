@@ -60,7 +60,9 @@ export default function UserProfileScreen() {
       fullUrl = `https://${url}`;
     }
 
-    Linking.openURL(fullUrl).catch(() => {});
+    Linking.openURL(fullUrl).catch(() => {
+      // Handle error silently
+    });
   };
 
   // Not authenticated
@@ -274,7 +276,7 @@ export default function UserProfileScreen() {
               <View style={styles.emptyStateCard}>
                 <Text style={styles.emptyStateTitle}>Basic Profile</Text>
                 <Text style={styles.emptyStateMessage}>
-                  This user hasn't added any additional information yet.
+                  This user hasn&apos;t added any additional information yet.
                 </Text>
               </View>
             </View>

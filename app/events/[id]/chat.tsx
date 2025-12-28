@@ -20,7 +20,6 @@ import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
-import { Fonts } from '../../../src/constants/Fonts';
 import { useAuth } from '../../../src/contexts/auth-context';
 import { useGroupChat } from '../../../src/hooks/use-chat';
 import * as ChatService from '../../../src/services/chat-service';

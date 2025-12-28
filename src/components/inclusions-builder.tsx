@@ -72,7 +72,7 @@ export default function InclusionsBuilder({
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
             <Ionicons name="checkmark-circle" size={20} color={Colors.success} />
-            <Text style={styles.sectionTitle}>What's Included</Text>
+            <Text style={styles.sectionTitle}>What&apos;s Included</Text>
           </View>
           <Button title="Add Item" onPress={addIncludedItem} variant="outline" size="small" />
         </View>
@@ -81,7 +81,9 @@ export default function InclusionsBuilder({
           <Card style={styles.emptyCard} variant="outlined">
             <Ionicons name="add-circle-outline" size={32} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No items added</Text>
-            <Text style={styles.emptySubtext}>Tap "Add Item" to include amenities or services</Text>
+            <Text style={styles.emptySubtext}>
+              Tap &quot;Add Item&quot; to include amenities or services
+            </Text>
           </Card>
         ) : (
           <View style={styles.itemsContainer}>
@@ -112,7 +114,7 @@ export default function InclusionsBuilder({
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleRow}>
             <Ionicons name="close-circle" size={20} color={Colors.error} />
-            <Text style={styles.sectionTitle}>What's NOT Included</Text>
+            <Text style={styles.sectionTitle}>What&apos;s NOT Included</Text>
           </View>
           <Button title="Add Item" onPress={addNotIncludedItem} variant="outline" size="small" />
         </View>
@@ -121,7 +123,9 @@ export default function InclusionsBuilder({
           <Card style={styles.emptyCard} variant="outlined">
             <Ionicons name="add-circle-outline" size={32} color={Colors.textTertiary} />
             <Text style={styles.emptyText}>No exclusions added</Text>
-            <Text style={styles.emptySubtext}>Tap "Add Item" to specify what's not covered</Text>
+            <Text style={styles.emptySubtext}>
+              Tap &quot;Add Item&quot; to specify what&apos;s not covered
+            </Text>
           </Card>
         ) : (
           <View style={styles.itemsContainer}>

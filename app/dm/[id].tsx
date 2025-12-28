@@ -6,7 +6,6 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   Alert,
   TouchableOpacity,
 } from 'react-native';
@@ -18,7 +17,7 @@ import ChatInput from '../../src/components/chat/chat-input';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
 import { Colors } from '../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
+import { Spacing } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as DMService from '../../src/services/dm-service';
 import type { DMConversation, DMMessage } from '../../src/types/chat.types';
@@ -26,14 +25,16 @@ import type { DMConversation, DMMessage } from '../../src/types/chat.types';
 export default function DMChatScreen() {
   const { id: conversationId } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user, isAuthenticated, viewAsUser } = useAuth();
+  const { user, profile, isAuthenticated, viewAsUser } = useAuth();
   const flatListRef = useRef<FlatList>(null);
+  const typingChannelRef = useRef<any>(null);
 
   const [conversation, setConversation] = useState<DMConversation | null>(null);
   const [messages, setMessages] = useState<DMMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<{ user_id: string; user_name: string }[]>([]);
 
   // Load conversation details
   useEffect(() => {
@@ -84,40 +85,63 @@ export default function DMChatScreen() {
 
   // Subscribe to real-time messages
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !user?.id) return;
 
     console.log('[DM SCREEN] Setting up real-time subscription');
 
-    const channel = DMService.subscribeToMessages(conversationId, (message) => {
-      console.log('[DM SCREEN] New message received:', message);
-      setMessages((prev) => {
-        // Avoid duplicates
-        if (prev.some((m) => m.id === message.id)) {
-          return prev;
-        }
-        return [...prev, message];
-      });
+    // Subscribe to new messages and message updates (read receipts)
+    const messageChannel = DMService.subscribeToMessages(
+      conversationId,
+      (message) => {
+        console.log('[DM SCREEN] New message received:', message);
+        setMessages((prev) => {
+          // Avoid duplicates
+          if (prev.some((m) => m.id === message.id)) {
+            return prev;
+          }
+          return [...prev, message];
+        });
 
-      // Scroll to bottom for new messages
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+        // Scroll to bottom for new messages
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+      },
+      (updatedMessage) => {
+        console.log('[DM SCREEN] Message updated (read receipt):', updatedMessage);
+        setMessages((prev) => prev.map((m) => (m.id === updatedMessage.id ? updatedMessage : m)));
+      }
+    );
+
+    // Subscribe to typing indicators
+    const typingChannel = DMService.subscribeToTyping(conversationId, user.id, (typing) => {
+      console.log('[DM SCREEN] Typing users:', typing);
+      setTypingUsers(typing);
     });
 
+    typingChannelRef.current = typingChannel;
+
     return () => {
-      console.log('[DM SCREEN] Cleaning up real-time subscription');
-      channel?.unsubscribe();
+      console.log('[DM SCREEN] Cleaning up real-time subscriptions');
+      messageChannel?.unsubscribe();
+      typingChannel?.unsubscribe();
+      typingChannelRef.current = null;
     };
-  }, [conversationId]);
+  }, [conversationId, user?.id]);
 
   // Mark messages as read when user views the chat
   useEffect(() => {
     if (conversationId && user?.id && messages.length > 0) {
       // Mark as read after a short delay (user has time to see the messages)
       const timer = setTimeout(() => {
-        DMService.markMessagesAsRead(conversationId, user.id).catch((err) => {
-          console.error('[DM SCREEN] Failed to mark as read:', err);
-        });
+        console.log('[DM SCREEN] 📖 Marking messages as read for conversation:', conversationId);
+        DMService.markMessagesAsRead(conversationId, user.id)
+          .then(() => {
+            console.log('[DM SCREEN] ✅ Messages marked as read successfully');
+          })
+          .catch((err) => {
+            console.error('[DM SCREEN] ❌ Failed to mark as read:', err);
+          });
       }, 1000);
 
       return () => clearTimeout(timer);
@@ -168,6 +192,18 @@ export default function DMChatScreen() {
     if (!conversation?.other_user) return;
     router.push(`/user-profile?userId=${conversation.other_user.id}`);
   }, [conversation, router]);
+
+  const handleTyping = useCallback(() => {
+    if (!user || !profile || !typingChannelRef.current) return;
+    const userName = profile.full_name || user.email?.split('@')[0] || 'User';
+    DMService.setTypingStatus(typingChannelRef.current, user.id, userName, true);
+  }, [user, profile]);
+
+  const handleStopTyping = useCallback(() => {
+    if (!user || !profile || !typingChannelRef.current) return;
+    const userName = profile.full_name || user.email?.split('@')[0] || 'User';
+    DMService.setTypingStatus(typingChannelRef.current, user.id, userName, false);
+  }, [user, profile]);
 
   const renderMessage = useCallback(
     ({ item, index }: { item: DMMessage; index: number }) => {
@@ -351,6 +387,13 @@ export default function DMChatScreen() {
             />
           )}
 
+          {/* Typing Indicator */}
+          {typingUsers.length > 0 && (
+            <View style={styles.typingIndicator}>
+              <Text style={styles.typingText}>{typingUsers[0].user_name} is typing...</Text>
+            </View>
+          )}
+
           {/* Chat Input - Disabled when admin is viewing as user */}
           {viewAsUser ? (
             <View style={styles.disabledInputContainer}>
@@ -364,6 +407,8 @@ export default function DMChatScreen() {
               onSend={handleSend}
               placeholder={`Message ${otherUserName}...`}
               sending={sending}
+              onTyping={handleTyping}
+              onStopTyping={handleStopTyping}
             />
           )}
         </KeyboardAvoidingView>
@@ -434,6 +479,16 @@ const styles = StyleSheet.create({
   },
   disabledInputText: {
     fontSize: 13,
+    color: Colors.textSecondary,
+    fontStyle: 'italic',
+  },
+  typingIndicator: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    backgroundColor: Colors.background,
+  },
+  typingText: {
+    fontSize: 12,
     color: Colors.textSecondary,
     fontStyle: 'italic',
   },

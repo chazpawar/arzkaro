@@ -8,7 +8,7 @@ import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { Fonts } from '../../src/constants/Fonts';
 import type { Event } from '../../src/types';
-import { useEvents, useFeaturedEvents } from '../../src/hooks/use-events';
+import { useEvents } from '../../src/hooks/use-events';
 import { useAuth } from '../../src/contexts/auth-context';
 
 // New Components

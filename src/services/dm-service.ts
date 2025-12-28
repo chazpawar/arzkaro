@@ -213,7 +213,8 @@ export async function deleteMessage(messageId: string, userId: string) {
 // Subscribe to new messages in a conversation
 export function subscribeToMessages(
   conversationId: string,
-  onMessage: (message: DMMessage) => void
+  onMessage: (message: DMMessage) => void,
+  onMessageUpdate?: (message: DMMessage) => void
 ) {
   console.log('[DM SERVICE] Setting up real-time subscription for conversation:', conversationId);
 
@@ -250,9 +251,131 @@ export function subscribeToMessages(
         onMessage(data as DMMessage);
       }
     )
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'dm_messages',
+        filter: `conversation_id=eq.${conversationId}`,
+      },
+      async (payload) => {
+        console.log('[DM SERVICE] Message updated (read receipt):', payload);
+
+        if (onMessageUpdate) {
+          // Fetch the full message with sender details
+          const { data, error } = await supabase
+            .from('dm_messages')
+            .select(
+              `
+              *,
+              sender:profiles!sender_id(id, full_name, email, avatar_url)
+            `
+            )
+            .eq('id', payload.new.id)
+            .single();
+
+          if (error) {
+            console.error('[DM SERVICE] Error fetching updated message:', error);
+            return;
+          }
+
+          onMessageUpdate(data as DMMessage);
+        }
+      }
+    )
     .subscribe((status) => {
       console.log('[DM SERVICE] Subscription status:', status);
     });
 
   return channel;
+}
+
+// Subscribe to conversation updates (for typing indicators, etc.)
+export function subscribeToConversationUpdates(
+  conversationId: string,
+  onUpdate: (conversation: any) => void
+) {
+  console.log('[DM SERVICE] Setting up conversation updates subscription:', conversationId);
+
+  const channel = supabase
+    .channel(`dm_conversation_updates:${conversationId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'dm_conversations',
+        filter: `id=eq.${conversationId}`,
+      },
+      (payload) => {
+        console.log('[DM SERVICE] Conversation updated:', payload);
+        onUpdate(payload.new);
+      }
+    )
+    .subscribe((status) => {
+      console.log('[DM SERVICE] Conversation subscription status:', status);
+    });
+
+  return channel;
+}
+
+// ============= TYPING INDICATORS =============
+
+// Subscribe to typing indicators using Supabase Presence
+export function subscribeToTyping(
+  conversationId: string,
+  userId: string,
+  onTypingChange: (typingUsers: { user_id: string; user_name: string }[]) => void
+) {
+  console.log('[DM SERVICE] Setting up typing indicator for conversation:', conversationId);
+
+  const channel = supabase.channel(`dm_typing:${conversationId}`, {
+    config: {
+      presence: {
+        key: userId,
+      },
+    },
+  });
+
+  // Listen to presence changes
+  channel
+    .on('presence', { event: 'sync' }, () => {
+      const state = channel.presenceState();
+      const typingUsers: { user_id: string; user_name: string }[] = [];
+
+      Object.keys(state).forEach((key) => {
+        const presences = state[key];
+        presences.forEach((presence: any) => {
+          if (presence.typing && presence.user_id !== userId) {
+            typingUsers.push({
+              user_id: presence.user_id,
+              user_name: presence.user_name,
+            });
+          }
+        });
+      });
+
+      onTypingChange(typingUsers);
+    })
+    .subscribe(async (status) => {
+      console.log('[DM SERVICE] Typing indicator subscription status:', status);
+    });
+
+  return channel;
+}
+
+// Set typing status
+export async function setTypingStatus(
+  channel: any,
+  userId: string,
+  userName: string,
+  isTyping: boolean
+) {
+  await channel.track({
+    user_id: userId,
+    user_name: userName,
+    typing: isTyping,
+    online_at: new Date().toISOString(),
+  });
 }

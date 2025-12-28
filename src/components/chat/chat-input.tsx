@@ -9,7 +9,7 @@ import {
   Text,
 } from 'react-native';
 import { Colors } from '../../constants/Colors';
-import { Spacing, Typography } from '../../constants/Styles';
+import { Spacing } from '../../constants/Styles';
 import { Fonts } from '../../constants/Fonts';
 
 interface ChatInputProps {
