@@ -239,6 +239,7 @@ export type Database = {
           start_date: string;
           tags: string[] | null;
           terms_and_conditions: string | null;
+          things_to_know: string[] | null;
           timezone: string;
           title: string;
           type: Database['public']['Enums']['event_type'];
@@ -272,6 +273,7 @@ export type Database = {
           start_date: string;
           tags?: string[] | null;
           terms_and_conditions?: string | null;
+          things_to_know?: string[] | null;
           timezone?: string;
           title: string;
           type: Database['public']['Enums']['event_type'];
@@ -305,6 +307,7 @@ export type Database = {
           start_date?: string;
           tags?: string[] | null;
           terms_and_conditions?: string | null;
+          things_to_know?: string[] | null;
           timezone?: string;
           title?: string;
           type?: Database['public']['Enums']['event_type'];

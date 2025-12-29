@@ -107,14 +107,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   bubbleOwn: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.surface,
     borderBottomRightRadius: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   bubbleOther: {
-    backgroundColor: '#EFEFEF',
+    backgroundColor: Colors.surface,
     borderBottomLeftRadius: 4,
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: Colors.border,
   },
   messageText: {
     fontSize: 15,
@@ -122,7 +124,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   messageTextOwn: {
-    color: Colors.textInverse,
+    color: Colors.text,
   },
   timestamp: {
     fontSize: 9,
@@ -132,8 +134,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   timestampOwn: {
-    color: Colors.textInverse,
-    opacity: 0.7,
+    color: Colors.textTertiary,
+    opacity: 0.6,
   },
   // System message
   systemContainer: {

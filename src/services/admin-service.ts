@@ -353,3 +353,106 @@ export async function deleteUser(userId: string): Promise<void> {
     throw new Error(error.message);
   }
 }
+
+// Get all listings (experiences and trips) with host details
+interface AdminListing {
+  id: string;
+  title: string;
+  type: string;
+  description: string | null;
+  short_description: string | null;
+  cover_image_url: string | null;
+  location_name: string | null;
+  location_address: string | null;
+  departure_location: string | null;
+  start_date: string;
+  end_date: string;
+  price: number;
+  currency: string;
+  max_capacity: number | null;
+  current_bookings: number;
+  is_published: boolean;
+  is_cancelled: boolean;
+  category: string | null;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+  host: {
+    id: string;
+    full_name: string | null;
+    email: string;
+    avatar_url: string | null;
+    phone: string | null;
+  } | null;
+}
+
+export async function getListings(options: {
+  type: 'experience' | 'trip';
+  page?: number;
+  limit?: number;
+  status?: 'published' | 'draft' | 'cancelled' | 'all';
+}): Promise<{ listings: AdminListing[]; total: number }> {
+  const { type, page = 1, limit = 20, status = 'all' } = options;
+  const offset = (page - 1) * limit;
+
+  let query = supabase
+    .from('events')
+    .select(
+      `
+      id,
+      title,
+      type,
+      description,
+      short_description,
+      cover_image_url,
+      location_name,
+      location_address,
+      departure_location,
+      start_date,
+      end_date,
+      price,
+      currency,
+      max_capacity,
+      current_bookings,
+      is_published,
+      is_cancelled,
+      category,
+      tags,
+      created_at,
+      updated_at,
+      host:profiles!host_id(
+        id,
+        full_name,
+        email,
+        avatar_url,
+        phone
+      )
+    `,
+      { count: 'exact' }
+    )
+    .eq('type', type);
+
+  // Apply status filter
+  if (status === 'published') {
+    query = query.eq('is_published', true).eq('is_cancelled', false);
+  } else if (status === 'draft') {
+    query = query.eq('is_published', false);
+  } else if (status === 'cancelled') {
+    query = query.eq('is_cancelled', true);
+  }
+
+  // Apply ordering and pagination
+  query = query.order('created_at', { ascending: false }).range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
+
+  if (error) {
+    console.error('Error fetching listings:', error);
+    throw new Error(error.message);
+  }
+
+  return {
+    listings: data || [],
+    total: count || 0,
+  };
+}

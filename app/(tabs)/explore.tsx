@@ -590,6 +590,17 @@ export default function ExploreTab() {
             </Pressable>
           )}
         </Pressable>
+
+        {/* Bell Icon - Notifications */}
+        <Pressable
+          style={styles.bellButton}
+          onPress={() => {
+            // TODO: Navigate to notifications page
+            console.log('Notifications pressed');
+          }}
+        >
+          <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -911,6 +922,9 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   backButton: {
+    padding: 4,
+  },
+  bellButton: {
     padding: 4,
   },
   searchBar: {

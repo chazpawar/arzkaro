@@ -247,6 +247,17 @@ export default function AdminDashboard() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
               </Pressable>
+
+              <Pressable style={styles.menuItem} onPress={() => router.push('/admin/listings')}>
+                <View style={[styles.menuIcon, { backgroundColor: Colors.primaryLight }]}>
+                  <Ionicons name="list-outline" size={20} color={Colors.primary} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>Listings</Text>
+                  <Text style={styles.menuSubtitle}>View all experiences and trips</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
+              </Pressable>
             </View>
           </View>
 

@@ -22,6 +22,7 @@ import ImageUpload from '../../src/components/ui/image-upload';
 import MultiImageUpload from '../../src/components/ui/multi-image-upload';
 import ItineraryBuilder, { ItineraryDay } from '../../src/components/itinerary-builder';
 import InclusionsBuilder from '../../src/components/inclusions-builder';
+import ThingsToKnowBuilder from '../../src/components/things-to-know-builder';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -181,6 +182,7 @@ export default function CreateEventScreen() {
   const [whatsIncluded, setWhatsIncluded] = useState<string[]>([]);
   const [whatsNotIncluded, setWhatsNotIncluded] = useState<string[]>([]);
   const [tripImages, setTripImages] = useState<string[]>([]);
+  const [thingsToKnow, setThingsToKnow] = useState<string[]>([]);
 
   // Date picker state
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -503,6 +505,7 @@ export default function CreateEventScreen() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
         images: [],
         tags: eventType === 'trip' ? customTags : subcategories, // Custom tags for trips, subcategories for events/experiences
+        things_to_know: thingsToKnow.length > 0 ? thingsToKnow.filter((i) => i.trim()) : undefined,
       };
 
       // Add trip-specific fields if creating a trip
@@ -838,6 +841,18 @@ export default function CreateEventScreen() {
                 <Text style={styles.stepTitle}>Location & Time</Text>
                 <Text style={styles.stepDescription}>When and where is it happening?</Text>
 
+                {/* Things to Know - for Experiences (moved to top) */}
+                {eventType !== 'trip' && (
+                  <View style={styles.sectionCard}>
+                    <View style={styles.sectionHeader}>
+                      <Ionicons name="information-circle" size={20} color={Colors.primary} />
+                      <Text style={styles.sectionHeaderText}>Things to Know</Text>
+                    </View>
+
+                    <ThingsToKnowBuilder value={thingsToKnow} onChange={setThingsToKnow} />
+                  </View>
+                )}
+
                 {/* Location Section */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
@@ -1141,6 +1156,16 @@ export default function CreateEventScreen() {
                     onIncludedChange={setWhatsIncluded}
                     onNotIncludedChange={setWhatsNotIncluded}
                   />
+                </View>
+
+                {/* Things to Know */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Ionicons name="information-circle" size={20} color={Colors.primary} />
+                    <Text style={styles.sectionHeaderText}>Things to Know</Text>
+                  </View>
+
+                  <ThingsToKnowBuilder value={thingsToKnow} onChange={setThingsToKnow} />
                 </View>
               </View>
             )}

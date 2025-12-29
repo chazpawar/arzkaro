@@ -629,6 +629,40 @@ export default function EventDetailsScreen() {
                       return null;
                     }
                   })()}
+
+                {/* Things to Know Section - For Trips */}
+                {event.things_to_know && event.things_to_know.length > 0 && (
+                  <View style={styles.thingsToKnowSection}>
+                    <Text style={styles.thingsToKnowTitle}>Things to know:</Text>
+                    <View style={styles.thingsToKnowList}>
+                      {(showAllThingsToKnow
+                        ? event.things_to_know
+                        : event.things_to_know.slice(0, 3)
+                      ).map((item: string, index: number, array: string[]) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.thingsToKnowItem,
+                            index === array.length - 1 && styles.thingsToKnowItemLast,
+                          ]}
+                        >
+                          <Text style={styles.thingsToKnowBullet}>•</Text>
+                          <Text style={styles.thingsToKnowText}>{item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    {event.things_to_know.length > 3 && (
+                      <Pressable
+                        style={styles.thingsToKnowSeeAll}
+                        onPress={() => setShowAllThingsToKnow(!showAllThingsToKnow)}
+                      >
+                        <Text style={styles.thingsToKnowSeeAllText}>
+                          {showAllThingsToKnow ? 'Show less' : 'See all...'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
               </>
             )}
 
@@ -1807,13 +1841,17 @@ const styles = StyleSheet.create({
     height: 40,
     backgroundColor: Colors.border,
   },
-  // Things to Know Styles (no border, just text with dividers)
+  // Things to Know Styles (matching itinerary style with border and padding)
   thingsToKnowSection: {
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
     marginBottom: Spacing.lg,
-    paddingHorizontal: Spacing.lg,
   },
   thingsToKnowTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontFamily: Fonts.bold,
     color: Colors.text,
     marginBottom: Spacing.md,
@@ -1823,31 +1861,28 @@ const styles = StyleSheet.create({
   },
   thingsToKnowItem: {
     flexDirection: 'row',
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
     alignItems: 'flex-start',
+    marginBottom: Spacing.xs,
   },
   thingsToKnowItemLast: {
-    borderBottomWidth: 0,
+    marginBottom: 0,
   },
   thingsToKnowBullet: {
-    fontSize: 16,
-    color: Colors.text,
-    marginRight: Spacing.xs,
-    width: 15,
-    flexShrink: 0,
+    fontSize: 14,
+    color: Colors.textSecondary,
+    marginRight: Spacing.sm,
+    lineHeight: 22,
   },
   thingsToKnowText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: Fonts.regular,
-    color: Colors.text,
+    color: Colors.textSecondary,
     lineHeight: 22,
-    paddingRight: Spacing.xl,
+    flex: 1,
   },
   thingsToKnowSeeAll: {
-    alignSelf: 'flex-start',
-    marginTop: Spacing.xs,
+    alignSelf: 'flex-end',
+    marginTop: Spacing.sm,
   },
   thingsToKnowSeeAllText: {
     fontSize: 14,
