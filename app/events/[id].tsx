@@ -400,8 +400,8 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Host Section - Different for trips vs experiences */}
-            {event.type === 'trip' ? (
+            {/* Host Section - Only for trips (shown early) */}
+            {event.type === 'trip' && (
               <Pressable
                 style={styles.hostSection}
                 onPress={() => {
@@ -426,101 +426,6 @@ export default function EventDetailsScreen() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
               </Pressable>
-            ) : (
-              <View style={styles.hostProfileSection}>
-                <View style={styles.hostProfileCard}>
-                  <View style={styles.hostProfileHeader}>
-                    {/* Avatar */}
-                    {event.host?.avatar_url ? (
-                      <Image
-                        source={{ uri: event.host.avatar_url }}
-                        style={styles.hostProfileAvatarImage}
-                      />
-                    ) : (
-                      <View style={styles.hostProfileAvatar}>
-                        <Text style={styles.hostProfileAvatarText}>
-                          {event.host?.full_name?.charAt(0).toUpperCase() || 'H'}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* Host Info */}
-                    <View style={styles.hostProfileInfo}>
-                      <Text style={styles.hostedBy}>Hosted by</Text>
-                      <Text style={styles.hostProfileName}>{event.host?.full_name || 'Host'}</Text>
-
-                      {/* Bio - Always show */}
-                      <Text style={styles.hostProfileBio} numberOfLines={2}>
-                        {(event.host as any)?.bio || 'No bio available'}
-                      </Text>
-
-                      {/* Social Icons - Always show */}
-                      <View style={styles.socialIcons}>
-                        <TouchableOpacity
-                          style={[
-                            styles.socialIcon,
-                            !(event.host as any)?.instagram && styles.socialIconDisabled,
-                          ]}
-                          onPress={() =>
-                            handleSocialLink('instagram', (event.host as any)?.instagram)
-                          }
-                          disabled={!(event.host as any)?.instagram}
-                        >
-                          <Ionicons
-                            name="logo-instagram"
-                            size={20}
-                            color={(event.host as any)?.instagram ? '#E4405F' : Colors.textTertiary}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[
-                            styles.socialIcon,
-                            !(event.host as any)?.youtube && styles.socialIconDisabled,
-                          ]}
-                          onPress={() => handleSocialLink('youtube', (event.host as any)?.youtube)}
-                          disabled={!(event.host as any)?.youtube}
-                        >
-                          <Ionicons
-                            name="logo-youtube"
-                            size={20}
-                            color={(event.host as any)?.youtube ? '#FF0000' : Colors.textTertiary}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[
-                            styles.socialIcon,
-                            !(event.host as any)?.linkedin && styles.socialIconDisabled,
-                          ]}
-                          onPress={() =>
-                            handleSocialLink('linkedin', (event.host as any)?.linkedin)
-                          }
-                          disabled={!(event.host as any)?.linkedin}
-                        >
-                          <Ionicons
-                            name="logo-linkedin"
-                            size={20}
-                            color={(event.host as any)?.linkedin ? '#0077B5' : Colors.textTertiary}
-                          />
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[
-                            styles.socialIcon,
-                            !(event.host as any)?.twitter && styles.socialIconDisabled,
-                          ]}
-                          onPress={() => handleSocialLink('twitter', (event.host as any)?.twitter)}
-                          disabled={!(event.host as any)?.twitter}
-                        >
-                          <Ionicons
-                            name="logo-twitter"
-                            size={20}
-                            color={(event.host as any)?.twitter ? '#1DA1F2' : Colors.textTertiary}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              </View>
             )}
 
             {/* Trip-Specific Details */}
@@ -745,6 +650,112 @@ export default function EventDetailsScreen() {
                       </Text>
                     </Pressable>
                   )}
+                </View>
+
+                {/* Host Section - For experiences (shown after About this Event) */}
+                <View style={styles.hostProfileSection}>
+                  <View style={styles.hostProfileCard}>
+                    <View style={styles.hostProfileHeader}>
+                      {/* Avatar */}
+                      {event.host?.avatar_url ? (
+                        <Image
+                          source={{ uri: event.host.avatar_url }}
+                          style={styles.hostProfileAvatarImage}
+                        />
+                      ) : (
+                        <View style={styles.hostProfileAvatar}>
+                          <Text style={styles.hostProfileAvatarText}>
+                            {event.host?.full_name?.charAt(0).toUpperCase() || 'H'}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Host Info */}
+                      <View style={styles.hostProfileInfo}>
+                        <Text style={styles.hostedBy}>Hosted by</Text>
+                        <Text style={styles.hostProfileName}>
+                          {event.host?.full_name || 'Host'}
+                        </Text>
+
+                        {/* Bio - Always show */}
+                        <Text style={styles.hostProfileBio} numberOfLines={2}>
+                          {(event.host as any)?.bio || 'No bio available'}
+                        </Text>
+
+                        {/* Social Icons - Always show */}
+                        <View style={styles.socialIcons}>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.instagram && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('instagram', (event.host as any)?.instagram)
+                            }
+                            disabled={!(event.host as any)?.instagram}
+                          >
+                            <Ionicons
+                              name="logo-instagram"
+                              size={20}
+                              color={
+                                (event.host as any)?.instagram ? '#E4405F' : Colors.textTertiary
+                              }
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.youtube && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('youtube', (event.host as any)?.youtube)
+                            }
+                            disabled={!(event.host as any)?.youtube}
+                          >
+                            <Ionicons
+                              name="logo-youtube"
+                              size={20}
+                              color={(event.host as any)?.youtube ? '#FF0000' : Colors.textTertiary}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.linkedin && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('linkedin', (event.host as any)?.linkedin)
+                            }
+                            disabled={!(event.host as any)?.linkedin}
+                          >
+                            <Ionicons
+                              name="logo-linkedin"
+                              size={20}
+                              color={
+                                (event.host as any)?.linkedin ? '#0077B5' : Colors.textTertiary
+                              }
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.twitter && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('twitter', (event.host as any)?.twitter)
+                            }
+                            disabled={!(event.host as any)?.twitter}
+                          >
+                            <Ionicons
+                              name="logo-twitter"
+                              size={20}
+                              color={(event.host as any)?.twitter ? '#1DA1F2' : Colors.textTertiary}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
                 </View>
 
                 {/* Things to Know Section */}

@@ -212,6 +212,7 @@ export default function ExploreTab() {
   } | null>(null);
 
   const { events, loading, refresh } = useEvents();
+  const { isHost, profile, effectiveRole, isAdmin, viewAsUser, toggleViewMode } = useAuth();
 
   // Log search state changes for debugging
   useEffect(() => {
@@ -224,11 +225,23 @@ export default function ExploreTab() {
     }
   }, [searchQuery, searchLocation, searchRadius]);
 
-  // For "Top Experiences" - show all published events
-  const topExperiences = events.filter((e) => e.type === 'experience').slice(0, 10);
-  const popularTrips = events.filter((e) => e.type === 'trip').slice(0, 10);
+  // Determine if we should show host's own listings
+  // Host sees their own listings UNLESS they explicitly switch to "View as User" mode
+  const showHostListings = isHost && effectiveRole === 'host';
+  const hostId = profile?.id;
+
+  // For hosts: Filter to show only their own events
+  // For normal users: Show all events
+  const availableEvents =
+    showHostListings && hostId ? events.filter((e) => e.host_id === hostId) : events;
+
+  // For "Top Experiences" - show all published events (from availableEvents)
+  const topExperiences = availableEvents.filter((e) => e.type === 'experience').slice(0, 10);
+  const popularTrips = availableEvents.filter((e) => e.type === 'trip').slice(0, 10);
 
   console.log('[EXPLORE] Total events:', events.length);
+  console.log('[EXPLORE] Show host listings:', showHostListings, 'Host ID:', hostId);
+  console.log('[EXPLORE] Available events (filtered):', availableEvents.length);
   console.log(
     '[EXPLORE] Top experiences:',
     topExperiences.length,
@@ -240,15 +253,13 @@ export default function ExploreTab() {
     popularTrips.map((e) => e.title)
   );
 
-  const { isAdmin, viewAsUser, toggleViewMode } = useAuth();
-
   const onRefresh = async () => {
     setRefreshing(true);
     await refresh();
     setRefreshing(false);
   };
 
-  const allEvents = events as Event[];
+  const allEvents = availableEvents as Event[];
 
   // Filter logic with comprehensive keyword search
   const filteredEvents = allEvents.filter((event: Event) => {
@@ -523,14 +534,22 @@ export default function ExploreTab() {
         </Pressable>
       )}
 
-      {/* Logo - Hide when viewing experiences/trips or a specific category is selected */}
-      {selectedTag === 'all' && activeView === 'events' && (
+      {/* Logo - Hide when viewing experiences/trips or a specific category is selected OR when host is viewing their listings */}
+      {selectedTag === 'all' && activeView === 'events' && !showHostListings && (
         <View style={styles.logoContainer}>
           <Image
             source={require('../../assets/arz.png')}
             style={styles.logo}
             resizeMode="contain"
           />
+        </View>
+      )}
+
+      {/* Page Title for Hosts viewing their listings */}
+      {showHostListings && selectedTag === 'all' && activeView === 'events' && (
+        <View style={styles.pageTitleContainer}>
+          <Text style={styles.pageTitle}>My Listings</Text>
+          <Text style={styles.pageSubtitle}>Manage your experiences and trips</Text>
         </View>
       )}
 
@@ -589,7 +608,12 @@ export default function ExploreTab() {
           {/* 1. Horizontal Circular Categories - Show only when in For You view */}
           {selectedTag === 'all' && activeView === 'events' && (
             <View style={styles.categoriesRow}>
-              {CATEGORIES.map((cat) => {
+              {/* For hosts: Show only Experiences and Trips */}
+              {/* For users: Show all categories (For You, Experiences, Trips) */}
+              {(showHostListings
+                ? CATEGORIES.filter((cat) => cat.id !== 'events')
+                : CATEGORIES
+              ).map((cat) => {
                 const isActive = activeView === cat.id;
                 return (
                   <Pressable
@@ -684,7 +708,9 @@ export default function ExploreTab() {
               {/* Top Experiences Section - Always show */}
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>Top Experiences</Text>
+                  <Text style={styles.sectionTitle}>
+                    {showHostListings ? 'My Experiences' : 'Top Experiences'}
+                  </Text>
                   <Pressable onPress={() => handleCategoryPress('experiences')}>
                     <Text style={styles.seeAllText}>See All</Text>
                   </Pressable>
@@ -723,9 +749,13 @@ export default function ExploreTab() {
                 ) : (
                   <View style={styles.emptyExperiencesContainer}>
                     <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
-                    <Text style={styles.emptyExperiencesText}>No top experiences yet</Text>
+                    <Text style={styles.emptyExperiencesText}>
+                      {showHostListings ? 'No experiences yet' : 'No top experiences yet'}
+                    </Text>
                     <Text style={styles.emptyExperiencesSubtext}>
-                      Check back soon for exciting experiences
+                      {showHostListings
+                        ? 'Create your first experience to get started'
+                        : 'Check back soon for exciting experiences'}
                     </Text>
                   </View>
                 )}
@@ -734,7 +764,9 @@ export default function ExploreTab() {
               {/* Popular Trips Section */}
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>Popular Trips</Text>
+                  <Text style={styles.sectionTitle}>
+                    {showHostListings ? 'My Trips' : 'Popular Trips'}
+                  </Text>
                   <Pressable onPress={() => handleCategoryPress('trips')}>
                     <Text style={styles.seeAllText}>See All</Text>
                   </Pressable>
@@ -773,9 +805,13 @@ export default function ExploreTab() {
                 ) : (
                   <View style={styles.emptyExperiencesContainer}>
                     <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
-                    <Text style={styles.emptyExperiencesText}>No popular trips yet</Text>
+                    <Text style={styles.emptyExperiencesText}>
+                      {showHostListings ? 'No trips yet' : 'No popular trips yet'}
+                    </Text>
                     <Text style={styles.emptyExperiencesSubtext}>
-                      Check back soon for amazing adventures
+                      {showHostListings
+                        ? 'Create your first trip to get started'
+                        : 'Check back soon for amazing adventures'}
                     </Text>
                   </View>
                 )}
@@ -848,6 +884,23 @@ const styles = StyleSheet.create({
   logo: {
     width: 180,
     height: 80,
+  },
+  pageTitleContainer: {
+    alignItems: 'center',
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+  },
+  pageSubtitle: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
+    marginTop: 4,
   },
   headerContainer: {
     flexDirection: 'row',
