@@ -1,206 +1,253 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import * as Notifications from 'expo-notifications';
-import { useRouter } from 'expo-router';
-import { useAuth } from '../contexts/auth-context';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '../../backend/supabase';
 import * as NotificationService from '../services/notification-service';
-import type { NotificationData } from '../services/notification-service';
+import type { Notification } from '../services/notification-service';
 
-// =============================================
-// useNotifications Hook
-// =============================================
+/**
+ * Hook for managing user notifications with real-time updates and push notifications
+ */
+export function useNotifications(userId: string | undefined) {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [pushToken, setPushToken] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
+  const pushListenerRef = useRef<any>(null);
 
-export function useNotifications() {
-  const { user, isAuthenticated } = useAuth();
-  const router = useRouter();
-  const [expoPushToken, setExpoPushToken] = useState<string | null>(null);
-  const [notification, setNotification] = useState<Notifications.Notification | null>(null);
-  const [isPermissionGranted, setIsPermissionGranted] = useState(false);
-  const [isRegistering, setIsRegistering] = useState(false);
-
-  const notificationListener = useRef<Notifications.Subscription | undefined>(undefined);
-  const responseListener = useRef<Notifications.Subscription | undefined>(undefined);
-
-  // =============================================
-  // Handle notification tap/interaction
-  // =============================================
-
-  const handleNotificationResponse = useCallback(
-    (response: Notifications.NotificationResponse) => {
-      const data = response.notification.request.content.data as NotificationData;
-
-      console.log('[useNotifications] Notification tapped:', data);
-
-      // Route based on notification type
-      switch (data.type) {
-        case 'chat':
-          // Navigate to the specific chat
-          if (data.conversationId) {
-            router.push(`/dm/${data.conversationId}`);
-          } else if (data.groupId) {
-            router.push(`/events/${data.eventId}/chat`);
-          }
-          break;
-
-        case 'booking':
-          // Navigate to ticket details
-          if (data.ticketId) {
-            router.push(`/tickets/${data.ticketId}`);
-          }
-          break;
-
-        case 'promotional':
-        case 'event_reminder':
-          // Navigate to event details
-          if (data.eventId) {
-            router.push(`/events/${data.eventId}`);
-          }
-          break;
-
-        case 'system':
-          // Navigate based on system notification type
-          if (data.route) {
-            router.push(data.route as any);
-          }
-          break;
-
-        default:
-          console.log('[useNotifications] Unknown notification type:', data.type);
-      }
-    },
-    [router]
-  );
-
-  // =============================================
-  // Register for push notifications
-  // =============================================
-
-  const registerForPushNotifications = useCallback(async () => {
-    if (!isAuthenticated || !user?.id || isRegistering) {
-      return;
-    }
-
-    if (!NotificationService.isPushNotificationSupported()) {
-      console.log('[useNotifications] Push notifications not supported on this device');
-      return;
-    }
-
-    try {
-      setIsRegistering(true);
-
-      // Request permissions
-      const hasPermission = await NotificationService.requestNotificationPermissions();
-      setIsPermissionGranted(hasPermission);
-
-      if (!hasPermission) {
-        console.log('[useNotifications] Permission denied');
-        return;
-      }
-
-      // Get push token
-      const token = await NotificationService.getExpoPushToken();
-
-      if (!token) {
-        console.log('[useNotifications] Failed to get push token');
-        return;
-      }
-
-      setExpoPushToken(token);
-
-      // Register token with backend
-      const result = await NotificationService.registerPushToken(user.id, token);
-
-      if (result) {
-        console.log('[useNotifications] Successfully registered for push notifications');
-      }
-    } catch (error) {
-      console.error('[useNotifications] Error registering for push notifications:', error);
-    } finally {
-      setIsRegistering(false);
-    }
-  }, [isAuthenticated, user?.id, isRegistering]);
-
-  // =============================================
-  // Unregister push notifications
-  // =============================================
-
-  const unregisterPushNotifications = useCallback(async () => {
-    if (!expoPushToken) return;
-
-    try {
-      await NotificationService.unregisterPushToken(expoPushToken);
-      setExpoPushToken(null);
-      setIsPermissionGranted(false);
-      console.log('[useNotifications] Unregistered from push notifications');
-    } catch (error) {
-      console.error('[useNotifications] Error unregistering push notifications:', error);
-    }
-  }, [expoPushToken]);
-
-  // =============================================
-  // Setup notification listeners
-  // =============================================
-
+  // Register for push notifications on mount (one-time setup)
   useEffect(() => {
-    // Check if app was launched by tapping a notification
-    NotificationService.getLastNotificationResponse().then((response) => {
-      if (response) {
-        handleNotificationResponse(response);
-      }
-    });
+    if (!userId) return;
 
-    // Listen for notifications received while app is foregrounded
-    notificationListener.current = NotificationService.addNotificationReceivedListener(
-      (notification) => {
-        console.log('[useNotifications] Notification received:', notification);
-        setNotification(notification);
-      }
-    );
+    const setupPushNotifications = async () => {
+      try {
+        // Check if push notifications are supported
+        if (!NotificationService.isPushNotificationSupported()) {
+          console.log('[PUSH] Push notifications not supported on this device');
+          return;
+        }
 
-    // Listen for notification taps
-    responseListener.current = NotificationService.addNotificationResponseReceivedListener(
-      handleNotificationResponse
-    );
+        // Request permissions
+        const hasPermission = await NotificationService.requestNotificationPermissions();
+        if (!hasPermission) {
+          console.log('[PUSH] Push notification permissions not granted');
+          return;
+        }
 
-    return () => {
-      if (notificationListener.current) {
-        notificationListener.current.remove();
-      }
-      if (responseListener.current) {
-        responseListener.current.remove();
+        // Get push token
+        const token = await NotificationService.getExpoPushToken();
+        if (!token) {
+          console.log('[PUSH] Failed to get push token');
+          return;
+        }
+
+        setPushToken(token);
+
+        // Register token with backend
+        await NotificationService.registerPushToken(userId, token);
+        console.log('[PUSH] Push notifications registered successfully');
+
+        // Listen for notification taps
+        const responseListener = NotificationService.addNotificationResponseReceivedListener(
+          (response) => {
+            console.log('[PUSH] Notification tapped:', response);
+            // TODO: Handle navigation based on notification data
+          }
+        );
+
+        pushListenerRef.current = responseListener;
+      } catch (err) {
+        console.error('[PUSH] Error setting up push notifications:', err);
       }
     };
-  }, [handleNotificationResponse]);
 
-  // =============================================
-  // Auto-register when user logs in
-  // =============================================
+    setupPushNotifications();
 
-  useEffect(() => {
-    if (isAuthenticated && user?.id && !expoPushToken && !isRegistering) {
-      registerForPushNotifications();
+    // Cleanup push listener
+    return () => {
+      if (pushListenerRef.current) {
+        pushListenerRef.current.remove();
+      }
+    };
+  }, [userId]);
+
+  // Fetch notifications
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) {
+      setLoading(false);
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
+      return;
     }
-  }, [isAuthenticated, user?.id, expoPushToken, isRegistering, registerForPushNotifications]);
 
-  // =============================================
-  // Cleanup on logout
-  // =============================================
+    try {
+      setLoading(true);
+      setError(null);
 
-  useEffect(() => {
-    if (!isAuthenticated && expoPushToken) {
-      unregisterPushNotifications();
+      const [notificationsData, count] = await Promise.all([
+        NotificationService.getUserNotifications(userId),
+        NotificationService.getUnreadCount(userId),
+      ]);
+
+      setNotifications(notificationsData);
+      setUnreadCount(count);
+
+      // Update badge count for push notifications
+      await NotificationService.setBadgeCount(count);
+    } catch (err) {
+      console.error('[NOTIFICATIONS HOOK] Error fetching notifications:', err);
+
+      // If table doesn't exist yet or permissions not set up, fail silently
+      if (err && typeof err === 'object') {
+        const error = err as any;
+
+        // Table doesn't exist yet (code 42P01) or permission denied (code 42501)
+        if (error.code === '42P01' || error.code === '42501' || error.code === 'PGRST116') {
+          console.warn('[NOTIFICATIONS HOOK] Notifications not set up yet - skipping');
+          setError(null); // Don't show error to user
+          setNotifications([]);
+          setUnreadCount(0);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // For other errors, show user-friendly message
+      setError('Unable to load notifications');
+      setNotifications([]);
+      setUnreadCount(0);
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, expoPushToken, unregisterPushNotifications]);
+  }, [userId]);
+
+  // Setup real-time subscription
+  useEffect(() => {
+    if (!userId) {
+      return;
+    }
+
+    console.log('[NOTIFICATIONS HOOK] Setting up realtime for user:', userId);
+
+    // Initial fetch
+    fetchNotifications();
+
+    // Subscribe to real-time updates
+    const channel = NotificationService.subscribeToNotifications(
+      userId,
+      // On new notification
+      (notification) => {
+        console.log('[NOTIFICATIONS HOOK] New notification:', notification.id);
+        setNotifications((prev) => [notification, ...prev]);
+        setUnreadCount((prev) => prev + 1);
+      },
+      // On update (e.g., marked as read)
+      (notification) => {
+        console.log('[NOTIFICATIONS HOOK] Notification updated:', notification.id);
+        setNotifications((prev) => prev.map((n) => (n.id === notification.id ? notification : n)));
+
+        // Recalculate unread count
+        setUnreadCount((prev) => {
+          const wasRead = prev > 0;
+          const isNowRead = notification.read;
+          if (!wasRead && isNowRead) {
+            return Math.max(0, prev - 1);
+          }
+          return prev;
+        });
+      },
+      // On delete
+      (notificationId) => {
+        console.log('[NOTIFICATIONS HOOK] Notification deleted:', notificationId);
+        setNotifications((prev) => {
+          const notification = prev.find((n) => n.id === notificationId);
+          const wasUnread = notification && !notification.read;
+
+          if (wasUnread) {
+            setUnreadCount((count) => Math.max(0, count - 1));
+          }
+
+          return prev.filter((n) => n.id !== notificationId);
+        });
+      }
+    );
+
+    channelRef.current = channel;
+
+    // Cleanup
+    return () => {
+      console.log('[NOTIFICATIONS HOOK] Cleaning up realtime');
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [userId, fetchNotifications]);
+
+  // Mark notification as read
+  const markAsRead = useCallback(async (notificationId: string) => {
+    try {
+      await NotificationService.markAsRead(notificationId);
+
+      // Optimistic update
+      setNotifications((prev) =>
+        prev.map((n) =>
+          n.id === notificationId ? { ...n, read: true, read_at: new Date().toISOString() } : n
+        )
+      );
+      setUnreadCount((prev) => Math.max(0, prev - 1));
+    } catch (err) {
+      console.error('[NOTIFICATIONS HOOK] Error marking as read:', err);
+      throw err;
+    }
+  }, []);
+
+  // Mark all as read
+  const markAllAsRead = useCallback(async () => {
+    if (!userId) return;
+
+    try {
+      await NotificationService.markAllAsRead(userId);
+
+      // Optimistic update
+      const now = new Date().toISOString();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true, read_at: now })));
+      setUnreadCount(0);
+    } catch (err) {
+      console.error('[NOTIFICATIONS HOOK] Error marking all as read:', err);
+      throw err;
+    }
+  }, [userId]);
+
+  // Delete notification
+  const deleteNotification = useCallback(async (notificationId: string) => {
+    try {
+      await NotificationService.deleteNotification(notificationId);
+
+      // Optimistic update
+      setNotifications((prev) => {
+        const notification = prev.find((n) => n.id === notificationId);
+        if (notification && !notification.read) {
+          setUnreadCount((count) => Math.max(0, count - 1));
+        }
+        return prev.filter((n) => n.id !== notificationId);
+      });
+    } catch (err) {
+      console.error('[NOTIFICATIONS HOOK] Error deleting notification:', err);
+      throw err;
+    }
+  }, []);
 
   return {
-    expoPushToken,
-    notification,
-    isPermissionGranted,
-    isRegistering,
-    registerForPushNotifications,
-    unregisterPushNotifications,
-    setBadgeCount: NotificationService.setBadgeCount,
-    clearBadge: NotificationService.clearBadge,
-    getBadgeCount: NotificationService.getBadgeCount,
-    dismissAllNotifications: NotificationService.dismissAllNotifications,
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    pushToken,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    refresh: fetchNotifications,
   };
 }

@@ -10,6 +10,7 @@ import { Fonts } from '../../src/constants/Fonts';
 import type { Event } from '../../src/types';
 import { useEvents } from '../../src/hooks/use-events';
 import { useAuth } from '../../src/contexts/auth-context';
+import { useNotifications } from '../../src/hooks/use-notifications';
 
 // New Components
 import CategoryDetail from '../../src/components/CategoryDetail';
@@ -213,6 +214,14 @@ export default function ExploreTab() {
 
   const { events, loading, refresh } = useEvents();
   const { isHost, profile, effectiveRole, isAdmin, viewAsUser, toggleViewMode } = useAuth();
+  const { unreadCount } = useNotifications(profile?.id);
+
+  // Log notification badge count for debugging
+  useEffect(() => {
+    if (profile?.id) {
+      console.log('[EXPLORE] Unread notification count:', unreadCount);
+    }
+  }, [unreadCount, profile?.id]);
 
   // Log search state changes for debugging
   useEffect(() => {
@@ -595,11 +604,15 @@ export default function ExploreTab() {
         <Pressable
           style={styles.bellButton}
           onPress={() => {
-            // TODO: Navigate to notifications page
-            console.log('Notifications pressed');
+            router.push('/notifications');
           }}
         >
           <Ionicons name="notifications-outline" size={24} color={Colors.text} />
+          {unreadCount > 0 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+            </View>
+          )}
         </Pressable>
       </View>
 
@@ -926,6 +939,27 @@ const styles = StyleSheet.create({
   },
   bellButton: {
     padding: 4,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    backgroundColor: Colors.error,
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 4,
+    borderWidth: 2,
+    borderColor: Colors.background,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontFamily: Fonts.bold,
+    textAlign: 'center',
   },
   searchBar: {
     flex: 1,

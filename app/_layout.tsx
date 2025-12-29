@@ -143,6 +143,12 @@ export default function RootLayout() {
           }}
         />
         <Stack.Screen
+          name="notifications"
+          options={{
+            title: 'Notifications',
+          }}
+        />
+        <Stack.Screen
           name="admin"
           options={{
             headerShown: false,
