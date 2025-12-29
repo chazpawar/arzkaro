@@ -4,72 +4,43 @@ import * as NotificationService from '../services/notification-service';
 import type { Notification } from '../services/notification-service';
 
 /**
- * Hook for managing user notifications with real-time updates and push notifications
+ * Hook for managing user notifications with real-time updates
+ * Note: Push notification registration is commented out for Expo Go compatibility
  */
 export function useNotifications(userId: string | undefined) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [pushToken, setPushToken] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
-  const pushListenerRef = useRef<any>(null);
 
+  // TODO: Uncomment push notification registration when building with EAS
   // Register for push notifications on mount (one-time setup)
-  useEffect(() => {
-    if (!userId) return;
-
-    const setupPushNotifications = async () => {
-      try {
-        // Check if push notifications are supported
-        if (!NotificationService.isPushNotificationSupported()) {
-          console.log('[PUSH] Push notifications not supported on this device');
-          return;
-        }
-
-        // Request permissions
-        const hasPermission = await NotificationService.requestNotificationPermissions();
-        if (!hasPermission) {
-          console.log('[PUSH] Push notification permissions not granted');
-          return;
-        }
-
-        // Get push token
-        const token = await NotificationService.getExpoPushToken();
-        if (!token) {
-          console.log('[PUSH] Failed to get push token');
-          return;
-        }
-
-        setPushToken(token);
-
-        // Register token with backend
-        await NotificationService.registerPushToken(userId, token);
-        console.log('[PUSH] Push notifications registered successfully');
-
-        // Listen for notification taps
-        const responseListener = NotificationService.addNotificationResponseReceivedListener(
-          (response) => {
-            console.log('[PUSH] Notification tapped:', response);
-            // TODO: Handle navigation based on notification data
-          }
-        );
-
-        pushListenerRef.current = responseListener;
-      } catch (err) {
-        console.error('[PUSH] Error setting up push notifications:', err);
-      }
-    };
-
-    setupPushNotifications();
-
-    // Cleanup push listener
-    return () => {
-      if (pushListenerRef.current) {
-        pushListenerRef.current.remove();
-      }
-    };
-  }, [userId]);
+  // useEffect(() => {
+  //   if (!userId) return;
+  //
+  //   const setupPushNotifications = async () => {
+  //     try {
+  //       const PushService = await import('../services/push-notification-service');
+  //
+  //       if (!PushService.isPushNotificationSupported()) {
+  //         return;
+  //       }
+  //
+  //       const hasPermission = await PushService.requestNotificationPermissions();
+  //       if (!hasPermission) return;
+  //
+  //       const token = await PushService.getExpoPushToken();
+  //       if (!token) return;
+  //
+  //       await PushService.registerPushToken(userId, token);
+  //     } catch (err) {
+  //       console.error('[PUSH] Error setting up push notifications:', err);
+  //     }
+  //   };
+  //
+  //   setupPushNotifications();
+  // }, [userId]);
 
   // Fetch notifications
   const fetchNotifications = useCallback(async () => {
@@ -92,9 +63,6 @@ export function useNotifications(userId: string | undefined) {
 
       setNotifications(notificationsData);
       setUnreadCount(count);
-
-      // Update badge count for push notifications
-      await NotificationService.setBadgeCount(count);
     } catch (err) {
       console.error('[NOTIFICATIONS HOOK] Error fetching notifications:', err);
 
@@ -244,7 +212,6 @@ export function useNotifications(userId: string | undefined) {
     unreadCount,
     loading,
     error,
-    pushToken,
     markAsRead,
     markAllAsRead,
     deleteNotification,

@@ -21,7 +21,24 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 - Common issues
 - Understanding Fast Refresh
 
-### 2. [planios.md](./planios.md) - **Deep Dive**
+### 2. [NOTIFICATIONS_ARCHITECTURE.md](./NOTIFICATIONS_ARCHITECTURE.md) - **IMPORTANT!**
+
+**Complete notifications system guide**
+
+- 🔔 Two separate notification systems explained
+- 📱 In-app notifications vs push notifications
+- 🚀 Expo Go vs EAS build differences
+- 🔧 Setup and configuration
+- 🧪 Testing guide
+
+**Perfect for:**
+
+- Understanding notification architecture
+- Debugging notification issues
+- Preparing for EAS builds
+- Learning system limitations
+
+### 3. [planios.md](./planios.md) - **Deep Dive**
 
 **Complete EAS build reference**
 
@@ -53,16 +70,20 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 
 ## 🎯 Common Tasks
 
-| Task                   | Guide                   | Section                    |
-| ---------------------- | ----------------------- | -------------------------- |
-| Run app for first time | DEVELOPMENT_WORKFLOW.md | Quick Start                |
-| Daily coding workflow  | DEVELOPMENT_WORKFLOW.md | Daily Development Workflow |
-| Install new package    | DEVELOPMENT_WORKFLOW.md | Scenario 2                 |
-| Fix "No servers found" | DEVELOPMENT_WORKFLOW.md | Troubleshooting Issue 1    |
-| Configure EAS builds   | planios.md              | Configuration              |
-| Build for production   | planios.md              | Building Locally           |
-| Switch simulators      | DEVELOPMENT_WORKFLOW.md | Scenario 4                 |
-| Clear caches           | DEVELOPMENT_WORKFLOW.md | Troubleshooting Issue 4    |
+| Task                        | Guide                       | Section                    |
+| --------------------------- | --------------------------- | -------------------------- |
+| Run app for first time      | DEVELOPMENT_WORKFLOW.md     | Quick Start                |
+| Daily coding workflow       | DEVELOPMENT_WORKFLOW.md     | Daily Development Workflow |
+| Install new package         | DEVELOPMENT_WORKFLOW.md     | Scenario 2                 |
+| Fix "No servers found"      | DEVELOPMENT_WORKFLOW.md     | Troubleshooting Issue 1    |
+| Configure EAS builds        | planios.md                  | Configuration              |
+| Build for production        | planios.md                  | Building Locally           |
+| Switch simulators           | DEVELOPMENT_WORKFLOW.md     | Scenario 4                 |
+| Clear caches                | DEVELOPMENT_WORKFLOW.md     | Troubleshooting Issue 4    |
+| Understand notifications    | NOTIFICATIONS_ARCHITECTURE  | Overview                   |
+| Fix notification crashes    | NOTIFICATIONS_ARCHITECTURE  | Common Issues              |
+| Enable push notifications   | NOTIFICATIONS_ARCHITECTURE  | Enabling Push for EAS      |
+| Test in-app notifications   | NOTIFICATIONS_TESTING_GUIDE | Testing Guide              |
 
 ## 💡 Key Concepts
 
