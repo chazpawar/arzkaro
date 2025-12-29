@@ -71,7 +71,7 @@ export interface RazorpayPaymentSuccess {
 }
 
 export interface RazorpayPaymentError {
-  code: string;
+  code: string | number; // Can be string '0' or number 0
   description: string;
   source: string;
   step: string;
@@ -100,4 +100,12 @@ export interface VerifyPaymentParams {
 export interface PaymentVerificationResult {
   success: boolean;
   message: string;
+}
+
+export interface ProcessPaymentResult {
+  success: boolean;
+  error?: string;
+  cancelled?: boolean;
+  paymentId?: string;
+  bookingId?: string;
 }

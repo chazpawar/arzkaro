@@ -17,9 +17,19 @@ import {
 } from '@expo-google-fonts/league-spartan';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+// TODO: Uncomment after building with EAS (notifications don't work in Expo Go)
+// import { useNotifications } from '../src/hooks/use-notifications';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+// Component to initialize notifications inside AuthProvider
+function NotificationInitializer() {
+  // This hook will automatically register for push notifications when user logs in
+  // TODO: Uncomment after building with EAS (notifications don't work in Expo Go)
+  // useNotifications();
+  return null;
+}
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -46,6 +56,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
+      <NotificationInitializer />
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
@@ -85,6 +96,7 @@ export default function RootLayout() {
           options={{
             title: 'Book Tickets',
             presentation: 'card',
+            headerBackTitle: 'Back',
           }}
         />
         <Stack.Screen

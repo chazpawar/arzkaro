@@ -11,6 +11,7 @@ import {
   TextInput,
   Platform,
   Pressable,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -245,333 +246,346 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-      {/* Avatar Section */}
-      <View style={styles.avatarSection}>
-        <TouchableOpacity onPress={handlePickAvatar} disabled={loading || uploadingAvatar}>
-          <View style={styles.avatarContainer}>
-            {avatarUri ? (
-              <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Text style={styles.avatarPlaceholderText}>
-                  {fullName.charAt(0).toUpperCase() || '?'}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Avatar Section */}
+        <View style={styles.avatarSection}>
+          <TouchableOpacity onPress={handlePickAvatar} disabled={loading || uploadingAvatar}>
+            <View style={styles.avatarContainer}>
+              {avatarUri ? (
+                <Image source={{ uri: avatarUri }} style={styles.avatarImage} />
+              ) : (
+                <View style={styles.avatarPlaceholder}>
+                  <Text style={styles.avatarPlaceholderText}>
+                    {fullName.charAt(0).toUpperCase() || '?'}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.avatarEditBadge}>
+                {uploadingAvatar ? (
+                  <ActivityIndicator size="small" color="#FFF" />
+                ) : (
+                  <Ionicons name="camera" size={20} color="#FFF" />
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.avatarHint}>Tap to change profile picture</Text>
+        </View>
+
+        {/* Form Fields */}
+        <View style={styles.form}>
+          {/* Full Name */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Full Name</Text>
+            <TextInput
+              style={[styles.input, styles.inputDisabled]}
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              placeholderTextColor={Colors.textSecondary}
+              editable={false}
+              autoCapitalize="words"
+            />
+            {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+          </View>
+
+          {/* Username */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Username</Text>
+            <TextInput
+              style={[styles.input, errors.username && styles.inputError]}
+              value={username}
+              onChangeText={setUsername}
+              placeholder="Choose a unique username"
+              placeholderTextColor={Colors.textSecondary}
+              editable={!loading}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+            {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
+          </View>
+
+          {/* Date of Birth */}
+          <View style={styles.field}>
+            <Text style={styles.label}>DOB</Text>
+            <Pressable
+              onPress={() => isFieldEditable('date_of_birth') && setShowDatePicker(true)}
+              disabled={!isFieldEditable('date_of_birth') || loading}
+            >
+              <View
+                style={[styles.input, !isFieldEditable('date_of_birth') && styles.inputDisabled]}
+              >
+                <Text style={dateOfBirth ? styles.inputText : styles.placeholderText}>
+                  {dateOfBirth ? dateOfBirth.toLocaleDateString() : 'Select your date of birth'}
                 </Text>
               </View>
+            </Pressable>
+            {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
+            {showDatePicker && (
+              <DateTimePicker
+                value={dateOfBirth || new Date()}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+                maximumDate={new Date()}
+              />
             )}
-            <View style={styles.avatarEditBadge}>
-              {uploadingAvatar ? (
-                <ActivityIndicator size="small" color="#FFF" />
-              ) : (
-                <Ionicons name="camera" size={20} color="#FFF" />
-              )}
+          </View>
+
+          {/* Gender */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Gender</Text>
+            {isFieldEditable('gender') ? (
+              <View style={styles.genderContainer}>
+                {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
+                  <Pressable
+                    key={option}
+                    onPress={() => setGender(option)}
+                    disabled={loading}
+                    style={[styles.genderOption, gender === option && styles.genderOptionSelected]}
+                  >
+                    <Text
+                      style={[
+                        styles.genderOptionText,
+                        gender === option && styles.genderOptionTextSelected,
+                      ]}
+                    >
+                      {option}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : (
+              <View style={[styles.input, styles.inputDisabled]}>
+                <Text style={styles.inputText}>{gender || 'Not specified'}</Text>
+              </View>
+            )}
+          </View>
+
+          {/* Phone */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={[styles.input, errors.phone && styles.inputError]}
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="+1 234 567 8900"
+              placeholderTextColor={Colors.textSecondary}
+              editable={!loading}
+              keyboardType="phone-pad"
+            />
+            {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
+          </View>
+
+          {/* Email (Non-editable, display only) */}
+          <View style={styles.field}>
+            <Text style={styles.label}>Email</Text>
+            <View style={[styles.input, styles.inputDisabled]}>
+              <Text style={styles.inputText}>{profile.email}</Text>
             </View>
           </View>
-        </TouchableOpacity>
-        <Text style={styles.avatarHint}>Tap to change profile picture</Text>
-      </View>
 
-      {/* Form Fields */}
-      <View style={styles.form}>
-        {/* Full Name */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={[styles.input, styles.inputDisabled]}
-            value={fullName}
-            onChangeText={setFullName}
-            placeholder="Enter your full name"
-            placeholderTextColor={Colors.textSecondary}
-            editable={false}
-            autoCapitalize="words"
-          />
-          {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
-        </View>
+          {/* Social Media Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Enter Your Socials</Text>
+          </View>
 
-        {/* Username */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Username</Text>
-          <TextInput
-            style={[styles.input, errors.username && styles.inputError]}
-            value={username}
-            onChangeText={setUsername}
-            placeholder="Choose a unique username"
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {errors.username && <Text style={styles.errorText}>{errors.username}</Text>}
-        </View>
-
-        {/* Date of Birth */}
-        <View style={styles.field}>
-          <Text style={styles.label}>DOB</Text>
-          <Pressable
-            onPress={() => isFieldEditable('date_of_birth') && setShowDatePicker(true)}
-            disabled={!isFieldEditable('date_of_birth') || loading}
-          >
-            <View style={[styles.input, !isFieldEditable('date_of_birth') && styles.inputDisabled]}>
-              <Text style={dateOfBirth ? styles.inputText : styles.placeholderText}>
-                {dateOfBirth ? dateOfBirth.toLocaleDateString() : 'Select your date of birth'}
-              </Text>
+          {/* Instagram */}
+          <View style={styles.field}>
+            <View style={styles.socialInputContainer}>
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-instagram" size={24} color="#E4405F" />
+              </View>
+              <TextInput
+                style={[styles.socialInput, errors.instagram && styles.inputError]}
+                value={instagram}
+                onChangeText={setInstagram}
+                placeholder="instagram.com/username"
+                placeholderTextColor={Colors.textSecondary}
+                editable={!loading}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
             </View>
-          </Pressable>
-          {errors.dateOfBirth && <Text style={styles.errorText}>{errors.dateOfBirth}</Text>}
-          {showDatePicker && (
-            <DateTimePicker
-              value={dateOfBirth || new Date()}
-              mode="date"
-              display="default"
-              onChange={handleDateChange}
-              maximumDate={new Date()}
-            />
-          )}
-        </View>
+            {errors.instagram && <Text style={styles.errorText}>{errors.instagram}</Text>}
+          </View>
 
-        {/* Gender */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Gender</Text>
-          {isFieldEditable('gender') ? (
-            <View style={styles.genderContainer}>
-              {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
+          {/* YouTube */}
+          <View style={styles.field}>
+            <View style={styles.socialInputContainer}>
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-youtube" size={24} color="#FF0000" />
+              </View>
+              <TextInput
+                style={[styles.socialInput, errors.youtube && styles.inputError]}
+                value={youtube}
+                onChangeText={setYoutube}
+                placeholder="youtube.com/channel"
+                placeholderTextColor={Colors.textSecondary}
+                editable={!loading}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            {errors.youtube && <Text style={styles.errorText}>{errors.youtube}</Text>}
+          </View>
+
+          {/* LinkedIn */}
+          <View style={styles.field}>
+            <View style={styles.socialInputContainer}>
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
+              </View>
+              <TextInput
+                style={[styles.socialInput, errors.linkedin && styles.inputError]}
+                value={linkedin}
+                onChangeText={setLinkedin}
+                placeholder="linkedin.com/in/username"
+                placeholderTextColor={Colors.textSecondary}
+                editable={!loading}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            {errors.linkedin && <Text style={styles.errorText}>{errors.linkedin}</Text>}
+          </View>
+
+          {/* Twitter/X */}
+          <View style={styles.field}>
+            <View style={styles.socialInputContainer}>
+              <View style={styles.socialIconContainer}>
+                <Ionicons name="logo-twitter" size={24} color="#000000" />
+              </View>
+              <TextInput
+                style={[styles.socialInput, errors.twitter && styles.inputError]}
+                value={twitter}
+                onChangeText={setTwitter}
+                placeholder="x.com/username"
+                placeholderTextColor={Colors.textSecondary}
+                editable={!loading}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+            </View>
+            {errors.twitter && <Text style={styles.errorText}>{errors.twitter}</Text>}
+          </View>
+
+          {/* Bio / About Me */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>About Me</Text>
+          </View>
+
+          <View style={styles.field}>
+            <TextInput
+              style={[styles.input, styles.textArea, errors.bio && styles.inputError]}
+              value={bio}
+              onChangeText={(text) => {
+                if (text.length <= 500) {
+                  setBio(text);
+                }
+              }}
+              placeholder="Tell us about yourself..."
+              placeholderTextColor={Colors.textSecondary}
+              editable={!loading}
+              multiline
+              numberOfLines={6}
+              textAlignVertical="top"
+              maxLength={500}
+            />
+            <Text style={styles.charCount}>{bio.length}/500 characters</Text>
+            {errors.bio && <Text style={styles.errorText}>{errors.bio}</Text>}
+          </View>
+
+          {/* Interests Section */}
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>My Interests</Text>
+          </View>
+
+          {/* Selected Interests */}
+          {interests.length > 0 && (
+            <View style={styles.selectedInterestsContainer}>
+              {interests.map((interest) => (
                 <Pressable
-                  key={option}
-                  onPress={() => setGender(option)}
+                  key={interest}
+                  style={styles.interestChipSelected}
+                  onPress={() => toggleInterest(interest)}
                   disabled={loading}
-                  style={[styles.genderOption, gender === option && styles.genderOptionSelected]}
+                >
+                  <Text style={styles.interestChipTextSelected}>{interest}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {/* Edit Interests Button */}
+          <Pressable
+            style={styles.editInterestsButton}
+            onPress={() => setShowAllInterests(!showAllInterests)}
+            disabled={loading}
+          >
+            <Text style={styles.editInterestsButtonText}>
+              {showAllInterests ? 'Hide interests' : 'Edit interests'}
+            </Text>
+          </Pressable>
+
+          {/* Available Interests */}
+          {showAllInterests && (
+            <View style={styles.availableInterestsContainer}>
+              {AVAILABLE_INTERESTS.map((interest) => (
+                <Pressable
+                  key={interest}
+                  style={[
+                    styles.interestChip,
+                    interests.includes(interest) && styles.interestChipSelected,
+                  ]}
+                  onPress={() => toggleInterest(interest)}
+                  disabled={loading}
                 >
                   <Text
                     style={[
-                      styles.genderOptionText,
-                      gender === option && styles.genderOptionTextSelected,
+                      styles.interestChipText,
+                      interests.includes(interest) && styles.interestChipTextSelected,
                     ]}
                   >
-                    {option}
+                    {interest}
                   </Text>
                 </Pressable>
               ))}
             </View>
-          ) : (
-            <View style={[styles.input, styles.inputDisabled]}>
-              <Text style={styles.inputText}>{gender || 'Not specified'}</Text>
-            </View>
           )}
         </View>
 
-        {/* Phone */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Phone Number</Text>
-          <TextInput
-            style={[styles.input, errors.phone && styles.inputError]}
-            value={phone}
-            onChangeText={setPhone}
-            placeholder="+1 234 567 8900"
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            keyboardType="phone-pad"
+        {/* Action Buttons */}
+        <View style={styles.actions}>
+          <Button
+            title="Cancel"
+            onPress={onCancel}
+            variant="secondary"
+            size="large"
+            fullWidth
+            disabled={loading}
           />
-          {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
-        </View>
-
-        {/* Email (Non-editable, display only) */}
-        <View style={styles.field}>
-          <Text style={styles.label}>Email</Text>
-          <View style={[styles.input, styles.inputDisabled]}>
-            <Text style={styles.inputText}>{profile.email}</Text>
-          </View>
-        </View>
-
-        {/* Social Media Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Enter Your Socials</Text>
-        </View>
-
-        {/* Instagram */}
-        <View style={styles.field}>
-          <View style={styles.socialInputContainer}>
-            <View style={styles.socialIconContainer}>
-              <Ionicons name="logo-instagram" size={24} color="#E4405F" />
-            </View>
-            <TextInput
-              style={[styles.socialInput, errors.instagram && styles.inputError]}
-              value={instagram}
-              onChangeText={setInstagram}
-              placeholder="instagram.com/username"
-              placeholderTextColor={Colors.textSecondary}
-              editable={!loading}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          {errors.instagram && <Text style={styles.errorText}>{errors.instagram}</Text>}
-        </View>
-
-        {/* YouTube */}
-        <View style={styles.field}>
-          <View style={styles.socialInputContainer}>
-            <View style={styles.socialIconContainer}>
-              <Ionicons name="logo-youtube" size={24} color="#FF0000" />
-            </View>
-            <TextInput
-              style={[styles.socialInput, errors.youtube && styles.inputError]}
-              value={youtube}
-              onChangeText={setYoutube}
-              placeholder="youtube.com/channel"
-              placeholderTextColor={Colors.textSecondary}
-              editable={!loading}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          {errors.youtube && <Text style={styles.errorText}>{errors.youtube}</Text>}
-        </View>
-
-        {/* LinkedIn */}
-        <View style={styles.field}>
-          <View style={styles.socialInputContainer}>
-            <View style={styles.socialIconContainer}>
-              <Ionicons name="logo-linkedin" size={24} color="#0077B5" />
-            </View>
-            <TextInput
-              style={[styles.socialInput, errors.linkedin && styles.inputError]}
-              value={linkedin}
-              onChangeText={setLinkedin}
-              placeholder="linkedin.com/in/username"
-              placeholderTextColor={Colors.textSecondary}
-              editable={!loading}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          {errors.linkedin && <Text style={styles.errorText}>{errors.linkedin}</Text>}
-        </View>
-
-        {/* Twitter/X */}
-        <View style={styles.field}>
-          <View style={styles.socialInputContainer}>
-            <View style={styles.socialIconContainer}>
-              <Ionicons name="logo-twitter" size={24} color="#000000" />
-            </View>
-            <TextInput
-              style={[styles.socialInput, errors.twitter && styles.inputError]}
-              value={twitter}
-              onChangeText={setTwitter}
-              placeholder="x.com/username"
-              placeholderTextColor={Colors.textSecondary}
-              editable={!loading}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
-          </View>
-          {errors.twitter && <Text style={styles.errorText}>{errors.twitter}</Text>}
-        </View>
-
-        {/* Bio / About Me */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>About Me</Text>
-        </View>
-
-        <View style={styles.field}>
-          <TextInput
-            style={[styles.input, styles.textArea, errors.bio && styles.inputError]}
-            value={bio}
-            onChangeText={(text) => {
-              if (text.length <= 500) {
-                setBio(text);
-              }
-            }}
-            placeholder="Tell us about yourself..."
-            placeholderTextColor={Colors.textSecondary}
-            editable={!loading}
-            multiline
-            numberOfLines={6}
-            textAlignVertical="top"
-            maxLength={500}
+          <Button
+            title={loading ? 'Saving...' : 'Save Changes'}
+            onPress={handleSave}
+            variant="primary"
+            size="large"
+            fullWidth
+            disabled={loading}
           />
-          <Text style={styles.charCount}>{bio.length}/500 characters</Text>
-          {errors.bio && <Text style={styles.errorText}>{errors.bio}</Text>}
         </View>
-
-        {/* Interests Section */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>My Interests</Text>
-        </View>
-
-        {/* Selected Interests */}
-        {interests.length > 0 && (
-          <View style={styles.selectedInterestsContainer}>
-            {interests.map((interest) => (
-              <Pressable
-                key={interest}
-                style={styles.interestChipSelected}
-                onPress={() => toggleInterest(interest)}
-                disabled={loading}
-              >
-                <Text style={styles.interestChipTextSelected}>{interest}</Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* Edit Interests Button */}
-        <Pressable
-          style={styles.editInterestsButton}
-          onPress={() => setShowAllInterests(!showAllInterests)}
-          disabled={loading}
-        >
-          <Text style={styles.editInterestsButtonText}>
-            {showAllInterests ? 'Hide interests' : 'Edit interests'}
-          </Text>
-        </Pressable>
-
-        {/* Available Interests */}
-        {showAllInterests && (
-          <View style={styles.availableInterestsContainer}>
-            {AVAILABLE_INTERESTS.map((interest) => (
-              <Pressable
-                key={interest}
-                style={[
-                  styles.interestChip,
-                  interests.includes(interest) && styles.interestChipSelected,
-                ]}
-                onPress={() => toggleInterest(interest)}
-                disabled={loading}
-              >
-                <Text
-                  style={[
-                    styles.interestChipText,
-                    interests.includes(interest) && styles.interestChipTextSelected,
-                  ]}
-                >
-                  {interest}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-      </View>
-
-      {/* Action Buttons */}
-      <View style={styles.actions}>
-        <Button
-          title="Cancel"
-          onPress={onCancel}
-          variant="secondary"
-          size="large"
-          fullWidth
-          disabled={loading}
-        />
-        <Button
-          title={loading ? 'Saving...' : 'Save Changes'}
-          onPress={handleSave}
-          variant="primary"
-          size="large"
-          fullWidth
-          disabled={loading}
-        />
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

@@ -91,6 +91,7 @@ export default function AdminListingsScreen() {
     setListings([]);
     setPage(1);
     fetchListings(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const onRefresh = async () => {

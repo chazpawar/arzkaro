@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable, Alert } from 'react-native';
-import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
@@ -132,6 +132,17 @@ export default function BookEventScreen() {
         );
 
         if (!paymentResult.success) {
+          // Check if payment was cancelled by user
+          if (paymentResult.cancelled) {
+            // User cancelled - just show a simple message, don't throw error
+            Alert.alert(
+              'Booking Cancelled',
+              'You cancelled the payment. Your booking was not created.',
+              [{ text: 'OK' }]
+            );
+            return; // Exit without throwing error
+          }
+          // Actual payment error (not cancellation)
           throw new Error(paymentResult.error || 'Payment failed');
         }
 
@@ -212,178 +223,170 @@ export default function BookEventScreen() {
   }
 
   return (
-    <>
-      <Stack.Screen
-        options={{
-          title: 'Book Tickets',
-          headerBackTitle: '',
-        }}
-      />
-      <SafeAreaView style={styles.container} edges={['bottom']}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryMedia}>
-              {event.cover_image_url ? (
-                <Image source={{ uri: event.cover_image_url }} style={styles.summaryImage} />
-              ) : (
-                <Text style={styles.summaryEmoji}>
-                  {event.type === 'event' ? '🎉' : event.type === 'experience' ? '✨' : '🏟️'}
-                </Text>
-              )}
-            </View>
-            <View style={styles.summaryInfo}>
-              <Text style={styles.summaryTitle} numberOfLines={2}>
-                {event.title}
-              </Text>
-              <Text style={styles.summaryMeta}>
-                {formatDate(event.start_date)} · {formatTime(event.start_date)}
-              </Text>
-              {event.location_name && (
-                <View style={styles.summaryLocation}>
-                  <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
-                  <Text style={styles.summaryLocationText} numberOfLines={1}>
-                    {event.location_name}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-
-          {ticketTypes.length > 0 && (
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>Ticket Type</Text>
-              <View style={styles.ticketList}>
-                {ticketTypes.map((ticket: TicketType) => {
-                  const available = ticket.quantity_available - ticket.quantity_sold;
-                  const isSelected = selectedTicketType?.id === ticket.id;
-                  const isSoldOut = available <= 0;
-
-                  return (
-                    <Pressable
-                      key={ticket.id}
-                      onPress={() => !isSoldOut && setSelectedTicketType(ticket)}
-                      disabled={isSoldOut}
-                      style={[
-                        styles.ticketOption,
-                        isSelected && styles.ticketOptionSelected,
-                        isSoldOut && styles.ticketOptionDisabled,
-                      ]}
-                    >
-                      <View style={styles.ticketOptionHeader}>
-                        <Text
-                          style={[
-                            styles.ticketOptionName,
-                            isSoldOut && styles.ticketOptionNameDisabled,
-                          ]}
-                        >
-                          {ticket.name}
-                        </Text>
-                        <Text
-                          style={[
-                            styles.ticketOptionPrice,
-                            isSoldOut && styles.ticketOptionPriceDisabled,
-                          ]}
-                        >
-                          {formatPrice(ticket.price)}
-                        </Text>
-                      </View>
-                      {ticket.description && (
-                        <Text style={styles.ticketOptionDescription}>{ticket.description}</Text>
-                      )}
-                      <Text style={[styles.ticketAvailability, isSoldOut && styles.soldOutText]}>
-                        {isSoldOut ? 'Sold Out' : `${available} left`}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Quantity</Text>
-            <View style={styles.quantityCard}>
-              <Pressable
-                style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
-                onPress={() => handleQuantityChange(-1)}
-                disabled={quantity <= 1}
-              >
-                <Text style={styles.quantityButtonSymbol}>-</Text>
-              </Pressable>
-              <View style={styles.quantityValueBubble}>
-                <Text style={styles.quantityValue}>{quantity}</Text>
-              </View>
-              <Pressable
-                style={[
-                  styles.quantityButton,
-                  quantity >= maxQuantity && styles.quantityButtonDisabled,
-                ]}
-                onPress={() => handleQuantityChange(1)}
-                disabled={quantity >= maxQuantity}
-              >
-                <Text style={styles.quantityButtonSymbol}>+</Text>
-              </Pressable>
-            </View>
-            {maxQuantity < 10 && (
-              <Text style={styles.quantityHint}>
-                Maximum {maxQuantity} ticket{maxQuantity !== 1 ? 's' : ''} available
+    <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryMedia}>
+            {event.cover_image_url ? (
+              <Image source={{ uri: event.cover_image_url }} style={styles.summaryImage} />
+            ) : (
+              <Text style={styles.summaryEmoji}>
+                {event.type === 'event' ? '🎉' : event.type === 'experience' ? '✨' : '🏟️'}
               </Text>
             )}
           </View>
+          <View style={styles.summaryInfo}>
+            <Text style={styles.summaryTitle} numberOfLines={2}>
+              {event.title}
+            </Text>
+            <Text style={styles.summaryMeta}>
+              {formatDate(event.start_date)} · {formatTime(event.start_date)}
+            </Text>
+            {event.location_name && (
+              <View style={styles.summaryLocation}>
+                <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
+                <Text style={styles.summaryLocationText} numberOfLines={1}>
+                  {event.location_name}
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
 
+        {ticketTypes.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Price Summary</Text>
-            <View style={styles.priceCard}>
-              <View style={styles.priceRow}>
-                <Text style={styles.priceLabel}>
-                  {selectedTicketType?.name || 'Ticket'} x {quantity}
-                </Text>
-                <Text style={styles.priceValue}>{formatPrice(totalAmount)}</Text>
-              </View>
-              <View style={styles.priceDivider} />
-              <View style={styles.priceRow}>
-                <Text style={styles.totalLabel}>Total</Text>
-                <Text style={styles.totalValue}>
-                  {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
-                </Text>
-              </View>
-              {totalAmount === 0 && <Text style={styles.freeTag}>This one&apos;s on us 🎉</Text>}
+            <Text style={styles.sectionLabel}>Ticket Type</Text>
+            <View style={styles.ticketList}>
+              {ticketTypes.map((ticket: TicketType) => {
+                const available = ticket.quantity_available - ticket.quantity_sold;
+                const isSelected = selectedTicketType?.id === ticket.id;
+                const isSoldOut = available <= 0;
+
+                return (
+                  <Pressable
+                    key={ticket.id}
+                    onPress={() => !isSoldOut && setSelectedTicketType(ticket)}
+                    disabled={isSoldOut}
+                    style={[
+                      styles.ticketOption,
+                      isSelected && styles.ticketOptionSelected,
+                      isSoldOut && styles.ticketOptionDisabled,
+                    ]}
+                  >
+                    <View style={styles.ticketOptionHeader}>
+                      <Text
+                        style={[
+                          styles.ticketOptionName,
+                          isSoldOut && styles.ticketOptionNameDisabled,
+                        ]}
+                      >
+                        {ticket.name}
+                      </Text>
+                      <Text
+                        style={[
+                          styles.ticketOptionPrice,
+                          isSoldOut && styles.ticketOptionPriceDisabled,
+                        ]}
+                      >
+                        {formatPrice(ticket.price)}
+                      </Text>
+                    </View>
+                    {ticket.description && (
+                      <Text style={styles.ticketOptionDescription}>{ticket.description}</Text>
+                    )}
+                    <Text style={[styles.ticketAvailability, isSoldOut && styles.soldOutText]}>
+                      {isSoldOut ? 'Sold Out' : `${available} left`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
+        )}
 
-          <View style={styles.infoBanner}>
-            <View style={styles.infoIcon}>
-              <Ionicons name="ticket-outline" size={18} color={Colors.primaryDark} />
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Quantity</Text>
+          <View style={styles.quantityCard}>
+            <Pressable
+              style={[styles.quantityButton, quantity <= 1 && styles.quantityButtonDisabled]}
+              onPress={() => handleQuantityChange(-1)}
+              disabled={quantity <= 1}
+            >
+              <Text style={styles.quantityButtonSymbol}>-</Text>
+            </Pressable>
+            <View style={styles.quantityValueBubble}>
+              <Text style={styles.quantityValue}>{quantity}</Text>
             </View>
-            <View style={styles.infoCopy}>
-              <Text style={styles.infoBannerTitle}>Instant digital tickets</Text>
-              <Text style={styles.infoBannerText}>
-                You&apos;ll get QR code tickets and access to the event chat as soon as the booking
-                goes through.
+            <Pressable
+              style={[
+                styles.quantityButton,
+                quantity >= maxQuantity && styles.quantityButtonDisabled,
+              ]}
+              onPress={() => handleQuantityChange(1)}
+              disabled={quantity >= maxQuantity}
+            >
+              <Text style={styles.quantityButtonSymbol}>+</Text>
+            </Pressable>
+          </View>
+          {maxQuantity < 10 && (
+            <Text style={styles.quantityHint}>
+              Maximum {maxQuantity} ticket{maxQuantity !== 1 ? 's' : ''} available
+            </Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionLabel}>Price Summary</Text>
+          <View style={styles.priceCard}>
+            <View style={styles.priceRow}>
+              <Text style={styles.priceLabel}>
+                {selectedTicketType?.name || 'Ticket'} x {quantity}
+              </Text>
+              <Text style={styles.priceValue}>{formatPrice(totalAmount)}</Text>
+            </View>
+            <View style={styles.priceDivider} />
+            <View style={styles.priceRow}>
+              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalValue}>
+                {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
               </Text>
             </View>
+            {totalAmount === 0 && <Text style={styles.freeTag}>This one&apos;s on us 🎉</Text>}
           </View>
-        </ScrollView>
+        </View>
 
-        <View style={styles.footer}>
-          <View>
-            <Text style={styles.footerLabel}>Total</Text>
-            <Text style={styles.footerValue}>
-              {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
+        <View style={styles.infoBanner}>
+          <View style={styles.infoIcon}>
+            <Ionicons name="ticket-outline" size={18} color={Colors.primaryDark} />
+          </View>
+          <View style={styles.infoCopy}>
+            <Text style={styles.infoBannerTitle}>Instant digital tickets</Text>
+            <Text style={styles.infoBannerText}>
+              You&apos;ll get QR code tickets and access to the event chat as soon as the booking
+              goes through.
             </Text>
           </View>
-          <Button
-            title={bookingLoading ? 'Booking...' : 'Confirm Booking'}
-            onPress={handleConfirmBooking}
-            variant="primary"
-            size="large"
-            disabled={!canBook || bookingLoading}
-            loading={bookingLoading}
-            style={styles.confirmButton}
-          />
         </View>
-      </SafeAreaView>
-    </>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <View>
+          <Text style={styles.footerLabel}>Total</Text>
+          <Text style={styles.footerValue}>
+            {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
+          </Text>
+        </View>
+        <Button
+          title={bookingLoading ? 'Booking...' : 'Confirm Booking'}
+          onPress={handleConfirmBooking}
+          variant="primary"
+          size="large"
+          disabled={!canBook || bookingLoading}
+          loading={bookingLoading}
+          style={styles.confirmButton}
+        />
+      </View>
+    </SafeAreaView>
   );
 }
 

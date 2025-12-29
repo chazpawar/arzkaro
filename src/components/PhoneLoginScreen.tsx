@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
@@ -78,94 +89,108 @@ export default function PhoneLoginScreen({
         <View style={styles.placeholder} />
       </View>
 
-      {/* Content */}
-      <View style={styles.content}>
-        <Text style={styles.title}>{otpSent ? 'Enter OTP' : 'Enter your phone number'}</Text>
-        <Text style={styles.subtitle}>
-          {otpSent
-            ? `We've sent a 6-digit OTP to +91 ${phoneNumber}`
-            : 'We will send you a one-time password'}
-        </Text>
-
-        {/* Error Message */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        {!otpSent ? (
-          // Phone Number Input
-          <View style={styles.inputContainer}>
-            <View style={styles.phoneInputWrapper}>
-              <Text style={styles.countryCode}>+91</Text>
-              <TextInput
-                style={styles.phoneInput}
-                placeholder="Enter phone number"
-                placeholderTextColor={Colors.textTertiary}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
-                maxLength={10}
-                autoFocus
-              />
-            </View>
-          </View>
-        ) : (
-          // OTP Input
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.otpInput}
-              placeholder="Enter 6-digit OTP"
-              placeholderTextColor={Colors.textTertiary}
-              value={otp}
-              onChangeText={setOtp}
-              keyboardType="number-pad"
-              maxLength={6}
-              autoFocus
-            />
-          </View>
-        )}
-
-        {/* Action Button */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.actionButton,
-            pressed && styles.buttonPressed,
-            loading && styles.buttonDisabled,
-          ]}
-          onPress={otpSent ? handleVerifyOtp : handleSendOtp}
-          disabled={loading}
-        >
-          <Text style={styles.actionButtonText}>
-            {loading ? 'Please wait...' : otpSent ? 'Verify OTP' : 'Send OTP'}
-          </Text>
-        </Pressable>
-
-        {/* Resend OTP */}
-        {otpSent && (
-          <Pressable
-            style={styles.resendButton}
-            onPress={() => {
-              setOtpSent(false);
-              setOtp('');
-              setError(null);
-            }}
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.resendText}>Resend OTP</Text>
-          </Pressable>
-        )}
+            {/* Content */}
+            <View style={styles.content}>
+              <Text style={styles.title}>{otpSent ? 'Enter OTP' : 'Enter your phone number'}</Text>
+              <Text style={styles.subtitle}>
+                {otpSent
+                  ? `We've sent a 6-digit OTP to +91 ${phoneNumber}`
+                  : 'We will send you a one-time password'}
+              </Text>
 
-        {/* Sign Up Link */}
-        {!otpSent && (
-          <View style={styles.signupContainer}>
-            <Text style={styles.signupText}>Don&apos;t have an account? </Text>
-            <Pressable onPress={onSignupPress}>
-              <Text style={styles.signupLink}>Sign Up</Text>
-            </Pressable>
-          </View>
-        )}
-      </View>
+              {/* Error Message */}
+              {error && (
+                <View style={styles.errorContainer}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              )}
+
+              {!otpSent ? (
+                // Phone Number Input
+                <View style={styles.inputContainer}>
+                  <View style={styles.phoneInputWrapper}>
+                    <Text style={styles.countryCode}>+91</Text>
+                    <TextInput
+                      style={styles.phoneInput}
+                      placeholder="Enter phone number"
+                      placeholderTextColor={Colors.textTertiary}
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      autoFocus
+                    />
+                  </View>
+                </View>
+              ) : (
+                // OTP Input
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.otpInput}
+                    placeholder="Enter 6-digit OTP"
+                    placeholderTextColor={Colors.textTertiary}
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </View>
+              )}
+
+              {/* Action Button */}
+              <Pressable
+                style={({ pressed }) => [
+                  styles.actionButton,
+                  pressed && styles.buttonPressed,
+                  loading && styles.buttonDisabled,
+                ]}
+                onPress={otpSent ? handleVerifyOtp : handleSendOtp}
+                disabled={loading}
+              >
+                <Text style={styles.actionButtonText}>
+                  {loading ? 'Please wait...' : otpSent ? 'Verify OTP' : 'Send OTP'}
+                </Text>
+              </Pressable>
+
+              {/* Resend OTP */}
+              {otpSent && (
+                <Pressable
+                  style={styles.resendButton}
+                  onPress={() => {
+                    setOtpSent(false);
+                    setOtp('');
+                    setError(null);
+                  }}
+                >
+                  <Text style={styles.resendText}>Resend OTP</Text>
+                </Pressable>
+              )}
+
+              {/* Sign Up Link */}
+              {!otpSent && (
+                <View style={styles.signupContainer}>
+                  <Text style={styles.signupText}>Don&apos;t have an account? </Text>
+                  <Pressable onPress={onSignupPress}>
+                    <Text style={styles.signupLink}>Sign Up</Text>
+                  </Pressable>
+                </View>
+              )}
+            </View>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -174,6 +199,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
   },
   header: {
     flexDirection: 'row',

@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  TextInput,
+  ScrollView,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
@@ -96,128 +107,143 @@ export default function PhoneSignupScreen({ onBack, onSuccess }: PhoneSignupScre
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Title and Subtitle */}
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>
-          {!otpSent
-            ? 'Enter your details to get started'
-            : 'Enter the 6-digit code sent to your phone'}
-        </Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoid}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {/* Title and Subtitle */}
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>
+              {!otpSent
+                ? 'Enter your details to get started'
+                : 'Enter the 6-digit code sent to your phone'}
+            </Text>
 
-        {/* Error Message */}
-        {error && (
-          <View style={styles.errorContainer}>
-            <Text style={styles.errorText}>{error}</Text>
-          </View>
-        )}
-
-        {!otpSent ? (
-          <>
-            {/* Name Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Full Name</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons
-                  name="person-outline"
-                  size={20}
-                  color={Colors.textSecondary}
-                  style={styles.inputIcon}
-                />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter your full name"
-                  placeholderTextColor={Colors.textSecondary}
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
-                  autoCorrect={false}
-                />
+            {/* Error Message */}
+            {error && (
+              <View style={styles.errorContainer}>
+                <Text style={styles.errorText}>{error}</Text>
               </View>
-            </View>
+            )}
 
-            {/* Phone Number Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Phone Number</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons
-                  name="call-outline"
-                  size={20}
-                  color={Colors.textSecondary}
-                  style={styles.inputIcon}
-                />
-                <Text style={styles.countryCode}>+91</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="10-digit mobile number"
-                  placeholderTextColor={Colors.textSecondary}
-                  value={phoneNumber}
-                  onChangeText={setPhoneNumber}
-                  keyboardType="phone-pad"
-                  maxLength={10}
-                  autoFocus
-                />
-              </View>
-            </View>
+            {!otpSent ? (
+              <>
+                {/* Name Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Full Name</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="person-outline"
+                      size={20}
+                      color={Colors.textSecondary}
+                      style={styles.inputIcon}
+                    />
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Enter your full name"
+                      placeholderTextColor={Colors.textSecondary}
+                      value={name}
+                      onChangeText={setName}
+                      autoCapitalize="words"
+                      autoCorrect={false}
+                    />
+                  </View>
+                </View>
 
-            {/* Send OTP Button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.buttonPressed,
-                loading && styles.buttonDisabled,
-              ]}
-              onPress={handleSendOtp}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>{loading ? 'Sending...' : 'Send OTP'}</Text>
-            </Pressable>
-          </>
-        ) : (
-          <>
-            {/* OTP Input */}
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Enter OTP</Text>
-              <TextInput
-                style={styles.otpInput}
-                placeholder="000000"
-                placeholderTextColor={Colors.textSecondary}
-                value={otp}
-                onChangeText={setOtp}
-                keyboardType="number-pad"
-                maxLength={6}
-                autoFocus
-              />
-            </View>
+                {/* Phone Number Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Phone Number</Text>
+                  <View style={styles.inputWrapper}>
+                    <Ionicons
+                      name="call-outline"
+                      size={20}
+                      color={Colors.textSecondary}
+                      style={styles.inputIcon}
+                    />
+                    <Text style={styles.countryCode}>+91</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="10-digit mobile number"
+                      placeholderTextColor={Colors.textSecondary}
+                      value={phoneNumber}
+                      onChangeText={setPhoneNumber}
+                      keyboardType="phone-pad"
+                      maxLength={10}
+                      autoFocus
+                    />
+                  </View>
+                </View>
 
-            {/* Resend OTP */}
-            <Pressable onPress={handleResendOtp} disabled={loading} style={styles.resendButton}>
-              <Text style={styles.resendText}>Didn&apos;t receive OTP? Resend</Text>
-            </Pressable>
+                {/* Send OTP Button */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.primaryButton,
+                    pressed && styles.buttonPressed,
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleSendOtp}
+                  disabled={loading}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    {loading ? 'Sending...' : 'Send OTP'}
+                  </Text>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                {/* OTP Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Enter OTP</Text>
+                  <TextInput
+                    style={styles.otpInput}
+                    placeholder="000000"
+                    placeholderTextColor={Colors.textSecondary}
+                    value={otp}
+                    onChangeText={setOtp}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    autoFocus
+                  />
+                </View>
 
-            {/* Verify OTP Button */}
-            <Pressable
-              style={({ pressed }) => [
-                styles.primaryButton,
-                pressed && styles.buttonPressed,
-                loading && styles.buttonDisabled,
-              ]}
-              onPress={handleVerifyOtp}
-              disabled={loading}
-            >
-              <Text style={styles.primaryButtonText}>
-                {loading ? 'Verifying...' : 'Create Account'}
-              </Text>
-            </Pressable>
-          </>
-        )}
+                {/* Resend OTP */}
+                <Pressable onPress={handleResendOtp} disabled={loading} style={styles.resendButton}>
+                  <Text style={styles.resendText}>Didn&apos;t receive OTP? Resend</Text>
+                </Pressable>
 
-        {/* Terms and Conditions */}
-        <Text style={styles.termsText}>
-          By signing up, you agree to our <Text style={styles.termsLink}>Terms of Service</Text> and{' '}
-          <Text style={styles.termsLink}>Privacy Policy</Text>
-        </Text>
-      </ScrollView>
+                {/* Verify OTP Button */}
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.primaryButton,
+                    pressed && styles.buttonPressed,
+                    loading && styles.buttonDisabled,
+                  ]}
+                  onPress={handleVerifyOtp}
+                  disabled={loading}
+                >
+                  <Text style={styles.primaryButtonText}>
+                    {loading ? 'Verifying...' : 'Create Account'}
+                  </Text>
+                </Pressable>
+              </>
+            )}
+
+            {/* Terms and Conditions */}
+            <Text style={styles.termsText}>
+              By signing up, you agree to our <Text style={styles.termsLink}>Terms of Service</Text>{' '}
+              and <Text style={styles.termsLink}>Privacy Policy</Text>
+            </Text>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -226,6 +252,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  keyboardAvoid: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingBottom: Spacing.xxl,
   },
   header: {
     flexDirection: 'row',

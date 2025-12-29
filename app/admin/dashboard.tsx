@@ -258,6 +258,20 @@ export default function AdminDashboard() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
               </Pressable>
+
+              <Pressable
+                style={styles.menuItem}
+                onPress={() => router.push('/admin/notifications')}
+              >
+                <View style={[styles.menuIcon, { backgroundColor: Colors.warningLight }]}>
+                  <Ionicons name="notifications-outline" size={20} color={Colors.warning} />
+                </View>
+                <View style={styles.menuContent}>
+                  <Text style={styles.menuTitle}>Send Notifications</Text>
+                  <Text style={styles.menuSubtitle}>Send promotional push notifications</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={Colors.borderDark} />
+              </Pressable>
             </View>
           </View>
 

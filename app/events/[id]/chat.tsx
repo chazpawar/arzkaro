@@ -10,6 +10,8 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -358,7 +360,7 @@ export default function EventChatScreen() {
         <KeyboardAvoidingView
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
         >
           {/* Group Info Banner */}
           {group?.event && (
@@ -392,28 +394,34 @@ export default function EventChatScreen() {
 
           {/* Messages List */}
           {messages.length === 0 ? (
-            <View style={styles.emptyStateContainer}>
-              <EmptyState
-                title="No Messages Yet"
-                emoji="👋"
-                message="Be the first to say hello! Start a conversation with other event attendees."
-              />
-            </View>
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.emptyStateContainer}>
+                <EmptyState
+                  title="No Messages Yet"
+                  emoji="👋"
+                  message="Be the first to say hello! Start a conversation with other event attendees."
+                />
+              </View>
+            </TouchableWithoutFeedback>
           ) : (
-            <FlatList
-              ref={flatListRef}
-              data={messages}
-              renderItem={renderMessage}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.messagesList}
-              showsVerticalScrollIndicator={false}
-              keyboardShouldPersistTaps="handled"
-              keyboardDismissMode="interactive"
-              onContentSizeChange={() => {
-                flatListRef.current?.scrollToEnd({ animated: false });
-              }}
-              inverted={false}
-            />
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={{ flex: 1 }}>
+                <FlatList
+                  ref={flatListRef}
+                  data={messages}
+                  renderItem={renderMessage}
+                  keyExtractor={(item) => item.id}
+                  contentContainerStyle={styles.messagesList}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                  keyboardDismissMode="interactive"
+                  onContentSizeChange={() => {
+                    flatListRef.current?.scrollToEnd({ animated: false });
+                  }}
+                  inverted={false}
+                />
+              </View>
+            </TouchableWithoutFeedback>
           )}
 
           {/* Typing Indicator */}

@@ -18,6 +18,10 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Firebase (google-services.json is public and can be committed, but add here if you prefer)
+# google-services.json
+*-firebase-adminsdk-*.json
+
 # Metro
 .metro-health-check*
 

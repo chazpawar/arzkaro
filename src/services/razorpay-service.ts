@@ -173,18 +173,21 @@ class RazorpayService {
       return paymentData as RazorpayPaymentSuccess;
     } catch (error) {
       const razorpayError = error as RazorpayPaymentError;
-      console.error('Razorpay Checkout Error:', razorpayError);
 
-      // Handle specific error cases
-      if (razorpayError.code === '0') {
-        // User cancelled the payment
+      // Handle specific error cases - check both string '0' and number 0
+      if (
+        razorpayError.code === '0' ||
+        razorpayError.code === 0 ||
+        razorpayError.description?.includes('cancelled by user')
+      ) {
+        // User cancelled the payment - log as info, not error
         console.log('Payment cancelled by user');
-      } else if (razorpayError.code === '2') {
-        // Network error
-        console.error('Network error during payment');
+      } else if (razorpayError.code === '2' || razorpayError.code === 2) {
+        // Network error - this IS an error
+        console.error('Network error during payment:', razorpayError);
       } else {
-        // Other errors
-        console.error('Payment failed:', razorpayError.description);
+        // Other payment failures - these ARE errors
+        console.error('Razorpay payment failed:', razorpayError);
       }
 
       return null;
@@ -237,7 +240,13 @@ class RazorpayService {
       email: string;
       contact: string;
     }
-  ): Promise<{ success: boolean; paymentId?: string; bookingId?: string; error?: string }> {
+  ): Promise<{
+    success: boolean;
+    paymentId?: string;
+    bookingId?: string;
+    error?: string;
+    cancelled?: boolean;
+  }> {
     try {
       // Step 1: Create order with event details
       console.log('Creating Razorpay order for event:', eventId);
@@ -312,7 +321,7 @@ class RazorpayService {
       });
 
       if (!paymentData) {
-        return { success: false, error: 'Payment cancelled or failed' };
+        return { success: false, error: 'Payment cancelled or failed', cancelled: true };
       }
 
       console.log('Payment successful:', paymentData.razorpay_payment_id);

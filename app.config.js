@@ -37,6 +37,7 @@ module.exports = {
       predictiveBackGestureEnabled: false,
       softwareKeyboardLayoutMode: 'resize',
       permissions: ['ACCESS_COARSE_LOCATION', 'ACCESS_FINE_LOCATION'],
+      googleServicesFile: './google-services.json',
     },
     web: {
       favicon: './assets/favicon.png',
@@ -62,6 +63,13 @@ module.exports = {
         {
           locationAlwaysAndWhenInUsePermission:
             'Allow ArzKaro to use your location to find nearby events and experiences.',
+        },
+      ],
+      [
+        'expo-notifications',
+        {
+          icon: './assets/icon.png',
+          color: '#ffffff',
         },
       ],
     ],
