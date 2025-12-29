@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { NativeModules } from 'react-native';
 import RazorpayCheckoutModule from 'react-native-razorpay';
 import { Config } from '../constants/config';
 import { supabase } from '../../backend/supabase';
@@ -23,7 +24,29 @@ function isExpoGo(): boolean {
  * Check if Razorpay native module is available
  */
 function isRazorpayAvailable(): boolean {
-  return RazorpayCheckout !== null && typeof RazorpayCheckout?.open === 'function';
+  // Check the actual native module that RazorpayCheckout uses internally
+  const nativeModule = NativeModules.RNRazorpayCheckout;
+
+  if (!nativeModule) {
+    return false;
+  }
+
+  // Check if the native module has the open method
+  if (typeof nativeModule.open !== 'function') {
+    return false;
+  }
+
+  // Also check if the RazorpayCheckout wrapper exists
+  if (RazorpayCheckout === null || RazorpayCheckout === undefined) {
+    return false;
+  }
+
+  // Check if the open method exists and is a function
+  if (typeof RazorpayCheckout.open !== 'function') {
+    return false;
+  }
+
+  return true;
 }
 
 /**
@@ -50,17 +73,31 @@ async function addUserToEventGroup(userId: string, eventId: string) {
 
     const groupData = group as Record<string, string>;
 
-    // Add user to group (ignore if already exists)
-    const { error: memberError } = await supabase.from('group_members').upsert(
-      {
-        group_id: groupData.id,
-        user_id: userId,
-        role: 'member',
-      },
-      {
-        onConflict: 'group_id,user_id',
-      }
-    );
+    // Check if user is already a member
+    const { data: existingMember, error: checkError } = await supabase
+      .from('group_members')
+      .select('id')
+      .eq('group_id', groupData.id)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (checkError) {
+      console.error('Error checking group membership:', checkError);
+      return;
+    }
+
+    // If user is already a member, skip insertion
+    if (existingMember) {
+      console.log('User is already a member of the event group');
+      return;
+    }
+
+    // Add user to group (only if not already a member)
+    const { error: memberError } = await supabase.from('group_members').insert({
+      group_id: groupData.id,
+      user_id: userId,
+      role: 'member',
+    });
 
     if (memberError) {
       console.error('Error adding user to group:', memberError);
@@ -166,6 +203,20 @@ class RazorpayService {
         },
         timeout: options.timeout || 600, // 10 minutes default
       };
+
+      // Double-check that RazorpayCheckout is available before calling open
+      const nativeModule = NativeModules.RNRazorpayCheckout;
+      if (!nativeModule || typeof nativeModule.open !== 'function') {
+        throw new Error(
+          'Razorpay native module (RNRazorpayCheckout) is not available. This happens when running in Expo Go or if the native module is not properly linked. Please use a development build: npx expo run:android'
+        );
+      }
+
+      if (!RazorpayCheckout || typeof RazorpayCheckout.open !== 'function') {
+        throw new Error(
+          'Razorpay module wrapper became unavailable. Please rebuild the app with: npx expo run:android'
+        );
+      }
 
       // Open Razorpay Checkout
       const paymentData = await RazorpayCheckout.open(checkoutOptions);

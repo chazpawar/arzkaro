@@ -52,20 +52,37 @@ export default function EventDetailsScreen() {
     if (event?.id) {
       getEventBookings(event.id)
         .then((bookings) => {
-          const users = bookings
+          // Deduplicate users by ID and only show unique users
+          const uniqueUsersMap = new Map();
+          bookings
             .filter((b) => b.user)
-            .slice(0, 3) // Only get first 3 users for display
-            .map((b) => ({
-              id: (b.user as { id: string; full_name: string | null; avatar_url: string | null })
-                .id,
-              full_name: (
+            .forEach((b) => {
+              const userId = (
                 b.user as { id: string; full_name: string | null; avatar_url: string | null }
-              ).full_name,
-              avatar_url: (
-                b.user as { id: string; full_name: string | null; avatar_url: string | null }
-              ).avatar_url,
-            }));
-          setBookedUsers(users);
+              ).id;
+              if (!uniqueUsersMap.has(userId)) {
+                uniqueUsersMap.set(userId, {
+                  id: userId,
+                  full_name: (
+                    b.user as { id: string; full_name: string | null; avatar_url: string | null }
+                  ).full_name,
+                  avatar_url: (
+                    b.user as { id: string; full_name: string | null; avatar_url: string | null }
+                  ).avatar_url,
+                });
+              }
+            });
+
+          // Get first 3 unique users
+          const users = Array.from(uniqueUsersMap.values()).slice(0, 3);
+
+          // Only update if the users actually changed to prevent unnecessary re-renders
+          setBookedUsers((prevUsers) => {
+            const hasChanged =
+              prevUsers.length !== users.length ||
+              prevUsers.some((prev, idx) => prev.id !== users[idx]?.id);
+            return hasChanged ? users : prevUsers;
+          });
         })
         .catch((err) => {
           console.error('Error fetching booked users:', err);
@@ -243,30 +260,35 @@ export default function EventDetailsScreen() {
                   <View style={styles.joinedAvatarsStack}>
                     {/* Display real user avatars */}
                     {bookedUsers.length > 0
-                      ? bookedUsers.map((user, index) => (
-                          <View
-                            key={user.id}
-                            style={[
-                              styles.joinedAvatar,
-                              { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
-                            ]}
-                          >
-                            {user.avatar_url ? (
-                              <Image
-                                source={{ uri: user.avatar_url }}
-                                style={styles.joinedAvatarImage}
-                              />
-                            ) : (
-                              <Text style={styles.joinedAvatarText}>
-                                {user.full_name?.charAt(0).toUpperCase() || '?'}
-                              </Text>
-                            )}
-                          </View>
-                        ))
+                      ? // Filter out any potential duplicates at render time
+                        bookedUsers
+                          .filter(
+                            (user, index, self) => index === self.findIndex((u) => u.id === user.id)
+                          )
+                          .map((user, index) => (
+                            <View
+                              key={user.id}
+                              style={[
+                                styles.joinedAvatar,
+                                { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
+                              ]}
+                            >
+                              {user.avatar_url ? (
+                                <Image
+                                  source={{ uri: user.avatar_url }}
+                                  style={styles.joinedAvatarImage}
+                                />
+                              ) : (
+                                <Text style={styles.joinedAvatarText}>
+                                  {user.full_name?.charAt(0).toUpperCase() || '?'}
+                                </Text>
+                              )}
+                            </View>
+                          ))
                       : // Fallback placeholder while loading
                         [...Array(Math.min(3, event.current_bookings))].map((_, index) => (
                           <View
-                            key={index}
+                            key={`placeholder-${index}`}
                             style={[
                               styles.joinedAvatar,
                               { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
