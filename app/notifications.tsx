@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   PanResponder,
   Alert,
 } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
+import { Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/Colors';
@@ -85,18 +85,12 @@ const getNotificationColor = (type: NotificationType) => {
 // Swipeable notification component
 interface SwipeableNotificationProps {
   notification: any;
-  onPress: () => void;
   onDelete: () => void;
   children: React.ReactNode;
 }
 
-const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
-  onPress,
-  onDelete,
-  children,
-}) => {
+const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({ onDelete, children }) => {
   const translateX = useRef(new Animated.Value(0)).current;
-  const [swiping, setSwiping] = useState(false);
 
   const panResponder = useRef(
     PanResponder.create({
@@ -106,9 +100,6 @@ const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
           Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 10
         );
       },
-      onPanResponderGrant: () => {
-        setSwiping(true);
-      },
       onPanResponderMove: (_, gestureState) => {
         // Only allow left swipe (negative dx)
         if (gestureState.dx < 0) {
@@ -116,8 +107,6 @@ const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
         }
       },
       onPanResponderRelease: (_, gestureState) => {
-        setSwiping(false);
-
         // If swiped more than 60px, show delete button
         if (gestureState.dx < -60) {
           Animated.spring(translateX, {
@@ -139,21 +128,6 @@ const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
     })
   ).current;
 
-  const handlePress = () => {
-    // If the notification is swiped open, close it
-    const currentValue = (translateX as any)._value;
-    if (currentValue < -10) {
-      Animated.spring(translateX, {
-        toValue: 0,
-        useNativeDriver: true,
-        tension: 80,
-        friction: 10,
-      }).start();
-    } else if (!swiping) {
-      onPress();
-    }
-  };
-
   return (
     <View style={styles.swipeableContainer}>
       {/* Delete button (behind the card) */}
@@ -169,40 +143,16 @@ const SwipeableNotification: React.FC<SwipeableNotificationProps> = ({
         style={[styles.swipeableCard, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
-        <Pressable onPress={handlePress} style={{ flex: 1 }}>
-          {children}
-        </Pressable>
+        <View style={{ flex: 1 }}>{children}</View>
       </Animated.View>
     </View>
   );
 };
 
 export default function NotificationsScreen() {
-  const router = useRouter();
   const { user } = useAuth();
-  const {
-    notifications,
-    unreadCount,
-    loading,
-    error,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    refresh,
-  } = useNotifications(user?.id);
-
-  const handleNotificationPress = async (notificationId: string, actionUrl?: string | null) => {
-    try {
-      await markAsRead(notificationId);
-
-      // Navigate if action URL exists
-      if (actionUrl) {
-        router.push(actionUrl as any);
-      }
-    } catch (err) {
-      console.error('Error handling notification press:', err);
-    }
-  };
+  const { notifications, unreadCount, loading, error, markAllAsRead, deleteNotification, refresh } =
+    useNotifications(user?.id);
 
   const handleDeleteNotification = (notificationId: string) => {
     Alert.alert('Delete Notification', 'Are you sure you want to delete this notification?', [
@@ -237,7 +187,6 @@ export default function NotificationsScreen() {
       <SwipeableNotification
         key={notification.id}
         notification={notification}
-        onPress={() => handleNotificationPress(notification.id, notification.action_url)}
         onDelete={() => handleDeleteNotification(notification.id)}
       >
         <View

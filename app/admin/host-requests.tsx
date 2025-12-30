@@ -13,6 +13,7 @@ import {
   Modal,
   StatusBar,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -27,6 +28,7 @@ import { useAuth } from '../../src/contexts/auth-context';
 import * as AdminService from '../../src/services/admin-service';
 import { HOST_TYPE_LABELS } from '../../src/services/host-service';
 import type { HostRequestWithUser } from '../../src/types/host.types';
+import { supabase } from '../../backend/supabase';
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
@@ -47,6 +49,9 @@ export default function HostRequestsPage() {
   const [approving, setApproving] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [adminNotes, setAdminNotes] = useState('');
+  const [panImageUrl, setPanImageUrl] = useState<string | null>(null);
+  const [gstImageUrl, setGstImageUrl] = useState<string | null>(null);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   const LIMIT = 20;
 
@@ -193,6 +198,61 @@ export default function HostRequestsPage() {
     if (days < 7) return `${days} days ago`;
     return formatDate(dateString);
   };
+
+  // Fetch signed URLs for private documents
+  const fetchDocumentUrls = async (request: HostRequestWithUser) => {
+    setLoadingImages(true);
+    setPanImageUrl(null);
+    setGstImageUrl(null);
+
+    try {
+      // Extract path from public URL if needed
+      const extractPath = (url: string) => {
+        // If URL contains the bucket name, extract the path after it
+        const bucketMatch = url.match(/host-documents\/(.+)$/);
+        return bucketMatch ? bucketMatch[1] : url;
+      };
+
+      // Get signed URL for PAN card
+      if (request.pan_card_photo_url) {
+        const panPath = extractPath(request.pan_card_photo_url);
+        const { data: panData, error: panError } = await supabase.storage
+          .from('host-documents')
+          .createSignedUrl(panPath, 3600); // 1 hour expiry
+
+        if (panError) {
+          console.error('Error fetching PAN signed URL:', panError);
+        } else if (panData) {
+          setPanImageUrl(panData.signedUrl);
+        }
+      }
+
+      // Get signed URL for GST certificate
+      if (request.gst_certificate_url) {
+        const gstPath = extractPath(request.gst_certificate_url);
+        const { data: gstData, error: gstError } = await supabase.storage
+          .from('host-documents')
+          .createSignedUrl(gstPath, 3600); // 1 hour expiry
+
+        if (gstError) {
+          console.error('Error fetching GST signed URL:', gstError);
+        } else if (gstData) {
+          setGstImageUrl(gstData.signedUrl);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching document URLs:', error);
+    } finally {
+      setLoadingImages(false);
+    }
+  };
+
+  // Fetch document URLs when request is selected
+  React.useEffect(() => {
+    if (selectedRequest) {
+      fetchDocumentUrls(selectedRequest);
+    }
+  }, [selectedRequest]);
 
   const renderRequestItem = ({ item }: { item: HostRequestWithUser }) => {
     const statusStyle = getStatusStyle(item.status);
@@ -496,31 +556,20 @@ export default function HostRequestsPage() {
                   {selectedRequest.pan_card_photo_url ? (
                     <>
                       {/* PAN Card Document */}
-                      <View style={styles.documentRow}>
-                        <View style={styles.documentInfo}>
-                          <View style={styles.documentHeader}>
-                            <Ionicons
-                              name="document-text-outline"
-                              size={20}
-                              color={Colors.primary}
-                            />
-                            <Text style={styles.documentTitle}>PAN Card Photo</Text>
-                          </View>
-                          <Text style={styles.documentUrl} numberOfLines={1}>
-                            {selectedRequest.pan_card_photo_url}
-                          </Text>
+                      <View style={styles.documentSection}>
+                        <View style={styles.documentLabelRow}>
+                          <Ionicons name="document-text-outline" size={20} color={Colors.primary} />
+                          <Text style={styles.documentLabel}>PAN Card Photo</Text>
                         </View>
                         <Pressable
-                          style={styles.viewDocButton}
+                          style={styles.documentImageContainer}
                           onPress={async () => {
-                            // Open URL in browser
-                            if (selectedRequest.pan_card_photo_url) {
+                            // Open URL in browser for full view
+                            if (panImageUrl) {
                               try {
-                                const canOpen = await Linking.canOpenURL(
-                                  selectedRequest.pan_card_photo_url
-                                );
+                                const canOpen = await Linking.canOpenURL(panImageUrl);
                                 if (canOpen) {
-                                  await Linking.openURL(selectedRequest.pan_card_photo_url);
+                                  await Linking.openURL(panImageUrl);
                                 } else {
                                   Alert.alert(
                                     'Error',
@@ -528,43 +577,71 @@ export default function HostRequestsPage() {
                                   );
                                 }
                               } catch (error) {
-                                Alert.alert('Error', 'Failed to open document URL');
+                                Alert.alert('Error', 'Failed to open document');
                                 console.error('Error opening URL:', error);
                               }
                             }
                           }}
                         >
-                          <Ionicons name="open-outline" size={18} color={Colors.primary} />
-                          <Text style={styles.viewDocText}>View</Text>
+                          {loadingImages ? (
+                            <View style={styles.loadingContainer}>
+                              <ActivityIndicator size="large" color={Colors.primary} />
+                              <Text style={styles.loadingText}>Loading document...</Text>
+                            </View>
+                          ) : panImageUrl ? (
+                            <>
+                              <Image
+                                source={{ uri: panImageUrl }}
+                                style={styles.documentImage}
+                                resizeMode="cover"
+                                onError={(error) => {
+                                  console.error('PAN Card Image Error:', error.nativeEvent.error);
+                                  console.log('PAN Card URL:', panImageUrl);
+                                }}
+                              />
+                              <View style={styles.documentOverlay}>
+                                <Ionicons
+                                  name="expand-outline"
+                                  size={20}
+                                  color={Colors.textInverse}
+                                />
+                                <Text style={styles.documentOverlayText}>
+                                  Tap to view full size
+                                </Text>
+                              </View>
+                            </>
+                          ) : (
+                            <View style={styles.loadingContainer}>
+                              <Ionicons
+                                name="alert-circle-outline"
+                                size={40}
+                                color={Colors.textSecondary}
+                              />
+                              <Text style={styles.loadingText}>Failed to load document</Text>
+                            </View>
+                          )}
                         </Pressable>
                       </View>
 
                       {/* GST Certificate Document (if provided) */}
                       {selectedRequest.gst_certificate_url && (
-                        <View style={styles.documentRow}>
-                          <View style={styles.documentInfo}>
-                            <View style={styles.documentHeader}>
-                              <Ionicons
-                                name="document-text-outline"
-                                size={20}
-                                color={Colors.primary}
-                              />
-                              <Text style={styles.documentTitle}>GST Certificate</Text>
-                            </View>
-                            <Text style={styles.documentUrl} numberOfLines={1}>
-                              {selectedRequest.gst_certificate_url}
-                            </Text>
+                        <View style={styles.documentSection}>
+                          <View style={styles.documentLabelRow}>
+                            <Ionicons
+                              name="document-text-outline"
+                              size={20}
+                              color={Colors.primary}
+                            />
+                            <Text style={styles.documentLabel}>GST Certificate</Text>
                           </View>
                           <Pressable
-                            style={styles.viewDocButton}
+                            style={styles.documentImageContainer}
                             onPress={async () => {
-                              if (selectedRequest.gst_certificate_url) {
+                              if (gstImageUrl) {
                                 try {
-                                  const canOpen = await Linking.canOpenURL(
-                                    selectedRequest.gst_certificate_url
-                                  );
+                                  const canOpen = await Linking.canOpenURL(gstImageUrl);
                                   if (canOpen) {
-                                    await Linking.openURL(selectedRequest.gst_certificate_url);
+                                    await Linking.openURL(gstImageUrl);
                                   } else {
                                     Alert.alert(
                                       'Error',
@@ -572,14 +649,52 @@ export default function HostRequestsPage() {
                                     );
                                   }
                                 } catch (error) {
-                                  Alert.alert('Error', 'Failed to open document URL');
+                                  Alert.alert('Error', 'Failed to open document');
                                   console.error('Error opening GST URL:', error);
                                 }
                               }
                             }}
                           >
-                            <Ionicons name="open-outline" size={18} color={Colors.primary} />
-                            <Text style={styles.viewDocText}>View</Text>
+                            {loadingImages ? (
+                              <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="large" color={Colors.primary} />
+                                <Text style={styles.loadingText}>Loading document...</Text>
+                              </View>
+                            ) : gstImageUrl ? (
+                              <>
+                                <Image
+                                  source={{ uri: gstImageUrl }}
+                                  style={styles.documentImage}
+                                  resizeMode="cover"
+                                  onError={(error) => {
+                                    console.error(
+                                      'GST Certificate Image Error:',
+                                      error.nativeEvent.error
+                                    );
+                                    console.log('GST Certificate URL:', gstImageUrl);
+                                  }}
+                                />
+                                <View style={styles.documentOverlay}>
+                                  <Ionicons
+                                    name="expand-outline"
+                                    size={20}
+                                    color={Colors.textInverse}
+                                  />
+                                  <Text style={styles.documentOverlayText}>
+                                    Tap to view full size
+                                  </Text>
+                                </View>
+                              </>
+                            ) : (
+                              <View style={styles.loadingContainer}>
+                                <Ionicons
+                                  name="alert-circle-outline"
+                                  size={40}
+                                  color={Colors.textSecondary}
+                                />
+                                <Text style={styles.loadingText}>Failed to load document</Text>
+                              </View>
+                            )}
                           </Pressable>
                         </View>
                       )}
@@ -607,7 +722,7 @@ export default function HostRequestsPage() {
                             URLs (PAN card photo, GST certificate) are not available.
                           </Text>
                           <Text style={styles.warningHint}>
-                            To fix: Apply database migration 003_host_system_with_rls.sql
+                            To fix: Apply database migration 021_update_host_documents_to_upload.sql
                           </Text>
                         </View>
                       </View>
@@ -1060,51 +1175,57 @@ const styles = StyleSheet.create({
   },
 
   // Document Styles
-  documentRow: {
+  documentSection: {
+    marginBottom: Spacing.lg,
+  },
+  documentLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: Spacing.md,
-    padding: Spacing.sm,
-    backgroundColor: Colors.surfaceSecondary,
-    borderRadius: BorderRadius.md,
-  },
-  documentInfo: {
-    flex: 1,
-    marginRight: Spacing.md,
-  },
-  documentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
     gap: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
-  documentTitle: {
-    ...Typography.bodySmall,
+  documentLabel: {
+    ...Typography.bodyMedium,
     fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
-  documentUrl: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    fontFamily: 'monospace',
-    fontSize: 11,
+  documentImageContainer: {
+    width: '100%',
+    height: 200,
+    borderRadius: BorderRadius.md,
+    overflow: 'hidden',
+    backgroundColor: Colors.surfaceSecondary,
+    position: 'relative',
   },
-  viewDocButton: {
+  documentImage: {
+    width: '100%',
+    height: '100%',
+  },
+  documentOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: Spacing.sm,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 6,
-    backgroundColor: Colors.primarySoft,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.primaryLight,
+    justifyContent: 'center',
+    gap: Spacing.xs,
   },
-  viewDocText: {
+  documentOverlayText: {
     ...Typography.caption,
-    color: Colors.primary,
-    fontFamily: Fonts.semiBold,
+    color: Colors.textInverse,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  loadingText: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
   },
   documentNote: {
     flexDirection: 'row',

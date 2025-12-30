@@ -161,14 +161,6 @@ export default function ProfileTab() {
     },
   ];
 
-  // Add support link
-  menuItems.push({
-    icon: 'help-circle-outline',
-    label: 'Help & Support',
-    route: '/support',
-    showArrow: true,
-  });
-
   // Add admin panel if user is admin
   if (showAsAdmin) {
     menuItems.splice(1, 0, {
@@ -226,7 +218,6 @@ export default function ProfileTab() {
                 | `/saved`
                 | `/notifications`
                 | `/settings`
-                | `/support`
                 | `/friends`
                 | `/admin/dashboard`
                 | `/host/dashboard`

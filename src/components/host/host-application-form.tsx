@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from 'rea
 import Input from '../ui/input';
 import Button from '../ui/button';
 import Card from '../ui/card';
+import ImageUpload from '../ui/image-upload';
 import { Colors } from '@/constants/Colors';
 import { Spacing, Typography } from '@/constants/Styles';
 import { Fonts } from '../../constants/Fonts';
@@ -104,7 +105,7 @@ export default function HostApplicationForm({
         newErrors.pan_number = 'Enter a valid PAN number';
       }
       if (!formData.pan_card_photo_url.trim()) {
-        newErrors.pan_card_photo_url = 'PAN card photo URL is required';
+        newErrors.pan_card_photo_url = 'Please upload PAN card photo';
       }
       if (
         hostType === 'full' &&
@@ -316,15 +317,16 @@ export default function HostApplicationForm({
               error={errors.pan_number}
               required
             />
-            <Input
-              label="PAN Photo URL"
-              value={formData.pan_card_photo_url}
-              onChangeText={(value) => handleInputChange('pan_card_photo_url', value)}
-              placeholder="Share link to PAN card image"
-              autoCapitalize="none"
-              error={errors.pan_card_photo_url}
-              required
+            <ImageUpload
+              label="PAN Card Photo *"
+              currentImageUrl={formData.pan_card_photo_url}
+              onImageSelected={(url) => handleInputChange('pan_card_photo_url', url)}
+              bucket="host-documents"
+              folder={userId}
             />
+            {errors.pan_card_photo_url && (
+              <Text style={styles.errorText}>{errors.pan_card_photo_url}</Text>
+            )}
             {hostType === 'full' && (
               <>
                 <Input
@@ -336,14 +338,16 @@ export default function HostApplicationForm({
                   maxLength={15}
                   error={errors.gstin}
                 />
-                <Input
-                  label="GST Photo URL (Optional)"
-                  value={formData.gst_certificate_url}
-                  onChangeText={(value) => handleInputChange('gst_certificate_url', value)}
-                  placeholder="Share link to GST certificate"
-                  autoCapitalize="none"
-                  error={errors.gst_certificate_url}
+                <ImageUpload
+                  label="GST Certificate (Optional)"
+                  currentImageUrl={formData.gst_certificate_url}
+                  onImageSelected={(url) => handleInputChange('gst_certificate_url', url)}
+                  bucket="host-documents"
+                  folder={userId}
                 />
+                {errors.gst_certificate_url && (
+                  <Text style={styles.errorText}>{errors.gst_certificate_url}</Text>
+                )}
               </>
             )}
           </Card>
@@ -547,5 +551,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.medium,
     color: Colors.text,
+  },
+  errorText: {
+    fontSize: 12,
+    color: Colors.error,
+    marginTop: Spacing.xs,
+    marginLeft: Spacing.xs,
   },
 });

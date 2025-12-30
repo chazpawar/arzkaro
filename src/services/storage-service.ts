@@ -136,13 +136,15 @@ export async function uploadImage(
       throw new Error('Upload succeeded but no data returned');
     }
 
-    // Get the public URL
+    // For private buckets (like host-documents), return the storage path
+    // For public buckets, return the public URL
+    // Admin can fetch signed URLs as needed for private buckets
     const {
       data: { publicUrl },
     } = supabase.storage.from(bucket).getPublicUrl(data.path);
 
     return {
-      url: publicUrl,
+      url: publicUrl, // Note: For private buckets, this won't work directly - need signed URLs
       path: data.path,
     };
   } catch (error) {
