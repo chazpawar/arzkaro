@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,6 @@ import {
   Pressable,
   Image,
   TextInput,
-  Animated,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,13 +14,11 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgXml } from 'react-native-svg';
-import { Ionicons } from '@expo/vector-icons';
 import { signInWithGoogle } from '../../backend/auth';
 import { Colors } from '../constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
 import { useAuth } from '../contexts/auth-context';
-import OTPVerificationModal from './OTPVerificationModal';
 import EmailSignupModal from './EmailSignupModal';
 import EmailLoginModal from './EmailLoginModal';
 
@@ -36,64 +33,17 @@ interface AuthScreenProps {
   onSignInSuccess?: () => void;
 }
 
-type InputMode = 'phone' | 'email';
-
 export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [inputMode, setInputMode] = useState<InputMode>('phone');
-  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [showOTPModal, setShowOTPModal] = useState(false);
   const [showEmailSignupModal, setShowEmailSignupModal] = useState(false);
   const [showEmailLoginModal, setShowEmailLoginModal] = useState(false);
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  const opacityAnim = useRef(new Animated.Value(1)).current;
   const { refreshProfile, enableGuestMode } = useAuth();
-
-  const toggleInputMode = () => {
-    // Scale down and fade out
-    Animated.parallel([
-      Animated.timing(scaleAnim, {
-        toValue: 0.95,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-      Animated.timing(opacityAnim, {
-        toValue: 0,
-        duration: 150,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      // Switch mode
-      setInputMode(inputMode === 'phone' ? 'email' : 'phone');
-      // Scale up and fade in
-      Animated.parallel([
-        Animated.timing(scaleAnim, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 150,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    });
-  };
 
   const handleSkip = () => {
     console.log('🎭 [AUTH_SCREEN] Skip button clicked - enabling guest mode');
     enableGuestMode();
-  };
-
-  const handlePhoneContinue = () => {
-    if (phoneNumber.trim()) {
-      // TODO: Implement actual OTP send logic here
-      console.log('Sending OTP to:', '+91' + phoneNumber);
-      setShowOTPModal(true);
-    }
   };
 
   const handleEmailContinue = () => {
@@ -105,20 +55,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
     }
   };
 
-  const handleContinue = () => {
-    if (inputMode === 'phone') {
-      handlePhoneContinue();
-    } else {
-      handleEmailContinue();
-    }
-  };
-
-  const handleOTPVerifySuccess = () => {
-    setShowOTPModal(false);
-    // TODO: Handle successful verification (check if user exists, create profile, etc.)
-    onSignInSuccess?.();
-  };
-
   const handleEmailSignupSuccess = () => {
     setShowEmailSignupModal(false);
     onSignInSuccess?.();
@@ -127,10 +63,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
   const handleEmailLoginSuccess = () => {
     setShowEmailLoginModal(false);
     onSignInSuccess?.();
-  };
-
-  const handleCloseOTPModal = () => {
-    setShowOTPModal(false);
   };
 
   const handleCloseEmailSignupModal = () => {
@@ -222,54 +154,24 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
 
                 <Text style={styles.cardTitle}>Log in or Sign up</Text>
 
-                {/* Animated Input Container */}
-                <Animated.View
-                  style={[
-                    styles.inputContainer,
-                    {
-                      opacity: opacityAnim,
-                      transform: [{ scale: scaleAnim }],
-                    },
-                  ]}
-                >
-                  {inputMode === 'phone' ? (
-                    <>
-                      <Text style={styles.inputLabel}>Phone Number</Text>
-                      <View style={styles.phoneInputWrapper}>
-                        <Text style={styles.countryCode}>+91</Text>
-                        <TextInput
-                          style={styles.phoneInput}
-                          value={phoneNumber}
-                          onChangeText={setPhoneNumber}
-                          placeholder="Enter your phone number"
-                          placeholderTextColor={Colors.textTertiary}
-                          keyboardType="phone-pad"
-                        />
-                      </View>
-                      <Text style={styles.inputHint}>
-                        We will verify your phone number through OTP.
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <Text style={styles.inputLabel}>Email</Text>
-                      <TextInput
-                        style={styles.emailInput}
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="Enter your email"
-                        placeholderTextColor={Colors.textTertiary}
-                        keyboardType="email-address"
-                        autoCapitalize="none"
-                      />
-                    </>
-                  )}
-                </Animated.View>
+                {/* Email Input */}
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>Email</Text>
+                  <TextInput
+                    style={styles.emailInput}
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor={Colors.textTertiary}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                  />
+                </View>
 
                 {/* Continue Button */}
                 <Pressable
                   style={({ pressed }) => [styles.continueButton, pressed && styles.buttonPressed]}
-                  onPress={handleContinue}
+                  onPress={handleEmailContinue}
                 >
                   <Text style={styles.continueButtonText}>Continue</Text>
                 </Pressable>
@@ -280,22 +182,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
                   <Text style={styles.dividerText}>Or</Text>
                   <View style={styles.dividerLine} />
                 </View>
-
-                {/* Toggle Email/Phone Button */}
-                <Pressable
-                  style={({ pressed }) => [styles.secondaryButton, pressed && styles.buttonPressed]}
-                  onPress={toggleInputMode}
-                >
-                  <Ionicons
-                    name={inputMode === 'phone' ? 'mail-outline' : 'call-outline'}
-                    size={22}
-                    color={Colors.text}
-                    style={styles.emailIcon}
-                  />
-                  <Text style={styles.secondaryButtonText}>
-                    {inputMode === 'phone' ? 'Continue with email' : 'Continue with phone'}
-                  </Text>
-                </Pressable>
 
                 {/* Google Sign In Button */}
                 <Pressable
@@ -313,14 +199,6 @@ export default function AuthScreen({ onSignInSuccess }: AuthScreenProps) {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
-
-      {/* OTP Verification Modal */}
-      <OTPVerificationModal
-        visible={showOTPModal}
-        phoneNumber={'+91' + phoneNumber}
-        onClose={handleCloseOTPModal}
-        onVerifySuccess={handleOTPVerifySuccess}
-      />
 
       {/* Email Signup Modal */}
       <EmailSignupModal

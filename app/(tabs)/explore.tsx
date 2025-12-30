@@ -20,9 +20,44 @@ import EmptyState from '../../src/components/ui/empty-state';
 
 // Centralized icon map for category icons
 // Pre-load icons with spaces in filenames to avoid require() issues
-const BoardGameIcon = require('../../assets/categoriesicons/Board Game.png');
-const HousePartyIcon = require('../../assets/categoriesicons/House Party.png');
-const DJNightIcon = require('../../assets/categoriesicons/DJ Night.png');
+
+// CULTURAL category icons
+const CulturalIcon = require('../../assets/categoriesicons/cultural/Cultural.png');
+const MusicIcon = require('../../assets/categoriesicons/cultural/Music.png');
+const ArtIcon = require('../../assets/categoriesicons/cultural/Art.png');
+const DanceIcon = require('../../assets/categoriesicons/cultural/Dance.png');
+
+// NIGHTLIFE category icons
+const NightlifeIcon = require('../../assets/categoriesicons/nightlife/Nightlife.png');
+const DJNightIcon = require('../../assets/categoriesicons/nightlife/DJ Night.png');
+const HousePartyIcon = require('../../assets/categoriesicons/nightlife/House Party.png');
+const NightoutIcon = require('../../assets/categoriesicons/nightlife/Nightout.png');
+
+// OUTDOORS category icons
+const OutdoorsIcon = require('../../assets/categoriesicons/outdoors/Outdoors.png');
+const CampingIcon = require('../../assets/categoriesicons/outdoors/Camping.png');
+const CyclingIcon = require('../../assets/categoriesicons/outdoors/Cycling.png');
+const HikingIcon = require('../../assets/categoriesicons/outdoors/Hiking.png');
+const WalkingIcon = require('../../assets/categoriesicons/outdoors/Walking.png');
+
+// PLAY category icons
+const PlayIcon = require('../../assets/categoriesicons/play/Play.png');
+const BoardGameIcon = require('../../assets/categoriesicons/play/Board Game.png');
+const GamingIcon = require('../../assets/categoriesicons/play/Gaming.png');
+
+// SPORTS category icons
+const SportsIcon = require('../../assets/categoriesicons/sports/Sports.png');
+const BadmintonIcon = require('../../assets/categoriesicons/sports/Badminton.png');
+const BasketballIcon = require('../../assets/categoriesicons/sports/Basketball.png');
+const CricketIcon = require('../../assets/categoriesicons/sports/Cricket.png');
+const FootballIcon = require('../../assets/categoriesicons/sports/Football.png');
+const PickleballIcon = require('../../assets/categoriesicons/sports/Pickleball.png');
+const VolleyballIcon = require('../../assets/categoriesicons/sports/Volleyball.png');
+
+// WELLNESS category icons
+const WellnessIcon = require('../../assets/categoriesicons/wellness/Wellness.png');
+const MeditationIcon = require('../../assets/categoriesicons/wellness/Meditation.png');
+const YogaIcon = require('../../assets/categoriesicons/wellness/Yoga.png');
 
 // Main category icons from assets/others
 const ForYouIcon = require('../../assets/others/foryou.png');
@@ -45,31 +80,48 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
-  All: require('../../assets/categoriesicons/Play.png'), // For "All" categories
-  Music: require('../../assets/categoriesicons/Music.png'),
+  All: PlayIcon,
+
+  // Cultural
+  Cultural: CulturalIcon,
+  Music: MusicIcon,
+  Art: ArtIcon,
+  Dance: DanceIcon,
+
+  // Nightlife
+  Nightlife: NightlifeIcon,
+  'DJ Night': DJNightIcon,
+  'House Party': HousePartyIcon,
+  Nightout: NightoutIcon,
+
+  // Outdoors
+  Outdoors: OutdoorsIcon,
+  Camping: CampingIcon,
+  Cycling: CyclingIcon,
+  Hiking: HikingIcon,
+  Walking: WalkingIcon,
+
+  // Play
+  Play: PlayIcon,
+  'Board Game': BoardGameIcon,
+  Gaming: GamingIcon,
+
+  // Sports
+  Sports: SportsIcon,
+  Badminton: BadmintonIcon,
+  Basketball: BasketballIcon,
+  Cricket: CricketIcon,
+  Football: FootballIcon,
+  Pickleball: PickleballIcon,
+  Volleyball: VolleyballIcon,
+
+  // Wellness
+  Wellness: WellnessIcon,
+  Meditation: MeditationIcon,
+  Yoga: YogaIcon,
+
+  // For "events" tab (For You page) - keeping existing
   Comedy: DJNightIcon,
-  Sports: require('../../assets/categoriesicons/Sports.png'),
-  Cultural: require('../../assets/categoriesicons/Cultural.png'),
-  Dance: require('../../assets/categoriesicons/Dance.png'),
-  Theatre: require('../../assets/categoriesicons/Cultural.png'),
-  Art: require('../../assets/categoriesicons/Art.png'),
-  Gaming: require('../../assets/categoriesicons/Gaming.png'),
-  'E-Games': require('../../assets/categoriesicons/Gaming.png'),
-  'Board Games': BoardGameIcon,
-  Entertainment: require('../../assets/categoriesicons/Play.png'),
-  Outdoors: require('../../assets/categoriesicons/Outdoors.png'),
-  Getaway: require('../../assets/categoriesicons/Camping.png'),
-  Hiking: require('../../assets/categoriesicons/Hiking.png'),
-  Running: require('../../assets/categoriesicons/Walking.png'),
-  Nightlife: require('../../assets/categoriesicons/Nightlife.png'),
-  Parties: HousePartyIcon,
-  Clubs: DJNightIcon,
-  Cafes: require('../../assets/categoriesicons/Nightout.png'),
-  Movies: require('../../assets/categoriesicons/Play.png'),
-  Wellness: require('../../assets/categoriesicons/Wellness.png'),
-  Yoga: require('../../assets/categoriesicons/Yoga.png'),
-  Retreat: require('../../assets/categoriesicons/Meditation.png'),
-  Rehab: require('../../assets/categoriesicons/Wellness.png'),
 };
 
 // Category structure with subcategories
@@ -141,34 +193,41 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
       icon: CATEGORY_ICONS.Cultural,
       subcategories: [
         { id: 'Music', label: 'Music', icon: CATEGORY_ICONS.Music },
-        { id: 'Dance', label: 'Dance', icon: CATEGORY_ICONS.Dance },
-        { id: 'Theatre', label: 'Theatre', icon: CATEGORY_ICONS.Theatre },
         { id: 'Art', label: 'Art', icon: CATEGORY_ICONS.Art },
+        { id: 'Dance', label: 'Dance', icon: CATEGORY_ICONS.Dance },
       ],
     },
     {
-      id: 'Games',
-      label: 'Games',
-      icon: CATEGORY_ICONS.Gaming,
+      id: 'Play',
+      label: 'Play',
+      icon: CATEGORY_ICONS.Play,
       subcategories: [
-        { id: 'Sports', label: 'Sports', icon: CATEGORY_ICONS.Sports },
-        { id: 'E-Games', label: 'E-Games', icon: CATEGORY_ICONS['E-Games'] },
-        { id: 'Board Games', label: 'Board Games', icon: CATEGORY_ICONS['Board Games'] },
+        { id: 'Gaming', label: 'Gaming', icon: CATEGORY_ICONS.Gaming },
+        { id: 'Board Game', label: 'Board Game', icon: CATEGORY_ICONS['Board Game'] },
       ],
     },
     {
-      id: 'Entertainment',
-      label: 'Entertainment',
-      icon: CATEGORY_ICONS.Entertainment,
+      id: 'Sports',
+      label: 'Sports',
+      icon: CATEGORY_ICONS.Sports,
+      subcategories: [
+        { id: 'Cricket', label: 'Cricket', icon: CATEGORY_ICONS.Cricket },
+        { id: 'Football', label: 'Football', icon: CATEGORY_ICONS.Football },
+        { id: 'Basketball', label: 'Basketball', icon: CATEGORY_ICONS.Basketball },
+        { id: 'Badminton', label: 'Badminton', icon: CATEGORY_ICONS.Badminton },
+        { id: 'Volleyball', label: 'Volleyball', icon: CATEGORY_ICONS.Volleyball },
+        { id: 'Pickleball', label: 'Pickleball', icon: CATEGORY_ICONS.Pickleball },
+      ],
     },
     {
       id: 'Outdoors',
       label: 'Outdoors',
       icon: CATEGORY_ICONS.Outdoors,
       subcategories: [
-        { id: 'Getaway', label: 'Getaway', icon: CATEGORY_ICONS.Getaway },
+        { id: 'Camping', label: 'Camping', icon: CATEGORY_ICONS.Camping },
         { id: 'Hiking', label: 'Hiking', icon: CATEGORY_ICONS.Hiking },
-        { id: 'Running', label: 'Running', icon: CATEGORY_ICONS.Running },
+        { id: 'Cycling', label: 'Cycling', icon: CATEGORY_ICONS.Cycling },
+        { id: 'Walking', label: 'Walking', icon: CATEGORY_ICONS.Walking },
       ],
     },
     {
@@ -176,10 +235,9 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
       label: 'Nightlife',
       icon: CATEGORY_ICONS.Nightlife,
       subcategories: [
-        { id: 'Parties', label: 'Parties', icon: CATEGORY_ICONS.Parties },
-        { id: 'Clubs', label: 'Clubs', icon: CATEGORY_ICONS.Clubs },
-        { id: 'Cafes', label: 'Cafes', icon: CATEGORY_ICONS.Cafes },
-        { id: 'Movies', label: 'Movies', icon: CATEGORY_ICONS.Movies },
+        { id: 'House Party', label: 'House Party', icon: CATEGORY_ICONS['House Party'] },
+        { id: 'DJ Night', label: 'DJ Night', icon: CATEGORY_ICONS['DJ Night'] },
+        { id: 'Nightout', label: 'Nightout', icon: CATEGORY_ICONS.Nightout },
       ],
     },
     {
@@ -188,8 +246,7 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
       icon: CATEGORY_ICONS.Wellness,
       subcategories: [
         { id: 'Yoga', label: 'Yoga', icon: CATEGORY_ICONS.Yoga },
-        { id: 'Retreat', label: 'Retreat', icon: CATEGORY_ICONS.Retreat },
-        { id: 'Rehab', label: 'Rehab', icon: CATEGORY_ICONS.Rehab },
+        { id: 'Meditation', label: 'Meditation', icon: CATEGORY_ICONS.Meditation },
       ],
     },
   ],

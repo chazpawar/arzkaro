@@ -153,7 +153,7 @@ export default function CreateEventScreen() {
   const [step, setStep] = useState(1);
 
   // Form state
-  const [eventType, setEventType] = useState<EventType>('event');
+  const [eventType, setEventType] = useState<EventType>('experience');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [termsAndConditions, setTermsAndConditions] = useState('');
