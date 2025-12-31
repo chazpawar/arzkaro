@@ -24,6 +24,7 @@ import MultiImageUpload from '../../src/components/ui/multi-image-upload';
 import ItineraryBuilder, { ItineraryDay } from '../../src/components/itinerary-builder';
 import InclusionsBuilder from '../../src/components/inclusions-builder';
 import ThingsToKnowBuilder from '../../src/components/things-to-know-builder';
+import LocationAutocomplete from '../../src/components/LocationAutocomplete';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -180,6 +181,8 @@ export default function CreateEventScreen() {
   const [customTagInput, setCustomTagInput] = useState(''); // For adding custom tags
   const [locationName, setLocationName] = useState('');
   const [locationAddress, setLocationAddress] = useState('');
+  const [locationLat, setLocationLat] = useState<number | null>(null);
+  const [locationLng, setLocationLng] = useState<number | null>(null);
   const [startDate, setStartDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -479,6 +482,8 @@ export default function CreateEventScreen() {
         cover_image_url: coverImageUrl || undefined,
         location_name: locationName.trim(),
         location_address: locationAddress.trim() || undefined,
+        location_lat: locationLat,
+        location_lng: locationLng,
         start_date: startDateTime.toISOString(),
         end_date: endDateTime.toISOString(),
         max_capacity: maxCapacity ? parseInt(maxCapacity, 10) : undefined,
@@ -850,22 +855,33 @@ export default function CreateEventScreen() {
                     <Text style={styles.sectionHeaderText}>Location Details</Text>
                   </View>
 
-                  <Input
-                    label="Venue Name"
-                    placeholder="e.g., The Grand Hall, Central Park"
+                  <LocationAutocomplete
+                    label="Venue/Location"
+                    placeholder="Search for a location..."
                     value={locationName}
-                    onChangeText={setLocationName}
+                    onLocationSelect={(location) => {
+                      setLocationName(location.name);
+                      setLocationAddress(location.address);
+                      setLocationLat(location.lat);
+                      setLocationLng(location.lng);
+                      setErrors((prev) => ({ ...prev, locationName: '' }));
+                    }}
                     error={errors.locationName}
                   />
 
-                  <Input
-                    label="Address (Optional)"
-                    placeholder="Full address for attendees"
-                    value={locationAddress}
-                    onChangeText={setLocationAddress}
-                    multiline
-                    numberOfLines={2}
-                  />
+                  {locationAddress && (
+                    <View style={styles.addressPreview}>
+                      <Ionicons
+                        name="location-outline"
+                        size={16}
+                        color={Colors.textSecondary}
+                        style={{ marginRight: 8 }}
+                      />
+                      <Text style={styles.addressPreviewText} numberOfLines={2}>
+                        {locationAddress}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
                 {/* Date & Time Section */}
@@ -1727,5 +1743,19 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: Colors.primary,
     fontFamily: Fonts.medium,
+  },
+  addressPreview: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: Colors.surfaceSecondary,
+    padding: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    marginTop: Spacing.sm,
+  },
+  addressPreviewText: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    flex: 1,
+    lineHeight: 20,
   },
 });

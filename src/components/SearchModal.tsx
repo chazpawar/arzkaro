@@ -22,6 +22,11 @@ import * as Device from 'expo-device';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
+import {
+  searchPlaces,
+  getPlaceDetails,
+  type PlaceAutocompleteResult,
+} from '../services/google-places-service';
 
 interface SearchModalProps {
   visible: boolean;
@@ -49,17 +54,8 @@ const SUGGESTED_KEYWORDS = [
   'Fitness',
 ];
 
-// Popular locations
-const POPULAR_LOCATIONS = [
-  'Bangalore',
-  'Mumbai',
-  'Delhi',
-  'Goa',
-  'Pune',
-  'Hyderabad',
-  'Chennai',
-  'Kolkata',
-];
+// Popular locations (reduced list)
+const POPULAR_LOCATIONS = ['Bangalore', 'Mumbai', 'Delhi', 'Goa', 'Pune'];
 
 // Enable LayoutAnimation on Android
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -86,13 +82,60 @@ export default function SearchModal({
   } | null>(null);
   const searchInputRef = useRef<TextInput>(null);
 
+  // Autocomplete state
+  const [locationSuggestions, setLocationSuggestions] = useState<PlaceAutocompleteResult[]>([]);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Reset to main search view when modal closes
   useEffect(() => {
     if (!visible) {
       setShowLocationPicker(false);
       setIsSearchFocused(false);
+      setLocationSuggestions([]);
+      setLocationSearchQuery('');
     }
   }, [visible]);
+
+  // Debounced location search using Google Places Autocomplete
+  useEffect(() => {
+    // Clear previous timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Clear suggestions if input is empty
+    if (!locationSearchQuery || locationSearchQuery.trim().length === 0) {
+      setLocationSuggestions([]);
+      setIsLoadingSuggestions(false);
+      return;
+    }
+
+    // Start loading
+    setIsLoadingSuggestions(true);
+
+    // Debounce search by 500ms
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        console.log('[SEARCH_MODAL] Searching for:', locationSearchQuery);
+        const results = await searchPlaces(locationSearchQuery, '(cities)', 'country:in');
+        console.log('[SEARCH_MODAL] Found', results.length, 'suggestions');
+        setLocationSuggestions(results.slice(0, 5)); // Show max 5 results
+      } catch (error) {
+        console.error('[SEARCH_MODAL] Error fetching suggestions:', error);
+        setLocationSuggestions([]);
+      } finally {
+        setIsLoadingSuggestions(false);
+      }
+    }, 500);
+
+    // Cleanup
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [locationSearchQuery]);
 
   const handleSearch = () => {
     const location = useCurrentLocation ? 'Current Location' : selectedLocation || 'All Locations';
@@ -110,6 +153,7 @@ export default function SearchModal({
     setSelectedRadius(10);
     setUseCurrentLocation(false);
     setUserCoordinates(null);
+    setLocationSuggestions([]);
   };
 
   const handleCurrentLocation = async () => {
@@ -186,20 +230,53 @@ export default function SearchModal({
     Keyboard.dismiss();
   };
 
-  const handleLocationSearchSelect = (location: string) => {
-    setSelectedLocation(location);
-    setUseCurrentLocation(false);
-    setShowLocationPicker(false);
-    setLocationSearchQuery('');
+  const handleLocationSearchSelect = async (location: string, placeId?: string) => {
+    try {
+      setIsLoadingLocation(true);
+
+      // If we have a placeId from autocomplete, fetch coordinates directly
+      if (placeId) {
+        console.log('[SEARCH_MODAL] Fetching details for place:', placeId);
+        const details = await getPlaceDetails(placeId);
+        const { lat, lng } = details.geometry.location;
+        console.log('[SEARCH_MODAL] Got coordinates:', { lat, lng });
+        setUserCoordinates({ latitude: lat, longitude: lng });
+      } else {
+        // For popular locations (no placeId), search and get first result
+        console.log('[SEARCH_MODAL] Searching for popular location:', location);
+        // Use empty types to search all types, filter will be done by country (India)
+        const results = await searchPlaces(location, '');
+
+        if (results.length > 0) {
+          const firstResult = results[0];
+          console.log('[SEARCH_MODAL] Found place:', firstResult.description);
+
+          // Get coordinates for the first result
+          const details = await getPlaceDetails(firstResult.place_id);
+          const { lat, lng } = details.geometry.location;
+          console.log('[SEARCH_MODAL] Got coordinates:', { lat, lng });
+          setUserCoordinates({ latitude: lat, longitude: lng });
+        } else {
+          throw new Error('Location not found');
+        }
+      }
+
+      setSelectedLocation(location);
+      setUseCurrentLocation(false);
+      setShowLocationPicker(false);
+      setLocationSearchQuery('');
+      setLocationSuggestions([]);
+    } catch (error) {
+      console.error('[SEARCH_MODAL] Error fetching place details:', error);
+      Alert.alert('Error', 'Failed to get location coordinates. Please try again.');
+    } finally {
+      setIsLoadingLocation(false);
+    }
   };
 
   const handleBackFromLocation = () => {
     setShowLocationPicker(false);
   };
-
-  const filteredLocations = POPULAR_LOCATIONS.filter((loc) =>
-    loc.toLowerCase().includes(locationSearchQuery.toLowerCase())
-  );
 
   const handleDismissKeyboard = () => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
@@ -363,6 +440,22 @@ export default function SearchModal({
                         )}
                       </View>
                     </Pressable>
+
+                    {/* Show search mode indicator */}
+                    {selectedLocation && (
+                      <View style={styles.searchModeHint}>
+                        <Ionicons
+                          name={userCoordinates ? 'radio-button-on' : 'text-outline'}
+                          size={16}
+                          color={userCoordinates ? Colors.primary : Colors.textSecondary}
+                        />
+                        <Text style={styles.searchModeText}>
+                          {userCoordinates
+                            ? `Radius search (${selectedRadius} km from ${selectedLocation})`
+                            : 'Text search (name matching only)'}
+                        </Text>
+                      </View>
+                    )}
                   </View>
                 </Pressable>
 
@@ -462,7 +555,10 @@ export default function SearchModal({
                       onChangeText={setLocationSearchQuery}
                       autoFocus
                     />
-                    {locationSearchQuery.length > 0 && (
+                    {isLoadingSuggestions && (
+                      <ActivityIndicator size="small" color={Colors.primary} />
+                    )}
+                    {locationSearchQuery.length > 0 && !isLoadingSuggestions && (
                       <Pressable onPress={() => setLocationSearchQuery('')}>
                         <Ionicons name="close-circle" size={20} color={Colors.textSecondary} />
                       </Pressable>
@@ -470,23 +566,57 @@ export default function SearchModal({
                   </View>
                 </View>
 
-                {/* Popular Locations */}
-                <View style={styles.section}>
-                  <Text style={styles.sectionTitleSmall}>Popular Locations</Text>
-                  <View style={styles.locationsList}>
-                    {filteredLocations.map((location, index) => (
-                      <Pressable
-                        key={index}
-                        style={styles.locationItem}
-                        onPress={() => handleLocationSearchSelect(location)}
-                      >
-                        <Ionicons name="location" size={20} color={Colors.primary} />
-                        <Text style={styles.locationItemText}>{location}</Text>
-                        <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
-                      </Pressable>
-                    ))}
+                {/* Autocomplete Suggestions - Show when typing */}
+                {locationSearchQuery.length > 0 && locationSuggestions.length > 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitleSmall}>Suggestions</Text>
+                    <View style={styles.locationsList}>
+                      {locationSuggestions.map((suggestion) => (
+                        <Pressable
+                          key={suggestion.place_id}
+                          style={styles.locationItem}
+                          onPress={() =>
+                            handleLocationSearchSelect(
+                              suggestion.structured_formatting.main_text,
+                              suggestion.place_id
+                            )
+                          }
+                        >
+                          <Ionicons name="location" size={20} color={Colors.primary} />
+                          <View style={styles.locationItemTextContainer}>
+                            <Text style={styles.locationItemText}>
+                              {suggestion.structured_formatting.main_text}
+                            </Text>
+                            <Text style={styles.locationItemSecondary}>
+                              {suggestion.structured_formatting.secondary_text}
+                            </Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                        </Pressable>
+                      ))}
+                    </View>
                   </View>
-                </View>
+                )}
+
+                {/* Popular Locations - Show when not typing */}
+                {locationSearchQuery.length === 0 && (
+                  <View style={styles.section}>
+                    <Text style={styles.sectionTitleSmall}>Popular Locations</Text>
+                    <View style={styles.locationsList}>
+                      {POPULAR_LOCATIONS.map((location, index) => (
+                        <Pressable
+                          key={index}
+                          style={styles.locationItem}
+                          onPress={() => handleLocationSearchSelect(location)}
+                        >
+                          <Ionicons name="location" size={20} color={Colors.primary} />
+                          <Text style={styles.locationItemText}>{location}</Text>
+                          <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
+                )}
 
                 <View style={{ height: 100 }} />
               </ScrollView>
@@ -706,6 +836,15 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.text,
   },
+  locationItemTextContainer: {
+    flex: 1,
+    gap: 4,
+  },
+  locationItemSecondary: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -748,5 +887,18 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontFamily: Fonts.bold,
     fontSize: 16,
+  },
+  searchModeHint: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+    marginTop: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+  },
+  searchModeText: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    flex: 1,
   },
 });

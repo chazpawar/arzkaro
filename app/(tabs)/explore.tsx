@@ -315,6 +315,9 @@ export default function ExploreTab() {
 
   const allEvents = availableEvents as Event[];
 
+  // Determine if user is actively searching (by keyword OR location)
+  const isSearching = searchQuery || (searchLocation && searchLocation !== 'All Locations');
+
   // Filter logic with comprehensive keyword search
   const filteredEvents = allEvents.filter((event: Event) => {
     // Keyword search - searches across multiple fields
@@ -355,105 +358,54 @@ export default function ExploreTab() {
       }
     }
 
-    // Location filter with enhanced matching
-    if (
-      searchLocation &&
-      searchLocation !== 'All Locations' &&
-      searchLocation !== 'Current Location'
-    ) {
-      const locationLower = searchLocation.toLowerCase().trim();
-      let locationMatch = false;
-
-      // For trips, check departure_location
-      if (event.type === 'trip') {
-        const departureLocation = (event.departure_location?.toLowerCase() || '').trim();
-
-        // More flexible matching: check if either contains the other
-        // This handles "Bangalore" matching "Bangalore, Karnataka" or vice versa
-        locationMatch =
-          departureLocation.includes(locationLower) ||
-          locationLower.includes(departureLocation) ||
-          departureLocation.split(',').some((part) => part.trim() === locationLower) ||
-          locationLower.split(',').some((part) => part.trim() === departureLocation);
-
-        if (!locationMatch && departureLocation) {
-          console.log('[EXPLORE] Trip location mismatch:', {
-            searchFor: locationLower,
-            eventLocation: departureLocation,
-            eventTitle: event.title,
-          });
-        }
-      }
-      // For experiences/events, check location_name and location_address
-      else {
-        const locationName = (event.location_name?.toLowerCase() || '').trim();
-        const locationAddress = (event.location_address?.toLowerCase() || '').trim();
-
-        // Check multiple location fields with flexible matching
-        locationMatch =
-          locationName.includes(locationLower) ||
-          locationLower.includes(locationName) ||
-          locationAddress.includes(locationLower) ||
-          locationLower.includes(locationAddress) ||
-          locationName.split(',').some((part) => part.trim() === locationLower) ||
-          locationAddress.split(',').some((part) => part.trim() === locationLower);
-
-        if (!locationMatch && (locationName || locationAddress)) {
-          console.log('[EXPLORE] Event location mismatch:', {
-            searchFor: locationLower,
-            eventName: locationName,
-            eventAddress: locationAddress,
-            eventTitle: event.title,
-          });
-        }
+    // Location filtering - SIMPLE: Only coordinates-based radius search
+    if (searchLocation && searchLocation !== 'All Locations' && userCoordinates) {
+      // Event MUST have coordinates to be included
+      if (!event.location_lat || !event.location_lng) {
+        console.log('[EXPLORE] Event excluded (no coordinates):', event.title);
+        return false;
       }
 
-      if (!locationMatch) return false;
-    }
+      // Calculate distance
+      const distance = haversineDistance(
+        userCoordinates.latitude,
+        userCoordinates.longitude,
+        event.location_lat,
+        event.location_lng
+      );
 
-    // Radius-based filtering (when using current location)
-    if (searchLocation === 'Current Location' && userCoordinates) {
-      // Check if event has coordinates
-      if (event.location_lat && event.location_lng) {
-        const distance = haversineDistance(
-          userCoordinates.latitude,
-          userCoordinates.longitude,
-          event.location_lat,
-          event.location_lng
-        );
-
-        if (distance > searchRadius) {
-          console.log('[EXPLORE] Event outside radius:', {
-            eventTitle: event.title,
-            distance: distance.toFixed(2) + ' km',
-            radius: searchRadius + ' km',
-          });
-          return false;
-        }
-      } else {
-        // Event has no coordinates - exclude from radius search
-        console.log('[EXPLORE] Event has no coordinates, excluding from radius search:', {
+      // Check if within radius
+      if (distance > searchRadius) {
+        console.log('[EXPLORE] Event outside radius:', {
           eventTitle: event.title,
+          distance: distance.toFixed(2) + ' km',
+          radius: searchRadius + ' km',
         });
         return false;
       }
+
+      console.log('[EXPLORE] Event within radius:', {
+        eventTitle: event.title,
+        distance: distance.toFixed(2) + ' km',
+        radius: searchRadius + ' km',
+      });
     }
 
-    // Type mapping - skip type filter when actively searching with a query
+    // Type mapping - skip type filter when actively searching
     const typeMap: Record<string, string> = {
       events: 'event',
       experiences: 'experience',
       trips: 'trip',
     };
 
-    // Only apply type filter if NOT actively searching
-    if (activeView && !searchQuery) {
+    // Only apply type filter if NOT actively searching (with query OR location)
+    if (activeView && !isSearching) {
       const eventType = typeMap[activeView];
       if (eventType && event.type !== eventType) return false;
     }
 
     // Category filtering with subcategory support - skip if actively searching
-    if (activeView !== 'trips' && selectedTag !== null && selectedTag !== 'all' && !searchQuery) {
+    if (activeView !== 'trips' && selectedTag !== null && selectedTag !== 'all' && !isSearching) {
       // Find the selected category configuration
       const categoryTags = CATEGORY_TAGS_BY_TYPE[activeView] || [];
       const selectedCategory = categoryTags.find((cat) => cat.id === selectedTag);
@@ -629,14 +581,17 @@ export default function ExploreTab() {
           <Text style={styles.searchPlaceholder} numberOfLines={1}>
             {searchQuery
               ? `${searchQuery}${searchLocation && searchLocation !== 'All Locations' ? ` • ${searchLocation}` : ''}`
-              : 'Search experiences, trips...'}
+              : searchLocation && searchLocation !== 'All Locations'
+                ? `${searchLocation}${searchRadius ? ` • ${searchRadius}km` : ''}`
+                : 'Search experiences, trips...'}
           </Text>
-          {searchQuery && (
+          {isSearching && (
             <Pressable
               onPress={(e) => {
                 e.stopPropagation();
                 setSearchQuery('');
                 setSearchLocation('');
+                setUserCoordinates(null);
               }}
               style={styles.clearSearchButton}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -675,33 +630,35 @@ export default function ExploreTab() {
         }
       >
         <View style={styles.mainContent}>
-          {/* 1. Horizontal Circular Categories - Show only when in For You view */}
-          {(selectedTag === null || selectedTag === 'all') && activeView === 'events' && (
-            <View style={styles.categoriesRow}>
-              {/* For hosts: Show only Experiences and Trips */}
-              {/* For users: Show all categories (For You, Experiences, Trips) */}
-              {(showHostListings
-                ? CATEGORIES.filter((cat) => cat.id !== 'events')
-                : CATEGORIES
-              ).map((cat) => {
-                const isActive = activeView === cat.id;
-                return (
-                  <Pressable
-                    key={cat.id}
-                    style={styles.categoryCircleContainer}
-                    onPress={() => handleCategoryPress(cat.id)}
-                  >
-                    <View style={styles.categoryIconContainer}>
-                      <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
-                    </View>
-                    <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
-                      {cat.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
+          {/* 1. Horizontal Circular Categories - Show only when in For You view and NOT searching */}
+          {(selectedTag === null || selectedTag === 'all') &&
+            activeView === 'events' &&
+            !isSearching && (
+              <View style={styles.categoriesRow}>
+                {/* For hosts: Show only Experiences and Trips */}
+                {/* For users: Show all categories (For You, Experiences, Trips) */}
+                {(showHostListings
+                  ? CATEGORIES.filter((cat) => cat.id !== 'events')
+                  : CATEGORIES
+                ).map((cat) => {
+                  const isActive = activeView === cat.id;
+                  return (
+                    <Pressable
+                      key={cat.id}
+                      style={styles.categoryCircleContainer}
+                      onPress={() => handleCategoryPress(cat.id)}
+                    >
+                      <View style={styles.categoryIconContainer}>
+                        <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
+                      </View>
+                      <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
+                        {cat.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            )}
 
           {/* Search Results Indicator */}
           {searchQuery && (
@@ -775,7 +732,7 @@ export default function ExploreTab() {
           {/* 4. Show featured sections when For You is selected with 'all' tag and no search active */}
           {activeView === 'events' &&
             (selectedTag === null || selectedTag === 'all') &&
-            !searchQuery && (
+            !isSearching && (
               <>
                 {/* Top Experiences Section - Always show */}
                 <View style={styles.sectionContainer}>
@@ -894,19 +851,51 @@ export default function ExploreTab() {
           {/* Show search results when searching in For You view */}
           {activeView === 'events' &&
             (selectedTag === null || selectedTag === 'all') &&
-            searchQuery && (
-              <View>
-                <CategoryDetail
-                  type="events"
-                  tags={[]}
-                  selectedTag="all"
-                  onSelectTag={() => {
-                    // No-op: search results don't need tag filtering
-                  }}
-                  events={filteredEvents}
-                  onEventPress={(id) => router.push(`/events/${id}`)}
-                  showInline={false}
-                />
+            isSearching &&
+            filteredEvents.length > 0 && (
+              <View style={styles.searchResultsSection}>
+                <Text style={styles.searchResultsTitle}>
+                  {filteredEvents.length} Result{filteredEvents.length !== 1 ? 's' : ''}
+                </Text>
+                <View style={styles.searchEventsGrid}>
+                  {filteredEvents.map((event) => (
+                    <Pressable
+                      key={event.id}
+                      style={styles.searchEventCard}
+                      onPress={() => router.push(`/events/${event.id}`)}
+                    >
+                      <Image
+                        source={{ uri: event.cover_image_url || 'https://via.placeholder.com/150' }}
+                        style={styles.searchEventImage}
+                      />
+                      <View style={styles.searchEventContent}>
+                        <Text style={styles.cardTitle} numberOfLines={1}>
+                          {event.title}
+                        </Text>
+                        <View style={styles.searchEventInfoRow}>
+                          <View style={styles.searchEventLocationRow}>
+                            <Ionicons name="location" size={14} color={Colors.primary} />
+                            <Text style={styles.cardLocation} numberOfLines={1}>
+                              {event.location_name || event.departure_location || 'TBA'}
+                            </Text>
+                          </View>
+                          <View style={styles.searchEventTimeRow}>
+                            <Ionicons name="time-outline" size={14} color={Colors.primary} />
+                            <Text style={styles.searchEventTime}>
+                              {event.start_date
+                                ? new Date(event.start_date).toLocaleTimeString('en-US', {
+                                    hour: 'numeric',
+                                    minute: '2-digit',
+                                    hour12: true,
+                                  })
+                                : '10:00 AM'}
+                            </Text>
+                          </View>
+                        </View>
+                      </View>
+                    </Pressable>
+                  ))}
+                </View>
               </View>
             )}
 
@@ -1192,5 +1181,58 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.regular,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  searchResultsSection: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+  },
+  searchResultsTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+  },
+  searchEventsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+  },
+  searchEventCard: {
+    width: '47%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  searchEventImage: {
+    width: '100%',
+    height: 160,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  searchEventContent: {
+    padding: Spacing.md,
+    gap: 6,
+  },
+  searchEventInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: Spacing.xs,
+  },
+  searchEventLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  searchEventTimeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  searchEventTime: {
+    fontSize: 12,
+    color: Colors.textSecondary,
   },
 });
