@@ -46,6 +46,7 @@ export default function GroupMembersScreen() {
   const [error, setError] = useState<string | null>(null);
   const [friendStatuses, setFriendStatuses] = useState<Record<string, FriendStatus>>({});
   const [friendRequestIds, setFriendRequestIds] = useState<Record<string, string>>({});
+  const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     async function loadMembers() {
@@ -290,6 +291,7 @@ export default function GroupMembersScreen() {
     const displayName = item.user.full_name || item.user.email.split('@')[0] || 'User';
     const username = item.user.email.split('@')[0] || 'user';
     const isCurrentUser = item.user_id === user?.id;
+    const hasAvatarError = avatarErrors[item.user_id];
 
     return (
       <Pressable
@@ -298,8 +300,12 @@ export default function GroupMembersScreen() {
       >
         {/* Avatar */}
         <View style={styles.avatarContainer}>
-          {item.user.avatar_url ? (
-            <Image source={{ uri: item.user.avatar_url }} style={styles.avatar} />
+          {item.user.avatar_url && !hasAvatarError ? (
+            <Image
+              source={{ uri: item.user.avatar_url }}
+              style={styles.avatar}
+              onError={() => setAvatarErrors((prev) => ({ ...prev, [item.user_id]: true }))}
+            />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Ionicons name="person" size={40} color={Colors.textSecondary} />

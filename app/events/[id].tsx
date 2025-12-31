@@ -67,9 +67,9 @@ export default function EventDetailsScreen() {
     }
   }, [user?.id, event?.id]);
 
-  // Fetch booked users for avatar display - only if current user is a member
+  // Fetch booked users for avatar display - for everyone
   React.useEffect(() => {
-    if (event?.id && isCurrentUserMember) {
+    if (event?.id) {
       getEventBookings(event.id)
         .then((bookings) => {
           // Deduplicate users by ID and only show unique users
@@ -108,7 +108,7 @@ export default function EventDetailsScreen() {
           console.error('Error fetching booked users:', err);
         });
     }
-  }, [event?.id, isCurrentUserMember]);
+  }, [event?.id]);
 
   // Use mock event if available, otherwise real event
 
@@ -274,9 +274,19 @@ export default function EventDetailsScreen() {
           <View style={styles.content}>
             {/* Title & Price */}
             <View style={styles.titleSection}>
-              {/* Joined Users Count - Top Right */}
+              {/* Joined Users Count - Top Right - Clickable for everyone */}
               {event.current_bookings > 0 && (
-                <View style={styles.joinedUsersContainer}>
+                <TouchableOpacity
+                  style={styles.joinedUsersContainer}
+                  onPress={() => {
+                    console.log(
+                      'Joined members pressed! Navigating to:',
+                      `/events/${id}/attendees`
+                    );
+                    router.push(`/events/${id}/attendees`);
+                  }}
+                  activeOpacity={0.7}
+                >
                   <View style={styles.joinedAvatarsStack}>
                     {/* Display avatars only if current user is a member */}
                     {isCurrentUserMember && bookedUsers.length > 0
@@ -318,8 +328,13 @@ export default function EventDetailsScreen() {
                           </View>
                         ))}
                   </View>
-                  <Text style={styles.joinedUsersText}>+{event.current_bookings} have joined</Text>
-                </View>
+                  <View style={styles.joinedUsersTextContainer}>
+                    <Text style={styles.joinedUsersText}>
+                      +{event.current_bookings} have joined
+                    </Text>
+                    <Ionicons name="chevron-forward" size={16} color={Colors.primary} />
+                  </View>
+                </TouchableOpacity>
               )}
 
               {/* Category Tags */}
@@ -1193,6 +1208,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: Spacing.sm,
+    zIndex: 10,
+    elevation: 10,
   },
   joinedAvatarsStack: {
     flexDirection: 'row',
@@ -1217,6 +1234,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Fonts.bold,
     color: '#FFF',
+  },
+  joinedUsersTextContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   joinedUsersText: {
     fontSize: 14,

@@ -1094,6 +1094,14 @@ export type Database = {
           success: boolean
         }[]
       }
+      are_event_members: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
+      are_friends: {
+        Args: { user1_id: string; user2_id: string }
+        Returns: boolean
+      }
       can_user_create_event_type: {
         Args: {
           p_event_type: Database["public"]["Enums"]["event_type"]
@@ -1161,6 +1169,7 @@ export type Database = {
         }
       }
       is_admin: { Args: never; Returns: boolean }
+      is_event_host: { Args: { user_id: string }; Returns: boolean }
       is_host_or_admin: { Args: never; Returns: boolean }
       mark_group_as_read: {
         Args: { p_group_id: string; p_user_id: string }
