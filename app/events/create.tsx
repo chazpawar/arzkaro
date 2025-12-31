@@ -10,6 +10,7 @@ import {
   Pressable,
   TouchableOpacity,
   TextInput,
+  Image,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,10 +33,25 @@ import { HOST_TYPE_LABELS } from '../../src/services/host-service';
 
 type EventType = 'event' | 'experience' | 'trip';
 
-const EVENT_TYPES: { value: EventType; label: string; emoji: string }[] = [
-  // { value: 'event', label: 'Event', emoji: '🎉' }, // Commented out - Events disabled
-  { value: 'experience', label: 'Experience', emoji: '✨' },
-  { value: 'trip', label: 'Trip', emoji: '🏔️' },
+const EVENT_TYPES: {
+  value: EventType;
+  label: string;
+  emoji: string;
+  image: any;
+}[] = [
+  // { value: 'event', label: 'Event', emoji: '🎉', image: null }, // Commented out - Events disabled
+  {
+    value: 'experience',
+    label: 'Experience',
+    emoji: '✨',
+    image: require('../../assets/others/experiences.png'),
+  },
+  {
+    value: 'trip',
+    label: 'Trip',
+    emoji: '🏔️',
+    image: require('../../assets/others/trips.png'),
+  },
 ];
 
 // Type-specific categories
@@ -427,40 +443,6 @@ export default function CreateEventScreen() {
     }
   };
 
-  // Quick date templates
-  const fillTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateStr = tomorrow.toISOString().split('T')[0];
-    setStartDate(dateStr);
-    setEndDate(dateStr);
-    setStartTime('10:00');
-    setEndTime('18:00');
-  };
-
-  const fillNextWeekend = () => {
-    const today = new Date();
-    const daysUntilSaturday = (6 - today.getDay() + 7) % 7 || 7;
-    const saturday = new Date(today);
-    saturday.setDate(today.getDate() + daysUntilSaturday);
-    const dateStr = saturday.toISOString().split('T')[0];
-    setStartDate(dateStr);
-    setEndDate(dateStr);
-    setStartTime('10:00');
-    setEndTime('18:00');
-  };
-
-  const fillNextMonth = () => {
-    const nextMonth = new Date();
-    nextMonth.setMonth(nextMonth.getMonth() + 1);
-    nextMonth.setDate(1);
-    const dateStr = nextMonth.toISOString().split('T')[0];
-    setStartDate(dateStr);
-    setEndDate(dateStr);
-    setStartTime('10:00');
-    setEndTime('18:00');
-  };
-
   const handleCreateEvent = async () => {
     if (!user?.id) return;
 
@@ -617,11 +599,19 @@ export default function CreateEventScreen() {
                           setCustomTagInput(''); // Reset custom tag input
                         }}
                       >
-                        <Text
-                          style={[styles.typeEmoji, !hasPermission && styles.typeEmojiDisabled]}
-                        >
-                          {type.emoji}
-                        </Text>
+                        {type.image ? (
+                          <Image
+                            source={type.image}
+                            style={[styles.typeImage, !hasPermission && styles.typeImageDisabled]}
+                            resizeMode="contain"
+                          />
+                        ) : (
+                          <Text
+                            style={[styles.typeEmoji, !hasPermission && styles.typeEmojiDisabled]}
+                          >
+                            {type.emoji}
+                          </Text>
+                        )}
                         <Text
                           style={[
                             styles.typeLabel,
@@ -1026,25 +1016,6 @@ export default function CreateEventScreen() {
                       </View>
                     )}
                 </View>
-
-                {/* Quick Date Templates */}
-                <View style={styles.templateSection}>
-                  <Text style={styles.templateTitle}>Quick Templates</Text>
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    <Pressable style={styles.templateChip} onPress={() => fillTomorrow()}>
-                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
-                      <Text style={styles.templateChipText}>Tomorrow</Text>
-                    </Pressable>
-                    <Pressable style={styles.templateChip} onPress={() => fillNextWeekend()}>
-                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
-                      <Text style={styles.templateChipText}>Next Weekend</Text>
-                    </Pressable>
-                    <Pressable style={styles.templateChip} onPress={() => fillNextMonth()}>
-                      <Ionicons name="calendar-outline" size={16} color={Colors.primary} />
-                      <Text style={styles.templateChipText}>Next Month</Text>
-                    </Pressable>
-                  </ScrollView>
-                </View>
               </View>
             )}
 
@@ -1309,8 +1280,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   typeCardSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    borderColor: '#000000',
   },
   typeCardDisabled: {
     opacity: 0.5,
@@ -1321,6 +1291,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   typeEmojiDisabled: {
+    opacity: 0.4,
+  },
+  typeImage: {
+    width: 48,
+    height: 48,
+    marginBottom: Spacing.xs,
+  },
+  typeImageDisabled: {
     opacity: 0.4,
   },
   typeLabel: {
@@ -1563,31 +1541,6 @@ const styles = StyleSheet.create({
     ...Typography.bodySmall,
     color: Colors.success,
     fontFamily: Fonts.semiBold,
-  },
-  templateSection: {
-    marginTop: Spacing.md,
-  },
-  templateTitle: {
-    ...Typography.bodyMedium,
-    color: Colors.text,
-    marginBottom: Spacing.sm,
-  },
-  templateChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    marginRight: Spacing.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    gap: Spacing.xs,
-  },
-  templateChipText: {
-    ...Typography.bodySmall,
-    color: Colors.primary,
-    fontFamily: Fonts.medium,
   },
   subcategorySection: {
     marginTop: Spacing.lg,

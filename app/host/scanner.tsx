@@ -1,5 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Alert, Pressable } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Alert,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -47,64 +59,81 @@ export default function HostScannerScreen() {
         }}
       />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-        {/* Back Button */}
-        <Pressable
-          style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-          onPress={() => router.back()}
+        <KeyboardAvoidingView
+          style={styles.keyboardView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </Pressable>
-
-        <View style={styles.content}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
-          </View>
-
-          <Text style={styles.title}>Validate Ticket</Text>
-          <Text style={styles.subtitle}>Enter the 6-character verification code</Text>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              value={ticketId}
-              onChangeText={(text) => setTicketId(text.toUpperCase())}
-              placeholder="e.g., A3B7K9"
-              placeholderTextColor={Colors.textTertiary}
-              autoCapitalize="characters"
-              maxLength={6}
-              autoCorrect={false}
-              editable={!validating}
-            />
-          </View>
-
-          <Button
-            title={validating ? 'Validating...' : 'Validate Ticket'}
-            onPress={handleValidate}
-            variant="primary"
-            disabled={validating || !ticketId.trim()}
-            style={styles.validateButton}
-          />
-
-          {result && (
-            <View
-              style={[
-                styles.resultContainer,
-                result.valid ? styles.successResult : styles.errorResult,
-              ]}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <ScrollView
+              contentContainerStyle={styles.scrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
             >
-              <Ionicons
-                name={result.valid ? 'checkmark-circle' : 'close-circle'}
-                size={24}
-                color={result.valid ? Colors.success : Colors.error}
-              />
-              <Text
-                style={[styles.resultText, result.valid ? styles.successText : styles.errorText]}
+              {/* Back Button */}
+              <Pressable
+                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
+                onPress={() => router.back()}
               >
-                {result.message}
-              </Text>
-            </View>
-          )}
-        </View>
+                <Ionicons name="arrow-back" size={24} color={Colors.text} />
+              </Pressable>
+
+              <View style={styles.content}>
+                <View style={styles.iconContainer}>
+                  <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
+                </View>
+
+                <Text style={styles.title}>Validate Ticket</Text>
+                <Text style={styles.subtitle}>Enter the 6-character verification code</Text>
+
+                <View style={styles.inputContainer}>
+                  <TextInput
+                    style={styles.input}
+                    value={ticketId}
+                    onChangeText={(text) => setTicketId(text.toUpperCase())}
+                    placeholder="e.g., A3B7K9"
+                    placeholderTextColor={Colors.textTertiary}
+                    autoCapitalize="characters"
+                    maxLength={6}
+                    autoCorrect={false}
+                    editable={!validating}
+                  />
+                </View>
+
+                <Button
+                  title={validating ? 'Validating...' : 'Validate Ticket'}
+                  onPress={handleValidate}
+                  variant="primary"
+                  disabled={validating || !ticketId.trim()}
+                  style={styles.validateButton}
+                />
+
+                {result && (
+                  <View
+                    style={[
+                      styles.resultContainer,
+                      result.valid ? styles.successResult : styles.errorResult,
+                    ]}
+                  >
+                    <Ionicons
+                      name={result.valid ? 'checkmark-circle' : 'close-circle'}
+                      size={24}
+                      color={result.valid ? Colors.success : Colors.error}
+                    />
+                    <Text
+                      style={[
+                        styles.resultText,
+                        result.valid ? styles.successText : styles.errorText,
+                      ]}
+                    >
+                      {result.message}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </ScrollView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </>
   );
@@ -115,6 +144,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
   backButton: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
@@ -123,10 +158,10 @@ const styles = StyleSheet.create({
     opacity: 0.6,
   },
   content: {
-    flex: 1,
     padding: Spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
+    minHeight: '100%',
   },
   iconContainer: {
     width: 120,
