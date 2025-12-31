@@ -693,9 +693,44 @@ export default function ExploreTab() {
               />
             )}
 
+          {/* Search Results - Show when searching in any view with results */}
+          {isSearching && filteredEvents.length > 0 && (
+            <View style={styles.sectionContainer}>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalList}
+              >
+                {filteredEvents.map((event) => (
+                  <Pressable
+                    key={event.id}
+                    style={styles.horizontalCard}
+                    onPress={() => router.push(`/events/${event.id}`)}
+                  >
+                    <Image
+                      source={{
+                        uri: event.cover_image_url || 'https://via.placeholder.com/150',
+                      }}
+                      style={styles.horizontalCardImage}
+                    />
+                    <View style={styles.horizontalCardContent}>
+                      <Text style={styles.cardTitle} numberOfLines={1}>
+                        {event.title}
+                      </Text>
+                      <Text style={styles.cardLocation} numberOfLines={1}>
+                        {event.location_name || event.departure_location || 'Location TBA'}
+                      </Text>
+                      <Text style={styles.cardPrice}>₹{event.price}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
           {/* 2. Show experiences category page when Experiences is clicked */}
           {(() => {
-            const shouldShow = activeView === 'experiences';
+            const shouldShow = activeView === 'experiences' && !isSearching;
             console.log(
               '[EXPLORE RENDER] activeView:',
               activeView,
@@ -720,7 +755,7 @@ export default function ExploreTab() {
           })()}
 
           {/* 3. Show trips detail as full page when Trips is clicked */}
-          {activeView === 'trips' && selectedTag === 'trips' && (
+          {activeView === 'trips' && selectedTag === 'trips' && !isSearching && (
             <View>
               <TripsDetail
                 events={filteredEvents}

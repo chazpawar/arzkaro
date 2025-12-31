@@ -40,19 +40,45 @@ interface SearchModalProps {
   searchContext?: 'all' | 'experiences' | 'trips';
 }
 
-// Suggested keywords
-const SUGGESTED_KEYWORDS = [
-  'Cricket',
-  'Dance',
-  'Badminton',
-  'Yoga',
-  'Trekking',
-  'Photography',
-  'Comedy',
-  'Food',
-  'Music',
-  'Fitness',
-];
+// Suggested keywords based on context
+const SUGGESTED_KEYWORDS = {
+  all: [
+    'Cricket',
+    'Dance',
+    'Badminton',
+    'Yoga',
+    'Trekking',
+    'Photography',
+    'Comedy',
+    'Food',
+    'Music',
+    'Fitness',
+  ],
+  experiences: [
+    'Cricket',
+    'Dance',
+    'Badminton',
+    'Yoga',
+    'Photography',
+    'Comedy',
+    'Food',
+    'Music',
+    'Fitness',
+    'Workshop',
+  ],
+  trips: [
+    'Trekking',
+    'Beach',
+    'Mountains',
+    'Adventure',
+    'Road Trip',
+    'Camping',
+    'Backpacking',
+    'Hill Station',
+    'Wildlife',
+    'Heritage',
+  ],
+};
 
 // Popular locations (reduced list)
 const POPULAR_LOCATIONS = ['Bangalore', 'Mumbai', 'Delhi', 'Goa', 'Pune'];
@@ -66,7 +92,7 @@ export default function SearchModal({
   visible,
   onClose,
   onSearch,
-  searchContext: _searchContext = 'all',
+  searchContext = 'all',
 }: SearchModalProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
@@ -86,6 +112,9 @@ export default function SearchModal({
   const [locationSuggestions, setLocationSuggestions] = useState<PlaceAutocompleteResult[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Get keywords based on context
+  const keywords = SUGGESTED_KEYWORDS[searchContext];
 
   // Reset to main search view when modal closes
   useEffect(() => {
@@ -379,7 +408,7 @@ export default function SearchModal({
                           showsHorizontalScrollIndicator={false}
                           contentContainerStyle={styles.keywordScroll}
                         >
-                          {SUGGESTED_KEYWORDS.map((keyword, index) => (
+                          {keywords.map((keyword, index) => (
                             <Pressable
                               key={index}
                               style={styles.keywordChip}
@@ -646,7 +675,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopLeftRadius: BorderRadius.xxl,
     borderTopRightRadius: BorderRadius.xxl,
-    maxHeight: '85%',
+    height: '85%',
     top: undefined,
     ...Platform.select({
       ios: {
