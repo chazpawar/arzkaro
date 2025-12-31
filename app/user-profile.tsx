@@ -20,6 +20,7 @@ import { Fonts } from '../src/constants/Fonts';
 import { useAuth } from '../src/contexts/auth-context';
 import type { Profile } from '../src/types/user.types';
 import { getProfile } from '../src/services/user-service';
+import { shareUserProfile } from '../src/utils/share-utils';
 
 export default function UserProfileScreen() {
   const router = useRouter();
@@ -65,6 +66,15 @@ export default function UserProfileScreen() {
     Linking.openURL(fullUrl).catch(() => {
       // Handle error silently
     });
+  };
+
+  const handleShare = async () => {
+    if (viewedProfile) {
+      await shareUserProfile(
+        viewedProfile.id,
+        viewedProfile.full_name || viewedProfile.username || 'User'
+      );
+    }
   };
 
   // Not authenticated
@@ -156,7 +166,9 @@ export default function UserProfileScreen() {
             <Ionicons name="arrow-back" size={24} color={Colors.text} />
           </TouchableOpacity>
           <Text style={styles.customHeaderTitle}>Profile</Text>
-          <View style={styles.headerPlaceholder} />
+          <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+            <Ionicons name="share-outline" size={24} color={Colors.text} />
+          </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
@@ -457,5 +469,13 @@ const styles = StyleSheet.create({
   },
   bottomSpacer: {
     height: Spacing.xxl,
+  },
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

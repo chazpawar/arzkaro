@@ -17,14 +17,18 @@ import {
 } from '@expo-google-fonts/league-spartan';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { useDeepLinking } from '../src/utils/deep-link-handler';
 // TODO: Uncomment after building with EAS (notifications don't work in Expo Go)
 // import { useNotifications } from '../src/hooks/use-notifications';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
-// Component to initialize notifications inside AuthProvider
-function NotificationInitializer() {
+// Component to initialize notifications and deep linking inside AuthProvider
+function AppInitializer() {
+  // Initialize deep linking handler
+  useDeepLinking();
+
   // This hook will automatically register for push notifications when user logs in
   // TODO: Uncomment after building with EAS (notifications don't work in Expo Go)
   // useNotifications();
@@ -56,7 +60,7 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <NotificationInitializer />
+      <AppInitializer />
       <StatusBar style="dark" />
       <Stack
         screenOptions={{

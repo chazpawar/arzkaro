@@ -22,6 +22,7 @@ import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
 import { getEventBookings, getUserBookings } from '../../src/services/booking-service';
 import { useAuth } from '../../src/contexts/auth-context';
+import { shareEvent } from '../../src/utils/share-utils';
 
 // Icon imports from assets/others
 const LocationIcon = require('../../assets/others/location.png');
@@ -138,6 +139,12 @@ export default function EventDetailsScreen() {
     router.push(`/events/${id}/book`);
   };
 
+  const handleShare = async () => {
+    if (event) {
+      await shareEvent(event.id, event.title);
+    }
+  };
+
   const handleSocialLink = (platform: string, url: string | undefined) => {
     if (!url) return;
 
@@ -241,10 +248,13 @@ export default function EventDetailsScreen() {
         }}
       />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        {/* Back Button */}
+        {/* Header Buttons */}
         <View style={styles.headerContainer}>
           <Pressable style={styles.backButton} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={Colors.text} />
+          </Pressable>
+          <Pressable style={styles.shareButton} onPress={handleShare}>
+            <Ionicons name="share-outline" size={24} color={Colors.text} />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -1095,6 +1105,7 @@ const styles = StyleSheet.create({
   headerContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
   },
@@ -2010,5 +2021,24 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
     lineHeight: 24,
+  },
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 4,
+      },
+    }),
   },
 });

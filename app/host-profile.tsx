@@ -18,6 +18,7 @@ import { BorderRadius, Spacing } from '../src/constants/Styles';
 import { Fonts } from '../src/constants/Fonts';
 import type { Profile } from '../src/types/user.types';
 import { getProfile } from '../src/services/user-service';
+import { shareUserProfile } from '../src/utils/share-utils';
 
 export default function HostProfileScreen() {
   const router = useRouter();
@@ -72,6 +73,15 @@ export default function HostProfileScreen() {
     });
   };
 
+  const handleShare = async () => {
+    if (viewedProfile) {
+      await shareUserProfile(
+        viewedProfile.id,
+        viewedProfile.full_name || viewedProfile.username || 'Host'
+      );
+    }
+  };
+
   // Loading state
   if (loadingProfile) {
     return (
@@ -107,7 +117,9 @@ export default function HostProfileScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.profileViewTitle}>Host Profile</Text>
-        <View style={styles.headerPlaceholder} />
+        <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+          <Ionicons name="share-outline" size={24} color={Colors.text} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.hostProfileScrollContent}>
@@ -355,5 +367,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textSecondary,
     lineHeight: 22,
+  },
+  shareButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
