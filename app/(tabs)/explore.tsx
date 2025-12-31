@@ -80,8 +80,6 @@ function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: numbe
 }
 
 const CATEGORY_ICONS: Record<string, any> = {
-  All: PlayIcon,
-
   // Cultural
   Cultural: CulturalIcon,
   Music: MusicIcon,
@@ -161,11 +159,6 @@ interface CategoryTag {
 const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
   events: [
     {
-      id: 'all',
-      label: 'All',
-      icon: CATEGORY_ICONS.All,
-    },
-    {
       id: 'Music',
       label: 'Music',
       icon: CATEGORY_ICONS.Music,
@@ -182,11 +175,6 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
     },
   ],
   experiences: [
-    {
-      id: 'all',
-      label: 'All',
-      icon: CATEGORY_ICONS.All,
-    },
     {
       id: 'Cultural',
       label: 'Cultural',
@@ -259,7 +247,7 @@ export default function ExploreTab() {
 
   // State for active view - default to 'events' (For You page)
   const [activeView, setActiveView] = useState<string | null>('events');
-  const [selectedTag, setSelectedTag] = useState('all');
+  const [selectedTag, setSelectedTag] = useState<string | null>(null); // null means show all
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLocation, setSearchLocation] = useState('');
@@ -465,7 +453,7 @@ export default function ExploreTab() {
     }
 
     // Category filtering with subcategory support - skip if actively searching
-    if (activeView !== 'trips' && selectedTag !== 'all' && !searchQuery) {
+    if (activeView !== 'trips' && selectedTag !== null && selectedTag !== 'all' && !searchQuery) {
       // Find the selected category configuration
       const categoryTags = CATEGORY_TAGS_BY_TYPE[activeView] || [];
       const selectedCategory = categoryTags.find((cat) => cat.id === selectedTag);
@@ -523,19 +511,14 @@ export default function ExploreTab() {
       setSelectedTag('trips');
     } else if (categoryId === 'experiences') {
       // For experiences, navigate to the experiences category view (full page)
-      console.log('[EXPLORE] Setting activeView=experiences, selectedTag=all');
+      console.log('[EXPLORE] Setting activeView=experiences, selectedTag=null');
       setActiveView('experiences');
-      setSelectedTag('all'); // Start with 'all' to show all experience categories
+      setSelectedTag(null); // null to show all categories
     } else if (activeView === categoryId) {
       // If clicking the same category (except trips/experiences), toggle back to 'events' (For You)
       console.log('[EXPLORE] Toggling back to events view');
       setActiveView('events');
-      setSelectedTag('all');
-    } else {
-      // Otherwise, switch to the new category
-      console.log('[EXPLORE] Setting activeView to:', categoryId);
-      setActiveView(categoryId);
-      setSelectedTag('all');
+      setSelectedTag(null); // null to show all categories
     }
   };
 
@@ -601,31 +584,37 @@ export default function ExploreTab() {
       )}
 
       {/* Logo - Hide when viewing experiences/trips or a specific category is selected OR when host is viewing their listings */}
-      {selectedTag === 'all' && activeView === 'events' && !showHostListings && (
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('../../assets/arz.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-      )}
+      {(selectedTag === null || selectedTag === 'all') &&
+        activeView === 'events' &&
+        !showHostListings && (
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+        )}
 
       {/* Page Title for Hosts viewing their listings */}
-      {showHostListings && selectedTag === 'all' && activeView === 'events' && (
-        <View style={styles.pageTitleContainer}>
-          <Text style={styles.pageTitle}>My Listings</Text>
-          <Text style={styles.pageSubtitle}>Manage your experiences and trips</Text>
-        </View>
-      )}
+      {showHostListings &&
+        (selectedTag === null || selectedTag === 'all') &&
+        activeView === 'events' && (
+          <View style={styles.pageTitleContainer}>
+            <Text style={styles.pageTitle}>My Listings</Text>
+            <Text style={styles.pageSubtitle}>Manage your experiences and trips</Text>
+          </View>
+        )}
 
       {/* Search Bar Header */}
       <View style={styles.headerContainer}>
         {/* Back button - Show when viewing experiences/trips or a specific category is selected */}
-        {(selectedTag !== 'all' || activeView === 'experiences' || activeView === 'trips') && (
+        {((selectedTag !== null && selectedTag !== 'all') ||
+          activeView === 'experiences' ||
+          activeView === 'trips') && (
           <Pressable
             onPress={() => {
-              setSelectedTag('all');
+              setSelectedTag(null);
               // Reset to 'events' view (For You) when going back
               setActiveView('events');
             }}
@@ -687,7 +676,7 @@ export default function ExploreTab() {
       >
         <View style={styles.mainContent}>
           {/* 1. Horizontal Circular Categories - Show only when in For You view */}
-          {selectedTag === 'all' && activeView === 'events' && (
+          {(selectedTag === null || selectedTag === 'all') && activeView === 'events' && (
             <View style={styles.categoriesRow}>
               {/* For hosts: Show only Experiences and Trips */}
               {/* For users: Show all categories (For You, Experiences, Trips) */}
@@ -784,141 +773,145 @@ export default function ExploreTab() {
           )}
 
           {/* 4. Show featured sections when For You is selected with 'all' tag and no search active */}
-          {activeView === 'events' && selectedTag === 'all' && !searchQuery && (
-            <>
-              {/* Top Experiences Section - Always show */}
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>
-                    {showHostListings ? 'My Experiences' : 'Top Experiences'}
-                  </Text>
-                  <Pressable onPress={() => handleCategoryPress('experiences')}>
-                    <Text style={styles.seeAllText}>See All</Text>
-                  </Pressable>
+          {activeView === 'events' &&
+            (selectedTag === null || selectedTag === 'all') &&
+            !searchQuery && (
+              <>
+                {/* Top Experiences Section - Always show */}
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>
+                      {showHostListings ? 'My Experiences' : 'Top Experiences'}
+                    </Text>
+                    <Pressable onPress={() => handleCategoryPress('experiences')}>
+                      <Text style={styles.seeAllText}>See All</Text>
+                    </Pressable>
+                  </View>
+
+                  {topExperiences.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.horizontalList}
+                    >
+                      {topExperiences.map((item) => (
+                        <Pressable
+                          key={item.id}
+                          style={styles.horizontalCard}
+                          onPress={() => router.push(`/events/${item.id}`)}
+                        >
+                          <Image
+                            source={{
+                              uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                            }}
+                            style={styles.horizontalCardImage}
+                          />
+                          <View style={styles.horizontalCardContent}>
+                            <Text style={styles.cardTitle} numberOfLines={1}>
+                              {item.title}
+                            </Text>
+                            <Text style={styles.cardLocation}>
+                              {item.location_name || item.departure_location || ''}
+                            </Text>
+                            <Text style={styles.cardPrice}>₹{item.price}</Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <View style={styles.emptyExperiencesContainer}>
+                      <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
+                      <Text style={styles.emptyExperiencesText}>
+                        {showHostListings ? 'No experiences yet' : 'No top experiences yet'}
+                      </Text>
+                      <Text style={styles.emptyExperiencesSubtext}>
+                        {showHostListings
+                          ? 'Create your first experience to get started'
+                          : 'Check back soon for exciting experiences'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
 
-                {topExperiences.length > 0 ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.horizontalList}
-                  >
-                    {topExperiences.map((item) => (
-                      <Pressable
-                        key={item.id}
-                        style={styles.horizontalCard}
-                        onPress={() => router.push(`/events/${item.id}`)}
-                      >
-                        <Image
-                          source={{
-                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
-                          }}
-                          style={styles.horizontalCardImage}
-                        />
-                        <View style={styles.horizontalCardContent}>
-                          <Text style={styles.cardTitle} numberOfLines={1}>
-                            {item.title}
-                          </Text>
-                          <Text style={styles.cardLocation}>
-                            {item.location_name || item.departure_location || ''}
-                          </Text>
-                          <Text style={styles.cardPrice}>₹{item.price}</Text>
-                        </View>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <View style={styles.emptyExperiencesContainer}>
-                    <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
-                    <Text style={styles.emptyExperiencesText}>
-                      {showHostListings ? 'No experiences yet' : 'No top experiences yet'}
+                {/* Popular Trips Section */}
+                <View style={styles.sectionContainer}>
+                  <View style={styles.sectionHeaderRow}>
+                    <Text style={styles.sectionTitle}>
+                      {showHostListings ? 'My Trips' : 'Popular Trips'}
                     </Text>
-                    <Text style={styles.emptyExperiencesSubtext}>
-                      {showHostListings
-                        ? 'Create your first experience to get started'
-                        : 'Check back soon for exciting experiences'}
-                    </Text>
+                    <Pressable onPress={() => handleCategoryPress('trips')}>
+                      <Text style={styles.seeAllText}>See All</Text>
+                    </Pressable>
                   </View>
-                )}
-              </View>
 
-              {/* Popular Trips Section */}
-              <View style={styles.sectionContainer}>
-                <View style={styles.sectionHeaderRow}>
-                  <Text style={styles.sectionTitle}>
-                    {showHostListings ? 'My Trips' : 'Popular Trips'}
-                  </Text>
-                  <Pressable onPress={() => handleCategoryPress('trips')}>
-                    <Text style={styles.seeAllText}>See All</Text>
-                  </Pressable>
+                  {popularTrips.length > 0 ? (
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.horizontalList}
+                    >
+                      {popularTrips.map((item) => (
+                        <Pressable
+                          key={item.id}
+                          style={styles.horizontalCard}
+                          onPress={() => router.push(`/events/${item.id}`)}
+                        >
+                          <Image
+                            source={{
+                              uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                            }}
+                            style={styles.horizontalCardImage}
+                          />
+                          <View style={styles.horizontalCardContent}>
+                            <Text style={styles.cardTitle} numberOfLines={1}>
+                              {item.title}
+                            </Text>
+                            <Text style={styles.cardLocation}>
+                              {item.location_name || item.departure_location || ''}
+                            </Text>
+                            <Text style={styles.cardPrice}>₹{item.price}</Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
+                  ) : (
+                    <View style={styles.emptyExperiencesContainer}>
+                      <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
+                      <Text style={styles.emptyExperiencesText}>
+                        {showHostListings ? 'No trips yet' : 'No popular trips yet'}
+                      </Text>
+                      <Text style={styles.emptyExperiencesSubtext}>
+                        {showHostListings
+                          ? 'Create your first trip to get started'
+                          : 'Check back soon for amazing adventures'}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-
-                {popularTrips.length > 0 ? (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.horizontalList}
-                  >
-                    {popularTrips.map((item) => (
-                      <Pressable
-                        key={item.id}
-                        style={styles.horizontalCard}
-                        onPress={() => router.push(`/events/${item.id}`)}
-                      >
-                        <Image
-                          source={{
-                            uri: item.cover_image_url || 'https://via.placeholder.com/150',
-                          }}
-                          style={styles.horizontalCardImage}
-                        />
-                        <View style={styles.horizontalCardContent}>
-                          <Text style={styles.cardTitle} numberOfLines={1}>
-                            {item.title}
-                          </Text>
-                          <Text style={styles.cardLocation}>
-                            {item.location_name || item.departure_location || ''}
-                          </Text>
-                          <Text style={styles.cardPrice}>₹{item.price}</Text>
-                        </View>
-                      </Pressable>
-                    ))}
-                  </ScrollView>
-                ) : (
-                  <View style={styles.emptyExperiencesContainer}>
-                    <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
-                    <Text style={styles.emptyExperiencesText}>
-                      {showHostListings ? 'No trips yet' : 'No popular trips yet'}
-                    </Text>
-                    <Text style={styles.emptyExperiencesSubtext}>
-                      {showHostListings
-                        ? 'Create your first trip to get started'
-                        : 'Check back soon for amazing adventures'}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </>
-          )}
+              </>
+            )}
 
           {/* Show search results when searching in For You view */}
-          {activeView === 'events' && selectedTag === 'all' && searchQuery && (
-            <View>
-              <CategoryDetail
-                type="events"
-                tags={[]}
-                selectedTag="all"
-                onSelectTag={() => {
-                  // No-op: search results don't need tag filtering
-                }}
-                events={filteredEvents}
-                onEventPress={(id) => router.push(`/events/${id}`)}
-                showInline={false}
-              />
-            </View>
-          )}
+          {activeView === 'events' &&
+            (selectedTag === null || selectedTag === 'all') &&
+            searchQuery && (
+              <View>
+                <CategoryDetail
+                  type="events"
+                  tags={[]}
+                  selectedTag="all"
+                  onSelectTag={() => {
+                    // No-op: search results don't need tag filtering
+                  }}
+                  events={filteredEvents}
+                  onEventPress={(id) => router.push(`/events/${id}`)}
+                  showInline={false}
+                />
+              </View>
+            )}
 
           {/* 5. Show events detail when a specific category is selected within For You */}
-          {activeView === 'events' && selectedTag !== 'all' && (
+          {activeView === 'events' && selectedTag !== null && selectedTag !== 'all' && (
             <View>
               <CategoryDetail
                 type="events"

@@ -159,6 +159,12 @@ export default function ProfileTab() {
       badge: pendingRequestsCount > 0 ? String(pendingRequestsCount) : undefined,
       showArrow: true,
     },
+    {
+      icon: 'settings-outline',
+      label: 'Settings',
+      route: '/settings',
+      showArrow: true,
+    },
   ];
 
   // Add admin panel if user is admin
