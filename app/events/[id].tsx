@@ -20,7 +20,8 @@ import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import { useEvent } from '../../src/hooks/use-events';
-import { getEventBookings } from '../../src/services/booking-service';
+import { getEventBookings, getUserBookings } from '../../src/services/booking-service';
+import { useAuth } from '../../src/contexts/auth-context';
 
 // Icon imports from assets/others
 const LocationIcon = require('../../assets/others/location.png');
@@ -31,6 +32,7 @@ const DateTimeIcon = require('../../assets/others/dateandtime.png');
 export default function EventDetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { user } = useAuth();
   const [showAllGalleryImages, setShowAllGalleryImages] = React.useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = React.useState<number | null>(null);
   const [showAllItineraryDays, setShowAllItineraryDays] = React.useState(false);
@@ -41,15 +43,33 @@ export default function EventDetailsScreen() {
   const [bookedUsers, setBookedUsers] = React.useState<
     { id: string; full_name: string | null; avatar_url: string | null }[]
   >([]);
+  const [isCurrentUserMember, setIsCurrentUserMember] = React.useState(false);
 
   // Check if this is a mock event
 
   // Use real event hook (skip if mock)
   const { event, ticketTypes, loading, error } = useEvent(id);
 
-  // Fetch booked users for avatar display
+  // Check if current user is a member (has booked this event)
   React.useEffect(() => {
-    if (event?.id) {
+    if (user?.id && event?.id) {
+      getUserBookings(user.id)
+        .then((bookings) => {
+          const hasBooking = bookings.some(
+            (b) => (b.event as { id: string }).id === event.id && b.status === 'confirmed'
+          );
+          setIsCurrentUserMember(hasBooking);
+        })
+        .catch((err) => {
+          console.error('Error checking user membership:', err);
+          setIsCurrentUserMember(false);
+        });
+    }
+  }, [user?.id, event?.id]);
+
+  // Fetch booked users for avatar display - only if current user is a member
+  React.useEffect(() => {
+    if (event?.id && isCurrentUserMember) {
       getEventBookings(event.id)
         .then((bookings) => {
           // Deduplicate users by ID and only show unique users
@@ -88,7 +108,7 @@ export default function EventDetailsScreen() {
           console.error('Error fetching booked users:', err);
         });
     }
-  }, [event?.id]);
+  }, [event?.id, isCurrentUserMember]);
 
   // Use mock event if available, otherwise real event
 
@@ -258,9 +278,9 @@ export default function EventDetailsScreen() {
               {event.current_bookings > 0 && (
                 <View style={styles.joinedUsersContainer}>
                   <View style={styles.joinedAvatarsStack}>
-                    {/* Display real user avatars */}
-                    {bookedUsers.length > 0
-                      ? // Filter out any potential duplicates at render time
+                    {/* Display avatars only if current user is a member */}
+                    {isCurrentUserMember && bookedUsers.length > 0
+                      ? // Show real user avatars for members
                         bookedUsers
                           .filter(
                             (user, index, self) => index === self.findIndex((u) => u.id === user.id)
@@ -285,7 +305,7 @@ export default function EventDetailsScreen() {
                               )}
                             </View>
                           ))
-                      : // Fallback placeholder while loading
+                      : // Show generic placeholders for non-members
                         [...Array(Math.min(3, event.current_bookings))].map((_, index) => (
                           <View
                             key={`placeholder-${index}`}
@@ -294,9 +314,7 @@ export default function EventDetailsScreen() {
                               { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index },
                             ]}
                           >
-                            <Text style={styles.joinedAvatarText}>
-                              {String.fromCharCode(65 + index)}
-                            </Text>
+                            <Ionicons name="person" size={16} color={Colors.textSecondary} />
                           </View>
                         ))}
                   </View>

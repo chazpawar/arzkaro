@@ -12,6 +12,7 @@ interface MessageBubbleProps {
 }
 
 function MessageBubble({ message, isOwn, showAvatar = true, onAvatarPress }: MessageBubbleProps) {
+  const [avatarError, setAvatarError] = React.useState(false);
   const user = 'user' in message ? message.user : 'sender' in message ? message.sender : null;
   const userName = user?.full_name || 'Unknown';
   const avatarUrl = user?.avatar_url;
@@ -38,8 +39,12 @@ function MessageBubble({ message, isOwn, showAvatar = true, onAvatarPress }: Mes
           onPress={() => user?.id && onAvatarPress?.(user.id)}
           style={styles.avatarContainer}
         >
-          {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          {avatarUrl && !avatarError ? (
+            <Image
+              source={{ uri: avatarUrl }}
+              style={styles.avatar}
+              onError={() => setAvatarError(true)}
+            />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>{initial}</Text>

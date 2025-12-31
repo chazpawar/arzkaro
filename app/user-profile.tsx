@@ -28,6 +28,7 @@ export default function UserProfileScreen() {
 
   const [viewedProfile, setViewedProfile] = useState<Profile | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [avatarError, setAvatarError] = useState(false);
 
   // Load user profile
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function UserProfileScreen() {
       }
 
       setLoadingProfile(true);
+      setAvatarError(false); // Reset avatar error on new profile load
       try {
         const profile = await getProfile(userId);
         setViewedProfile(profile);
@@ -160,8 +162,12 @@ export default function UserProfileScreen() {
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           {/* Avatar & Name */}
           <View style={styles.topSection}>
-            {viewedProfile.avatar_url ? (
-              <Image source={{ uri: viewedProfile.avatar_url }} style={styles.avatar} />
+            {viewedProfile.avatar_url && !avatarError ? (
+              <Image
+                source={{ uri: viewedProfile.avatar_url }}
+                style={styles.avatar}
+                onError={() => setAvatarError(true)}
+              />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <Text style={styles.avatarText}>{avatarLetter}</Text>
