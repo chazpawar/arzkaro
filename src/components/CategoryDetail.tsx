@@ -98,8 +98,8 @@ export default function CategoryDetail({
   const displayTags = React.useMemo(() => {
     let result: any[] = [];
 
-    if (selectedTag === 'all' || selectedTag === 'All') {
-      // Show all tags when 'all' or 'All' is selected
+    if (selectedTag === 'all' || selectedTag === 'All' || selectedTag === null) {
+      // Show all tags when 'all' or 'All' is selected or when nothing is selected (null)
       result = tags;
     } else if (hasSubcategories) {
       // Show selected category + its subcategories
@@ -136,7 +136,12 @@ export default function CategoryDetail({
 
   // Scroll to start and animate scale when selection changes
   React.useEffect(() => {
-    if (selectedTag !== 'all' && selectedTag !== 'All' && scrollViewRef.current) {
+    if (
+      selectedTag !== 'all' &&
+      selectedTag !== 'All' &&
+      selectedTag !== null &&
+      scrollViewRef.current
+    ) {
       // Scroll to beginning
       scrollViewRef.current.scrollTo({ x: 0, animated: true });
 
@@ -149,8 +154,8 @@ export default function CategoryDetail({
           friction: 6,
         }).start();
       });
-    } else if (selectedTag === 'all' || selectedTag === 'All') {
-      // Reset all scales when back to 'all' or 'All'
+    } else if (selectedTag === 'all' || selectedTag === 'All' || selectedTag === null) {
+      // Reset all scales when back to 'all' or 'All' or null (initial state)
       Object.keys(scaleAnims.current).forEach((tagId) => {
         Animated.spring(scaleAnims.current[tagId], {
           toValue: 1,
@@ -199,8 +204,8 @@ export default function CategoryDetail({
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tagsContent}
         >
-          {/* Back Button - Show when not on 'all' */}
-          {selectedTag !== 'all' && (
+          {/* Back Button - Show only when a specific category is selected (not 'all' or null) */}
+          {selectedTag !== 'all' && selectedTag !== 'All' && selectedTag !== null && (
             <Pressable
               style={styles.backButtonContainer}
               onPress={() => {
@@ -219,9 +224,14 @@ export default function CategoryDetail({
             const isSubcategory =
               tag.isSubcategory ||
               selectedMainCategory?.subcategories?.some((sub) => sub.id === tag.id);
+
+            // Check if this tag is selected
+            // For "All" tag: it's selected when selectedTag is 'all', 'All', or null (initial state)
             const isSelected = isSubcategory
               ? selectedSubcategory === tag.id
-              : selectedTag === tag.id;
+              : tag.id === selectedTag ||
+                ((tag.id === 'All' || tag.id === 'all') &&
+                  (selectedTag === null || selectedTag === 'all' || selectedTag === 'All'));
 
             // Get or create animation value for this tag
             if (!scaleAnims.current[tag.id]) {

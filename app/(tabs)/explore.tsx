@@ -290,13 +290,24 @@ export default function ExploreTab() {
   const showHostListings = isHost && effectiveRole === 'host';
   const hostId = profile?.id;
 
-  // Reset activeView when switching between host and user roles
-  // Only reset to default view when toggling host mode, don't interfere with category navigation
+  // Update activeView when view mode changes (host/user toggle)
   useEffect(() => {
-    const correctView = showHostListings ? 'experiences' : 'events';
-    setActiveView(correctView);
-    setSelectedTag(null); // Also reset selected tag
-  }, [showHostListings]);
+    if (showHostListings) {
+      // Switched to host view -> set to 'experiences'
+      console.log('[EXPLORE] Switching to host view, setting activeView=experiences');
+      setActiveView('experiences');
+      setSelectedTag(null);
+    } else if (isHost && !showHostListings) {
+      // Host switched to user view -> set to 'events' (For You)
+      console.log('[EXPLORE] Switching to user view, setting activeView=events');
+      setActiveView('events');
+      setSelectedTag(null);
+    }
+  }, [showHostListings, isHost]);
+
+  // Note: activeView is initialized correctly based on role in useState above
+  // Users can freely switch between experiences/trips tabs
+
 
   // For hosts: Filter to show only their own events
   // For normal users: Show all events
@@ -554,36 +565,35 @@ export default function ExploreTab() {
         </Pressable>
       )}
 
-      {/* Logo - Show for all users when in default view (not searching) */}
-      {(selectedTag === null || selectedTag === 'all') && !isSearching && (
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('../../assets/arz.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-      )}
+      {/* Logo - Show only in 'For You' tab (events view) when not searching */}
+      {(selectedTag === null || selectedTag === 'all') &&
+        activeView === 'events' &&
+        !isSearching && (
+          <View style={styles.logoContainer}>
+            <Image
+              source={require('../../assets/arz.png')}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          </View>
+        )}
 
       {/* Search Bar Header */}
       <View style={styles.headerContainer}>
-        {/* Back button - Show when viewing experiences/trips or a specific category is selected */}
-        {/* For hosts: NEVER show back button when clicking experiences/trips icons */}
-        {!showHostListings &&
-          ((selectedTag !== null && selectedTag !== 'all') ||
-            activeView === 'experiences' ||
-            activeView === 'trips') && (
-            <Pressable
-              onPress={() => {
-                setSelectedTag(null);
-                // Reset to 'events' view (For You) when going back
-                setActiveView('events');
-              }}
-              style={styles.backButton}
-            >
-              <Ionicons name="chevron-back" size={24} color={Colors.text} />
-            </Pressable>
-          )}
+        {/* Back button - Show when on Experiences or Trips tab */}
+        {/* For hosts: NEVER show back button */}
+        {!showHostListings && (activeView === 'experiences' || activeView === 'trips') && (
+          <Pressable
+            onPress={() => {
+              setSelectedTag(null);
+              // Reset to 'events' view (For You) when going back
+              setActiveView('events');
+            }}
+            style={styles.backButton}
+          >
+            <Ionicons name="chevron-back" size={24} color={Colors.text} />
+          </Pressable>
+        )}
 
         <Pressable style={styles.searchBar} onPress={() => setSearchModalVisible(true)}>
           <Ionicons name="search" size={20} color={Colors.text} />
