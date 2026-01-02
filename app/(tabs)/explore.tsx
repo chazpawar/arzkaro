@@ -308,7 +308,6 @@ export default function ExploreTab() {
   // Note: activeView is initialized correctly based on role in useState above
   // Users can freely switch between experiences/trips tabs
 
-
   // For hosts: Filter to show only their own events
   // For normal users: Show all events
   const availableEvents =
