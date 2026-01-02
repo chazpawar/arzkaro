@@ -225,6 +225,11 @@ sender_name = "Arzkaro"
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Uncomment to customize Magic Link email template for OTP
+# [auth.email.template.magic_link]
+# subject = "Your Verification Code"
+# content_path = "./supabase/templates/magic_link.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

@@ -500,58 +500,105 @@ export default function CreateEventScreen() {
   };
 
   const validateStep5 = () => {
-    // T&C and Cancellation Policy - optional for experiences
-    // Additional info - optional for trips
+    // For trips: validate Date & Time (step 5 is Date & Time for trips)
+    // For experiences: T&C and Cancellation Policy - optional
+    if (eventType === 'trip') {
+      const newErrors: Record<string, string> = {};
+
+      // Check presence
+      if (!startDate.trim()) newErrors.startDate = 'Start date is required';
+      if (!startTime.trim()) newErrors.startTime = 'Start time is required';
+      if (!endDate.trim()) newErrors.endDate = 'End date is required';
+      if (!endTime.trim()) newErrors.endTime = 'End time is required';
+
+      // Validate date/time format and logic
+      if (startDate && startTime) {
+        const startDateTime = new Date(`${startDate}T${startTime}`);
+        if (isNaN(startDateTime.getTime())) {
+          newErrors.startDate = 'Invalid date/time format';
+        } else if (startDateTime < new Date()) {
+          newErrors.startDate = 'Start date must be in the future';
+        }
+      }
+
+      if (endDate && endTime) {
+        const endDateTime = new Date(`${endDate}T${endTime}`);
+        if (isNaN(endDateTime.getTime())) {
+          newErrors.endDate = 'Invalid date/time format';
+        }
+      }
+
+      // Check if end date is after start date
+      if (
+        startDate &&
+        startTime &&
+        endDate &&
+        endTime &&
+        new Date(`${startDate}T${startTime}`) >= new Date(`${endDate}T${endTime}`)
+      ) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    }
+
+    // For experiences: optional T&C step
     return true;
   };
 
   const validateStep6 = () => {
     const newErrors: Record<string, string> = {};
-    if (!locationName.trim()) newErrors.locationName = 'Location name is required';
+
+    // For experiences: validate Date & Time (step 6 is Date & Time for experiences)
+    // For trips: validate Trip Details (location already validated in step 4)
+    if (eventType === 'experience') {
+      // Check presence
+      if (!startDate.trim()) newErrors.startDate = 'Start date is required';
+      if (!startTime.trim()) newErrors.startTime = 'Start time is required';
+      if (!endDate.trim()) newErrors.endDate = 'End date is required';
+      if (!endTime.trim()) newErrors.endTime = 'End time is required';
+
+      // Validate date/time format and logic
+      if (startDate && startTime) {
+        const startDateTime = new Date(`${startDate}T${startTime}`);
+        if (isNaN(startDateTime.getTime())) {
+          newErrors.startDate = 'Invalid date/time format';
+        } else if (startDateTime < new Date()) {
+          newErrors.startDate = 'Start date must be in the future';
+        }
+      }
+
+      if (endDate && endTime) {
+        const endDateTime = new Date(`${endDate}T${endTime}`);
+        if (isNaN(endDateTime.getTime())) {
+          newErrors.endDate = 'Invalid date/time format';
+        }
+      }
+
+      // Check if end date is after start date
+      if (
+        startDate &&
+        startTime &&
+        endDate &&
+        endTime &&
+        new Date(`${startDate}T${startTime}`) >= new Date(`${endDate}T${endTime}`)
+      ) {
+        newErrors.endDate = 'End date must be after start date';
+      }
+    }
+
+    // For trips: Trip Details step - no specific validation needed (all fields optional)
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateStep7 = () => {
-    const newErrors: Record<string, string> = {};
-
-    // Check presence
-    if (!locationName.trim()) newErrors.locationName = 'Location name is required';
-    if (!startDate.trim()) newErrors.startDate = 'Start date is required';
-    if (!startTime.trim()) newErrors.startTime = 'Start time is required';
-    if (!endDate.trim()) newErrors.endDate = 'End date is required';
-    if (!endTime.trim()) newErrors.endTime = 'End time is required';
-
-    // Validate date/time format and logic
-    if (startDate && startTime) {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      if (isNaN(startDateTime.getTime())) {
-        newErrors.startDate = 'Invalid date/time format';
-      } else if (startDateTime < new Date()) {
-        newErrors.startDate = 'Start date must be in the future';
-      }
-    }
-
-    if (endDate && endTime) {
-      const endDateTime = new Date(`${endDate}T${endTime}`);
-      if (isNaN(endDateTime.getTime())) {
-        newErrors.endDate = 'Invalid date/time format';
-      }
-    }
-
-    // Check if end date is after start date
-    if (
-      startDate &&
-      startTime &&
-      endDate &&
-      endTime &&
-      new Date(`${startDate}T${startTime}`) >= new Date(`${endDate}T${endTime}`)
-    ) {
-      newErrors.endDate = 'End date must be after start date';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    // Step 7 is Terms & Conditions for experiences (optional)
+    // Step 7 is Trip Gallery for trips (optional)
+    // No validation needed
+    return true;
   };
 
   const validateStep8 = () => {
@@ -1568,11 +1615,14 @@ export default function CreateEventScreen() {
                     <Text style={styles.sectionHeaderText}>Departure & Pickups</Text>
                   </View>
 
-                  <Input
+                  <LocationAutocomplete
                     label="Departure Location"
-                    placeholder="Mumbai Central Station"
+                    placeholder="Search for departure location..."
                     value={departureLocation}
-                    onChangeText={setDepartureLocation}
+                    onLocationSelect={(location) => {
+                      setDepartureLocation(location.name);
+                      setErrors((prev) => ({ ...prev, departureLocation: '' }));
+                    }}
                     error={errors.departureLocation}
                   />
 
@@ -1580,12 +1630,15 @@ export default function CreateEventScreen() {
                   <Text style={styles.inputLabel}>Pickup Points (Optional)</Text>
                   <View style={styles.pickupContainer}>
                     <View style={styles.pickupInputRow}>
-                      <Input
-                        placeholder="Add pickup location with time "
-                        value={pickupInput}
-                        onChangeText={setPickupInput}
-                        containerStyle={styles.pickupInput}
-                      />
+                      <View style={styles.pickupInput}>
+                        <LocationAutocomplete
+                          placeholder="Search for pickup location..."
+                          value={pickupInput}
+                          onLocationSelect={(location) => {
+                            setPickupInput(location.name);
+                          }}
+                        />
+                      </View>
                       <Button
                         title="Add"
                         onPress={() => {

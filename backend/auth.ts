@@ -154,8 +154,15 @@ export const signOut = async () => {
 
 /**
  * Send OTP to email for signup
- * When email confirmations are enabled, we use signUp which sends a confirmation email with OTP
- * Note: The email template must include {{ .Token }} to display the OTP
+ * Uses signInWithOtp which is idempotent and automatically handles:
+ * - Creating new user if doesn't exist
+ * - Resending OTP if user exists but unconfirmed
+ * - Preventing login if user exists and is confirmed (use shouldCreateUser: false)
+ *
+ * Note: The email template must include {{ .Token }} to display the OTP code
+ *
+ * IMPORTANT: We store full_name and password in user metadata during OTP verification,
+ * not during signup, because signInWithOtp doesn't support password parameter.
  */
 export const sendSignupOTP = async (email: string, fullName: string, password: string) => {
   try {
@@ -175,27 +182,42 @@ export const sendSignupOTP = async (email: string, fullName: string, password: s
       throw new Error('Password must be at least 6 characters long');
     }
 
-    // Sign up with the user's password
-    const { data, error } = await supabase.auth.signUp({
+    // Use signInWithOtp for idempotent signup
+    // This automatically creates the user if they don't exist, or resends OTP if they do
+    const { data, error } = await supabase.auth.signInWithOtp({
       email: cleanEmail,
-      password: password,
       options: {
+        // Auto-create user on signup (default is true)
+        shouldCreateUser: true,
+        // Store metadata that we'll use after OTP verification
         data: {
           full_name: fullName,
+          // Store password temporarily - we'll set it after OTP verification
+          temp_password: password,
         },
       },
     });
 
     if (error) {
       console.error('❌ [EMAIL_OTP] Error:', error);
+
+      // Handle specific error cases
+      if (error.message?.includes('User already registered')) {
+        throw new Error('This email is already registered. Please log in instead.');
+      }
+
+      if (error.message?.includes('rate limit')) {
+        throw new Error('Too many attempts. Please wait a moment and try again.');
+      }
+
       throw error;
     }
 
-    console.log('✅ [EMAIL_OTP] Signup response:', JSON.stringify(data, null, 2));
-    console.log('✅ [EMAIL_OTP] User identities:', data?.user?.identities);
+    console.log('✅ [EMAIL_OTP] OTP sent successfully');
+    console.log('✅ [EMAIL_OTP] Response data:', JSON.stringify(data, null, 2));
 
-    // Supabase sends OTP email even for existing users (if they're unconfirmed)
-    // Let the OTP verification handle authentication
+    // signInWithOtp returns { user: null, session: null } on success
+    // The user must verify the OTP to complete signup
     return { data, error: null };
   } catch (error) {
     console.error('Send OTP Error:', error);
@@ -205,7 +227,8 @@ export const sendSignupOTP = async (email: string, fullName: string, password: s
 
 /**
  * Verify email OTP and create session
- * This verifies the OTP from the signup confirmation email
+ * This verifies the OTP code sent to the user's email
+ * After verification, sets the user's password from temp_password in metadata
  */
 export const verifyEmailOTP = async (email: string, token: string) => {
   try {
@@ -214,11 +237,11 @@ export const verifyEmailOTP = async (email: string, token: string) => {
     // Trim and lowercase the email to match what was sent
     const cleanEmail = email.trim().toLowerCase();
 
-    // For signup confirmation, we use type 'signup' instead of 'email'
+    // Verify the OTP code using type 'email' for signInWithOtp flow
     const { data, error } = await supabase.auth.verifyOtp({
       email: cleanEmail,
       token: token.trim(),
-      type: 'signup',
+      type: 'email',
     });
 
     if (error) {
@@ -226,7 +249,33 @@ export const verifyEmailOTP = async (email: string, token: string) => {
       throw error;
     }
 
+    if (!data.session || !data.user) {
+      throw new Error('No session created after OTP verification');
+    }
+
     console.log('✅ [EMAIL_OTP_VERIFY] OTP verified successfully');
+
+    // Set the password from metadata if it exists
+    const tempPassword = data.user.user_metadata?.temp_password;
+    if (tempPassword) {
+      console.log('📝 [EMAIL_OTP_VERIFY] Setting user password...');
+
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: tempPassword,
+        data: {
+          // Remove temp_password from metadata after setting it
+          temp_password: null,
+        },
+      });
+
+      if (updateError) {
+        console.error('⚠️ [EMAIL_OTP_VERIFY] Failed to set password:', updateError);
+        // Don't throw - user is already authenticated, password can be set later
+      } else {
+        console.log('✅ [EMAIL_OTP_VERIFY] Password set successfully');
+      }
+    }
+
     return { data, error: null };
   } catch (error) {
     console.error('Verify OTP Error:', error);
@@ -236,6 +285,7 @@ export const verifyEmailOTP = async (email: string, token: string) => {
 
 /**
  * Resend OTP to email
+ * Uses signInWithOtp which is idempotent
  */
 export const resendSignupOTP = async (email: string) => {
   try {
@@ -244,9 +294,12 @@ export const resendSignupOTP = async (email: string) => {
     // Trim and lowercase the email
     const cleanEmail = email.trim().toLowerCase();
 
-    const { data, error } = await supabase.auth.resend({
-      type: 'signup',
+    // Use signInWithOtp to resend - it's idempotent
+    const { data, error } = await supabase.auth.signInWithOtp({
       email: cleanEmail,
+      options: {
+        shouldCreateUser: false, // Don't create new user on resend
+      },
     });
 
     if (error) {

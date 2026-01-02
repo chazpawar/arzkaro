@@ -45,6 +45,16 @@ export default function LocationAutocomplete({
   const [showDropdown, setShowDropdown] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
+  // Sync internal state with external value prop
+  useEffect(() => {
+    setQuery(value);
+    if (!value) {
+      setSelectedLocation(null);
+      setPredictions([]);
+      setShowDropdown(false);
+    }
+  }, [value]);
+
   // Debounce search
   useEffect(() => {
     // Don't search if query is empty or too short

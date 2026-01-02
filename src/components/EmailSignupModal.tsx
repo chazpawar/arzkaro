@@ -38,6 +38,12 @@ export default function EmailSignupModal({
   }, [initialEmail]);
 
   const handleSendOTP = async () => {
+    // Prevent duplicate submissions while loading
+    if (loading) {
+      console.log('⚠️ [EMAIL_SIGNUP_MODAL] Already processing, ignoring duplicate click');
+      return;
+    }
+
     // Validation
     if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
       setError('Please fill in all fields');
@@ -79,7 +85,10 @@ export default function EmailSignupModal({
       console.error('❌ [EMAIL_SIGNUP_MODAL] Send OTP error:', err);
 
       // Handle specific error messages
-      if (err.message?.includes('User already registered') || err.message?.includes('already')) {
+      if (
+        err.message?.includes('User already registered') ||
+        err.message?.includes('already registered')
+      ) {
         setError('This email is already registered. Please log in instead.');
       } else if (err.message?.includes('rate limit')) {
         setError('Too many attempts. Please wait a moment and try again.');
