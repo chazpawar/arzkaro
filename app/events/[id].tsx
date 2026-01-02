@@ -135,6 +135,52 @@ export default function EventDetailsScreen() {
     return `₹${price.toLocaleString('en-IN')}`;
   };
 
+  // Default Terms & Conditions
+  const DEFAULT_TERMS = `By booking this experience/trip, you agree to the following terms:
+
+1. Booking Confirmation: Your booking is confirmed only after successful payment.
+
+2. Age Requirements: Participants must meet any age requirements specified for the event.
+
+3. Health & Safety: Participants must be in good health and inform the host of any medical conditions.
+
+4. Conduct: Respectful behavior is expected. The host reserves the right to remove participants who violate this policy.
+
+5. Liability: Participants join at their own risk. The host is not liable for any injuries or losses.
+
+6. Changes: The host reserves the right to modify event details with prior notice.
+
+7. Force Majeure: The host is not liable for cancellations due to unforeseen circumstances.
+
+For questions, please contact the host or Arzkaro support.`;
+
+  // Default Cancellation Policy
+  const DEFAULT_CANCELLATION = `Standard Cancellation Policy:
+
+• Full Refund: Cancel 7+ days before the event
+• 50% Refund: Cancel 3-6 days before the event  
+• No Refund: Cancel less than 3 days before the event
+
+Refund Processing:
+- Refunds will be processed within 5-7 business days
+- Original payment method will be credited
+
+Host Cancellation:
+- If the host cancels, you will receive a full refund
+
+Weather/Emergency:
+- In case of extreme weather or emergencies, the host will reschedule or provide a full refund
+
+For cancellation requests, please contact Arzkaro support.`;
+
+  const getTermsText = () => {
+    return event?.terms_and_conditions?.trim() || DEFAULT_TERMS;
+  };
+
+  const getCancellationText = () => {
+    return event?.cancellation_policy?.trim() || DEFAULT_CANCELLATION;
+  };
+
   const handleBookNow = () => {
     router.push(`/events/${id}/book`);
   };
@@ -702,32 +748,122 @@ export default function EventDetailsScreen() {
                 )}
 
                 {/* Host Section - For trips (shown after Things to Know) */}
+                <View style={styles.hostProfileSection}>
+                  <View style={styles.hostProfileCard}>
+                    <View style={styles.hostProfileHeader}>
+                      {/* Avatar */}
+                      {event.host?.avatar_url ? (
+                        <Image
+                          source={{ uri: event.host.avatar_url }}
+                          style={styles.hostProfileAvatarImage}
+                        />
+                      ) : (
+                        <View style={styles.hostProfileAvatar}>
+                          <Text style={styles.hostProfileAvatarText}>
+                            {event.host?.full_name?.charAt(0).toUpperCase() || 'H'}
+                          </Text>
+                        </View>
+                      )}
+
+                      {/* Host Info */}
+                      <View style={styles.hostProfileInfo}>
+                        <Text style={styles.hostedBy}>Hosted by</Text>
+                        <Text style={styles.hostProfileName}>
+                          {event.host?.full_name || 'Host'}
+                        </Text>
+
+                        {/* Bio - Always show */}
+                        <Text style={styles.hostProfileBio} numberOfLines={2}>
+                          {(event.host as any)?.bio || 'No bio available'}
+                        </Text>
+
+                        {/* Social Icons - Always show */}
+                        <View style={styles.socialIcons}>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.instagram && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('instagram', (event.host as any)?.instagram)
+                            }
+                            disabled={!(event.host as any)?.instagram}
+                          >
+                            <Ionicons
+                              name="logo-instagram"
+                              size={20}
+                              color={
+                                (event.host as any)?.instagram ? '#E4405F' : Colors.textTertiary
+                              }
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.youtube && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('youtube', (event.host as any)?.youtube)
+                            }
+                            disabled={!(event.host as any)?.youtube}
+                          >
+                            <Ionicons
+                              name="logo-youtube"
+                              size={20}
+                              color={(event.host as any)?.youtube ? '#FF0000' : Colors.textTertiary}
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.linkedin && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('linkedin', (event.host as any)?.linkedin)
+                            }
+                            disabled={!(event.host as any)?.linkedin}
+                          >
+                            <Ionicons
+                              name="logo-linkedin"
+                              size={20}
+                              color={
+                                (event.host as any)?.linkedin ? '#0077B5' : Colors.textTertiary
+                              }
+                            />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            style={[
+                              styles.socialIcon,
+                              !(event.host as any)?.twitter && styles.socialIconDisabled,
+                            ]}
+                            onPress={() =>
+                              handleSocialLink('twitter', (event.host as any)?.twitter)
+                            }
+                            disabled={!(event.host as any)?.twitter}
+                          >
+                            <Ionicons
+                              name="logo-twitter"
+                              size={20}
+                              color={(event.host as any)?.twitter ? '#1DA1F2' : Colors.textTertiary}
+                            />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {/* Terms & Conditions Button - For Trips */}
+                <Pressable style={styles.policyButton} onPress={() => setShowTermsModal(true)}>
+                  <Text style={styles.policyButtonText}>Terms & Conditions</Text>
+                </Pressable>
+
+                {/* Cancellation Policy Button - For Trips */}
                 <Pressable
-                  style={styles.hostSection}
-                  onPress={() => {
-                    if (event.host_id) {
-                      router.push(`/host-profile?userId=${event.host_id}`);
-                    }
-                  }}
+                  style={styles.policyButton}
+                  onPress={() => setShowCancellationModal(true)}
                 >
-                  <View style={styles.hostAvatar}>
-                    {event.host?.avatar_url ? (
-                      <Image
-                        source={{ uri: event.host.avatar_url }}
-                        style={styles.hostAvatarImage}
-                      />
-                    ) : (
-                      <Text style={styles.hostAvatarText}>
-                        {event.host?.full_name?.charAt(0) || 'H'}
-                      </Text>
-                    )}
-                  </View>
-                  <View style={styles.hostInfo}>
-                    <Text style={styles.hostedBy}>Hosted by</Text>
-                    <Text style={styles.hostName}>{event.host?.full_name || 'Host'}</Text>
-                    <Text style={styles.hostStats}>View profile</Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+                  <Text style={styles.policyButtonText}>Cancellation policy</Text>
                 </Pressable>
               </>
             )}
@@ -893,21 +1029,17 @@ export default function EventDetailsScreen() {
                 </View>
 
                 {/* Terms & Conditions Button */}
-                {event.terms_and_conditions && (
-                  <Pressable style={styles.policyButton} onPress={() => setShowTermsModal(true)}>
-                    <Text style={styles.policyButtonText}>Terms & Conditions</Text>
-                  </Pressable>
-                )}
+                <Pressable style={styles.policyButton} onPress={() => setShowTermsModal(true)}>
+                  <Text style={styles.policyButtonText}>Terms & Conditions</Text>
+                </Pressable>
 
                 {/* Cancellation Policy Button */}
-                {event.cancellation_policy && (
-                  <Pressable
-                    style={styles.policyButton}
-                    onPress={() => setShowCancellationModal(true)}
-                  >
-                    <Text style={styles.policyButtonText}>Cancellation policy</Text>
-                  </Pressable>
-                )}
+                <Pressable
+                  style={styles.policyButton}
+                  onPress={() => setShowCancellationModal(true)}
+                >
+                  <Text style={styles.policyButtonText}>Cancellation policy</Text>
+                </Pressable>
               </>
             )}
 
@@ -1042,7 +1174,7 @@ export default function EventDetailsScreen() {
                   </Pressable>
                 </View>
                 <ScrollView style={styles.policyModalScroll}>
-                  <Text style={styles.policyModalText}>{event?.terms_and_conditions}</Text>
+                  <Text style={styles.policyModalText}>{getTermsText()}</Text>
                 </ScrollView>
               </Pressable>
             </Pressable>
@@ -1072,7 +1204,7 @@ export default function EventDetailsScreen() {
                   </Pressable>
                 </View>
                 <ScrollView style={styles.policyModalScroll}>
-                  <Text style={styles.policyModalText}>{event?.cancellation_policy}</Text>
+                  <Text style={styles.policyModalText}>{getCancellationText()}</Text>
                 </ScrollView>
               </Pressable>
             </Pressable>

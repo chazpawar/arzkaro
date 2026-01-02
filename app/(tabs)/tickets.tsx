@@ -83,7 +83,7 @@ export default function TicketsTab() {
         <EmptyState
           title="Sign In to View Tickets"
           message="Sign in to access your tickets and manage your event bookings."
-          icon="ticket-outline"
+          image={require('../../assets/others/ticket.png')}
           action={{
             label: 'Sign In',
             onPress: () => {
@@ -176,7 +176,7 @@ export default function TicketsTab() {
           <View style={styles.metaRow}>
             <Image
               source={require('../../assets/others/dateandtime.png')}
-              style={{ width: 20, height: 20 }}
+              style={{ width: 28, height: 28 }}
               resizeMode="contain"
             />
             <Text style={styles.metaText}>
@@ -187,7 +187,7 @@ export default function TicketsTab() {
           <View style={styles.metaRow}>
             <Image
               source={require('../../assets/others/location.png')}
-              style={{ width: 20, height: 20 }}
+              style={{ width: 28, height: 28 }}
               resizeMode="contain"
             />
             <Text style={styles.metaText}>{event.location_name || 'TBA'}</Text>
@@ -301,7 +301,7 @@ export default function TicketsTab() {
                   ? 'Tickets you have used for events will appear here.'
                   : 'Cancelled or expired tickets will appear here.'
             }
-            icon="ticket-outline"
+            image={require('../../assets/others/ticket.png')}
             action={
               activeTab === 'valid'
                 ? {

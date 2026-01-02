@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, Pressable, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import Button from '../../../src/components/ui/button';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
@@ -361,7 +360,11 @@ export default function BookEventScreen() {
 
         <View style={styles.infoBanner}>
           <View style={styles.infoIcon}>
-            <Ionicons name="ticket-outline" size={18} color={Colors.primaryDark} />
+            <Image
+              source={require('../../../assets/others/ticket.png')}
+              style={{ width: 18, height: 18 }}
+              resizeMode="contain"
+            />
           </View>
           <View style={styles.infoCopy}>
             <Text style={styles.infoBannerTitle}>Instant digital tickets</Text>

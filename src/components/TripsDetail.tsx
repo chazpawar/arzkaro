@@ -1,17 +1,22 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Image } from 'react-native';
+import React, { useState, useMemo, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
 import type { Event } from '../types';
+import { getEventBookings } from '../services/booking-service';
 
 const TRIP_CATEGORIES = [
-  { id: 'All', label: 'All', icon: 'grid-outline' },
-  { id: 'Weekend', label: 'Weekend', icon: 'calendar-outline' },
-  { id: 'Budget', label: 'Budget', icon: 'wallet-outline' },
-  { id: 'Luxury', label: 'Luxury', icon: 'diamond-outline' },
-  { id: 'Adventure', label: 'Adventure', icon: 'compass-outline' },
+  { id: 'All', label: 'All', image: require('../../assets/others/foryou.png') },
+  { id: 'Adventure', label: 'Adventure', image: require('../../assets/trips/Adventure.png') },
+  { id: 'Leisure', label: 'Leisure', image: require('../../assets/trips/Leisure.png') },
+  { id: 'Offbeat', label: 'Offbeat', image: require('../../assets/trips/Offbeat.png') },
+  { id: 'Spiritual', label: 'Spiritual', image: require('../../assets/trips/Spiritual.png') },
+  { id: 'Nature', label: 'Nature', image: require('../../assets/trips/Nature.png') },
+  { id: 'Festival', label: 'Festival', image: require('../../assets/trips/Festival.png') },
+  { id: 'Food & Culture', label: 'Food & Culture', image: require('../../assets/trips/Food.png') },
+  { id: 'Getaway', label: 'Getaway', image: require('../../assets/trips/Getaway.png') },
 ];
 
 interface TripsDetailProps {
@@ -19,6 +24,14 @@ interface TripsDetailProps {
   onTripPress?: (tripId: string) => void;
   showInline?: boolean; // If true, shows content inline without full-page takeover
 }
+
+interface AttendeeAvatar {
+  id: string;
+  avatar_url: string | null;
+  full_name: string | null;
+}
+
+type EventAttendees = Record<string, AttendeeAvatar[]>;
 
 // Helper function to calculate duration in days
 function calculateDuration(startDate: string, endDate: string): string {
@@ -30,16 +43,82 @@ function calculateDuration(startDate: string, endDate: string): string {
   return `${diffDays}D, ${nights}N`;
 }
 
+// Helper function to get avatar color
+function getAvatarColor(index: number): string {
+  const colors = ['#FF6B6B', '#4ECDC4', '#95E1D3'];
+  return colors[index % colors.length];
+}
+
 export default function TripsDetail({
   events,
   onTripPress,
   showInline: _showInline = false,
 }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
+  const [eventAttendees, setEventAttendees] = useState<EventAttendees>({});
+
+  // Fetch attendees for all events
+  useEffect(() => {
+    const fetchAttendees = async () => {
+      const attendeesData: EventAttendees = {};
+
+      await Promise.all(
+        events.map(async (event) => {
+          try {
+            const bookings = await getEventBookings(event.id);
+            // Get unique users and their avatars (limit to first 3)
+            const uniqueUsers = new Map<string, AttendeeAvatar>();
+
+            bookings.forEach((booking: any) => {
+              if (booking.user && booking.status === 'confirmed') {
+                uniqueUsers.set(booking.user.id, {
+                  id: booking.user.id,
+                  avatar_url: booking.user.avatar_url,
+                  full_name: booking.user.full_name,
+                });
+              }
+            });
+
+            attendeesData[event.id] = Array.from(uniqueUsers.values()).slice(0, 3);
+          } catch (error) {
+            console.error(`Failed to fetch attendees for event ${event.id}:`, error);
+            attendeesData[event.id] = [];
+          }
+        })
+      );
+
+      setEventAttendees(attendeesData);
+    };
+
+    if (events.length > 0) {
+      fetchAttendees();
+    }
+  }, [events]);
+
+  // Filter events based on selected category
+  const filteredEvents = useMemo(() => {
+    if (activeFilter === 'All') {
+      return events;
+    }
+
+    return events.filter((event) => {
+      // Check if event's category matches the selected filter
+      if (event.category?.toLowerCase() === activeFilter.toLowerCase()) {
+        return true;
+      }
+
+      // Check if event's tags include the selected filter
+      if (event.tags && Array.isArray(event.tags)) {
+        return event.tags.some((tag) => tag.toLowerCase() === activeFilter.toLowerCase());
+      }
+
+      return false;
+    });
+  }, [events, activeFilter]);
 
   const displayTrips =
-    events.length > 0
-      ? events.map((event) => ({
+    filteredEvents.length > 0
+      ? filteredEvents.map((event) => ({
           id: event.id,
           title: event.title,
           image:
@@ -55,6 +134,7 @@ export default function TripsDetail({
           duration: calculateDuration(event.start_date, event.end_date),
           hostName: event.host?.full_name || 'Arzkaro',
           attendeesCount: event.current_bookings || 0,
+          attendees: eventAttendees[event.id] || [],
         }))
       : [];
 
@@ -76,11 +156,7 @@ export default function TripsDetail({
                 onPress={() => setActiveFilter(cat.id)}
               >
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
-                  <Ionicons
-                    name={cat.icon as any}
-                    size={28}
-                    color={isSelected ? '#FFF' : Colors.primary}
-                  />
+                  <Image source={cat.image} style={styles.categoryImage} resizeMode="contain" />
                   {isSelected && (
                     <View style={styles.checkBadge}>
                       <Ionicons name="checkmark" size={10} color="#FFF" />
@@ -149,40 +225,46 @@ export default function TripsDetail({
                 <View style={styles.bottomRow}>
                   <Text style={styles.duration}>{trip.duration}</Text>
 
-                  {/* Attendees Avatars */}
-                  <View style={styles.attendeesRow}>
-                    <View style={styles.avatarStack}>
-                      {/* Mock avatars */}
-                      <View style={[styles.avatar, { backgroundColor: '#FF6B6B' }]}>
-                        <Text style={styles.avatarText}>A</Text>
+                  {/* Attendees Avatars - Only show if there are attendees */}
+                  {trip.attendees.length > 0 && (
+                    <View style={styles.attendeesRow}>
+                      <View style={styles.avatarStack}>
+                        {trip.attendees.map((attendee, index) => (
+                          <View
+                            key={attendee.id}
+                            style={[styles.avatar, index > 0 && styles.avatarOverlap]}
+                          >
+                            {attendee.avatar_url ? (
+                              <Image
+                                source={{ uri: attendee.avatar_url }}
+                                style={styles.avatarImage}
+                              />
+                            ) : (
+                              <View
+                                style={[
+                                  styles.avatarPlaceholder,
+                                  { backgroundColor: getAvatarColor(index) },
+                                ]}
+                              >
+                                <Text style={styles.avatarText}>
+                                  {attendee.full_name?.charAt(0).toUpperCase() || '?'}
+                                </Text>
+                              </View>
+                            )}
+                          </View>
+                        ))}
                       </View>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarOverlap,
-                          { backgroundColor: '#4ECDC4' },
-                        ]}
-                      >
-                        <Text style={styles.avatarText}>B</Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.avatar,
-                          styles.avatarOverlap,
-                          { backgroundColor: '#95E1D3' },
-                        ]}
-                      >
-                        <Text style={styles.avatarText}>C</Text>
-                      </View>
+                      <Text style={styles.joinedText}>+{trip.attendeesCount} Joined</Text>
                     </View>
-                    <Text style={styles.joinedText}>+{trip.attendeesCount} Joined</Text>
-                  </View>
+                  )}
                 </View>
 
                 {/* Price Button */}
-                <Pressable style={styles.priceButton}>
-                  <Text style={styles.priceText}>{trip.price}/-</Text>
-                </Pressable>
+                <View style={styles.priceButtonContainer}>
+                  <Pressable style={styles.priceButton}>
+                    <Text style={styles.priceText}>{trip.price}/-</Text>
+                  </Pressable>
+                </View>
               </View>
             </Pressable>
           ))}
@@ -248,6 +330,10 @@ const styles = StyleSheet.create({
     borderColor: Colors.background,
     zIndex: 10,
   },
+  categoryImage: {
+    width: 40,
+    height: 40,
+  },
   tagLabel: {
     fontSize: 12,
     color: Colors.textSecondary,
@@ -262,13 +348,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontFamily: Fonts.bold,
     color: Colors.text,
-    marginHorizontal: Spacing.lg,
+    marginHorizontal: Spacing.sm,
     marginTop: Spacing.xl,
     marginBottom: Spacing.lg,
     textAlign: 'left',
   },
   tripsList: {
-    paddingHorizontal: Spacing.lg,
+    paddingHorizontal: Spacing.sm,
     gap: Spacing.sm,
     paddingBottom: Spacing.xxl,
   },
@@ -279,17 +365,6 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     minHeight: 180,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 12,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   tripImage: {
     width: 160,
@@ -368,6 +443,17 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarOverlap: {
     marginLeft: -8,
@@ -382,15 +468,17 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
     color: Colors.textSecondary,
   },
+  priceButtonContainer: {
+    alignItems: 'flex-end',
+    marginTop: Spacing.xs,
+  },
   priceButton: {
-    alignSelf: 'flex-end',
     backgroundColor: Colors.background,
     paddingHorizontal: Spacing.lg,
     paddingVertical: 8,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
     borderColor: Colors.primary,
-    marginTop: Spacing.xs,
   },
   priceText: {
     fontSize: 14,

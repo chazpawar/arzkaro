@@ -154,7 +154,11 @@ export default function HostDashboard() {
 
             <View style={styles.statCard}>
               <View style={[styles.statIconContainer, { backgroundColor: Colors.infoLight }]}>
-                <Ionicons name="ticket-outline" size={20} color={Colors.info} />
+                <Image
+                  source={require('../../assets/others/ticket.png')}
+                  style={{ width: 20, height: 20 }}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.statValue}>{stats.totalBookings}</Text>
               <Text style={styles.statLabel}>Total Bookings</Text>

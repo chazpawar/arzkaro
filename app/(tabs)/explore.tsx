@@ -176,6 +176,11 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
   ],
   experiences: [
     {
+      id: 'All',
+      label: 'All',
+      icon: ForYouIcon,
+    },
+    {
       id: 'Cultural',
       label: 'Cultural',
       icon: CATEGORY_ICONS.Cultural,

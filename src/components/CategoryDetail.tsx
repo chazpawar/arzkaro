@@ -98,8 +98,8 @@ export default function CategoryDetail({
   const displayTags = React.useMemo(() => {
     let result: any[] = [];
 
-    if (selectedTag === 'all') {
-      // Show all tags when 'all' is selected
+    if (selectedTag === 'all' || selectedTag === 'All') {
+      // Show all tags when 'all' or 'All' is selected
       result = tags;
     } else if (hasSubcategories) {
       // Show selected category + its subcategories
@@ -136,7 +136,7 @@ export default function CategoryDetail({
 
   // Scroll to start and animate scale when selection changes
   React.useEffect(() => {
-    if (selectedTag !== 'all' && scrollViewRef.current) {
+    if (selectedTag !== 'all' && selectedTag !== 'All' && scrollViewRef.current) {
       // Scroll to beginning
       scrollViewRef.current.scrollTo({ x: 0, animated: true });
 
@@ -149,8 +149,8 @@ export default function CategoryDetail({
           friction: 6,
         }).start();
       });
-    } else if (selectedTag === 'all') {
-      // Reset all scales when back to 'all'
+    } else if (selectedTag === 'all' || selectedTag === 'All') {
+      // Reset all scales when back to 'all' or 'All'
       Object.keys(scaleAnims.current).forEach((tagId) => {
         Animated.spring(scaleAnims.current[tagId], {
           toValue: 1,

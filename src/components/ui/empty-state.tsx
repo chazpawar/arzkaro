@@ -1,5 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, ViewStyle, StyleProp } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Pressable,
+  ViewStyle,
+  StyleProp,
+  Image,
+  ImageSourcePropType,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '@/constants/Colors';
 import { Spacing, BorderRadius } from '@/constants/Styles';
@@ -23,6 +32,10 @@ interface EmptyStateProps {
    */
   emoji?: string;
   /**
+   * Optional custom image source
+   */
+  image?: ImageSourcePropType;
+  /**
    * Optional action button
    */
   action?: {
@@ -41,14 +54,17 @@ export default function EmptyState({
   message,
   icon,
   emoji,
+  image,
   action,
   style,
 }: EmptyStateProps) {
   return (
     <View style={[styles.container, style]}>
-      {/* Icon or Emoji */}
+      {/* Icon, Image or Emoji */}
       {emoji ? (
         <Text style={styles.emoji}>{emoji}</Text>
+      ) : image ? (
+        <Image source={image} style={styles.image} resizeMode="contain" />
       ) : icon ? (
         <Ionicons name={icon} size={48} color={Colors.textTertiary} />
       ) : null}
@@ -80,6 +96,11 @@ const styles = StyleSheet.create({
   },
   emoji: {
     fontSize: 48,
+    marginBottom: Spacing.md,
+  },
+  image: {
+    width: 48,
+    height: 48,
     marginBottom: Spacing.md,
   },
   title: {

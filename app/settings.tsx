@@ -288,19 +288,30 @@ export default function SettingsScreen() {
               </View>
             </View>
 
-            {/* About */}
+            {/* Support */}
             <View style={styles.sectionContainer}>
-              <Text style={styles.sectionHeader}>About</Text>
+              <Text style={styles.sectionHeader}>Support</Text>
               <View style={styles.menuList}>
-                <View style={styles.menuItem}>
-                  <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                    <Ionicons name="information-circle-outline" size={20} color={Colors.text} />
+                <Pressable
+                  style={styles.menuItem}
+                  onPress={() => {
+                    const email = 'thearzkaro@gmail.com';
+                    const subject = 'Support Request';
+                    const body = 'Hi Arzkaro Team,\n\n';
+                    Linking.openURL(
+                      `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                    );
+                  }}
+                >
+                  <View style={[styles.menuIcon, { backgroundColor: Colors.primarySoft }]}>
+                    <Ionicons name="mail-outline" size={20} color={Colors.primary} />
                   </View>
                   <View style={styles.menuContent}>
-                    <Text style={styles.menuTitle}>Version</Text>
-                    <Text style={styles.menuSubtitle}>1.0.0 (Development)</Text>
+                    <Text style={styles.menuTitle}>Contact Us</Text>
+                    <Text style={styles.menuSubtitle}>Get in touch with our team</Text>
                   </View>
-                </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.textSecondary} />
+                </Pressable>
               </View>
             </View>
 

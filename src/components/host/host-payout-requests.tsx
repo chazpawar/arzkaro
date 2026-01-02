@@ -191,7 +191,11 @@ export default function HostPayoutRequests({ hostId }: HostPayoutRequestsProps) 
 
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
-            <Ionicons name="ticket-outline" size={20} color={Colors.primary} />
+            <Image
+              source={require('../../../assets/others/ticket.png')}
+              style={{ width: 20, height: 20 }}
+              resizeMode="contain"
+            />
             <Text style={styles.statText}>{earnings?.total_bookings || 0} Bookings</Text>
           </View>
           <View style={styles.statItem}>

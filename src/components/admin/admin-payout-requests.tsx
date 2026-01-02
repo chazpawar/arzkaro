@@ -213,34 +213,39 @@ export default function AdminPayoutRequests({ adminId }: AdminPayoutRequestsProp
       {/* Statistics Cards */}
       {stats && (
         <View style={styles.statsContainer}>
-          <View style={styles.statsRow}>
-            <View style={[styles.statCard, { borderLeftColor: '#FFA500' }]}>
-              <Text style={styles.statNumber}>{stats.pending.count}</Text>
-              <Text style={styles.statLabel}>Pending</Text>
-              <Text style={styles.statAmount}>₹{stats.pending.amount.toLocaleString('en-IN')}</Text>
+          <Text style={styles.statsTitle}>Payout Overview</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={[styles.statAmount, { color: '#FFA500' }]}>
+                  ₹{stats.pending.amount.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.statLabel}>Pending</Text>
+                <Text style={styles.statCount}>{stats.pending.count} requests</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[styles.statAmount, { color: '#4CAF50' }]}>
+                  ₹{stats.approved.amount.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.statLabel}>Approved</Text>
+                <Text style={styles.statCount}>{stats.approved.count} requests</Text>
+              </View>
             </View>
-            <View style={[styles.statCard, { borderLeftColor: '#4CAF50' }]}>
-              <Text style={styles.statNumber}>{stats.approved.count}</Text>
-              <Text style={styles.statLabel}>Approved</Text>
-              <Text style={styles.statAmount}>
-                ₹{stats.approved.amount.toLocaleString('en-IN')}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.statsRow}>
-            <View style={[styles.statCard, { borderLeftColor: '#2196F3' }]}>
-              <Text style={styles.statNumber}>{stats.processing.count}</Text>
-              <Text style={styles.statLabel}>Processing</Text>
-              <Text style={styles.statAmount}>
-                ₹{stats.processing.amount.toLocaleString('en-IN')}
-              </Text>
-            </View>
-            <View style={[styles.statCard, { borderLeftColor: '#8BC34A' }]}>
-              <Text style={styles.statNumber}>{stats.completed.count}</Text>
-              <Text style={styles.statLabel}>Completed</Text>
-              <Text style={styles.statAmount}>
-                ₹{stats.completed.amount.toLocaleString('en-IN')}
-              </Text>
+            <View style={styles.statsRow}>
+              <View style={styles.statCard}>
+                <Text style={[styles.statAmount, { color: '#2196F3' }]}>
+                  ₹{stats.processing.amount.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.statLabel}>Processing</Text>
+                <Text style={styles.statCount}>{stats.processing.count} requests</Text>
+              </View>
+              <View style={styles.statCard}>
+                <Text style={[styles.statAmount, { color: '#8BC34A' }]}>
+                  ₹{stats.completed.amount.toLocaleString('en-IN')}
+                </Text>
+                <Text style={styles.statLabel}>Completed</Text>
+                <Text style={styles.statCount}>{stats.completed.count} requests</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -276,75 +281,119 @@ export default function AdminPayoutRequests({ adminId }: AdminPayoutRequestsProp
         ) : (
           requests.map((request) => (
             <View key={request.id} style={styles.requestCard}>
-              {/* Host Info */}
-              <View style={styles.hostInfo}>
-                <View style={styles.hostAvatar}>
-                  <Ionicons name="person-outline" size={24} color={Colors.primary} />
-                </View>
-                <View style={styles.hostDetails}>
-                  <Text style={styles.hostName}>{request.host?.full_name || 'Unknown Host'}</Text>
-                  <Text style={styles.hostEmail}>{request.host?.email}</Text>
-                  {request.host?.phone && (
-                    <Text style={styles.hostPhone}>📱 {request.host.phone}</Text>
-                  )}
-                </View>
+              {/* Header with Status and Amount */}
+              <View style={styles.requestHeader}>
                 <View style={styles.requestStatus}>
                   <Ionicons
                     name={getStatusIcon(request.status) as any}
-                    size={20}
+                    size={24}
                     color={getStatusColor(request.status)}
                   />
                   <Text style={[styles.statusText, { color: getStatusColor(request.status) }]}>
                     {request.status.charAt(0).toUpperCase() + request.status.slice(1)}
                   </Text>
                 </View>
-              </View>
-
-              {/* Amount */}
-              <View style={styles.amountSection}>
-                <Text style={styles.amountLabel}>Requested Amount</Text>
-                <Text style={styles.amountValue}>
+                <Text style={styles.requestAmount}>
                   ₹{request.requested_amount.toLocaleString('en-IN')}
                 </Text>
               </View>
 
-              {/* Bank Details */}
-              {request.bank_details && (
-                <View style={styles.bankDetails}>
-                  <Text style={styles.bankDetailsTitle}>Bank Details</Text>
-                  <View style={styles.bankDetailRow}>
-                    <Text style={styles.bankLabel}>Account Holder:</Text>
-                    <Text style={styles.bankValue}>{request.bank_details.account_holder_name}</Text>
+              <View style={styles.divider} />
+
+              {/* Host Info */}
+              <View style={styles.hostInfoSection}>
+                <Text style={styles.sectionLabel}>Host Details</Text>
+                <View style={styles.hostInfo}>
+                  <View style={styles.hostAvatar}>
+                    <Ionicons name="person-outline" size={24} color={Colors.primary} />
                   </View>
-                  <View style={styles.bankDetailRow}>
-                    <Text style={styles.bankLabel}>Beneficiary:</Text>
-                    <Text style={styles.bankValue}>{request.bank_details.beneficiary_name}</Text>
-                  </View>
-                  <View style={styles.bankDetailRow}>
-                    <Text style={styles.bankLabel}>Account Number:</Text>
-                    <Text style={styles.bankValue}>{request.bank_details.account_number}</Text>
-                  </View>
-                  <View style={styles.bankDetailRow}>
-                    <Text style={styles.bankLabel}>IFSC Code:</Text>
-                    <Text style={styles.bankValue}>{request.bank_details.ifsc_code}</Text>
+                  <View style={styles.hostDetails}>
+                    <Text style={styles.hostName}>{request.host?.full_name || 'Unknown Host'}</Text>
+                    <Text style={styles.hostEmail}>{request.host?.email}</Text>
+                    {request.host?.phone && (
+                      <Text style={styles.hostPhone}>📱 {request.host.phone}</Text>
+                    )}
                   </View>
                 </View>
+              </View>
+
+              {/* Bank Details */}
+              {request.bank_details && (
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.bankDetailsSection}>
+                    <Text style={styles.sectionLabel}>Bank Details</Text>
+                    <View style={styles.bankDetails}>
+                      <View style={styles.bankDetailRow}>
+                        <Text style={styles.bankLabel}>Account Holder:</Text>
+                        <Text style={styles.bankValue}>
+                          {request.bank_details.account_holder_name}
+                        </Text>
+                      </View>
+                      <View style={styles.bankDetailRow}>
+                        <Text style={styles.bankLabel}>Beneficiary:</Text>
+                        <Text style={styles.bankValue}>
+                          {request.bank_details.beneficiary_name}
+                        </Text>
+                      </View>
+                      <View style={styles.bankDetailRow}>
+                        <Text style={styles.bankLabel}>Account Number:</Text>
+                        <Text style={styles.bankValue}>{request.bank_details.account_number}</Text>
+                      </View>
+                      <View style={styles.bankDetailRow}>
+                        <Text style={styles.bankLabel}>IFSC Code:</Text>
+                        <Text style={styles.bankValue}>{request.bank_details.ifsc_code}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
               )}
 
               {/* Notes */}
               {request.request_note && (
-                <View style={styles.noteSection}>
-                  <Text style={styles.noteLabel}>Host Note:</Text>
-                  <Text style={styles.noteText}>{request.request_note}</Text>
+                <>
+                  <View style={styles.divider} />
+                  <View style={styles.noteContainer}>
+                    <Text style={styles.noteLabel}>Host Note:</Text>
+                    <Text style={styles.noteText}>{request.request_note}</Text>
+                  </View>
+                </>
+              )}
+
+              {request.admin_note && (
+                <View style={styles.adminNoteContainer}>
+                  <Text style={styles.adminNoteLabel}>Admin Note:</Text>
+                  <Text style={styles.adminNoteText}>{request.admin_note}</Text>
                 </View>
               )}
 
-              {/* Request Date */}
-              <View style={styles.dateSection}>
-                <Text style={styles.dateLabel}>Requested on:</Text>
-                <Text style={styles.dateValue}>
-                  {new Date(request.created_at).toLocaleString('en-IN')}
-                </Text>
+              {request.rejection_reason && (
+                <View style={styles.rejectionContainer}>
+                  <Text style={styles.rejectionLabel}>Rejection Reason:</Text>
+                  <Text style={styles.rejectionText}>{request.rejection_reason}</Text>
+                </View>
+              )}
+
+              <View style={styles.divider} />
+
+              {/* Request Details */}
+              <View style={styles.requestDetails}>
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>Requested on:</Text>
+                  <Text style={styles.detailValue}>
+                    {new Date(request.created_at).toLocaleDateString('en-IN')}
+                  </Text>
+                </View>
+                {request.approved_at && (
+                  <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>
+                      {request.status === 'rejected' ? 'Rejected on:' : 'Approved on:'}
+                    </Text>
+                    <Text style={styles.detailValue}>
+                      {new Date(request.approved_at).toLocaleDateString('en-IN')}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {/* Actions */}
@@ -368,27 +417,23 @@ export default function AdminPayoutRequests({ adminId }: AdminPayoutRequestsProp
               )}
 
               {request.status === 'approved' && (
-                <View style={styles.actions}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.processingButton]}
-                    onPress={() => handleMarkProcessing(request)}
-                  >
-                    <Ionicons name="sync-outline" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>Mark Processing</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.processingButton, styles.fullWidthButton]}
+                  onPress={() => handleMarkProcessing(request)}
+                >
+                  <Ionicons name="sync-outline" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Mark Processing</Text>
+                </TouchableOpacity>
               )}
 
               {request.status === 'processing' && (
-                <View style={styles.actions}>
-                  <TouchableOpacity
-                    style={[styles.actionButton, styles.completedButton]}
-                    onPress={() => handleMarkCompleted(request)}
-                  >
-                    <Ionicons name="checkmark-done-circle-outline" size={20} color="#fff" />
-                    <Text style={styles.actionButtonText}>Mark Completed</Text>
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.completedButton, styles.fullWidthButton]}
+                  onPress={() => handleMarkCompleted(request)}
+                >
+                  <Ionicons name="checkmark-done-circle-outline" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Mark Completed</Text>
+                </TouchableOpacity>
               )}
             </View>
           ))
@@ -526,29 +571,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statsContainer: {
-    padding: 16,
+    backgroundColor: '#fff',
+    margin: 16,
+    padding: 20,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statsTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.semiBold,
+    marginBottom: 16,
+    color: Colors.text,
+  },
+  statsGrid: {
+    gap: 16,
   },
   statsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 12,
+    marginBottom: 0,
   },
   statCard: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#f5f5f5',
     padding: 16,
-    borderRadius: 12,
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 8,
   },
-  statNumber: {
-    fontSize: 24,
+  statAmount: {
+    fontSize: 20,
     fontFamily: Fonts.bold,
-    color: Colors.text,
     marginBottom: 4,
   },
   statLabel: {
@@ -556,10 +611,10 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     marginBottom: 4,
   },
-  statAmount: {
-    fontSize: 14,
-    fontFamily: Fonts.semiBold,
-    color: Colors.text,
+  statCount: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    fontFamily: Fonts.medium,
   },
   filterContainer: {
     paddingHorizontal: 16,
@@ -618,10 +673,45 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
+  requestHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  requestStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusText: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+  },
+  requestAmount: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: '#e0e0e0',
+    marginVertical: 12,
+  },
+  sectionLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.semiBold,
+    color: Colors.textTertiary,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  hostInfoSection: {
+    marginBottom: 12,
+  },
   hostInfo: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 16,
+    alignItems: 'center',
   },
   hostAvatar: {
     width: 50,
@@ -650,42 +740,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
   },
-  requestStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  statusText: {
-    fontSize: 13,
-    fontFamily: Fonts.semiBold,
-  },
-  amountSection: {
-    backgroundColor: '#f5f5f5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  amountLabel: {
-    fontSize: 12,
-    color: Colors.textTertiary,
-    marginBottom: 4,
-  },
-  amountValue: {
-    fontSize: 24,
-    fontFamily: Fonts.bold,
-    color: Colors.primary,
+  bankDetailsSection: {
+    marginBottom: 12,
   },
   bankDetails: {
     backgroundColor: '#E3F2FD',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12,
-  },
-  bankDetailsTitle: {
-    fontSize: 14,
-    fontFamily: Fonts.semiBold,
-    color: '#1976D2',
-    marginBottom: 8,
   },
   bankDetailRow: {
     flexDirection: 'row',
@@ -701,11 +762,11 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.semiBold,
     color: '#0D47A1',
   },
-  noteSection: {
+  noteContainer: {
     backgroundColor: '#FFF9C4',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   noteLabel: {
     fontSize: 12,
@@ -717,32 +778,71 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#F57F17',
   },
-  dateSection: {
+  adminNoteContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#E3F2FD',
+    borderRadius: 8,
+  },
+  adminNoteLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.semiBold,
+    color: '#1976D2',
+    marginBottom: 4,
+  },
+  adminNoteText: {
+    fontSize: 14,
+    color: '#1565C0',
+  },
+  rejectionContainer: {
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: '#FFEBEE',
+    borderRadius: 8,
+  },
+  rejectionLabel: {
+    fontSize: 12,
+    fontFamily: Fonts.semiBold,
+    color: '#C62828',
+    marginBottom: 4,
+  },
+  rejectionText: {
+    fontSize: 14,
+    color: '#D32F2F',
+  },
+  requestDetails: {
+    gap: 8,
+  },
+  detailRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
-  dateLabel: {
-    fontSize: 13,
+  detailLabel: {
+    fontSize: 14,
     color: Colors.textTertiary,
   },
-  dateValue: {
-    fontSize: 13,
-    fontFamily: Fonts.medium,
+  detailValue: {
+    fontSize: 14,
     color: Colors.text,
+    fontFamily: Fonts.medium,
   },
   actions: {
     flexDirection: 'row',
     gap: 12,
+    marginTop: 12,
   },
   actionButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
+    padding: 14,
     borderRadius: 8,
     gap: 8,
+  },
+  fullWidthButton: {
+    flex: undefined,
+    width: '100%',
   },
   approveButton: {
     backgroundColor: '#4CAF50',

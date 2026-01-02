@@ -92,7 +92,11 @@ export default function TicketDetailsScreen() {
             {/* Ticket ID Section */}
             <View style={styles.qrSection}>
               <View style={styles.ticketNumberContainer}>
-                <Ionicons name="ticket" size={80} color={Colors.primary} />
+                <Image
+                  source={require('../../assets/others/ticket.png')}
+                  style={{ width: 80, height: 80 }}
+                  resizeMode="contain"
+                />
               </View>
               <Text style={styles.sectionTitle}>Your Ticket</Text>
               <Text style={styles.ticketIdLabel}>VERIFICATION CODE</Text>
@@ -118,7 +122,7 @@ export default function TicketDetailsScreen() {
                 <View style={styles.detailIconContainer}>
                   <Image
                     source={require('../../assets/others/dateandtime.png')}
-                    style={{ width: 48, height: 48 }}
+                    style={{ width: 60, height: 60 }}
                     resizeMode="contain"
                   />
                 </View>
@@ -136,7 +140,7 @@ export default function TicketDetailsScreen() {
                 <View style={styles.detailIconContainer}>
                   <Image
                     source={require('../../assets/others/location.png')}
-                    style={{ width: 36, height: 36 }}
+                    style={{ width: 60, height: 60 }}
                     resizeMode="contain"
                   />
                 </View>
@@ -333,9 +337,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   detailIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: Colors.surfaceSecondary,
     alignItems: 'center',
     justifyContent: 'center',

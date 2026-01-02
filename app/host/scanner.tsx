@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  Image,
 } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -80,7 +81,11 @@ export default function HostScannerScreen() {
 
               <View style={styles.content}>
                 <View style={styles.iconContainer}>
-                  <Ionicons name="ticket-outline" size={80} color={Colors.primary} />
+                  <Image
+                    source={require('../../assets/others/ticket.png')}
+                    style={{ width: 80, height: 80 }}
+                    resizeMode="contain"
+                  />
                 </View>
 
                 <Text style={styles.title}>Validate Ticket</Text>
