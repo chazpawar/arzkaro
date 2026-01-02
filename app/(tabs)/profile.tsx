@@ -310,7 +310,6 @@ export default function ProfileTab() {
                   </View>
                 ) : showAsHost ? (
                   <View style={[styles.roleBadge, styles.hostBadge]}>
-                    <Ionicons name="star" size={14} color={Colors.textInverse} />
                     <Text style={styles.roleBadgeText}>Host</Text>
                   </View>
                 ) : null}
