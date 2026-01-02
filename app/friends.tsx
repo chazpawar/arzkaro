@@ -21,6 +21,7 @@ import { useAuth } from '../src/contexts/auth-context';
 import * as FriendsService from '../src/services/friends-service';
 import * as DMService from '../src/services/dm-service';
 import type { FriendRequest, Friendship } from '../src/types/chat.types';
+import { supabase } from '../backend/supabase';
 
 type Tab = 'friends' | 'requests';
 
@@ -33,7 +34,9 @@ export default function FriendsScreen() {
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [acceptingRequest, setAcceptingRequest] = useState<string | null>(null);
+  const [rejectingRequest, setRejectingRequest] = useState<string | null>(null);
+  const [removingFriend, setRemovingFriend] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     if (!user?.id) {
@@ -47,8 +50,23 @@ export default function FriendsScreen() {
         FriendsService.getPendingRequests(user.id),
       ]);
 
+      // Create a set of friend user IDs for quick lookup
+      const friendUserIds = new Set<string>();
+      friendsData.forEach((friendship) => {
+        // Add the other user's ID (not our own)
+        const friendId =
+          friendship.user_id_1 === user.id ? friendship.user_id_2 : friendship.user_id_1;
+        friendUserIds.add(friendId);
+      });
+
+      // Filter out requests from people we're already friends with
+      const filteredRequests = requestsData.filter((request) => {
+        const senderId = request.sender_id;
+        return !friendUserIds.has(senderId);
+      });
+
       setFriends(friendsData);
-      setPendingRequests(requestsData);
+      setPendingRequests(filteredRequests);
     } catch (error) {
       console.error('[FRIENDS] Error loading data:', error);
       Alert.alert('Error', 'Failed to load friends data');
@@ -71,6 +89,57 @@ export default function FriendsScreen() {
     }, [loadData])
   );
 
+  // Setup realtime subscriptions for friend updates
+  React.useEffect(() => {
+    if (!user?.id) return;
+
+    console.log('[FRIENDS] Setting up realtime subscriptions');
+
+    // Create a SINGLE channel for both friend_requests and friendships
+    const channel = supabase
+      .channel(`friends:${user.id}`) // Unique channel per user
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'friend_requests',
+          filter: `or(sender_id.eq.${user.id},receiver_id.eq.${user.id})`,
+        },
+        async (payload) => {
+          console.log('[FRIENDS] Friend request event:', payload.eventType);
+          // Reload data when friend requests change
+          await loadData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'friendships',
+          filter: `or(user_id_1.eq.${user.id},user_id_2.eq.${user.id})`,
+        },
+        async (payload) => {
+          console.log('[FRIENDS] Friendship event:', payload.eventType);
+          // Reload data when friendships change
+          await loadData();
+        }
+      )
+      .subscribe((status) => {
+        console.log('[FRIENDS] Realtime subscription status:', status);
+
+        if (status === 'CHANNEL_ERROR') {
+          console.error('[FRIENDS] ❌ Channel error - too many channels or connection issue');
+        }
+      });
+
+    return () => {
+      console.log('[FRIENDS] Cleaning up realtime subscription');
+      channel?.unsubscribe();
+    };
+  }, [user?.id, loadData]);
+
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadData();
@@ -80,7 +149,7 @@ export default function FriendsScreen() {
     if (!user?.id) return;
 
     try {
-      setActionLoading(requestId);
+      setAcceptingRequest(requestId);
       await FriendsService.acceptFriendRequest(requestId, user.id);
       Alert.alert('Success', 'Friend request accepted!');
       await loadData();
@@ -88,7 +157,7 @@ export default function FriendsScreen() {
       console.error('[FRIENDS] Error accepting request:', error);
       Alert.alert('Error', error instanceof Error ? error.message : 'Failed to accept request');
     } finally {
-      setActionLoading(null);
+      setAcceptingRequest(null);
     }
   };
 
@@ -102,7 +171,7 @@ export default function FriendsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            setActionLoading(requestId);
+            setRejectingRequest(requestId);
             await FriendsService.rejectFriendRequest(requestId, user.id);
             Alert.alert('Success', 'Friend request rejected');
             await loadData();
@@ -113,7 +182,7 @@ export default function FriendsScreen() {
               error instanceof Error ? error.message : 'Failed to reject request'
             );
           } finally {
-            setActionLoading(null);
+            setRejectingRequest(null);
           }
         },
       },
@@ -133,7 +202,7 @@ export default function FriendsScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              setActionLoading(friendshipId);
+              setRemovingFriend(friendshipId);
               await FriendsService.removeFriend(friendshipId, user.id);
               Alert.alert('Success', 'Friend removed');
               await loadData();
@@ -144,7 +213,7 @@ export default function FriendsScreen() {
                 error instanceof Error ? error.message : 'Failed to remove friend'
               );
             } finally {
-              setActionLoading(null);
+              setRemovingFriend(null);
             }
           },
         },
@@ -172,7 +241,7 @@ export default function FriendsScreen() {
 
     const displayName = item.friend.full_name || item.friend.email?.split('@')[0] || 'User';
     const username = (item.friend as any).username || item.friend.email?.split('@')[0] || '';
-    const isLoading = actionLoading === item.id;
+    const isLoading = removingFriend === item.id;
 
     return (
       <Pressable
@@ -231,7 +300,8 @@ export default function FriendsScreen() {
 
     const displayName = item.sender.full_name || item.sender.email?.split('@')[0] || 'User';
     const username = (item.sender as any).username || item.sender.email?.split('@')[0] || '';
-    const isLoading = actionLoading === item.id;
+    const isAccepting = acceptingRequest === item.id;
+    const isRejecting = rejectingRequest === item.id;
 
     return (
       <Pressable
@@ -264,9 +334,9 @@ export default function FriendsScreen() {
               e.stopPropagation();
               handleAcceptRequest(item.id);
             }}
-            disabled={isLoading}
+            disabled={isAccepting || isRejecting}
           >
-            {isLoading ? (
+            {isAccepting ? (
               <LoadingSpinner size="small" color={Colors.background} />
             ) : (
               <Text style={styles.confirmButtonText}>Confirm</Text>
@@ -279,9 +349,13 @@ export default function FriendsScreen() {
               e.stopPropagation();
               handleRejectRequest(item.id);
             }}
-            disabled={isLoading}
+            disabled={isAccepting || isRejecting}
           >
-            <Text style={styles.deleteButtonText}>Delete</Text>
+            {isRejecting ? (
+              <LoadingSpinner size="small" color={Colors.text} />
+            ) : (
+              <Text style={styles.deleteButtonText}>Delete</Text>
+            )}
           </Pressable>
         </View>
       </Pressable>
@@ -585,6 +659,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.primary,
     minWidth: 80,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -599,6 +674,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     backgroundColor: Colors.surfaceSecondary,
     minWidth: 80,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

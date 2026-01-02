@@ -319,7 +319,10 @@ export function subscribeToNotifications(
       if (status === 'SUBSCRIBED') {
         console.log('[NOTIFICATIONS SERVICE] ✅ Successfully subscribed to realtime updates');
       } else if (status === 'CHANNEL_ERROR') {
-        console.error('[NOTIFICATIONS SERVICE] ❌ Channel error - realtime not working!');
+        console.error(
+          '[NOTIFICATIONS SERVICE] ❌ Channel error - too many channels. Notifications realtime disabled.'
+        );
+        // Don't throw error, just log it - allow other channels to work
       } else if (status === 'TIMED_OUT') {
         console.error('[NOTIFICATIONS SERVICE] ⏱️ Subscription timed out');
       } else if (status === 'CLOSED') {

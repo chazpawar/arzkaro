@@ -35,7 +35,7 @@ export async function getPendingRequests(userId: string) {
     .select(
       `
       *,
-      sender:profiles!sender_id(id, full_name, email, avatar_url)
+      sender:profiles!sender_id(id, full_name, email, avatar_url, username)
     `
     )
     .eq('receiver_id', userId)
@@ -43,7 +43,28 @@ export async function getPendingRequests(userId: string) {
     .order('created_at', { ascending: false });
 
   if (error) {
+    console.error('[FRIENDS SERVICE] Error getting pending requests:', error);
     throw new Error(error.message);
+  }
+
+  console.log('[FRIENDS SERVICE] Pending requests:', data?.length || 0);
+  console.log('[FRIENDS SERVICE] Pending requests data:', JSON.stringify(data, null, 2));
+
+  // Check if sender profiles are loaded
+  if (data && data.length > 0) {
+    data.forEach((req, idx) => {
+      console.log(`[FRIENDS SERVICE] Request ${idx}:`, {
+        id: req.id,
+        hasSender: !!req.sender,
+        senderDetails: req.sender
+          ? {
+              id: req.sender.id,
+              email: req.sender.email,
+              full_name: req.sender.full_name,
+            }
+          : 'NO SENDER DATA',
+      });
+    });
   }
 
   return data as FriendRequest[];
@@ -71,7 +92,20 @@ export async function getSentRequests(userId: string) {
 
 // Send a friend request
 export async function sendFriendRequest(senderId: string, receiverId: string) {
-  // Check if request already exists
+  // Check if already friends first
+  const { data: friendship } = await supabase
+    .from('friendships')
+    .select('id')
+    .or(
+      `and(user_id_1.eq.${senderId},user_id_2.eq.${receiverId}),and(user_id_1.eq.${receiverId},user_id_2.eq.${senderId})`
+    )
+    .maybeSingle();
+
+  if (friendship) {
+    throw new Error('Already friends');
+  }
+
+  // Check if pending request already exists
   const { data: existing } = await supabase
     .from('friend_requests')
     .select('id, status')
@@ -84,24 +118,8 @@ export async function sendFriendRequest(senderId: string, receiverId: string) {
     if (existing.status === 'pending') {
       throw new Error('Friend request already sent');
     }
-    if (existing.status === 'accepted') {
-      throw new Error('Already friends');
-    }
     // If rejected, allow sending again by deleting old request
     await supabase.from('friend_requests').delete().eq('id', existing.id);
-  }
-
-  // Check if already friends
-  const { data: friendship } = await supabase
-    .from('friendships')
-    .select('id')
-    .or(
-      `and(user_id_1.eq.${senderId},user_id_2.eq.${receiverId}),and(user_id_1.eq.${receiverId},user_id_2.eq.${senderId})`
-    )
-    .maybeSingle();
-
-  if (friendship) {
-    throw new Error('Already friends');
   }
 
   // Create new friend request
@@ -130,6 +148,8 @@ export async function sendFriendRequest(senderId: string, receiverId: string) {
 
 // Accept a friend request
 export async function acceptFriendRequest(requestId: string, userId: string) {
+  console.log('[FRIENDS SERVICE] Accepting friend request:', requestId);
+
   // Get the friend request
   const { data: request, error: fetchError } = await supabase
     .from('friend_requests')
@@ -140,23 +160,18 @@ export async function acceptFriendRequest(requestId: string, userId: string) {
     .single();
 
   if (fetchError || !request) {
+    console.error('[FRIENDS SERVICE] Error fetching request:', fetchError);
     throw new Error('Friend request not found or already processed');
   }
 
-  // Update request status
-  const { error: updateError } = await supabase
-    .from('friend_requests')
-    .update({
-      status: 'accepted',
-      responded_at: new Date().toISOString(),
-    })
-    .eq('id', requestId);
+  console.log(
+    '[FRIENDS SERVICE] Found request from:',
+    request.sender_id,
+    'to:',
+    request.receiver_id
+  );
 
-  if (updateError) {
-    throw new Error(updateError.message);
-  }
-
-  // Create friendship
+  // Create friendship first
   const { data: friendship, error: friendshipError } = await supabase
     .from('friendships')
     .insert({
@@ -167,9 +182,25 @@ export async function acceptFriendRequest(requestId: string, userId: string) {
     .single();
 
   if (friendshipError) {
+    console.error('[FRIENDS SERVICE] Error creating friendship:', friendshipError);
     throw new Error(friendshipError.message);
   }
 
+  console.log('[FRIENDS SERVICE] Friendship created:', friendship.id);
+
+  // Delete the friend request after accepting (cleanup)
+  // This allows users to send new requests in the future if they unfriend
+  const { error: deleteError } = await supabase
+    .from('friend_requests')
+    .delete()
+    .eq('id', requestId);
+
+  if (deleteError) {
+    console.error('[FRIENDS SERVICE] Error deleting request:', deleteError);
+    // Don't throw - friendship is already created, this is just cleanup
+  }
+
+  console.log('[FRIENDS SERVICE] Friend request deleted (accepted)');
   return friendship as Friendship;
 }
 
@@ -208,21 +239,26 @@ export async function cancelFriendRequest(requestId: string, userId: string) {
 
 // Get all friends for a user
 export async function getFriends(userId: string) {
+  console.log('[FRIENDS SERVICE] Getting friends for user:', userId);
+
   const { data, error } = await supabase
     .from('friendships')
     .select(
       `
       *,
-      user_1:profiles!user_id_1(id, full_name, email, avatar_url),
-      user_2:profiles!user_id_2(id, full_name, email, avatar_url)
+      user_1:profiles!user_id_1(id, full_name, email, avatar_url, username),
+      user_2:profiles!user_id_2(id, full_name, email, avatar_url, username)
     `
     )
     .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
     .order('created_at', { ascending: false });
 
   if (error) {
+    console.error('[FRIENDS SERVICE] Error getting friends:', error);
     throw new Error(error.message);
   }
+
+  console.log('[FRIENDS SERVICE] Raw friendships data:', data?.length || 0);
 
   // Transform data to show the friend (not the current user)
   const friends = data.map((friendship: any) => {
@@ -233,19 +269,64 @@ export async function getFriends(userId: string) {
     };
   });
 
+  console.log('[FRIENDS SERVICE] Transformed friends:', friends.length);
   return friends as Friendship[];
 }
 
 // Remove a friend
 export async function removeFriend(friendshipId: string, userId: string) {
-  const { error } = await supabase
-    .from('friendships')
-    .delete()
-    .eq('id', friendshipId)
-    .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`);
+  // Validate inputs
+  if (!friendshipId || !userId) {
+    throw new Error('Invalid parameters');
+  }
 
-  if (error) {
-    throw new Error(error.message);
+  // First, get the friendship to find the user IDs
+  const { data: friendship, error: fetchError } = await supabase
+    .from('friendships')
+    .select('user_id_1, user_id_2')
+    .eq('id', friendshipId)
+    .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
+    .single();
+
+  if (fetchError || !friendship) {
+    console.error('[FRIENDS SERVICE] Error fetching friendship:', fetchError);
+    throw new Error('Friendship not found');
+  }
+
+  // Store user IDs before deleting
+  const userId1 = friendship.user_id_1;
+  const userId2 = friendship.user_id_2;
+
+  if (!userId1 || !userId2) {
+    console.error('[FRIENDS SERVICE] Invalid user IDs in friendship:', friendship);
+    throw new Error('Invalid friendship data');
+  }
+
+  // Delete the friendship first
+  const { error: deleteError } = await supabase.from('friendships').delete().eq('id', friendshipId);
+
+  if (deleteError) {
+    console.error('[FRIENDS SERVICE] Error deleting friendship:', deleteError);
+    throw new Error(deleteError.message);
+  }
+
+  // Clean up any friend requests between these users (in case of leftover data)
+  // This allows them to send new requests in the future
+  try {
+    const { error: requestError } = await supabase
+      .from('friend_requests')
+      .delete()
+      .or(
+        `and(sender_id.eq.${userId1},receiver_id.eq.${userId2}),and(sender_id.eq.${userId2},receiver_id.eq.${userId1})`
+      );
+
+    if (requestError) {
+      console.error('[FRIENDS SERVICE] Error deleting friend request:', requestError);
+      // Don't throw - friendship is already deleted, this is just cleanup
+    }
+  } catch (err) {
+    console.error('[FRIENDS SERVICE] Exception deleting friend request:', err);
+    // Don't throw - friendship is already deleted, this is just cleanup
   }
 }
 

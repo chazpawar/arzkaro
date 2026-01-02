@@ -83,7 +83,7 @@ export default function ChatsTab() {
 
     // Create a channel to listen for all dm_messages updates
     const channel = supabase
-      .channel('dm_messages_updates')
+      .channel(`dm_messages:${user.id}`) // Unique per user
       .on(
         'postgres_changes',
         {

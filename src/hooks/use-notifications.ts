@@ -102,78 +102,88 @@ export function useNotifications(userId: string | undefined) {
     // Initial fetch
     fetchNotifications();
 
-    // Subscribe to real-time updates
-    const channel = NotificationService.subscribeToNotifications(
-      userId,
-      // On new notification
-      (notification) => {
-        console.log('[NOTIFICATIONS HOOK] New notification:', notification.id);
-        setNotifications((prev) => [notification, ...prev]);
-        setUnreadCount((prev) => prev + 1);
-      },
-      // On update (e.g., marked as read)
-      async (notification) => {
-        console.log(
-          '[NOTIFICATIONS HOOK] 🟡 UPDATE callback triggered for notification:',
-          notification.id
-        );
-        console.log('[NOTIFICATIONS HOOK] 🟡 Notification read status:', notification.read);
-
-        // Update notification in list if we have it
-        setNotifications((prev) => {
-          const oldNotification = prev.find((n) => n.id === notification.id);
-          if (oldNotification) {
-            console.log('[NOTIFICATIONS HOOK] 📝 Found notification in list, updating it');
-            return prev.map((n) => (n.id === notification.id ? notification : n));
-          } else {
-            console.log(
-              '[NOTIFICATIONS HOOK] ⚠️ Notification not in list (explore tab?), keeping list unchanged'
-            );
-          }
-          return prev;
-        });
-
-        // Debounce refetching unread count to avoid multiple simultaneous calls
-        // when marking all as read (which triggers multiple UPDATE events)
-        if (refetchTimeoutRef.current) {
-          console.log('[NOTIFICATIONS HOOK] ⏱️ Clearing previous refetch timeout');
-          clearTimeout(refetchTimeoutRef.current);
-        }
-
-        console.log('[NOTIFICATIONS HOOK] ⏱️ Setting refetch timeout (300ms)');
-        refetchTimeoutRef.current = setTimeout(async () => {
+    // Subscribe to real-time updates (wrapped in try-catch to not break other channels)
+    try {
+      const channel = NotificationService.subscribeToNotifications(
+        userId,
+        // On new notification
+        (notification) => {
+          console.log('[NOTIFICATIONS HOOK] New notification:', notification.id);
+          setNotifications((prev) => [notification, ...prev]);
+          setUnreadCount((prev) => prev + 1);
+        },
+        // On update (e.g., marked as read)
+        async (notification) => {
           console.log(
-            '[NOTIFICATIONS HOOK] 🔄 Refetch timeout fired, fetching unread count from DB'
+            '[NOTIFICATIONS HOOK] 🟡 UPDATE callback triggered for notification:',
+            notification.id
           );
-          try {
-            const count = await NotificationService.getUnreadCount(userId);
-            console.log('[NOTIFICATIONS HOOK] ✅ Fetched unread count from DB:', count);
-            setUnreadCount((prev) => {
-              console.log('[NOTIFICATIONS HOOK] 📝 Updating unread count from', prev, 'to', count);
-              return count;
-            });
-          } catch (err) {
-            console.error('[NOTIFICATIONS HOOK] ❌ Error refetching unread count:', err);
+          console.log('[NOTIFICATIONS HOOK] 🟡 Notification read status:', notification.read);
+
+          // Update notification in list if we have it
+          setNotifications((prev) => {
+            const oldNotification = prev.find((n) => n.id === notification.id);
+            if (oldNotification) {
+              console.log('[NOTIFICATIONS HOOK] 📝 Found notification in list, updating it');
+              return prev.map((n) => (n.id === notification.id ? notification : n));
+            } else {
+              console.log(
+                '[NOTIFICATIONS HOOK] ⚠️ Notification not in list (explore tab?), keeping list unchanged'
+              );
+            }
+            return prev;
+          });
+
+          // Debounce refetching unread count to avoid multiple simultaneous calls
+          // when marking all as read (which triggers multiple UPDATE events)
+          if (refetchTimeoutRef.current) {
+            console.log('[NOTIFICATIONS HOOK] ⏱️ Clearing previous refetch timeout');
+            clearTimeout(refetchTimeoutRef.current);
           }
-        }, 300); // Wait 300ms after last update event
-      },
-      // On delete
-      (notificationId) => {
-        console.log('[NOTIFICATIONS HOOK] Notification deleted:', notificationId);
-        setNotifications((prev) => {
-          const notification = prev.find((n) => n.id === notificationId);
-          const wasUnread = notification && !notification.read;
 
-          if (wasUnread) {
-            setUnreadCount((count) => Math.max(0, count - 1));
-          }
+          console.log('[NOTIFICATIONS HOOK] ⏱️ Setting refetch timeout (300ms)');
+          refetchTimeoutRef.current = setTimeout(async () => {
+            console.log(
+              '[NOTIFICATIONS HOOK] 🔄 Refetch timeout fired, fetching unread count from DB'
+            );
+            try {
+              const count = await NotificationService.getUnreadCount(userId);
+              console.log('[NOTIFICATIONS HOOK] ✅ Fetched unread count from DB:', count);
+              setUnreadCount((prev) => {
+                console.log(
+                  '[NOTIFICATIONS HOOK] 📝 Updating unread count from',
+                  prev,
+                  'to',
+                  count
+                );
+                return count;
+              });
+            } catch (err) {
+              console.error('[NOTIFICATIONS HOOK] ❌ Error refetching unread count:', err);
+            }
+          }, 300); // Wait 300ms after last update event
+        },
+        // On delete
+        (notificationId) => {
+          console.log('[NOTIFICATIONS HOOK] Notification deleted:', notificationId);
+          setNotifications((prev) => {
+            const notification = prev.find((n) => n.id === notificationId);
+            const wasUnread = notification && !notification.read;
 
-          return prev.filter((n) => n.id !== notificationId);
-        });
-      }
-    );
+            if (wasUnread) {
+              setUnreadCount((count) => Math.max(0, count - 1));
+            }
 
-    channelRef.current = channel;
+            return prev.filter((n) => n.id !== notificationId);
+          });
+        }
+      );
+
+      channelRef.current = channel;
+    } catch (err) {
+      console.error('[NOTIFICATIONS HOOK] Failed to setup realtime, continuing without it:', err);
+      // Don't throw - allow app to work without notification realtime
+    }
 
     // Cleanup
     return () => {
