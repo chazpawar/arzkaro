@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/Colors';
@@ -8,21 +8,12 @@ import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 
 interface TabIconProps {
-  name: keyof typeof Ionicons.glyphMap | 'ticket-custom';
+  name: keyof typeof Ionicons.glyphMap;
   focused: boolean;
   color: string;
 }
 
 function TabIcon({ name, focused: _focused, color }: TabIconProps) {
-  // Special handling for ticket emoji
-  if (name === 'ticket-custom') {
-    return (
-      <View style={styles.iconContainer}>
-        <Text style={{ fontSize: 24 }}>🎟️</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.iconContainer}>
       <Ionicons name={name as keyof typeof Ionicons.glyphMap} size={24} color={color} />
@@ -91,8 +82,8 @@ export default function TabLayout() {
         name="tickets"
         options={{
           title: 'Tickets',
-          tabBarIcon: ({ focused: _focused, color }) => (
-            <TabIcon name="ticket-custom" focused={_focused} color={color} />
+          tabBarIcon: ({ focused, color }) => (
+            <TabIcon name={focused ? 'ticket' : 'ticket-outline'} focused={focused} color={color} />
           ),
         }}
       />
