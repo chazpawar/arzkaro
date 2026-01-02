@@ -153,7 +153,117 @@ export const signOut = async () => {
 };
 
 /**
- * Sign up with email and password
+ * Send OTP to email for signup
+ * When email confirmations are enabled, we use signUp which sends a confirmation email with OTP
+ * Note: The email template must include {{ .Token }} to display the OTP
+ */
+export const sendSignupOTP = async (email: string, fullName: string, password: string) => {
+  try {
+    console.log('📝 [EMAIL_OTP] Sending OTP to:', email);
+
+    // Trim and lowercase the email to avoid validation issues
+    const cleanEmail = email.trim().toLowerCase();
+
+    // Validate email format locally first
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(cleanEmail)) {
+      throw new Error('Invalid email format');
+    }
+
+    // Validate password
+    if (password.length < 6) {
+      throw new Error('Password must be at least 6 characters long');
+    }
+
+    // Sign up with the user's password
+    const { data, error } = await supabase.auth.signUp({
+      email: cleanEmail,
+      password: password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL_OTP] Error:', error);
+      throw error;
+    }
+
+    console.log('✅ [EMAIL_OTP] Signup response:', JSON.stringify(data, null, 2));
+    console.log('✅ [EMAIL_OTP] User identities:', data?.user?.identities);
+
+    // Supabase sends OTP email even for existing users (if they're unconfirmed)
+    // Let the OTP verification handle authentication
+    return { data, error: null };
+  } catch (error) {
+    console.error('Send OTP Error:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Verify email OTP and create session
+ * This verifies the OTP from the signup confirmation email
+ */
+export const verifyEmailOTP = async (email: string, token: string) => {
+  try {
+    console.log('📝 [EMAIL_OTP_VERIFY] Verifying OTP for:', email);
+
+    // Trim and lowercase the email to match what was sent
+    const cleanEmail = email.trim().toLowerCase();
+
+    // For signup confirmation, we use type 'signup' instead of 'email'
+    const { data, error } = await supabase.auth.verifyOtp({
+      email: cleanEmail,
+      token: token.trim(),
+      type: 'signup',
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL_OTP_VERIFY] Error:', error);
+      throw error;
+    }
+
+    console.log('✅ [EMAIL_OTP_VERIFY] OTP verified successfully');
+    return { data, error: null };
+  } catch (error) {
+    console.error('Verify OTP Error:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Resend OTP to email
+ */
+export const resendSignupOTP = async (email: string) => {
+  try {
+    console.log('📝 [EMAIL_OTP_RESEND] Resending OTP to:', email);
+
+    // Trim and lowercase the email
+    const cleanEmail = email.trim().toLowerCase();
+
+    const { data, error } = await supabase.auth.resend({
+      type: 'signup',
+      email: cleanEmail,
+    });
+
+    if (error) {
+      console.error('❌ [EMAIL_OTP_RESEND] Error:', error);
+      throw error;
+    }
+
+    console.log('✅ [EMAIL_OTP_RESEND] OTP resent successfully');
+    return { data, error: null };
+  } catch (error) {
+    console.error('Resend OTP Error:', error);
+    return { data: null, error };
+  }
+};
+
+/**
+ * Sign up with email and password (DEPRECATED - Use OTP instead)
  * Creates a new user account and automatically creates a profile via database trigger
  */
 export const signUpWithEmail = async (email: string, password: string, fullName: string) => {

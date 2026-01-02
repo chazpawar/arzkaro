@@ -4,23 +4,35 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius, Typography } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
+import { verifyEmailOTP, resendSignupOTP } from '../../backend/auth';
+import { useAuth } from '../contexts/auth-context';
 
 interface OTPVerificationModalProps {
   visible: boolean;
-  phoneNumber: string;
+  email: string;
+  fullName: string;
   onClose: () => void;
   onVerifySuccess: () => void;
 }
 
 export default function OTPVerificationModal({
   visible,
-  phoneNumber,
+  email,
+  fullName,
   onClose,
   onVerifySuccess,
 }: OTPVerificationModalProps) {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { refreshProfile } = useAuth();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🔍 [OTP_MODAL] Visible prop changed:', visible);
+    console.log('🔍 [OTP_MODAL] Email:', email);
+    console.log('🔍 [OTP_MODAL] Full Name:', fullName);
+  }, [visible, email, fullName]);
 
   const handleVerify = async () => {
     if (otp.length !== 6) {
@@ -32,16 +44,36 @@ export default function OTPVerificationModal({
       setLoading(true);
       setError(null);
 
-      // TODO: Implement actual OTP verification logic with Supabase
-      console.log('Verifying OTP:', otp, 'for phone:', phoneNumber);
+      console.log('📝 [OTP_VERIFY] Verifying OTP:', otp, 'for email:', email);
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { data, error: verifyError } = await verifyEmailOTP(email, otp);
 
+      if (verifyError) {
+        throw verifyError;
+      }
+
+      if (!data?.session) {
+        throw new Error('No session returned after OTP verification');
+      }
+
+      console.log('✅ [OTP_VERIFY] OTP verified successfully');
+
+      // Refresh profile to fetch user data
+      await refreshProfile(data.session.user.id);
+
+      // Call success callback
       onVerifySuccess();
     } catch (err: any) {
       console.error('OTP verification error:', err);
-      setError(err.message || 'Failed to verify OTP');
+
+      // Handle specific error messages
+      if (err.message?.includes('invalid') || err.message?.includes('expired')) {
+        setError('Invalid or expired OTP. Please try again.');
+      } else if (err.message?.includes('rate limit')) {
+        setError('Too many attempts. Please wait a moment.');
+      } else {
+        setError(err.message || 'Failed to verify OTP. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -50,16 +82,31 @@ export default function OTPVerificationModal({
   const handleResendOTP = async () => {
     try {
       setError(null);
+      setLoading(true);
 
-      // TODO: Implement actual OTP resend logic
-      console.log('Resending OTP to:', phoneNumber);
+      console.log('📝 [OTP_RESEND] Resending OTP to:', email);
+
+      const { error: resendError } = await resendSignupOTP(email);
+
+      if (resendError) {
+        throw resendError;
+      }
+
+      console.log('✅ [OTP_RESEND] OTP resent successfully');
 
       // Show success message
-      setError('OTP sent successfully!');
+      setError('✓ Verification code sent successfully!');
       setTimeout(() => setError(null), 3000);
     } catch (err: any) {
       console.error('OTP resend error:', err);
-      setError(err.message || 'Failed to resend OTP');
+
+      if (err.message?.includes('rate limit')) {
+        setError('Please wait a moment before requesting another code.');
+      } else {
+        setError(err.message || 'Failed to resend OTP');
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -69,7 +116,7 @@ export default function OTPVerificationModal({
         <View style={styles.modalContainer}>
           {/* Header */}
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Verify OTP</Text>
+            <Text style={styles.headerTitle}>Verify your email</Text>
             <Pressable onPress={onClose} style={styles.closeButton}>
               <Ionicons name="close" size={28} color={Colors.text} />
             </Pressable>
@@ -78,20 +125,13 @@ export default function OTPVerificationModal({
           {/* Info Text */}
           <Text style={styles.infoText}>
             Enter the 6-digit code sent to{'\n'}
-            <Text style={styles.phoneNumber}>{phoneNumber}</Text>
+            <Text style={styles.emailText}>{email}</Text>
           </Text>
 
           {/* Error/Success Message */}
           {error && (
-            <View
-              style={[
-                styles.errorContainer,
-                error.includes('successfully') && styles.successContainer,
-              ]}
-            >
-              <Text
-                style={[styles.errorText, error.includes('successfully') && styles.successText]}
-              >
+            <View style={[styles.errorContainer, error.includes('✓') && styles.successContainer]}>
+              <Text style={[styles.errorText, error.includes('✓') && styles.successText]}>
                 {error}
               </Text>
             </View>
@@ -117,7 +157,7 @@ export default function OTPVerificationModal({
             onPress={handleVerify}
             disabled={loading || otp.length !== 6}
           >
-            <Text style={styles.verifyButtonText}>{loading ? 'Verifying...' : 'Verify OTP'}</Text>
+            <Text style={styles.verifyButtonText}>{loading ? 'Verifying...' : 'Verify code'}</Text>
           </Pressable>
 
           {/* Resend OTP */}
@@ -170,6 +210,10 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   phoneNumber: {
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+  },
+  emailText: {
     fontFamily: Fonts.semiBold,
     color: Colors.text,
   },
