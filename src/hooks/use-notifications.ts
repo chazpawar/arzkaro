@@ -13,6 +13,7 @@ export function useNotifications(userId: string | undefined) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
+  const refetchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // TODO: Uncomment push notification registration when building with EAS
   // Register for push notifications on mount (one-time setup)
@@ -111,19 +112,50 @@ export function useNotifications(userId: string | undefined) {
         setUnreadCount((prev) => prev + 1);
       },
       // On update (e.g., marked as read)
-      (notification) => {
-        console.log('[NOTIFICATIONS HOOK] Notification updated:', notification.id);
-        setNotifications((prev) => prev.map((n) => (n.id === notification.id ? notification : n)));
+      async (notification) => {
+        console.log(
+          '[NOTIFICATIONS HOOK] 🟡 UPDATE callback triggered for notification:',
+          notification.id
+        );
+        console.log('[NOTIFICATIONS HOOK] 🟡 Notification read status:', notification.read);
 
-        // Recalculate unread count
-        setUnreadCount((prev) => {
-          const wasRead = prev > 0;
-          const isNowRead = notification.read;
-          if (!wasRead && isNowRead) {
-            return Math.max(0, prev - 1);
+        // Update notification in list if we have it
+        setNotifications((prev) => {
+          const oldNotification = prev.find((n) => n.id === notification.id);
+          if (oldNotification) {
+            console.log('[NOTIFICATIONS HOOK] 📝 Found notification in list, updating it');
+            return prev.map((n) => (n.id === notification.id ? notification : n));
+          } else {
+            console.log(
+              '[NOTIFICATIONS HOOK] ⚠️ Notification not in list (explore tab?), keeping list unchanged'
+            );
           }
           return prev;
         });
+
+        // Debounce refetching unread count to avoid multiple simultaneous calls
+        // when marking all as read (which triggers multiple UPDATE events)
+        if (refetchTimeoutRef.current) {
+          console.log('[NOTIFICATIONS HOOK] ⏱️ Clearing previous refetch timeout');
+          clearTimeout(refetchTimeoutRef.current);
+        }
+
+        console.log('[NOTIFICATIONS HOOK] ⏱️ Setting refetch timeout (300ms)');
+        refetchTimeoutRef.current = setTimeout(async () => {
+          console.log(
+            '[NOTIFICATIONS HOOK] 🔄 Refetch timeout fired, fetching unread count from DB'
+          );
+          try {
+            const count = await NotificationService.getUnreadCount(userId);
+            console.log('[NOTIFICATIONS HOOK] ✅ Fetched unread count from DB:', count);
+            setUnreadCount((prev) => {
+              console.log('[NOTIFICATIONS HOOK] 📝 Updating unread count from', prev, 'to', count);
+              return count;
+            });
+          } catch (err) {
+            console.error('[NOTIFICATIONS HOOK] ❌ Error refetching unread count:', err);
+          }
+        }, 300); // Wait 300ms after last update event
       },
       // On delete
       (notificationId) => {
@@ -150,6 +182,10 @@ export function useNotifications(userId: string | undefined) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
+      if (refetchTimeoutRef.current) {
+        clearTimeout(refetchTimeoutRef.current);
+        refetchTimeoutRef.current = null;
+      }
     };
   }, [userId, fetchNotifications]);
 
@@ -175,18 +211,29 @@ export function useNotifications(userId: string | undefined) {
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
 
+    console.log('[NOTIFICATIONS HOOK] 🔵 markAllAsRead called for user:', userId);
+    console.log('[NOTIFICATIONS HOOK] 🔵 Current unread count before:', unreadCount);
+
     try {
       await NotificationService.markAllAsRead(userId);
 
+      console.log('[NOTIFICATIONS HOOK] ✅ API call successful, doing optimistic update');
+
       // Optimistic update
       const now = new Date().toISOString();
-      setNotifications((prev) => prev.map((n) => ({ ...n, read: true, read_at: now })));
-      setUnreadCount(0);
+      setNotifications((prev) => {
+        console.log('[NOTIFICATIONS HOOK] 📝 Updating', prev.length, 'notifications to read');
+        return prev.map((n) => ({ ...n, read: true, read_at: now }));
+      });
+      setUnreadCount((prev) => {
+        console.log('[NOTIFICATIONS HOOK] 📝 Setting unread count from', prev, 'to 0');
+        return 0;
+      });
     } catch (err) {
-      console.error('[NOTIFICATIONS HOOK] Error marking all as read:', err);
+      console.error('[NOTIFICATIONS HOOK] ❌ Error marking all as read:', err);
       throw err;
     }
-  }, [userId]);
+  }, [userId, unreadCount]);
 
   // Delete notification
   const deleteNotification = useCallback(async (notificationId: string) => {

@@ -137,20 +137,32 @@ export async function markAllAsRead(userId: string) {
     return;
   }
 
-  const { error } = await supabase
+  console.log('[NOTIFICATIONS SERVICE] 🔵 Marking all notifications as read for user:', userId);
+
+  const { data, error } = await supabase
     .from('notifications')
     .update({
       read: true,
       read_at: new Date().toISOString(),
     })
     .eq('user_id', userId)
-    .eq('read', false);
+    .eq('read', false)
+    .select();
 
   if (error) {
-    console.error('[NOTIFICATIONS] Error marking all as read:', error);
-    console.error('[NOTIFICATIONS] Error details:', JSON.stringify(error, null, 2));
+    console.error('[NOTIFICATIONS SERVICE] ❌ Error marking all as read:', error);
+    console.error('[NOTIFICATIONS SERVICE] ❌ Error details:', JSON.stringify(error, null, 2));
     throw error;
   }
+
+  console.log(
+    '[NOTIFICATIONS SERVICE] ✅ Successfully marked as read. Updated rows:',
+    data?.length
+  );
+  console.log(
+    '[NOTIFICATIONS SERVICE] ✅ Updated notification IDs:',
+    data?.map((n) => n.id)
+  );
 }
 
 /**
@@ -202,10 +214,14 @@ export function subscribeToNotifications(
   onUpdate?: (notification: Notification) => void,
   onDelete?: (notificationId: string) => void
 ) {
-  console.log('[NOTIFICATIONS] Setting up realtime subscription for user:', userId);
+  console.log('[NOTIFICATIONS SERVICE] 🔵 Setting up realtime subscription for user:', userId);
+
+  // Create a unique channel name to avoid conflicts when multiple components subscribe
+  const channelName = `notifications:${userId}:${Math.random().toString(36).substring(7)}`;
+  console.log('[NOTIFICATIONS SERVICE] 📡 Channel name:', channelName);
 
   const channel = supabase
-    .channel(`notifications:${userId}`)
+    .channel(channelName)
     .on(
       'postgres_changes',
       {
@@ -215,7 +231,7 @@ export function subscribeToNotifications(
         filter: `user_id=eq.${userId}`,
       },
       async (payload) => {
-        console.log('[NOTIFICATIONS] New notification received:', payload.new);
+        console.log('[NOTIFICATIONS SERVICE] 🟢 INSERT event received:', payload.new);
 
         // Fetch full notification with related user data
         const { data, error } = await supabase
@@ -230,11 +246,12 @@ export function subscribeToNotifications(
           .single();
 
         if (error) {
-          console.error('[NOTIFICATIONS] Error fetching new notification:', error);
+          console.error('[NOTIFICATIONS SERVICE] ❌ Error fetching new notification:', error);
           return;
         }
 
         if (data) {
+          console.log('[NOTIFICATIONS SERVICE] ✅ Fetched full notification data:', data);
           onNotification(data as Notification);
         }
       }
@@ -248,7 +265,8 @@ export function subscribeToNotifications(
         filter: `user_id=eq.${userId}`,
       },
       async (payload) => {
-        console.log('[NOTIFICATIONS] Notification updated:', payload.new);
+        console.log('[NOTIFICATIONS SERVICE] 🟡 UPDATE event received:', payload.new);
+        console.log('[NOTIFICATIONS SERVICE] 🟡 Old value:', payload.old);
 
         if (onUpdate) {
           // Fetch full notification with related user data
@@ -264,13 +282,16 @@ export function subscribeToNotifications(
             .single();
 
           if (error) {
-            console.error('[NOTIFICATIONS] Error fetching updated notification:', error);
+            console.error('[NOTIFICATIONS SERVICE] ❌ Error fetching updated notification:', error);
             return;
           }
 
           if (data) {
+            console.log('[NOTIFICATIONS SERVICE] ✅ Fetched updated notification data:', data);
             onUpdate(data as Notification);
           }
+        } else {
+          console.warn('[NOTIFICATIONS SERVICE] ⚠️ onUpdate callback not provided');
         }
       }
     )
@@ -283,15 +304,27 @@ export function subscribeToNotifications(
         filter: `user_id=eq.${userId}`,
       },
       (payload) => {
-        console.log('[NOTIFICATIONS] Notification deleted:', payload.old.id);
+        console.log('[NOTIFICATIONS SERVICE] 🔴 DELETE event received:', payload.old.id);
 
         if (onDelete) {
           onDelete(payload.old.id);
+        } else {
+          console.warn('[NOTIFICATIONS SERVICE] ⚠️ onDelete callback not provided');
         }
       }
     )
     .subscribe((status) => {
-      console.log('[NOTIFICATIONS] Subscription status:', status);
+      console.log('[NOTIFICATIONS SERVICE] 📡 Subscription status:', status);
+
+      if (status === 'SUBSCRIBED') {
+        console.log('[NOTIFICATIONS SERVICE] ✅ Successfully subscribed to realtime updates');
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error('[NOTIFICATIONS SERVICE] ❌ Channel error - realtime not working!');
+      } else if (status === 'TIMED_OUT') {
+        console.error('[NOTIFICATIONS SERVICE] ⏱️ Subscription timed out');
+      } else if (status === 'CLOSED') {
+        console.warn('[NOTIFICATIONS SERVICE] 🔒 Channel closed');
+      }
     });
 
   return channel;
