@@ -20,6 +20,7 @@ interface ImageUploadProps {
   currentImageUrl?: string | null;
   label?: string;
   aspectRatio?: [number, number];
+  validateAspectRatio?: boolean;
   bucket?: string;
   folder?: string;
 }
@@ -28,6 +29,8 @@ export default function ImageUpload({
   onImageSelected,
   currentImageUrl,
   label = 'Add Cover Image',
+  aspectRatio = [9, 16],
+  validateAspectRatio = false,
   bucket = 'event-images',
   folder,
 }: ImageUploadProps) {
@@ -35,11 +38,30 @@ export default function ImageUpload({
   const [showOptions, setShowOptions] = useState(false);
   const [localUri, setLocalUri] = useState<string | null>(null);
 
+  const validateImageAspectRatio = (width: number, height: number): boolean => {
+    if (!validateAspectRatio || !aspectRatio) return true;
+
+    const imageRatio = width / height;
+    const expectedRatio = aspectRatio[0] / aspectRatio[1];
+    const tolerance = 0.1; // 10% tolerance
+
+    return Math.abs(imageRatio - expectedRatio) <= tolerance;
+  };
+
   const handlePickImage = async () => {
     try {
       setShowOptions(false);
       const asset = await StorageService.pickImage();
       if (asset) {
+        // Validate aspect ratio
+        if (!validateImageAspectRatio(asset.width, asset.height)) {
+          Alert.alert(
+            'Invalid Image Ratio',
+            `Please upload an image with ${aspectRatio[0]}:${aspectRatio[1]} aspect ratio. Your image is ${Math.round((asset.width / asset.height) * 100) / 100}:1`,
+            [{ text: 'OK' }]
+          );
+          return;
+        }
         setLocalUri(asset.uri);
         await uploadImage(asset.uri);
       }
@@ -54,6 +76,15 @@ export default function ImageUpload({
       setShowOptions(false);
       const asset = await StorageService.takePhoto();
       if (asset) {
+        // Validate aspect ratio
+        if (!validateImageAspectRatio(asset.width, asset.height)) {
+          Alert.alert(
+            'Invalid Image Ratio',
+            `Please take a photo with ${aspectRatio[0]}:${aspectRatio[1]} aspect ratio. Your photo is ${Math.round((asset.width / asset.height) * 100) / 100}:1`,
+            [{ text: 'OK' }]
+          );
+          return;
+        }
         setLocalUri(asset.uri);
         await uploadImage(asset.uri);
       }

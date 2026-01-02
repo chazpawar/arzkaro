@@ -912,9 +912,18 @@ export default function CreateEventScreen() {
                       setCoverImageUrl(url);
                     }}
                     currentImageUrl={coverImageUrl}
+                    aspectRatio={[9, 16]}
+                    validateAspectRatio={true}
                     bucket="event-images"
                     folder={`${eventType}s/${user?.id}`}
                   />
+
+                  <View style={styles.imageDimensionHint}>
+                    <Ionicons name="information-circle-outline" size={18} color={Colors.info} />
+                    <Text style={styles.imageDimensionHintText}>
+                      Please upload images with 9:16 aspect ratio (portrait)
+                    </Text>
+                  </View>
                 </View>
               </View>
             )}
@@ -2629,6 +2638,21 @@ const styles = StyleSheet.create({
   },
   coverImageUploadWrapper: {
     width: '100%',
+  },
+  imageDimensionHint: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.sm,
+    backgroundColor: Colors.infoLight || 'rgba(59, 130, 246, 0.1)',
+    padding: Spacing.md,
+    borderRadius: BorderRadius.md,
+    marginTop: Spacing.md,
+  },
+  imageDimensionHintText: {
+    ...Typography.bodySmall,
+    color: Colors.info,
+    flex: 1,
+    lineHeight: 20,
   },
   // Additional Info Screen Styles (Step 3)
   additionalInfoContainer: {
