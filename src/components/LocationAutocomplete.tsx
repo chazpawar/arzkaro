@@ -165,10 +165,13 @@ export default function LocationAutocomplete({
 
       {showDropdown && predictions.length > 0 && (
         <View style={styles.dropdownContainer}>
-          {predictions.slice(0, 5).map((item) => (
+          {predictions.slice(0, 5).map((item, index, array) => (
             <TouchableOpacity
               key={item.place_id}
-              style={styles.predictionItem}
+              style={[
+                styles.predictionItem,
+                index === array.length - 1 && styles.predictionItemLast,
+              ]}
               onPress={() => handleSelectPlace(item)}
               activeOpacity={0.7}
             >
@@ -204,6 +207,7 @@ export default function LocationAutocomplete({
 const styles = StyleSheet.create({
   container: {
     marginBottom: Spacing.md,
+    position: 'relative',
     zIndex: 10,
   },
   label: {
@@ -242,8 +246,12 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xs,
   },
   dropdownContainer: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
     marginTop: Spacing.xs,
-    maxHeight: 300,
+    maxHeight: 400,
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     borderWidth: 1,
@@ -253,6 +261,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+    zIndex: 1000,
   },
   predictionItem: {
     flexDirection: 'row',
@@ -261,6 +270,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  predictionItemLast: {
+    borderBottomWidth: 0,
   },
   predictionIcon: {
     marginRight: Spacing.sm,

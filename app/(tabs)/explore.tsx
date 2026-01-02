@@ -291,13 +291,12 @@ export default function ExploreTab() {
   const hostId = profile?.id;
 
   // Reset activeView when switching between host and user roles
+  // Only reset to default view when toggling host mode, don't interfere with category navigation
   useEffect(() => {
     const correctView = showHostListings ? 'experiences' : 'events';
-    if (activeView !== correctView) {
-      setActiveView(correctView);
-      setSelectedTag(null); // Also reset selected tag
-    }
-  }, [showHostListings, activeView]);
+    setActiveView(correctView);
+    setSelectedTag(null); // Also reset selected tag
+  }, [showHostListings]);
 
   // For hosts: Filter to show only their own events
   // For normal users: Show all events

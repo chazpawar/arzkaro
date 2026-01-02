@@ -1251,7 +1251,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1276,7 +1276,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/time.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1303,7 +1303,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1322,7 +1322,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/time.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1389,7 +1389,7 @@ export default function CreateEventScreen() {
                       <View style={styles.durationPreview}>
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text style={styles.durationText}>
@@ -1446,7 +1446,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1471,7 +1471,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/time.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1498,7 +1498,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1517,7 +1517,7 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={require('../../assets/others/time.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text
@@ -1584,7 +1584,7 @@ export default function CreateEventScreen() {
                       <View style={styles.durationPreview}>
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 20, height: 20 }}
+                          style={{ width: 24, height: 24 }}
                           resizeMode="contain"
                         />
                         <Text style={styles.durationText}>
