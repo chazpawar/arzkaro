@@ -17,6 +17,7 @@ const TRIP_CATEGORIES = [
 interface TripsDetailProps {
   events: Event[];
   onTripPress?: (tripId: string) => void;
+  showInline?: boolean; // If true, shows content inline without full-page takeover
 }
 
 // Helper function to calculate duration in days
@@ -29,7 +30,11 @@ function calculateDuration(startDate: string, endDate: string): string {
   return `${diffDays}D, ${nights}N`;
 }
 
-export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
+export default function TripsDetail({
+  events,
+  onTripPress,
+  showInline: _showInline = false,
+}: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
 
   const displayTrips =

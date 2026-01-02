@@ -244,9 +244,11 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
 export default function ExploreTab() {
   const router = useRouter();
   const [searchModalVisible, setSearchModalVisible] = useState(false);
+  const { isHost, profile, effectiveRole, isAdmin, viewAsUser, toggleViewMode } = useAuth();
 
-  // State for active view - default to 'events' (For You page)
-  const [activeView, setActiveView] = useState<string | null>('events');
+  // State for active view - default to 'experiences' for hosts, 'events' for users
+  const defaultView = isHost && effectiveRole === 'host' ? 'experiences' : 'events';
+  const [activeView, setActiveView] = useState<string | null>(defaultView);
   const [selectedTag, setSelectedTag] = useState<string | null>(null); // null means show all
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -258,7 +260,6 @@ export default function ExploreTab() {
   } | null>(null);
 
   const { events, loading, refresh } = useEvents();
-  const { isHost, profile, effectiveRole, isAdmin, viewAsUser, toggleViewMode } = useAuth();
   const { unreadCount } = useNotifications(profile?.id);
 
   // Log notification badge count for debugging
@@ -283,6 +284,15 @@ export default function ExploreTab() {
   // Host sees their own listings UNLESS they explicitly switch to "View as User" mode
   const showHostListings = isHost && effectiveRole === 'host';
   const hostId = profile?.id;
+
+  // Reset activeView when switching between host and user roles
+  useEffect(() => {
+    const correctView = showHostListings ? 'experiences' : 'events';
+    if (activeView !== correctView) {
+      setActiveView(correctView);
+      setSelectedTag(null); // Also reset selected tag
+    }
+  }, [showHostListings, activeView]);
 
   // For hosts: Filter to show only their own events
   // For normal users: Show all events
@@ -456,21 +466,26 @@ export default function ExploreTab() {
 
   const handleCategoryPress = (categoryId: string) => {
     console.log('[EXPLORE] Category pressed:', categoryId, 'Current activeView:', activeView);
+    const showHostListings = isHost && effectiveRole === 'host';
+
     if (categoryId === 'trips') {
-      // For trips, navigate to the trips category view (full page)
-      console.log('[EXPLORE] Setting activeView=trips, selectedTag=trips');
+      console.log('[EXPLORE] Setting activeView=trips');
       setActiveView('trips');
-      setSelectedTag('trips');
+      // For hosts: keep selectedTag=null to avoid triggering TripsDetail
+      // For users: set selectedTag='trips' to trigger TripsDetail navigation
+      setSelectedTag(showHostListings ? null : 'trips');
     } else if (categoryId === 'experiences') {
-      // For experiences, navigate to the experiences category view (full page)
       console.log('[EXPLORE] Setting activeView=experiences, selectedTag=null');
       setActiveView('experiences');
       setSelectedTag(null); // null to show all categories
+      // For hosts: filter to show only their experiences inline (no navigation)
+      // For users: CategoryDetail will handle the navigation
     } else if (activeView === categoryId) {
-      // If clicking the same category (except trips/experiences), toggle back to 'events' (For You)
-      console.log('[EXPLORE] Toggling back to events view');
-      setActiveView('events');
-      setSelectedTag(null); // null to show all categories
+      // If clicking the same category (except trips/experiences), toggle back to default
+      console.log('[EXPLORE] Toggling back to default view');
+      const defaultView = showHostListings ? 'experiences' : 'events';
+      setActiveView(defaultView);
+      setSelectedTag(null);
     }
   };
 
@@ -535,46 +550,36 @@ export default function ExploreTab() {
         </Pressable>
       )}
 
-      {/* Logo - Hide when viewing experiences/trips or a specific category is selected OR when host is viewing their listings */}
-      {(selectedTag === null || selectedTag === 'all') &&
-        activeView === 'events' &&
-        !showHostListings && (
-          <View style={styles.logoContainer}>
-            <Image
-              source={require('../../assets/arz.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-          </View>
-        )}
-
-      {/* Page Title for Hosts viewing their listings */}
-      {showHostListings &&
-        (selectedTag === null || selectedTag === 'all') &&
-        activeView === 'events' && (
-          <View style={styles.pageTitleContainer}>
-            <Text style={styles.pageTitle}>My Listings</Text>
-            <Text style={styles.pageSubtitle}>Manage your experiences and trips</Text>
-          </View>
-        )}
+      {/* Logo - Show for all users when in default view (not searching) */}
+      {(selectedTag === null || selectedTag === 'all') && !isSearching && (
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../assets/arz.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
+      )}
 
       {/* Search Bar Header */}
       <View style={styles.headerContainer}>
         {/* Back button - Show when viewing experiences/trips or a specific category is selected */}
-        {((selectedTag !== null && selectedTag !== 'all') ||
-          activeView === 'experiences' ||
-          activeView === 'trips') && (
-          <Pressable
-            onPress={() => {
-              setSelectedTag(null);
-              // Reset to 'events' view (For You) when going back
-              setActiveView('events');
-            }}
-            style={styles.backButton}
-          >
-            <Ionicons name="chevron-back" size={24} color={Colors.text} />
-          </Pressable>
-        )}
+        {/* For hosts: NEVER show back button when clicking experiences/trips icons */}
+        {!showHostListings &&
+          ((selectedTag !== null && selectedTag !== 'all') ||
+            activeView === 'experiences' ||
+            activeView === 'trips') && (
+            <Pressable
+              onPress={() => {
+                setSelectedTag(null);
+                // Reset to 'events' view (For You) when going back
+                setActiveView('events');
+              }}
+              style={styles.backButton}
+            >
+              <Ionicons name="chevron-back" size={24} color={Colors.text} />
+            </Pressable>
+          )}
 
         <Pressable style={styles.searchBar} onPress={() => setSearchModalVisible(true)}>
           <Ionicons name="search" size={20} color={Colors.text} />
@@ -630,9 +635,11 @@ export default function ExploreTab() {
         }
       >
         <View style={styles.mainContent}>
-          {/* 1. Horizontal Circular Categories - Show only when in For You view and NOT searching */}
+          {/* 1. Horizontal Circular Categories - Show when NOT searching */}
+          {/* For hosts: show when selectedTag is null/all, regardless of activeView */}
+          {/* For users: show only when activeView is 'events' */}
           {(selectedTag === null || selectedTag === 'all') &&
-            activeView === 'events' &&
+            (showHostListings || activeView === 'events') &&
             !isSearching && (
               <View style={styles.categoriesRow}>
                 {/* For hosts: Show only Experiences and Trips */}
@@ -645,14 +652,35 @@ export default function ExploreTab() {
                   return (
                     <Pressable
                       key={cat.id}
-                      style={styles.categoryCircleContainer}
+                      style={
+                        showHostListings
+                          ? [
+                              styles.categoryCardContainer,
+                              isActive &&
+                                cat.id === 'experiences' &&
+                                styles.categoryCardActiveExperiences,
+                              isActive && cat.id === 'trips' && styles.categoryCardActiveTrips,
+                            ]
+                          : styles.categoryCircleContainer
+                      }
                       onPress={() => handleCategoryPress(cat.id)}
                     >
-                      <View style={styles.categoryIconContainer}>
+                      <View
+                        style={
+                          showHostListings
+                            ? styles.categoryCardIconContainer
+                            : styles.categoryIconContainer
+                        }
+                      >
                         <Image source={cat.icon} style={styles.categoryIcon} resizeMode="contain" />
                       </View>
-                      <Text style={[styles.categoryLabel, isActive && styles.categoryLabelActive]}>
-                        {cat.label}
+                      <Text
+                        style={[
+                          showHostListings ? styles.categoryCardLabel : styles.categoryLabel,
+                          isActive && !showHostListings && styles.categoryLabelActive,
+                        ]}
+                      >
+                        {showHostListings ? cat.label.toUpperCase() : cat.label}
                       </Text>
                     </Pressable>
                   );
@@ -728,17 +756,20 @@ export default function ExploreTab() {
             </View>
           )}
 
-          {/* 2. Show experiences category page when Experiences is clicked */}
+          {/* 2. Show experiences category page when Experiences is clicked - ONLY FOR USERS, NOT HOSTS */}
           {(() => {
-            const shouldShow = activeView === 'experiences' && !isSearching;
+            const shouldShow = activeView === 'experiences' && !isSearching && !showHostListings;
             console.log(
               '[EXPLORE RENDER] activeView:',
               activeView,
               'selectedTag:',
               selectedTag,
               'Show experiences?',
-              shouldShow
+              shouldShow,
+              'showHostListings:',
+              showHostListings
             );
+            // Only show CategoryDetail for regular users, not hosts
             return shouldShow ? (
               <View>
                 <CategoryDetail
@@ -754,132 +785,278 @@ export default function ExploreTab() {
             ) : null;
           })()}
 
-          {/* 3. Show trips detail as full page when Trips is clicked */}
-          {activeView === 'trips' && selectedTag === 'trips' && !isSearching && (
-            <View>
-              <TripsDetail
-                events={filteredEvents}
-                onTripPress={(id) => router.push(`/events/${id}`)}
-              />
-            </View>
-          )}
+          {/* 3. Show trips detail as full page when Trips is clicked - ONLY FOR USERS, NOT HOSTS */}
+          {activeView === 'trips' &&
+            selectedTag === 'trips' &&
+            !isSearching &&
+            !showHostListings && (
+              <View>
+                <TripsDetail
+                  events={filteredEvents}
+                  onTripPress={(id) => router.push(`/events/${id}`)}
+                  showInline={false}
+                />
+              </View>
+            )}
 
-          {/* 4. Show featured sections when For You is selected with 'all' tag and no search active */}
-          {activeView === 'events' &&
+          {/* 4. Show featured sections (My Experiences/My Trips for hosts, Top Experiences/Popular Trips for users) */}
+          {/* For hosts: Show based on activeView - 'experiences' shows only My Experiences, 'trips' shows only My Trips */}
+          {/* For users: only show when activeView is 'events' */}
+          {(showHostListings || (!showHostListings && activeView === 'events')) &&
             (selectedTag === null || selectedTag === 'all') &&
             !isSearching && (
               <>
-                {/* Top Experiences Section - Always show */}
-                <View style={styles.sectionContainer}>
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>
-                      {showHostListings ? 'My Experiences' : 'Top Experiences'}
-                    </Text>
-                    <Pressable onPress={() => handleCategoryPress('experiences')}>
-                      <Text style={styles.seeAllText}>See All</Text>
-                    </Pressable>
-                  </View>
-
-                  {topExperiences.length > 0 ? (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.horizontalList}
-                    >
-                      {topExperiences.map((item) => (
-                        <Pressable
-                          key={item.id}
-                          style={styles.horizontalCard}
-                          onPress={() => router.push(`/events/${item.id}`)}
-                        >
-                          <Image
-                            source={{
-                              uri: item.cover_image_url || 'https://via.placeholder.com/150',
-                            }}
-                            style={styles.horizontalCardImage}
-                          />
-                          <View style={styles.horizontalCardContent}>
-                            <Text style={styles.cardTitle} numberOfLines={1}>
-                              {item.title}
-                            </Text>
-                            <Text style={styles.cardLocation}>
-                              {item.location_name || item.departure_location || ''}
-                            </Text>
-                            <Text style={styles.cardPrice}>₹{item.price}</Text>
-                          </View>
+                {/* My Experiences Section - For hosts: show when activeView is 'experiences', For users: always show in events view */}
+                {(showHostListings ? activeView === 'experiences' : true) && (
+                  <View style={styles.sectionContainer}>
+                    {showHostListings ? (
+                      // For hosts: Just show divider
+                      <View style={styles.sectionDivider} />
+                    ) : (
+                      // For users: Show section header
+                      <View style={styles.sectionHeaderRow}>
+                        <Text style={styles.sectionTitle}>Top Experiences</Text>
+                        <Pressable onPress={() => handleCategoryPress('experiences')}>
+                          <Text style={styles.seeAllText}>See All</Text>
                         </Pressable>
-                      ))}
-                    </ScrollView>
-                  ) : (
-                    <View style={styles.emptyExperiencesContainer}>
-                      <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
-                      <Text style={styles.emptyExperiencesText}>
-                        {showHostListings ? 'No experiences yet' : 'No top experiences yet'}
-                      </Text>
-                      <Text style={styles.emptyExperiencesSubtext}>
-                        {showHostListings
-                          ? 'Create your first experience to get started'
-                          : 'Check back soon for exciting experiences'}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                      </View>
+                    )}
 
-                {/* Popular Trips Section */}
-                <View style={styles.sectionContainer}>
-                  <View style={styles.sectionHeaderRow}>
-                    <Text style={styles.sectionTitle}>
-                      {showHostListings ? 'My Trips' : 'Popular Trips'}
-                    </Text>
-                    <Pressable onPress={() => handleCategoryPress('trips')}>
-                      <Text style={styles.seeAllText}>See All</Text>
-                    </Pressable>
-                  </View>
-
-                  {popularTrips.length > 0 ? (
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.horizontalList}
-                    >
-                      {popularTrips.map((item) => (
-                        <Pressable
-                          key={item.id}
-                          style={styles.horizontalCard}
-                          onPress={() => router.push(`/events/${item.id}`)}
+                    {topExperiences.length > 0 ? (
+                      showHostListings ? (
+                        // For hosts: Vertical list layout
+                        <View style={styles.verticalListContainer}>
+                          {topExperiences.map((item) => (
+                            <Pressable
+                              key={item.id}
+                              style={styles.listCard}
+                              onPress={() => router.push(`/events/${item.id}`)}
+                            >
+                              <Image
+                                source={{
+                                  uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                                }}
+                                style={styles.listCardImage}
+                              />
+                              <View style={styles.listCardContent}>
+                                <Text style={styles.listCardTitle} numberOfLines={1}>
+                                  {item.title}
+                                </Text>
+                                <Text style={styles.listCardDate}>
+                                  {item.start_date
+                                    ? new Date(item.start_date).toLocaleDateString('en-GB', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                      })
+                                    : '----'}
+                                </Text>
+                                <View style={styles.listCardFooter}>
+                                  <Text style={styles.listCardLocation} numberOfLines={1}>
+                                    {item.location_name || item.departure_location || '-----'}
+                                  </Text>
+                                  <View
+                                    style={[
+                                      styles.statusBadge,
+                                      {
+                                        backgroundColor: (() => {
+                                          if (!item.is_published) return '#FFC107'; // Draft - Yellow
+                                          const now = new Date();
+                                          const endDate = new Date(item.end_date);
+                                          if (endDate < now) return '#4CAF50'; // Complete - Green
+                                          return '#2196F3'; // Upcoming - Blue
+                                        })(),
+                                      },
+                                    ]}
+                                  >
+                                    <Text style={styles.statusBadgeText}>
+                                      {(() => {
+                                        if (!item.is_published) return 'In Draft';
+                                        const now = new Date();
+                                        const endDate = new Date(item.end_date);
+                                        if (endDate < now) return 'Complete';
+                                        return 'Upcoming';
+                                      })()}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                            </Pressable>
+                          ))}
+                        </View>
+                      ) : (
+                        // For users: Horizontal scroll layout
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.horizontalList}
                         >
-                          <Image
-                            source={{
-                              uri: item.cover_image_url || 'https://via.placeholder.com/150',
-                            }}
-                            style={styles.horizontalCardImage}
-                          />
-                          <View style={styles.horizontalCardContent}>
-                            <Text style={styles.cardTitle} numberOfLines={1}>
-                              {item.title}
-                            </Text>
-                            <Text style={styles.cardLocation}>
-                              {item.location_name || item.departure_location || ''}
-                            </Text>
-                            <Text style={styles.cardPrice}>₹{item.price}</Text>
-                          </View>
+                          {topExperiences.map((item) => (
+                            <Pressable
+                              key={item.id}
+                              style={styles.horizontalCard}
+                              onPress={() => router.push(`/events/${item.id}`)}
+                            >
+                              <Image
+                                source={{
+                                  uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                                }}
+                                style={styles.horizontalCardImage}
+                              />
+                              <View style={styles.horizontalCardContent}>
+                                <Text style={styles.cardTitle} numberOfLines={1}>
+                                  {item.title}
+                                </Text>
+                                <Text style={styles.cardLocation}>
+                                  {item.location_name || item.departure_location || ''}
+                                </Text>
+                                <Text style={styles.cardPrice}>₹{item.price}</Text>
+                              </View>
+                            </Pressable>
+                          ))}
+                        </ScrollView>
+                      )
+                    ) : (
+                      <View style={styles.emptyExperiencesContainer}>
+                        <Text style={styles.emptyExperiencesEmoji}>🎭</Text>
+                        <Text style={styles.emptyExperiencesText}>
+                          {showHostListings ? 'No experiences yet' : 'No top experiences yet'}
+                        </Text>
+                        <Text style={styles.emptyExperiencesSubtext}>
+                          {showHostListings
+                            ? 'Create your first experience to get started'
+                            : 'Check back soon for exciting experiences'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
+
+                {/* My Trips Section - For hosts: show when activeView is 'trips', For users: always show in events view */}
+                {(showHostListings ? activeView === 'trips' : true) && (
+                  <View style={styles.sectionContainer}>
+                    {showHostListings ? (
+                      // For hosts: Just show divider
+                      <View style={styles.sectionDivider} />
+                    ) : (
+                      // For users: Show section header
+                      <View style={styles.sectionHeaderRow}>
+                        <Text style={styles.sectionTitle}>Popular Trips</Text>
+                        <Pressable onPress={() => handleCategoryPress('trips')}>
+                          <Text style={styles.seeAllText}>See All</Text>
                         </Pressable>
-                      ))}
-                    </ScrollView>
-                  ) : (
-                    <View style={styles.emptyExperiencesContainer}>
-                      <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
-                      <Text style={styles.emptyExperiencesText}>
-                        {showHostListings ? 'No trips yet' : 'No popular trips yet'}
-                      </Text>
-                      <Text style={styles.emptyExperiencesSubtext}>
-                        {showHostListings
-                          ? 'Create your first trip to get started'
-                          : 'Check back soon for amazing adventures'}
-                      </Text>
-                    </View>
-                  )}
-                </View>
+                      </View>
+                    )}
+
+                    {popularTrips.length > 0 ? (
+                      showHostListings ? (
+                        // For hosts: Vertical list layout
+                        <View style={styles.verticalListContainer}>
+                          {popularTrips.map((item) => (
+                            <Pressable
+                              key={item.id}
+                              style={styles.listCard}
+                              onPress={() => router.push(`/events/${item.id}`)}
+                            >
+                              <Image
+                                source={{
+                                  uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                                }}
+                                style={styles.listCardImage}
+                              />
+                              <View style={styles.listCardContent}>
+                                <Text style={styles.listCardTitle} numberOfLines={1}>
+                                  {item.title}
+                                </Text>
+                                <Text style={styles.listCardDate}>
+                                  {item.start_date
+                                    ? new Date(item.start_date).toLocaleDateString('en-GB', {
+                                        day: 'numeric',
+                                        month: 'long',
+                                        year: 'numeric',
+                                      })
+                                    : '----'}
+                                </Text>
+                                <View style={styles.listCardFooter}>
+                                  <Text style={styles.listCardLocation} numberOfLines={1}>
+                                    {item.location_name || item.departure_location || '-----'}
+                                  </Text>
+                                  <View
+                                    style={[
+                                      styles.statusBadge,
+                                      {
+                                        backgroundColor: (() => {
+                                          if (!item.is_published) return '#FFC107'; // Draft - Yellow
+                                          const now = new Date();
+                                          const endDate = new Date(item.end_date);
+                                          if (endDate < now) return '#4CAF50'; // Complete - Green
+                                          return '#2196F3'; // Upcoming - Blue
+                                        })(),
+                                      },
+                                    ]}
+                                  >
+                                    <Text style={styles.statusBadgeText}>
+                                      {(() => {
+                                        if (!item.is_published) return 'In Draft';
+                                        const now = new Date();
+                                        const endDate = new Date(item.end_date);
+                                        if (endDate < now) return 'Complete';
+                                        return 'Upcoming';
+                                      })()}
+                                    </Text>
+                                  </View>
+                                </View>
+                              </View>
+                            </Pressable>
+                          ))}
+                        </View>
+                      ) : (
+                        // For users: Horizontal scroll layout
+                        <ScrollView
+                          horizontal
+                          showsHorizontalScrollIndicator={false}
+                          contentContainerStyle={styles.horizontalList}
+                        >
+                          {popularTrips.map((item) => (
+                            <Pressable
+                              key={item.id}
+                              style={styles.horizontalCard}
+                              onPress={() => router.push(`/events/${item.id}`)}
+                            >
+                              <Image
+                                source={{
+                                  uri: item.cover_image_url || 'https://via.placeholder.com/150',
+                                }}
+                                style={styles.horizontalCardImage}
+                              />
+                              <View style={styles.horizontalCardContent}>
+                                <Text style={styles.cardTitle} numberOfLines={1}>
+                                  {item.title}
+                                </Text>
+                                <Text style={styles.cardLocation}>
+                                  {item.location_name || item.departure_location || ''}
+                                </Text>
+                                <Text style={styles.cardPrice}>₹{item.price}</Text>
+                              </View>
+                            </Pressable>
+                          ))}
+                        </ScrollView>
+                      )
+                    ) : (
+                      <View style={styles.emptyExperiencesContainer}>
+                        <Text style={styles.emptyExperiencesEmoji}>🌍</Text>
+                        <Text style={styles.emptyExperiencesText}>
+                          {showHostListings ? 'No trips yet' : 'No popular trips yet'}
+                        </Text>
+                        <Text style={styles.emptyExperiencesSubtext}>
+                          {showHostListings
+                            ? 'Create your first trip to get started'
+                            : 'Check back soon for amazing adventures'}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                )}
               </>
             )}
 
@@ -1103,6 +1280,36 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: Fonts.bold,
   },
+  // Category cards for hosts (bordered style)
+  categoryCardContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    marginHorizontal: Spacing.xs,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 1.2,
+    borderColor: '#E0E0E0',
+    backgroundColor: Colors.background,
+  },
+  categoryCardActiveExperiences: {
+    borderColor: '#FFB199',
+    backgroundColor: Colors.background,
+  },
+  categoryCardActiveTrips: {
+    borderColor: '#FFB199',
+    backgroundColor: Colors.background,
+  },
+  categoryCardIconContainer: {
+    marginBottom: Spacing.sm,
+  },
+  categoryCardLabel: {
+    fontSize: 13,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    letterSpacing: 0.5,
+  },
   // Search Results
   searchResultsContainer: {
     paddingHorizontal: Spacing.lg,
@@ -1120,8 +1327,15 @@ const styles = StyleSheet.create({
   },
   // Featured Sections
   sectionContainer: {
-    marginTop: Spacing.md,
+    marginTop: 0,
     gap: Spacing.md,
+  },
+  sectionDivider: {
+    height: 1,
+    backgroundColor: '#E5E5E5',
+    marginHorizontal: Spacing.lg,
+    marginTop: Spacing.xs,
+    marginBottom: Spacing.sm,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
@@ -1273,5 +1487,66 @@ const styles = StyleSheet.create({
   searchEventTime: {
     fontSize: 12,
     color: Colors.textSecondary,
+  },
+  // Vertical list styles for host listings
+  verticalListContainer: {
+    paddingTop: Spacing.xs,
+  },
+  listCard: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    marginHorizontal: Spacing.lg,
+    alignItems: 'flex-start',
+    gap: Spacing.md,
+  },
+  listCardImage: {
+    width: 90,
+    height: 90,
+    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  listCardContent: {
+    flex: 1,
+    justifyContent: 'flex-start',
+  },
+  listCardTitle: {
+    fontSize: 20,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    lineHeight: 26,
+    marginBottom: 0,
+  },
+  listCardDate: {
+    fontSize: 15,
+    fontFamily: Fonts.medium,
+    color: Colors.text,
+    lineHeight: 22,
+    marginBottom: Spacing.sm,
+  },
+  listCardFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: Spacing.xs,
+  },
+  listCardLocation: {
+    fontSize: 14,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.md,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontFamily: Fonts.bold,
+    color: '#FFFFFF',
   },
 });

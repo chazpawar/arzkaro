@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/Colors';
 import { Fonts } from '../../src/constants/Fonts';
+import { useAuth } from '../../src/contexts/auth-context';
 
 interface TabIconProps {
   name: keyof typeof Ionicons.glyphMap;
@@ -22,6 +23,10 @@ function TabIcon({ name, focused: _focused, color }: TabIconProps) {
 
 export default function TabLayout() {
   const insets = useSafeAreaInsets();
+  const { isHost, effectiveRole } = useAuth();
+
+  // Determine if user is viewing as host
+  const showHostListings = isHost && effectiveRole === 'host';
 
   return (
     <Tabs
@@ -50,7 +55,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: showHostListings ? 'Listings' : 'Explore',
           tabBarIcon: ({ focused, color }) => (
             <TabIcon
               name={focused ? 'compass' : 'compass-outline'}
