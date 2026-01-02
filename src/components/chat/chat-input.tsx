@@ -63,6 +63,11 @@ export default function ChatInput({
     const trimmedMessage = message.trim();
     if (!trimmedMessage || disabled || sending) return;
 
+    // Store message and clear input immediately for better UX
+    const messageToSend = trimmedMessage;
+    setMessage('');
+    Keyboard.dismiss();
+
     try {
       // Stop typing indicator
       if (onStopTyping) {
@@ -74,11 +79,10 @@ export default function ChatInput({
         clearTimeout(typingTimeoutRef.current);
       }
 
-      await onSend(trimmedMessage);
-      setMessage('');
-      Keyboard.dismiss();
+      await onSend(messageToSend);
     } catch (error) {
-      // Error handling is done in parent component
+      // On error, restore the message so user can retry
+      setMessage(messageToSend);
       console.error('Failed to send message:', error);
     }
   }, [message, disabled, sending, onSend, onStopTyping]);

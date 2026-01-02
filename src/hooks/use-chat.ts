@@ -494,7 +494,7 @@ export function useUserGroups(userId: string | undefined) {
 
     // Subscribe to all messages for groups the user is in
     const channel = supabase
-      .channel('user-groups-messages')
+      .channel(`user_groups:${userId}`) // Unique per user
       .on(
         'postgres_changes',
         {
@@ -558,6 +558,24 @@ export function useUserGroups(userId: string | undefined) {
                 return group;
               });
             });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'group_members',
+          filter: `user_id=eq.${userId}`,
+        },
+        async (payload) => {
+          console.log('[CHAT LIST] Group membership changed:', payload.eventType);
+
+          // Reload groups when user joins or leaves a group
+          if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+            console.log('[CHAT LIST] Reloading groups due to membership change');
+            await fetchGroups();
           }
         }
       )

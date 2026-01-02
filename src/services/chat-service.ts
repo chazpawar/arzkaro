@@ -54,10 +54,14 @@ export async function getUserGroups(userId: string) {
         .maybeSingle();
 
       // Get unread count using RPC function
-      const { data: unreadCount } = await (supabase.rpc as any)('get_unread_count', {
+      const { data: unreadCount, error: unreadError } = await supabase.rpc('get_unread_count', {
         p_group_id: group.id,
         p_user_id: userId,
       });
+
+      if (unreadError) {
+        console.error('[CHAT SERVICE] Error getting unread count:', unreadError);
+      }
 
       return {
         ...group,
@@ -72,14 +76,25 @@ export async function getUserGroups(userId: string) {
 
 // Mark group messages as read
 export async function markGroupAsRead(groupId: string, userId: string) {
-  const { error } = await (supabase.rpc as any)('mark_group_as_read', {
-    p_group_id: groupId,
-    p_user_id: userId,
-  });
+  // Validate inputs
+  if (!groupId || !userId) {
+    console.error('[CHAT SERVICE] Invalid params for markGroupAsRead:', { groupId, userId });
+    return;
+  }
 
-  if (error) {
-    console.error('[CHAT SERVICE] Error marking group as read:', error);
-    throw new Error(error.message);
+  try {
+    const { error } = await supabase.rpc('mark_group_as_read', {
+      p_group_id: groupId,
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error('[CHAT SERVICE] Error marking group as read:', error);
+      throw error;
+    }
+  } catch (err) {
+    console.error('[CHAT SERVICE] Exception in markGroupAsRead:', err);
+    // Don't throw - this is not critical, just log it
   }
 }
 
@@ -169,21 +184,25 @@ export async function joinGroup(groupId: string, userId: string) {
 
 // Get group members
 export async function getGroupMembers(groupId: string) {
+  console.log('[CHAT SERVICE] Getting members for group:', groupId);
+
   const { data, error } = await supabase
     .from('group_members')
     .select(
       `
       *,
-      user:profiles!user_id(id, full_name, email, avatar_url)
+      user:profiles!user_id(id, full_name, email, avatar_url, username)
     `
     )
     .eq('group_id', groupId)
     .order('joined_at', { ascending: true });
 
   if (error) {
+    console.error('[CHAT SERVICE] Error getting group members:', error);
     throw new Error(error.message);
   }
 
+  console.log('[CHAT SERVICE] Group members found:', data?.length || 0);
   return data as GroupMember[];
 }
 

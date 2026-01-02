@@ -157,6 +157,33 @@ export default function DMChatScreen() {
       try {
         setSending(true);
 
+        // Create optimistic message for instant UI feedback
+        const optimisticMessage: DMMessage = {
+          id: `temp-${Date.now()}`, // Temporary ID
+          conversation_id: conversationId,
+          sender_id: user.id,
+          content,
+          message_type: 'text',
+          is_read: false,
+          is_deleted: false,
+          created_at: new Date().toISOString(),
+          sender: {
+            id: user.id,
+            full_name: profile?.full_name || null,
+            email: user.email || null,
+            avatar_url: profile?.avatar_url || null,
+          },
+        };
+
+        // Add to local state immediately for instant feedback
+        setMessages((prev) => [...prev, optimisticMessage]);
+
+        // Scroll to bottom immediately
+        setTimeout(() => {
+          flatListRef.current?.scrollToEnd({ animated: true });
+        }, 50);
+
+        // Send to database in background
         const message: any = {
           conversation_id: conversationId,
           content,
@@ -168,26 +195,20 @@ export default function DMChatScreen() {
         const sentMessage = await DMService.sendMessage(message, user.id);
         console.log('[DM SCREEN] Message sent successfully:', sentMessage);
 
-        // Add to local state immediately for instant feedback
-        setMessages((prev) => {
-          if (prev.some((m) => m.id === sentMessage.id)) {
-            return prev;
-          }
-          return [...prev, sentMessage];
-        });
-
-        // Scroll to bottom after sending
-        setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+        // Replace optimistic message with real one
+        setMessages((prev) => prev.map((m) => (m.id === optimisticMessage.id ? sentMessage : m)));
       } catch (error) {
         console.error('[DM SCREEN] Error sending message:', error);
+
+        // Remove optimistic message on error
+        setMessages((prev) => prev.filter((m) => !m.id.startsWith('temp-')));
+
         Alert.alert('Error', 'Failed to send message. Please try again.');
       } finally {
         setSending(false);
       }
     },
-    [user?.id, conversationId]
+    [user?.id, user?.email, conversationId, profile]
   );
 
   const handleViewProfile = useCallback(() => {

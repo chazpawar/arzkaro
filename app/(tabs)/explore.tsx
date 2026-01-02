@@ -564,10 +564,13 @@ export default function ExploreTab() {
         </Pressable>
       )}
 
-      {/* Logo - Show only in 'For You' tab (events view) when not searching */}
-      {(selectedTag === null || selectedTag === 'all') &&
-        activeView === 'events' &&
-        !isSearching && (
+      {/* Logo - Show on main screen only */}
+      {/* For non-hosts: Only on 'For You' (events) */}
+      {/* For hosts: On main 'Experiences' and 'Trips' screens */}
+      {!isSearching &&
+        !selectedTag &&
+        ((activeView === 'events' && !showHostListings) ||
+          ((activeView === 'experiences' || activeView === 'trips') && showHostListings)) && (
           <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/arz.png')}

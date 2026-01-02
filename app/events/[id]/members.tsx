@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import { Fonts } from '../../../src/constants/Fonts';
 import { useAuth } from '../../../src/contexts/auth-context';
 import * as ChatService from '../../../src/services/chat-service';
 import * as FriendsService from '../../../src/services/friends-service';
+import { supabase } from '../../../backend/supabase';
 
 interface Member {
   id: string;
@@ -47,6 +48,73 @@ export default function GroupMembersScreen() {
   const [friendStatuses, setFriendStatuses] = useState<Record<string, FriendStatus>>({});
   const [friendRequestIds, setFriendRequestIds] = useState<Record<string, string>>({});
   const [avatarErrors, setAvatarErrors] = useState<Record<string, boolean>>({});
+  const [groupId, setGroupId] = useState<string | null>(null);
+
+  // Define loadFriendStatuses before it's used in useEffects
+  const loadFriendStatuses = useCallback(
+    async (membersList: Member[]) => {
+      if (!user?.id) return;
+
+      try {
+        // Get all friendships and friend requests
+        const [friends, allRequests] = await Promise.all([
+          FriendsService.getFriends(user.id),
+          FriendsService.getFriendRequests(user.id),
+        ]);
+
+        const statuses: Record<string, FriendStatus> = {};
+        const requestIds: Record<string, string> = {};
+
+        membersList.forEach((member) => {
+          if (member.user_id === user.id) {
+            // Current user - don't show button
+            statuses[member.user_id] = 'friends';
+            return;
+          }
+
+          // Check if already friends
+          const isFriend = friends.some((f) => f.friend?.id === member.user_id);
+
+          if (isFriend) {
+            statuses[member.user_id] = 'friends';
+            return;
+          }
+
+          // Check for pending requests
+          const sentRequest = allRequests.find(
+            (r) =>
+              r.sender_id === user.id && r.receiver_id === member.user_id && r.status === 'pending'
+          );
+
+          if (sentRequest) {
+            statuses[member.user_id] = 'sent';
+            requestIds[member.user_id] = sentRequest.id;
+            return;
+          }
+
+          const receivedRequest = allRequests.find(
+            (r) =>
+              r.sender_id === member.user_id && r.receiver_id === user.id && r.status === 'pending'
+          );
+
+          if (receivedRequest) {
+            statuses[member.user_id] = 'received';
+            requestIds[member.user_id] = receivedRequest.id;
+            return;
+          }
+
+          // No relationship
+          statuses[member.user_id] = 'none';
+        });
+
+        setFriendStatuses(statuses);
+        setFriendRequestIds(requestIds);
+      } catch (err) {
+        console.error('[MEMBERS SCREEN] Error loading friend statuses:', err);
+      }
+    },
+    [user?.id]
+  );
 
   useEffect(() => {
     async function loadMembers() {
@@ -68,7 +136,7 @@ export default function GroupMembersScreen() {
           return;
         }
 
-        // Group name not needed since we're not displaying it
+        setGroupId(group.id);
 
         // Get group members
         const groupMembers = await ChatService.getGroupMembers(group.id);
@@ -88,67 +156,44 @@ export default function GroupMembersScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId, user?.id]);
 
-  const loadFriendStatuses = async (membersList: Member[]) => {
-    if (!user?.id) return;
+  // Setup realtime subscription for group member changes
+  useEffect(() => {
+    if (!groupId || !user?.id) return;
 
-    try {
-      // Get all friendships and friend requests
-      const [friends, allRequests] = await Promise.all([
-        FriendsService.getFriends(user.id),
-        FriendsService.getFriendRequests(user.id),
-      ]);
+    console.log('[MEMBERS SCREEN] Setting up realtime subscription for group:', groupId);
 
-      const statuses: Record<string, FriendStatus> = {};
-      const requestIds: Record<string, string> = {};
+    const channel = supabase
+      .channel(`group_members:${groupId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Listen to INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'group_members',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          console.log('[MEMBERS SCREEN] Group member event:', payload.eventType);
 
-      membersList.forEach((member) => {
-        if (member.user_id === user.id) {
-          // Current user - don't show button
-          statuses[member.user_id] = 'friends';
-          return;
+          // Reload members when changes occur
+          try {
+            const updatedMembers = await ChatService.getGroupMembers(groupId);
+            setMembers(updatedMembers);
+            await loadFriendStatuses(updatedMembers);
+          } catch (err) {
+            console.error('[MEMBERS SCREEN] Error reloading members:', err);
+          }
         }
-
-        // Check if already friends
-        const isFriend = friends.some((f) => f.friend?.id === member.user_id);
-
-        if (isFriend) {
-          statuses[member.user_id] = 'friends';
-          return;
-        }
-
-        // Check for pending requests
-        const sentRequest = allRequests.find(
-          (r) =>
-            r.sender_id === user.id && r.receiver_id === member.user_id && r.status === 'pending'
-        );
-
-        if (sentRequest) {
-          statuses[member.user_id] = 'sent';
-          requestIds[member.user_id] = sentRequest.id;
-          return;
-        }
-
-        const receivedRequest = allRequests.find(
-          (r) =>
-            r.sender_id === member.user_id && r.receiver_id === user.id && r.status === 'pending'
-        );
-
-        if (receivedRequest) {
-          statuses[member.user_id] = 'received';
-          requestIds[member.user_id] = receivedRequest.id;
-          return;
-        }
-
-        // No relationship
-        statuses[member.user_id] = 'none';
+      )
+      .subscribe((status) => {
+        console.log('[MEMBERS SCREEN] Realtime subscription status:', status);
       });
 
-      setFriendStatuses(statuses);
-      setFriendRequestIds(requestIds);
-    } catch (err) {
-      console.error('[MEMBERS SCREEN] Error loading friend statuses:', err);
-    }
-  };
+    return () => {
+      console.log('[MEMBERS SCREEN] Cleaning up realtime subscription');
+      channel?.unsubscribe();
+    };
+  }, [groupId, user?.id, loadFriendStatuses]);
 
   const handleMemberPress = (userId: string) => {
     router.push(`/user-profile?userId=${userId}`);
