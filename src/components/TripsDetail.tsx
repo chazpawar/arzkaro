@@ -302,19 +302,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   tagIconCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: Colors.surface,
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.border,
+    width: 68,
+    height: 68,
   },
   tagIconCircleSelected: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-    borderWidth: 2,
+    // No background or border changes needed
   },
   checkBadge: {
     position: 'absolute',
@@ -331,8 +326,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   categoryImage: {
-    width: 40,
-    height: 40,
+    width: 56,
+    height: 56,
   },
   tagLabel: {
     fontSize: 12,
