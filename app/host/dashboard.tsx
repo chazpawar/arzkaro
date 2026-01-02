@@ -179,11 +179,6 @@ export default function HostDashboard() {
                 <Text style={styles.gridValue}>{stats.upcomingEvents}</Text>
                 <Text style={styles.gridLabel}>Upcoming</Text>
                 <View style={[styles.trendIndicator, { backgroundColor: Colors.successLight }]}>
-                  <Image
-                    source={require('../../assets/others/dateandtime.png')}
-                    style={{ width: 14, height: 14 }}
-                    resizeMode="contain"
-                  />
                   <Text style={[styles.trendText, { color: Colors.success }]}>Active</Text>
                 </View>
               </View>
@@ -235,7 +230,7 @@ export default function HostDashboard() {
               <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
                 <Image
                   source={require('../../assets/others/dateandtime.png')}
-                  style={{ width: 24, height: 24 }}
+                  style={{ width: 46, height: 46 }}
                   resizeMode="contain"
                 />
               </View>

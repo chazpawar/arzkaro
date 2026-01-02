@@ -118,7 +118,7 @@ export default function TicketDetailsScreen() {
                 <View style={styles.detailIconContainer}>
                   <Image
                     source={require('../../assets/others/dateandtime.png')}
-                    style={{ width: 24, height: 24 }}
+                    style={{ width: 48, height: 48 }}
                     resizeMode="contain"
                   />
                 </View>
@@ -136,7 +136,7 @@ export default function TicketDetailsScreen() {
                 <View style={styles.detailIconContainer}>
                   <Image
                     source={require('../../assets/others/location.png')}
-                    style={{ width: 20, height: 20 }}
+                    style={{ width: 36, height: 36 }}
                     resizeMode="contain"
                   />
                 </View>

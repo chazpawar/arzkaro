@@ -7,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
-  Image,
   Alert,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -21,7 +20,7 @@ import ChatInput from '../../../src/components/chat/chat-input';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
 import { Colors } from '../../../src/constants/Colors';
-import { Spacing, Typography, BorderRadius } from '../../../src/constants/Styles';
+import { Spacing, Typography } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
 import { useGroupChat } from '../../../src/hooks/use-chat';
 import * as ChatService from '../../../src/services/chat-service';
@@ -83,7 +82,7 @@ export default function EventChatScreen() {
   const {
     group,
     messages,
-    members,
+    members: _members,
     loading,
     sending,
     typingUsers,
@@ -362,28 +361,6 @@ export default function EventChatScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 20}
         >
-          {/* Group Info Banner */}
-          {group?.event && (
-            <Pressable style={styles.groupBanner} onPress={() => router.push(`/events/${eventId}`)}>
-              {group.event.cover_image_url ? (
-                <Image source={{ uri: group.event.cover_image_url }} style={styles.eventImage} />
-              ) : (
-                <View style={styles.eventImagePlaceholder}>
-                  <Text>🎉</Text>
-                </View>
-              )}
-              <View style={styles.groupBannerContent}>
-                <Text style={styles.groupBannerTitle} numberOfLines={1}>
-                  {group.event.title}
-                </Text>
-                <Text style={styles.groupBannerMembers}>
-                  {members.length} {members.length === 1 ? 'member' : 'members'}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
-            </Pressable>
-          )}
-
           {/* Connection Status */}
           {!isConnected && (
             <View style={styles.connectionBanner}>
@@ -482,39 +459,6 @@ const styles = StyleSheet.create({
   connectionText: {
     ...Typography.caption,
     color: Colors.warning,
-  },
-  groupBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  eventImage: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.sm,
-  },
-  eventImagePlaceholder: {
-    width: 40,
-    height: 40,
-    borderRadius: BorderRadius.sm,
-    backgroundColor: Colors.surfaceSecondary,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  groupBannerContent: {
-    flex: 1,
-    marginLeft: Spacing.sm,
-  },
-  groupBannerTitle: {
-    ...Typography.bodySmallMedium,
-    color: Colors.text,
-  },
-  groupBannerMembers: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
   },
   messagesList: {
     paddingVertical: Spacing.md,

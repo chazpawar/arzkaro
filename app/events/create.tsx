@@ -1342,7 +1342,7 @@ export default function CreateEventScreen() {
                       <View style={styles.durationPreview}>
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 24, height: 24 }}
+                          style={{ width: 20, height: 20 }}
                           resizeMode="contain"
                         />
                         <Text style={styles.durationText}>
@@ -1537,7 +1537,7 @@ export default function CreateEventScreen() {
                       <View style={styles.durationPreview}>
                         <Image
                           source={require('../../assets/others/dateandtime.png')}
-                          style={{ width: 24, height: 24 }}
+                          style={{ width: 20, height: 20 }}
                           resizeMode="contain"
                         />
                         <Text style={styles.durationText}>
@@ -2022,7 +2022,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
   },
   categoryChipSelected: {
-    borderColor: Colors.primary,
+    borderColor: Colors.text,
     backgroundColor: Colors.primaryLight,
   },
   categoryChipText: {
@@ -2240,7 +2240,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   subcategoryChipSelected: {
-    borderColor: Colors.primary,
+    borderColor: Colors.text,
     backgroundColor: Colors.primaryLight,
   },
   subcategoryChipText: {
@@ -2263,7 +2263,7 @@ const styles = StyleSheet.create({
   },
   checkboxChecked: {
     backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
+    borderColor: Colors.text,
   },
   // Custom Tags Section (for Trips)
   customTagsSection: {
@@ -2328,7 +2328,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight,
     borderRadius: BorderRadius.full,
     borderWidth: 1,
-    borderColor: Colors.primary,
+    borderColor: Colors.text,
   },
   customTagChipText: {
     fontSize: 14,
@@ -2709,7 +2709,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   subcategoryCardSelected: {
-    borderColor: Colors.primary,
+    borderColor: Colors.text,
     backgroundColor: Colors.surfaceSecondary,
   },
   subcategoryCardImage: {

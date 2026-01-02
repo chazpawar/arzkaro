@@ -187,7 +187,7 @@ export default function TicketsTab() {
           <View style={styles.metaRow}>
             <Image
               source={require('../../assets/others/location.png')}
-              style={{ width: 16, height: 16 }}
+              style={{ width: 20, height: 20 }}
               resizeMode="contain"
             />
             <Text style={styles.metaText}>{event.location_name || 'TBA'}</Text>
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.xs,
+    gap: Spacing.sm,
     marginBottom: 6,
   },
   metaText: {
