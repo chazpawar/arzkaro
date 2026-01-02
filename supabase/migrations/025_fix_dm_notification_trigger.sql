@@ -1,11 +1,7 @@
 -- =============================================
--- Migration: Add Triggers for Chat Notifications (FIXED)
--- Description: Triggers that call Edge Functions when messages are sent
--- Fixed: Properly handle sender_id vs user_id for different tables
--- =============================================
-
--- =============================================
--- Function to call Edge Function for chat notifications
+-- Migration: Fix DM Notification Trigger Column Names
+-- Description: Fix user1_id/user2_id -> user_id_1/user_id_2 in notify_chat_message function
+-- Issue: The trigger was using incorrect column names causing "column user1_id does not exist" errors
 -- =============================================
 
 CREATE OR REPLACE FUNCTION notify_chat_message()
@@ -75,6 +71,7 @@ BEGIN
     v_conversation_id := NEW.conversation_id;
 
     -- Get the other user in the conversation
+    -- FIXED: Changed user1_id/user2_id to user_id_1/user_id_2
     SELECT ARRAY[
       CASE 
         WHEN user_id_1 = v_sender_id THEN user_id_2
@@ -145,32 +142,17 @@ BEGIN
 END;
 $$;
 
--- =============================================
--- Create triggers for event/group messages
--- =============================================
-
-DROP TRIGGER IF EXISTS trigger_notify_group_message ON messages;
-
-CREATE TRIGGER trigger_notify_group_message
-  AFTER INSERT ON messages
-  FOR EACH ROW
-  EXECUTE FUNCTION notify_chat_message();
+COMMENT ON FUNCTION notify_chat_message IS 'Triggers push notifications when new chat messages are sent (fixed column names user_id_1/user_id_2)';
 
 -- =============================================
--- Create triggers for DM messages
+-- Migration Complete!
 -- =============================================
 
-DROP TRIGGER IF EXISTS trigger_notify_dm_message ON dm_messages;
-
-CREATE TRIGGER trigger_notify_dm_message
-  AFTER INSERT ON dm_messages
-  FOR EACH ROW
-  EXECUTE FUNCTION notify_chat_message();
-
--- =============================================
--- Comments
--- =============================================
-
-COMMENT ON FUNCTION notify_chat_message IS 'Triggers push notifications when new chat messages are sent (fixed for sender_id/user_id)';
-COMMENT ON TRIGGER trigger_notify_group_message ON messages IS 'Sends push notifications for new group messages';
-COMMENT ON TRIGGER trigger_notify_dm_message ON dm_messages IS 'Sends push notifications for new direct messages';
+DO $$
+BEGIN
+  RAISE NOTICE '✅ Migration 025: Fixed DM notification trigger column names';
+  RAISE NOTICE '   - Changed user1_id -> user_id_1';
+  RAISE NOTICE '   - Changed user2_id -> user_id_2';
+  RAISE NOTICE '   - DM send functionality should now work correctly';
+END;
+$$;
