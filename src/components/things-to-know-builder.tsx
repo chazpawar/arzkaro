@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, TextInput as RNTextInput } from 'react-native';
+import { View, Text, StyleSheet, Pressable, TextInput as RNTextInput, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
@@ -45,7 +45,11 @@ export default function ThingsToKnowBuilder({ value, onChange }: ThingsToKnowBui
 
       {items.length === 0 ? (
         <Card style={styles.emptyCard} variant="outlined">
-          <Ionicons name="information-circle-outline" size={48} color={Colors.textTertiary} />
+          <Image
+            source={require('../../assets/others/info2.png')}
+            style={{ width: 32, height: 32, opacity: 0.5 }}
+            resizeMode="contain"
+          />
           <Text style={styles.emptyText}>No items added yet</Text>
           <Text style={styles.emptySubtext}>
             Tap &quot;Add Item&quot; above to add important information for participants

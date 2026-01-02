@@ -70,10 +70,10 @@ serve(async (req) => {
 
     // Validate payload
     if (!payload.userId || !payload.title || !payload.body || !payload.data) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Initialize Supabase client
@@ -95,10 +95,10 @@ serve(async (req) => {
 
     if (!tokens || tokens.length === 0) {
       console.log('[send-chat-notification] No push tokens found for user:', payload.userId);
-      return new Response(
-        JSON.stringify({ message: 'No push tokens found for user' }),
-        { status: 200, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ message: 'No push tokens found for user' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     console.log(`[send-chat-notification] Found ${tokens.length} tokens for user:`, payload.userId);
@@ -119,7 +119,7 @@ serve(async (req) => {
     const expoPushResponse = await fetch('https://exp.host/--/api/v2/push/send', {
       method: 'POST',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
         'Accept-Encoding': 'gzip, deflate',
         'Content-Type': 'application/json',
       },
@@ -149,9 +149,7 @@ serve(async (req) => {
       sent_at: new Date().toISOString(),
     }));
 
-    const { error: logError } = await supabase
-      .from('notification_logs')
-      .insert(notificationLogs);
+    const { error: logError } = await supabase.from('notification_logs').insert(notificationLogs);
 
     if (logError) {
       console.error('[send-chat-notification] Error logging notifications:', logError);
@@ -169,9 +167,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('[send-chat-notification] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 });

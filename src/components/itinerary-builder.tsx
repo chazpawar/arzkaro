@@ -6,6 +6,7 @@ import {
   Pressable,
   TextInput as RNTextInput,
   ScrollView,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
@@ -90,7 +91,11 @@ export default function ItineraryBuilder({ value, onChange }: ItineraryBuilderPr
 
       {days.length === 0 ? (
         <Card style={styles.emptyCard} variant="outlined">
-          <Ionicons name="calendar-outline" size={48} color={Colors.textTertiary} />
+          <Image
+            source={require('../../assets/others/dateandtime.png')}
+            style={{ width: 64, height: 64, opacity: 0.3 }}
+            resizeMode="contain"
+          />
           <Text style={styles.emptyText}>No itinerary added yet</Text>
           <Text style={styles.emptySubtext}>
             Tap &quot;Add Day&quot; to start building your itinerary

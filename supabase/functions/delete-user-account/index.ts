@@ -28,21 +28,24 @@ serve(async (req) => {
     // Authenticate the user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing Authorization header' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     const token = authHeader.replace('Bearer ', '');
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser(token);
 
     if (userError || !user) {
       console.error('[delete-user-account] Authentication error:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     console.log(`[delete-user-account] Deleting account for user: ${user.id}`);
@@ -58,7 +61,7 @@ serve(async (req) => {
     }
 
     console.log(`[delete-user-account] Auth user deleted: ${user.id}`);
-    console.log(`[delete-user-account] Profile and related data deleted via CASCADE`)
+    console.log(`[delete-user-account] Profile and related data deleted via CASCADE`);
 
     return new Response(
       JSON.stringify({

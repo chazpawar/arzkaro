@@ -116,7 +116,11 @@ export default function TicketDetailsScreen() {
               {/* Date & Time */}
               <View style={styles.detailRow}>
                 <View style={styles.detailIconContainer}>
-                  <Ionicons name="calendar-outline" size={20} color={Colors.textSecondary} />
+                  <Image
+                    source={require('../../assets/others/dateandtime.png')}
+                    style={{ width: 24, height: 24 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>DATE & TIME</Text>
@@ -130,7 +134,11 @@ export default function TicketDetailsScreen() {
               {/* Venue */}
               <View style={styles.detailRow}>
                 <View style={styles.detailIconContainer}>
-                  <Ionicons name="location-outline" size={20} color={Colors.textSecondary} />
+                  <Image
+                    source={require('../../assets/others/location.png')}
+                    style={{ width: 20, height: 20 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <View style={styles.detailContent}>
                   <Text style={styles.detailLabel}>VENUE</Text>

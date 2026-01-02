@@ -909,13 +909,21 @@ export default function ExploreTab() {
                         </Text>
                         <View style={styles.searchEventInfoRow}>
                           <View style={styles.searchEventLocationRow}>
-                            <Ionicons name="location" size={14} color={Colors.primary} />
+                            <Image
+                              source={require('../../assets/others/location.png')}
+                              style={{ width: 14, height: 14 }}
+                              resizeMode="contain"
+                            />
                             <Text style={styles.cardLocation} numberOfLines={1}>
                               {event.location_name || event.departure_location || 'TBA'}
                             </Text>
                           </View>
                           <View style={styles.searchEventTimeRow}>
-                            <Ionicons name="time-outline" size={14} color={Colors.primary} />
+                            <Image
+                              source={require('../../assets/others/dateandtime.png')}
+                              style={{ width: 18, height: 18 }}
+                              resizeMode="contain"
+                            />
                             <Text style={styles.searchEventTime}>
                               {event.start_date
                                 ? new Date(event.start_date).toLocaleTimeString('en-US', {

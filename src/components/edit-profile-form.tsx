@@ -379,7 +379,7 @@ export default function EditProfileForm({ profile, onSuccess, onCancel }: EditPr
               style={[styles.input, errors.phone && styles.inputError]}
               value={phone}
               onChangeText={setPhone}
-              placeholder="+1 234 567 8900"
+              placeholder="+91 234 567 8900"
               placeholderTextColor={Colors.textSecondary}
               editable={!loading}
               keyboardType="phone-pad"

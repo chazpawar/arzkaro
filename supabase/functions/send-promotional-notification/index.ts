@@ -56,7 +56,10 @@ async function verifyAdmin(supabase: any, authHeader: string | null): Promise<st
   }
 
   const token = authHeader.replace('Bearer ', '');
-  const { data: { user }, error } = await supabase.auth.getUser(token);
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser(token);
 
   if (error || !user) {
     return null;
@@ -80,7 +83,7 @@ async function sendToExpoPushAPI(messages: ExpoPushMessage[]) {
   const response = await fetch('https://exp.host/--/api/v2/push/send', {
     method: 'POST',
     headers: {
-      'Accept': 'application/json',
+      Accept: 'application/json',
       'Accept-Encoding': 'gzip, deflate',
       'Content-Type': 'application/json',
     },
@@ -119,10 +122,10 @@ serve(async (req) => {
     const adminId = await verifyAdmin(supabase, authHeader);
 
     if (!adminId) {
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized. Admin access required.' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Unauthorized. Admin access required.' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     console.log('[send-promotional-notification] Admin verified:', adminId);
@@ -134,10 +137,10 @@ serve(async (req) => {
 
     // Validate payload
     if (!payload.title || !payload.body) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: title and body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({ error: 'Missing required fields: title and body' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // Build query for push tokens
@@ -194,7 +197,7 @@ serve(async (req) => {
 
     for (let i = 0; i < tokens.length; i += batchSize) {
       const batchTokens = tokens.slice(i, i + batchSize);
-      
+
       const messages: ExpoPushMessage[] = batchTokens.map((token: PushToken) => ({
         to: token.expo_push_token,
         sound: 'default',
@@ -222,9 +225,7 @@ serve(async (req) => {
         sent_at: new Date().toISOString(),
       }));
 
-      const { error: logError } = await supabase
-        .from('notification_logs')
-        .insert(notificationLogs);
+      const { error: logError } = await supabase.from('notification_logs').insert(notificationLogs);
 
       if (logError) {
         console.error('[send-promotional-notification] Error logging notifications:', logError);
@@ -233,12 +234,12 @@ serve(async (req) => {
 
       // Rate limiting - wait 100ms between batches
       if (i + batchSize < tokens.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     }
 
-    const successCount = allTickets.filter(t => t.status === 'ok').length;
-    const failureCount = allTickets.filter(t => t.status === 'error').length;
+    const successCount = allTickets.filter((t) => t.status === 'ok').length;
+    const failureCount = allTickets.filter((t) => t.status === 'error').length;
 
     console.log(`[send-promotional-notification] Sent: ${successCount}, Failed: ${failureCount}`);
 
@@ -253,9 +254,9 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error('[send-promotional-notification] Error:', error);
-    return new Response(
-      JSON.stringify({ error: error.message || 'Internal server error' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ error: error.message || 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 });

@@ -191,7 +191,11 @@ export default function AdminListingsScreen() {
         <View style={styles.detailsGrid}>
           {/* Location */}
           <View style={styles.detailItem}>
-            <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
+            <Image
+              source={require('../../assets/others/location.png')}
+              style={{ width: 16, height: 16 }}
+              resizeMode="contain"
+            />
             <Text style={styles.detailText} numberOfLines={1}>
               {activeTab === 'trips'
                 ? item.departure_location || item.location_name || 'N/A'
@@ -201,7 +205,11 @@ export default function AdminListingsScreen() {
 
           {/* Date */}
           <View style={styles.detailItem}>
-            <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+            <Image
+              source={require('../../assets/others/dateandtime.png')}
+              style={{ width: 20, height: 20 }}
+              resizeMode="contain"
+            />
             <Text style={styles.detailText}>{formatDate(item.start_date)}</Text>
           </View>
 

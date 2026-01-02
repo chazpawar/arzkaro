@@ -174,14 +174,22 @@ export default function TicketsTab() {
           </Text>
 
           <View style={styles.metaRow}>
-            <Ionicons name="calendar-outline" size={16} color={Colors.textSecondary} />
+            <Image
+              source={require('../../assets/others/dateandtime.png')}
+              style={{ width: 20, height: 20 }}
+              resizeMode="contain"
+            />
             <Text style={styles.metaText}>
               {formatDate(event.start_date)} · {formatTime(event.start_date)}
             </Text>
           </View>
 
           <View style={styles.metaRow}>
-            <Ionicons name="location-outline" size={16} color={Colors.textSecondary} />
+            <Image
+              source={require('../../assets/others/location.png')}
+              style={{ width: 16, height: 16 }}
+              resizeMode="contain"
+            />
             <Text style={styles.metaText}>{event.location_name || 'TBA'}</Text>
           </View>
 

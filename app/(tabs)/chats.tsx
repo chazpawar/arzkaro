@@ -1,14 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Pressable,
-  RefreshControl,
-  Image,
-  TextInput,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, RefreshControl, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +9,7 @@ import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import EmptyState from '../../src/components/ui/empty-state';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import TabHeader from '../../src/components/TabHeader';
 import { useUserGroups } from '../../src/hooks/use-chat';
 import * as DMService from '../../src/services/dm-service';
 import { supabase } from '../../backend/supabase';
@@ -247,11 +239,11 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header with Logo */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
+        <View style={{ paddingHorizontal: Spacing.lg, paddingTop: 0, paddingBottom: 0 }}>
+          <View style={{ alignItems: 'center', marginBottom: -15, marginTop: -10 }}>
             <Image
               source={require('../../assets/arz.png')}
-              style={styles.logo}
+              style={{ width: 180, height: 80 }}
               resizeMode="contain"
             />
           </View>
@@ -278,11 +270,11 @@ export default function ChatsTab() {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header with Logo */}
-        <View style={styles.header}>
-          <View style={styles.logoContainer}>
+        <View style={{ paddingHorizontal: Spacing.lg, paddingTop: 0, paddingBottom: 0 }}>
+          <View style={{ alignItems: 'center', marginBottom: -15, marginTop: -10 }}>
             <Image
               source={require('../../assets/arz.png')}
-              style={styles.logo}
+              style={{ width: 180, height: 80 }}
               resizeMode="contain"
             />
           </View>
@@ -346,40 +338,12 @@ export default function ChatsTab() {
         </Pressable>
       )}
 
-      {/* Logo Header - Consistent with Explore and Tickets */}
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('../../assets/arz.png')}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-        </View>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={Colors.textSecondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search"
-            placeholderTextColor={Colors.textSecondary}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-            autoCorrect={false}
-          />
-          {searchQuery.length > 0 && (
-            <Pressable
-              onPress={() => setSearchQuery('')}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <Ionicons name="close-circle" size={18} color={Colors.textSecondary} />
-            </Pressable>
-          )}
-        </View>
-      </View>
+      {/* Header with Logo and Search */}
+      <TabHeader
+        searchPlaceholder="Search chats..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
       {/* Filter Tabs (Messages / Requests) - Simplified for this view */}
       <View style={styles.filterTabs}>
@@ -446,50 +410,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-  },
-  header: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 0,
-    paddingBottom: 0,
-  },
-  logoContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: -15,
-    marginTop: -10,
-  },
-  logo: {
-    width: 180,
-    height: 80,
-  },
-  searchContainer: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: 0,
-    paddingBottom: Spacing.xs,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surfaceSecondary,
-    height: 36,
-    borderRadius: 10,
-    paddingHorizontal: Spacing.md,
-    gap: Spacing.xs,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: Colors.text,
-    fontFamily: Fonts.medium,
-    paddingVertical: 0,
-  },
-  searchPlaceholder: {
-    fontSize: 16,
-    color: Colors.textSecondary,
   },
   filterTabs: {
     flexDirection: 'row',

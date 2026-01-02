@@ -7,6 +7,7 @@ import {
   RefreshControl,
   Pressable,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -178,7 +179,11 @@ export default function HostDashboard() {
                 <Text style={styles.gridValue}>{stats.upcomingEvents}</Text>
                 <Text style={styles.gridLabel}>Upcoming</Text>
                 <View style={[styles.trendIndicator, { backgroundColor: Colors.successLight }]}>
-                  <Ionicons name="time-outline" size={10} color={Colors.success} />
+                  <Image
+                    source={require('../../assets/others/dateandtime.png')}
+                    style={{ width: 14, height: 14 }}
+                    resizeMode="contain"
+                  />
                   <Text style={[styles.trendText, { color: Colors.success }]}>Active</Text>
                 </View>
               </View>
@@ -228,7 +233,11 @@ export default function HostDashboard() {
 
             <Pressable style={styles.menuItem} onPress={() => router.push('/(tabs)/explore')}>
               <View style={[styles.menuIcon, { backgroundColor: Colors.surfaceSecondary }]}>
-                <Ionicons name="calendar-outline" size={20} color={Colors.text} />
+                <Image
+                  source={require('../../assets/others/dateandtime.png')}
+                  style={{ width: 24, height: 24 }}
+                  resizeMode="contain"
+                />
               </View>
               <View style={styles.menuContent}>
                 <Text style={styles.menuTitle}>My Listings</Text>

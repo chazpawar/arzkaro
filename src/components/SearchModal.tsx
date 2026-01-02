@@ -13,6 +13,7 @@ import {
   UIManager,
   Alert,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
@@ -611,7 +612,11 @@ export default function SearchModal({
                             )
                           }
                         >
-                          <Ionicons name="location" size={20} color={Colors.primary} />
+                          <Image
+                            source={require('../../assets/others/location.png')}
+                            style={{ width: 20, height: 20 }}
+                            resizeMode="contain"
+                          />
                           <View style={styles.locationItemTextContainer}>
                             <Text style={styles.locationItemText}>
                               {suggestion.structured_formatting.main_text}
@@ -638,7 +643,11 @@ export default function SearchModal({
                           style={styles.locationItem}
                           onPress={() => handleLocationSearchSelect(location)}
                         >
-                          <Ionicons name="location" size={20} color={Colors.primary} />
+                          <Image
+                            source={require('../../assets/others/location.png')}
+                            style={{ width: 20, height: 20 }}
+                            resizeMode="contain"
+                          />
                           <Text style={styles.locationItemText}>{location}</Text>
                           <Ionicons name="chevron-forward" size={18} color={Colors.textSecondary} />
                         </Pressable>

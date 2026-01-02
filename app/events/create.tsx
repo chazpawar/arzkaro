@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   TextInput,
   Image,
+  Dimensions,
 } from 'react-native';
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,7 +31,6 @@ import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
 import { useAuth } from '../../src/contexts/auth-context';
 import * as EventService from '../../src/services/event-service';
-import { HOST_TYPE_LABELS } from '../../src/services/host-service';
 
 type EventType = 'event' | 'experience' | 'trip';
 
@@ -56,7 +56,7 @@ const EVENT_TYPES: {
 ];
 
 // Type-specific categories
-const EVENT_CATEGORIES = [
+const _EVENT_CATEGORIES = [
   'Cultural',
   'Concert',
   'Games',
@@ -68,7 +68,193 @@ const EVENT_CATEGORIES = [
   'Other',
 ];
 
-const EXPERIENCE_CATEGORIES = [
+// Main categories for Experiences with icons
+const EXPERIENCE_MAIN_CATEGORIES = [
+  {
+    id: 'Cultural',
+    label: 'Cultural',
+    image: require('../../assets/categoriesicons/cultural/Cultural.png'),
+    subcategories: [
+      { id: 'Art', label: 'Art', image: require('../../assets/categoriesicons/cultural/Art.png') },
+      {
+        id: 'Dance',
+        label: 'Dance',
+        image: require('../../assets/categoriesicons/cultural/Dance.png'),
+      },
+      {
+        id: 'Music',
+        label: 'Music',
+        image: require('../../assets/categoriesicons/cultural/Music.png'),
+      },
+    ],
+  },
+  {
+    id: 'Nightlife',
+    label: 'Nightlife',
+    image: require('../../assets/categoriesicons/nightlife/Nightlife.png'),
+    subcategories: [
+      {
+        id: 'DJ Night',
+        label: 'DJ Night',
+        image: require('../../assets/categoriesicons/nightlife/DJ Night.png'),
+      },
+      {
+        id: 'House Party',
+        label: 'House Party',
+        image: require('../../assets/categoriesicons/nightlife/House Party.png'),
+      },
+      {
+        id: 'Nightout',
+        label: 'Nightout',
+        image: require('../../assets/categoriesicons/nightlife/Nightout.png'),
+      },
+    ],
+  },
+  {
+    id: 'Outdoors',
+    label: 'Outdoors',
+    image: require('../../assets/categoriesicons/outdoors/Outdoors.png'),
+    subcategories: [
+      {
+        id: 'Camping',
+        label: 'Camping',
+        image: require('../../assets/categoriesicons/outdoors/Camping.png'),
+      },
+      {
+        id: 'Cycling',
+        label: 'Cycling',
+        image: require('../../assets/categoriesicons/outdoors/Cycling.png'),
+      },
+      {
+        id: 'Hiking',
+        label: 'Hiking',
+        image: require('../../assets/categoriesicons/outdoors/Hiking.png'),
+      },
+      {
+        id: 'Walking',
+        label: 'Walking',
+        image: require('../../assets/categoriesicons/outdoors/Walking.png'),
+      },
+    ],
+  },
+  {
+    id: 'Play',
+    label: 'Play',
+    image: require('../../assets/categoriesicons/play/Play.png'),
+    subcategories: [
+      {
+        id: 'Board Game',
+        label: 'Board Game',
+        image: require('../../assets/categoriesicons/play/Board Game.png'),
+      },
+      {
+        id: 'Gaming',
+        label: 'Gaming',
+        image: require('../../assets/categoriesicons/play/Gaming.png'),
+      },
+    ],
+  },
+  {
+    id: 'Sports',
+    label: 'Sports',
+    image: require('../../assets/categoriesicons/sports/Sports.png'),
+    subcategories: [
+      {
+        id: 'Badminton',
+        label: 'Badminton',
+        image: require('../../assets/categoriesicons/sports/Badminton.png'),
+      },
+      {
+        id: 'Basketball',
+        label: 'Basketball',
+        image: require('../../assets/categoriesicons/sports/Basketball.png'),
+      },
+      {
+        id: 'Cricket',
+        label: 'Cricket',
+        image: require('../../assets/categoriesicons/sports/Cricket.png'),
+      },
+      {
+        id: 'Football',
+        label: 'Football',
+        image: require('../../assets/categoriesicons/sports/Football.png'),
+      },
+      {
+        id: 'Pickleball',
+        label: 'Pickleball',
+        image: require('../../assets/categoriesicons/sports/Pickleball.png'),
+      },
+      {
+        id: 'Volleyball',
+        label: 'Volleyball',
+        image: require('../../assets/categoriesicons/sports/Volleyball.png'),
+      },
+    ],
+  },
+  {
+    id: 'Wellness',
+    label: 'Wellness',
+    image: require('../../assets/categoriesicons/wellness/Wellness.png'),
+    subcategories: [
+      {
+        id: 'Meditation',
+        label: 'Meditation',
+        image: require('../../assets/categoriesicons/wellness/Meditation.png'),
+      },
+      {
+        id: 'Yoga',
+        label: 'Yoga',
+        image: require('../../assets/categoriesicons/wellness/Yoga.png'),
+      },
+    ],
+  },
+];
+
+// Main categories for Trips with icons
+const TRIP_MAIN_CATEGORIES = [
+  {
+    id: 'Adventure',
+    label: 'Adventure',
+    image: require('../../assets/trips/Adventure.png'),
+  },
+  {
+    id: 'Leisure',
+    label: 'Leisure',
+    image: require('../../assets/trips/Leisure.png'),
+  },
+  {
+    id: 'Offbeat',
+    label: 'Offbeat',
+    image: require('../../assets/trips/Offbeat.png'),
+  },
+  {
+    id: 'Spiritual',
+    label: 'Spiritual',
+    image: require('../../assets/trips/Spiritual.png'),
+  },
+  {
+    id: 'Nature',
+    label: 'Nature',
+    image: require('../../assets/trips/Nature.png'),
+  },
+  {
+    id: 'Festival',
+    label: 'Festival',
+    image: require('../../assets/trips/Festival.png'),
+  },
+  {
+    id: 'Food & Culture',
+    label: 'Food & Culture',
+    image: require('../../assets/trips/Food.png'),
+  },
+  {
+    id: 'Getaway',
+    label: 'Getaway',
+    image: require('../../assets/trips/Getaway.png'),
+  },
+];
+
+const _EXPERIENCE_CATEGORIES = [
   'Cultural',
   'Games',
   'Entertainment',
@@ -78,84 +264,16 @@ const EXPERIENCE_CATEGORIES = [
   'Other',
 ];
 
-const TRIP_CATEGORIES = [
-  'Travel',
-  'Beach Trip',
-  'Mountain Trek',
-  'City Tour',
-  'Road Trip',
-  'Camping',
-  'Food & Drink',
-  'Other',
+const _TRIP_CATEGORIES = [
+  'Adventure',
+  'Leisure',
+  'Offbeat',
+  'Spiritual',
+  'Nature',
+  'Festival',
+  'Food & Culture',
+  'Getaway',
 ];
-
-// Subcategories for each main category
-const CATEGORY_SUBCATEGORIES: Record<string, string[]> = {
-  Cultural: ['Music', 'Dance', 'Theatre', 'Art', 'Film', 'Literature'],
-  Concert: ['Rock', 'Pop', 'Jazz', 'Classical', 'Electronic', 'Hip Hop', 'Country', 'Indie'],
-  Games: ['Sports', 'E-Games', 'Board Games', 'Card Games', 'Outdoor Games'],
-  Outdoors: ['Getaway', 'Hiking', 'Running', 'Cycling', 'Camping', 'Trekking'],
-  Nightlife: ['Parties', 'Clubs', 'Cafes', 'Movies', 'Bar Hopping', 'Live Music'],
-  Wellness: ['Yoga', 'Retreat', 'Rehab', 'Meditation', 'Spa', 'Fitness'],
-  Business: ['Conference', 'Workshop', 'Seminar', 'Networking', 'Training', 'Exhibition'],
-  Entertainment: ['Comedy', 'Magic Show', 'Circus', 'Theatre', 'Stand-up', 'Improv'],
-  'Food & Drink': [
-    'Wine Tasting',
-    'Cooking Class',
-    'Food Festival',
-    'Brewery Tour',
-    'Fine Dining',
-    'Street Food',
-  ],
-  Travel: ['Sightseeing', 'Adventure Travel', 'Cultural Tour', 'Beach', 'Mountain', 'City Break'],
-  'Beach Trip': [
-    'Swimming',
-    'Surfing',
-    'Snorkeling',
-    'Beach Volleyball',
-    'Sunbathing',
-    'Water Sports',
-  ],
-  'Mountain Trek': [
-    'Hiking',
-    'Camping',
-    'Rock Climbing',
-    'Nature Photography',
-    'Wildlife Spotting',
-  ],
-  'City Tour': [
-    'Historical Sites',
-    'Museums',
-    'Food Tour',
-    'Shopping',
-    'Nightlife',
-    'Architecture',
-  ],
-  'Road Trip': ['Scenic Routes', 'Adventure', 'Food Stops', 'Photography', 'Camping', 'Nature'],
-  Camping: [
-    'Tent Camping',
-    'RV Camping',
-    'Backpacking',
-    'Glamping',
-    'Beach Camping',
-    'Mountain Camping',
-  ],
-  Other: [],
-};
-
-// Helper function to get categories based on event type
-const getCategoriesForType = (type: EventType): string[] => {
-  switch (type) {
-    case 'event':
-      return EVENT_CATEGORIES;
-    case 'experience':
-      return EXPERIENCE_CATEGORIES;
-    case 'trip':
-      return TRIP_CATEGORIES;
-    default:
-      return EVENT_CATEGORIES;
-  }
-};
 
 export default function CreateEventScreen() {
   const router = useRouter();
@@ -167,7 +285,7 @@ export default function CreateEventScreen() {
     canCreateTrips: boolean;
     canCreateExperiences: boolean;
   } | null>(null);
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(0); // Start at 0 for intro screen
 
   // Form state
   const [eventType, setEventType] = useState<EventType>('experience');
@@ -357,12 +475,44 @@ export default function CreateEventScreen() {
     const newErrors: Record<string, string> = {};
     if (!title.trim()) newErrors.title = 'Title is required';
     if (!description.trim()) newErrors.description = 'Description is required';
-    if (!category) newErrors.category = 'Category is required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const validateStep2 = () => {
+    // Cover image is optional, so no validation needed
+    return true;
+  };
+
+  const validateStep3 = () => {
+    // Main category selection - required for experiences
+    const newErrors: Record<string, string> = {};
+    if (eventType === 'experience' && !category) {
+      newErrors.category = 'Main category is required';
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep4 = () => {
+    // Subcategory selection - optional
+    return true;
+  };
+
+  const validateStep5 = () => {
+    // T&C and Cancellation Policy - optional for experiences
+    // Additional info - optional for trips
+    return true;
+  };
+
+  const validateStep6 = () => {
+    const newErrors: Record<string, string> = {};
+    if (!locationName.trim()) newErrors.locationName = 'Location name is required';
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const validateStep7 = () => {
     const newErrors: Record<string, string> = {};
 
     // Check presence
@@ -395,33 +545,52 @@ export default function CreateEventScreen() {
       startTime &&
       endDate &&
       endTime &&
-      !newErrors.startDate &&
-      !newErrors.endDate
+      new Date(`${startDate}T${startTime}`) >= new Date(`${endDate}T${endTime}`)
     ) {
-      const startDateTime = new Date(`${startDate}T${startTime}`);
-      const endDateTime = new Date(`${endDate}T${endTime}`);
-      if (endDateTime <= startDateTime) {
-        newErrors.endDate = 'End date must be after start date';
-      }
+      newErrors.endDate = 'End date must be after start date';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateStep8 = () => {
+    // Trip gallery is optional, so no validation needed
+    return true;
+  };
+
   const getTotalSteps = () => {
-    return eventType === 'trip' ? 4 : 3;
+    return eventType === 'trip' ? 9 : 8; // Trips have 9 steps, experiences have 8
   };
 
   const handleNextStep = () => {
-    if (step === 1 && validateStep1()) {
+    if (step === 0) {
+      // From intro screen to title/description screen
+      setStep(1);
+    } else if (step === 1 && validateStep1()) {
+      // From title/description to cover image
       setStep(2);
     } else if (step === 2 && validateStep2()) {
-      // If creating a trip, go to trip details step (3), otherwise skip to capacity & pricing (3)
+      // From cover image to main category selection
       setStep(3);
-    } else if (step === 3 && eventType === 'trip') {
-      // From trip details, go to capacity & pricing (4)
+    } else if (step === 3 && validateStep3()) {
+      // From main category to subcategory (experiences) or T&C (trips)
       setStep(4);
+    } else if (step === 4 && validateStep4()) {
+      // From subcategory to T&C (experiences) or Location (trips)
+      setStep(5);
+    } else if (step === 5 && validateStep5()) {
+      // From T&C to Location (experiences) or Date & Time (trips)
+      setStep(6);
+    } else if (step === 6 && validateStep6()) {
+      // From Location to Date & Time
+      setStep(7);
+    } else if (step === 7 && validateStep7()) {
+      // From Date & Time to step 8 (Capacity for experiences, Gallery for trips)
+      setStep(8);
+    } else if (step === 8 && eventType === 'trip' && validateStep8()) {
+      // From Trip Gallery (step 8) to Capacity & Pricing (step 9)
+      setStep(9);
     }
   };
 
@@ -538,7 +707,7 @@ export default function CreateEventScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Create Event',
+          title: 'Create Experience',
           headerBackTitle: '',
         }}
       />
@@ -547,46 +716,32 @@ export default function CreateEventScreen() {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          {/* Progress Indicator */}
-          <View style={styles.progressContainer}>
-            {Array.from({ length: getTotalSteps() }, (_, i) => i + 1).map((s) => (
-              <View key={s} style={[styles.progressDot, s <= step && styles.progressDotActive]} />
-            ))}
-          </View>
+          {/* Progress Indicator - only show after intro screen */}
+          {step > 0 && (
+            <View style={styles.progressContainer}>
+              {Array.from({ length: getTotalSteps() }, (_, i) => i + 1).map((s) => (
+                <View key={s} style={[styles.progressDot, s <= step && styles.progressDotActive]} />
+              ))}
+            </View>
+          )}
 
           <ScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
           >
-            {/* Step 1: Basic Info */}
-            {step === 1 && (
-              <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>Basic Information</Text>
-                <Text style={styles.stepDescription}>Tell us about your {eventType}</Text>
-
-                {/* Host Type Badge */}
-                {!isAdmin && profile?.host_type && (
-                  <Card style={styles.hostTypeBadgeCard} variant="outlined">
-                    <Text style={styles.hostTypeBadgeText}>
-                      Your Host Type: {HOST_TYPE_LABELS[profile.host_type]}
-                    </Text>
-                    {getPermissionMessage() && (
-                      <Text style={styles.permissionMessage}>{getPermissionMessage()}</Text>
-                    )}
-                  </Card>
-                )}
-
-                {/* Event Type Selection */}
-                <View style={styles.typeSelector}>
+            {/* Step 0: Intro Screen - What would you like to host? */}
+            {step === 0 && (
+              <View style={styles.introContainer}>
+                <View style={styles.introCardsContainer}>
                   {EVENT_TYPES.map((type) => {
                     const hasPermission = canCreateEventType(type.value);
                     return (
-                      <Card
+                      <Pressable
                         key={type.value}
                         style={[
-                          styles.typeCard,
-                          eventType === type.value && styles.typeCardSelected,
-                          !hasPermission && styles.typeCardDisabled,
+                          styles.introCard,
+                          eventType === type.value && styles.introCardSelected,
+                          !hasPermission && styles.introCardDisabled,
                         ]}
                         onPress={() => {
                           if (!hasPermission) {
@@ -607,165 +762,193 @@ export default function CreateEventScreen() {
                         {type.image ? (
                           <Image
                             source={type.image}
-                            style={[styles.typeImage, !hasPermission && styles.typeImageDisabled]}
+                            style={[
+                              styles.introCardImage,
+                              !hasPermission && styles.introCardImageDisabled,
+                            ]}
                             resizeMode="contain"
                           />
                         ) : (
                           <Text
-                            style={[styles.typeEmoji, !hasPermission && styles.typeEmojiDisabled]}
+                            style={[
+                              styles.introCardEmoji,
+                              !hasPermission && styles.introCardEmojiDisabled,
+                            ]}
                           >
                             {type.emoji}
                           </Text>
                         )}
                         <Text
                           style={[
-                            styles.typeLabel,
-                            eventType === type.value && styles.typeLabelSelected,
-                            !hasPermission && styles.typeLabelDisabled,
+                            styles.introCardLabel,
+                            !hasPermission && styles.introCardLabelDisabled,
                           ]}
                         >
                           {type.label}
                         </Text>
-                        {!hasPermission && <Text style={styles.typeLockedIcon}>🔒</Text>}
-                      </Card>
+                        {!hasPermission && (
+                          <View style={styles.introCardLock}>
+                            <Ionicons name="lock-closed" size={24} color={Colors.textTertiary} />
+                          </View>
+                        )}
+                      </Pressable>
                     );
                   })}
                 </View>
 
-                <Input
-                  label="Title"
-                  placeholder="Give your event a catchy name"
-                  value={title}
-                  onChangeText={setTitle}
-                  error={errors.title}
-                />
+                {/* Host Type Badge */}
+                {!isAdmin && profile?.host_type && getPermissionMessage() && (
+                  <Card style={styles.introPermissionCard} variant="outlined">
+                    <Ionicons name="information-circle" size={20} color={Colors.info} />
+                    <Text style={styles.introPermissionText}>{getPermissionMessage()}</Text>
+                  </Card>
+                )}
+              </View>
+            )}
 
-                <Input
-                  label="Description"
-                  placeholder="What's this event about?"
-                  value={description}
-                  onChangeText={setDescription}
-                  multiline
-                  numberOfLines={4}
-                  error={errors.description}
-                />
-
-                <Input
-                  label="Terms & Conditions (Optional)"
-                  placeholder="Add any terms and conditions for this event..."
-                  value={termsAndConditions}
-                  onChangeText={setTermsAndConditions}
-                  multiline
-                  numberOfLines={4}
-                />
-
-                <Input
-                  label="Cancellation Policy (Optional)"
-                  placeholder="Add cancellation policy details..."
-                  value={cancellationPolicy}
-                  onChangeText={setCancellationPolicy}
-                  multiline
-                  numberOfLines={4}
-                />
-
-                <ImageUpload
-                  label={`Add ${eventType === 'event' ? 'Event' : eventType === 'experience' ? 'Experience' : 'Trip'} Cover Image`}
-                  onImageSelected={(url) => {
-                    setCoverImageUrl(url);
-                  }}
-                  currentImageUrl={coverImageUrl}
-                  bucket="event-images"
-                  folder={`${eventType}s/${user?.id}`}
-                />
-
-                {/* Category Selection */}
-                <Text style={styles.inputLabel}>
-                  {eventType === 'trip' ? 'Category' : 'Main Category'}
+            {/* Step 1: Title & Description */}
+            {step === 1 && (
+              <View style={styles.descriptionContainer}>
+                <Text style={styles.descriptionTitle}>
+                  How would you like to describe your {eventType}?
                 </Text>
+
+                {/* Image Display */}
+                <View style={styles.descriptionImageContainer}>
+                  {EVENT_TYPES.find((t) => t.value === eventType)?.image && (
+                    <Image
+                      source={EVENT_TYPES.find((t) => t.value === eventType)!.image}
+                      style={styles.descriptionImage}
+                      resizeMode="contain"
+                    />
+                  )}
+                  <Text style={styles.descriptionImageLabel}>
+                    {EVENT_TYPES.find((t) => t.value === eventType)?.label}
+                  </Text>
+                </View>
+
+                {/* Input Fields */}
+                <View style={styles.descriptionInputsContainer}>
+                  <Input
+                    label="Title"
+                    placeholder={`Give your ${eventType} a catchy name`}
+                    value={title}
+                    onChangeText={setTitle}
+                    error={errors.title}
+                  />
+
+                  <Input
+                    label="Description"
+                    placeholder={`What's this ${eventType} about?`}
+                    value={description}
+                    onChangeText={setDescription}
+                    multiline
+                    numberOfLines={4}
+                    error={errors.description}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 2: Cover Image */}
+            {step === 2 && (
+              <View style={styles.coverImageContainer}>
+                <Text style={styles.coverImageTitle}>Add {eventType} cover image</Text>
+                <Text style={styles.coverImageDescription}>
+                  Choose a great photo that represents your {eventType}
+                </Text>
+
+                <View style={styles.coverImageUploadWrapper}>
+                  <ImageUpload
+                    label=""
+                    onImageSelected={(url) => {
+                      setCoverImageUrl(url);
+                    }}
+                    currentImageUrl={coverImageUrl}
+                    bucket="event-images"
+                    folder={`${eventType}s/${user?.id}`}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 3: Main Category Selection (Experiences Only) */}
+            {step === 3 && eventType === 'experience' && (
+              <View style={styles.categorySelectionContainer}>
+                <Text style={styles.categorySelectionTitle}>Choose a category</Text>
+                <Text style={styles.categorySelectionDescription}>
+                  Select the category that best describes your experience
+                </Text>
+
                 <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  style={styles.categoryScroll}
+                  style={styles.categoryCardsScroll}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryCardsContent}
                 >
-                  {getCategoriesForType(eventType).map((cat) => (
-                    <Card
-                      key={cat}
-                      style={[styles.categoryChip, category === cat && styles.categoryChipSelected]}
-                      onPress={() => {
-                        setCategory(cat);
-                        if (eventType !== 'trip') {
-                          setSubcategories([]); // Reset subcategories for events/experiences
-                        }
-                      }}
-                    >
-                      <Text
+                  <View style={styles.categoryGrid}>
+                    {EXPERIENCE_MAIN_CATEGORIES.map((mainCat) => (
+                      <Pressable
+                        key={mainCat.id}
                         style={[
-                          styles.categoryChipText,
-                          category === cat && styles.categoryChipTextSelected,
+                          styles.categoryCard,
+                          category === mainCat.id && styles.categoryCardSelected,
                         ]}
+                        onPress={() => {
+                          setCategory(mainCat.id);
+                          setSubcategories([]); // Reset subcategories when main category changes
+                        }}
                       >
-                        {cat}
-                      </Text>
-                    </Card>
-                  ))}
+                        <Image
+                          source={mainCat.image}
+                          style={styles.categoryCardImage}
+                          resizeMode="contain"
+                        />
+                        <Text style={styles.categoryCardLabel}>{mainCat.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
                 </ScrollView>
                 {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
+              </View>
+            )}
 
-                {/* Subcategories - Only for Events and Experiences */}
-                {eventType !== 'trip' &&
-                  category &&
-                  CATEGORY_SUBCATEGORIES[category]?.length > 0 && (
-                    <View style={styles.subcategorySection}>
-                      <Text style={styles.inputLabel}>Subcategories (Select all that apply)</Text>
-                      <View style={styles.subcategoryGrid}>
-                        {CATEGORY_SUBCATEGORIES[category].map((subcat) => (
-                          <Pressable
-                            key={subcat}
-                            style={[
-                              styles.subcategoryChip,
-                              subcategories.includes(subcat) && styles.subcategoryChipSelected,
-                            ]}
-                            onPress={() => {
-                              if (subcategories.includes(subcat)) {
-                                setSubcategories(subcategories.filter((s) => s !== subcat));
-                              } else {
-                                setSubcategories([...subcategories, subcat]);
-                              }
-                            }}
-                          >
-                            <View
-                              style={[
-                                styles.checkbox,
-                                subcategories.includes(subcat) && styles.checkboxChecked,
-                              ]}
-                            >
-                              {subcategories.includes(subcat) && (
-                                <Ionicons name="checkmark" size={14} color="#FFFFFF" />
-                              )}
-                            </View>
-                            <Text
-                              style={[
-                                styles.subcategoryChipText,
-                                subcategories.includes(subcat) &&
-                                  styles.subcategoryChipTextSelected,
-                              ]}
-                            >
-                              {subcat}
-                            </Text>
-                          </Pressable>
-                        ))}
-                      </View>
-                    </View>
-                  )}
+            {/* Step 3: Category Selection for Trips (no subcategories) */}
+            {step === 3 && eventType === 'trip' && (
+              <View style={styles.categorySelectionContainer}>
+                <Text style={styles.categorySelectionTitle}>Choose a category</Text>
+                <Text style={styles.categorySelectionDescription}>
+                  Select the category that best describes your trip
+                </Text>
 
-                {/* Custom Tags - Only for Trips */}
-                {eventType === 'trip' && (
-                  <View style={styles.customTagsSection}>
-                    <Text style={styles.inputLabel}>Tags (Add multiple tags)</Text>
-                    <Text style={styles.tagsHint}>
-                      Add tags like &quot;Adventure&quot;, &quot;Beach&quot;, &quot;Relaxing&quot;,
-                      &quot;Photography&quot; etc.
-                    </Text>
+                {/* Trip Category Grid */}
+                <ScrollView
+                  style={styles.categoryCardsScroll}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.categoryCardsContent}
+                >
+                  <View style={styles.categoryGrid}>
+                    {TRIP_MAIN_CATEGORIES.map((cat) => (
+                      <Pressable
+                        key={cat.id}
+                        style={[
+                          styles.categoryCard,
+                          category === cat.id && styles.categoryCardSelected,
+                        ]}
+                        onPress={() => setCategory(cat.id)}
+                      >
+                        <Image
+                          source={cat.image}
+                          style={styles.categoryCardImage}
+                          resizeMode="contain"
+                        />
+                        <Text style={styles.categoryCardLabel}>{cat.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+
+                  {/* Custom Tags - For Trips */}
+                  <View style={styles.tripTagsSection}>
+                    <Text style={styles.tripTagsLabel}>Tags (Add multiple tags)</Text>
                     <View style={styles.customTagInputRow}>
                       <View style={styles.customTagInputWrapper}>
                         <View style={styles.customTagInputContainer}>
@@ -826,33 +1009,75 @@ export default function CreateEventScreen() {
                       </View>
                     )}
                   </View>
-                )}
+                </ScrollView>
+                {errors.category && <Text style={styles.errorText}>{errors.category}</Text>}
               </View>
             )}
 
-            {/* Step 2: Location & Time */}
-            {step === 2 && (
+            {/* Step 4: Subcategory Selection (Experiences Only) */}
+            {step === 4 && eventType === 'experience' && (
+              <View style={styles.subcategorySelectionContainer}>
+                <Text style={styles.subcategorySelectionTitle}>
+                  {category ? `${category} - Choose subcategories` : 'Choose subcategories'}
+                </Text>
+                <Text style={styles.subcategorySelectionDescription}>
+                  Select all the subcategories that apply to your experience
+                </Text>
+
+                <ScrollView
+                  style={styles.subcategoryCardsScroll}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.subcategoryCardsContent}
+                >
+                  {category &&
+                    EXPERIENCE_MAIN_CATEGORIES.find((c) => c.id === category)?.subcategories.map(
+                      (subcat) => (
+                        <Pressable
+                          key={subcat.id}
+                          style={[
+                            styles.subcategoryCard,
+                            subcategories.includes(subcat.id) && styles.subcategoryCardSelected,
+                          ]}
+                          onPress={() => {
+                            if (subcategories.includes(subcat.id)) {
+                              setSubcategories(subcategories.filter((s) => s !== subcat.id));
+                            } else {
+                              setSubcategories([...subcategories, subcat.id]);
+                            }
+                          }}
+                        >
+                          <Image
+                            source={subcat.image}
+                            style={styles.subcategoryCardImage}
+                            resizeMode="contain"
+                          />
+                          <Text style={styles.subcategoryCardLabel}>{subcat.label}</Text>
+                          {subcategories.includes(subcat.id) && (
+                            <View style={styles.subcategoryCheckmark}>
+                              <Ionicons name="checkmark-circle" size={24} color={Colors.primary} />
+                            </View>
+                          )}
+                        </Pressable>
+                      )
+                    )}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Step 4: Location Details (Trips Only) */}
+            {step === 4 && eventType === 'trip' && (
               <View style={styles.stepContainer}>
-                <Text style={styles.stepTitle}>Location & Time</Text>
-                <Text style={styles.stepDescription}>When and where is it happening?</Text>
+                <Text style={styles.stepTitle}>Location Details</Text>
+                <Text style={styles.stepDescription}>Where is your {eventType} happening?</Text>
 
-                {/* Things to Know - for Experiences (moved to top) */}
-                {eventType !== 'trip' && (
-                  <View style={styles.sectionCard}>
-                    <View style={styles.sectionHeader}>
-                      <Ionicons name="information-circle" size={20} color={Colors.primary} />
-                      <Text style={styles.sectionHeaderText}>Things to Know</Text>
-                    </View>
-
-                    <ThingsToKnowBuilder value={thingsToKnow} onChange={setThingsToKnow} />
-                  </View>
-                )}
-
-                {/* Location Section */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <Ionicons name="location" size={20} color={Colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Location Details</Text>
+                    <Image
+                      source={require('../../assets/others/location.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sectionHeaderText}>Venue Location</Text>
                   </View>
 
                   <LocationAutocomplete
@@ -871,11 +1096,10 @@ export default function CreateEventScreen() {
 
                   {locationAddress && (
                     <View style={styles.addressPreview}>
-                      <Ionicons
-                        name="location-outline"
-                        size={16}
-                        color={Colors.textSecondary}
-                        style={{ marginRight: 8 }}
+                      <Image
+                        source={require('../../assets/others/location.png')}
+                        style={{ width: 16, height: 16, marginRight: 8 }}
+                        resizeMode="contain"
                       />
                       <Text style={styles.addressPreviewText} numberOfLines={2}>
                         {locationAddress}
@@ -883,12 +1107,87 @@ export default function CreateEventScreen() {
                     </View>
                   )}
                 </View>
+              </View>
+            )}
+
+            {/* Step 5: Location Details (Experiences Only) */}
+            {step === 5 && eventType === 'experience' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepTitle}>Location Details</Text>
+                <Text style={styles.stepDescription}>Where is your experience happening?</Text>
+
+                {/* Location Section */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Image
+                      source={require('../../assets/others/location.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sectionHeaderText}>Venue Location</Text>
+                  </View>
+
+                  <LocationAutocomplete
+                    label="Venue/Location"
+                    placeholder="Search for a location..."
+                    value={locationName}
+                    onLocationSelect={(location) => {
+                      setLocationName(location.name);
+                      setLocationAddress(location.address);
+                      setLocationLat(location.lat);
+                      setLocationLng(location.lng);
+                      setErrors((prev) => ({ ...prev, locationName: '' }));
+                    }}
+                    error={errors.locationName}
+                  />
+
+                  {locationAddress && (
+                    <View style={styles.addressPreview}>
+                      <Image
+                        source={require('../../assets/others/location.png')}
+                        style={{ width: 16, height: 16, marginRight: 8 }}
+                        resizeMode="contain"
+                      />
+                      <Text style={styles.addressPreviewText} numberOfLines={2}>
+                        {locationAddress}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Step 5: Date & Time (Trips Only) */}
+            {step === 5 && eventType === 'trip' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepTitle}>Date & Time</Text>
+                <Text style={styles.stepDescription}>When is your {eventType} happening?</Text>
+
+                {/* Things to Know - for Experiences (moved to top) */}
+                {eventType !== 'trip' && (
+                  <View style={styles.sectionCard}>
+                    <View style={styles.sectionHeader}>
+                      <Image
+                        source={require('../../assets/others/info.png')}
+                        style={styles.sectionHeaderIcon}
+                        resizeMode="contain"
+                      />
+                      <Text style={styles.sectionHeaderText}>Things to Know</Text>
+                    </View>
+
+                    <ThingsToKnowBuilder value={thingsToKnow} onChange={setThingsToKnow} />
+                  </View>
+                )}
 
                 {/* Date & Time Section */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <Ionicons name="calendar" size={20} color={Colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Date & Time</Text>
+                    <Image
+                      source={require('../../assets/others/dateandtime.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sectionHeaderText}>Schedule</Text>
                   </View>
 
                   {/* Start Date/Time */}
@@ -903,7 +1202,11 @@ export default function CreateEventScreen() {
                         ]}
                         onPress={() => setShowStartDatePicker(true)}
                       >
-                        <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
                         <Text
                           style={[
                             styles.datePickerText,
@@ -924,7 +1227,11 @@ export default function CreateEventScreen() {
                         ]}
                         onPress={() => setShowStartTimePicker(true)}
                       >
-                        <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                        <Image
+                          source={require('../../assets/others/time.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
                         <Text
                           style={[
                             styles.datePickerText,
@@ -947,7 +1254,11 @@ export default function CreateEventScreen() {
                         style={[styles.datePickerButton, errors.endDate && styles.datePickerError]}
                         onPress={() => setShowEndDatePicker(true)}
                       >
-                        <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
                         <Text
                           style={[styles.datePickerText, !endDate && styles.datePickerPlaceholder]}
                         >
@@ -962,7 +1273,11 @@ export default function CreateEventScreen() {
                         style={[styles.datePickerButton, errors.endTime && styles.datePickerError]}
                         onPress={() => setShowEndTimePicker(true)}
                       >
-                        <Ionicons name="time-outline" size={20} color={Colors.primary} />
+                        <Image
+                          source={require('../../assets/others/time.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
                         <Text
                           style={[styles.datePickerText, !endTime && styles.datePickerPlaceholder]}
                         >
@@ -1025,7 +1340,11 @@ export default function CreateEventScreen() {
                     !errors.startDate &&
                     !errors.endDate && (
                       <View style={styles.durationPreview}>
-                        <Ionicons name="time" size={16} color={Colors.success} />
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 24, height: 24 }}
+                          resizeMode="contain"
+                        />
                         <Text style={styles.durationText}>
                           Duration: {calculateDuration(startDate, startTime, endDate, endTime)}
                         </Text>
@@ -1035,8 +1354,203 @@ export default function CreateEventScreen() {
               </View>
             )}
 
-            {/* Step 3: Trip Details (only for trips) */}
-            {step === 3 && eventType === 'trip' && (
+            {/* Step 6: Date & Time (Experiences Only) */}
+            {step === 6 && eventType === 'experience' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepTitle}>Date & Time</Text>
+                <Text style={styles.stepDescription}>When is your experience happening?</Text>
+
+                {/* Things to Know - for Experiences */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Image
+                      source={require('../../assets/others/info.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sectionHeaderText}>Things to Know</Text>
+                  </View>
+
+                  <ThingsToKnowBuilder value={thingsToKnow} onChange={setThingsToKnow} />
+                </View>
+
+                {/* Date & Time Section */}
+                <View style={styles.sectionCard}>
+                  <View style={styles.sectionHeader}>
+                    <Image
+                      source={require('../../assets/others/dateandtime.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
+                    <Text style={styles.sectionHeaderText}>Schedule</Text>
+                  </View>
+
+                  {/* Start Date/Time */}
+                  <Text style={styles.subsectionLabel}>Start</Text>
+                  <View style={styles.dateTimeRow}>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Date</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.datePickerButton,
+                          errors.startDate && styles.datePickerError,
+                        ]}
+                        onPress={() => setShowStartDatePicker(true)}
+                      >
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={[
+                            styles.datePickerText,
+                            !startDate && styles.datePickerPlaceholder,
+                          ]}
+                        >
+                          {startDate || 'Select Date'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.startDate && <Text style={styles.errorText}>{errors.startDate}</Text>}
+                    </View>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Time</Text>
+                      <TouchableOpacity
+                        style={[
+                          styles.datePickerButton,
+                          errors.startTime && styles.datePickerError,
+                        ]}
+                        onPress={() => setShowStartTimePicker(true)}
+                      >
+                        <Image
+                          source={require('../../assets/others/time.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={[
+                            styles.datePickerText,
+                            !startTime && styles.datePickerPlaceholder,
+                          ]}
+                        >
+                          {startTime || 'Select Time'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.startTime && <Text style={styles.errorText}>{errors.startTime}</Text>}
+                    </View>
+                  </View>
+
+                  {/* End Date/Time */}
+                  <Text style={styles.subsectionLabel}>End</Text>
+                  <View style={styles.dateTimeRow}>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Date</Text>
+                      <TouchableOpacity
+                        style={[styles.datePickerButton, errors.endDate && styles.datePickerError]}
+                        onPress={() => setShowEndDatePicker(true)}
+                      >
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={[styles.datePickerText, !endDate && styles.datePickerPlaceholder]}
+                        >
+                          {endDate || 'Select Date'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.endDate && <Text style={styles.errorText}>{errors.endDate}</Text>}
+                    </View>
+                    <View style={styles.dateTimeInput}>
+                      <Text style={styles.dateTimeLabel}>Time</Text>
+                      <TouchableOpacity
+                        style={[styles.datePickerButton, errors.endTime && styles.datePickerError]}
+                        onPress={() => setShowEndTimePicker(true)}
+                      >
+                        <Image
+                          source={require('../../assets/others/time.png')}
+                          style={{ width: 20, height: 20 }}
+                          resizeMode="contain"
+                        />
+                        <Text
+                          style={[styles.datePickerText, !endTime && styles.datePickerPlaceholder]}
+                        >
+                          {endTime || 'Select Time'}
+                        </Text>
+                      </TouchableOpacity>
+                      {errors.endTime && <Text style={styles.errorText}>{errors.endTime}</Text>}
+                    </View>
+                  </View>
+
+                  {/* Date Time Pickers */}
+                  {showStartDatePicker && (
+                    <DateTimePicker
+                      value={tempStartDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleStartDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                  {showStartTimePicker && (
+                    <DateTimePicker
+                      value={tempStartDate}
+                      mode="time"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleStartTimeChange}
+                    />
+                  )}
+                  {showEndDatePicker && (
+                    <DateTimePicker
+                      value={tempEndDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleEndDateChange}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                  {showEndTimePicker && (
+                    <DateTimePicker
+                      value={tempEndDate}
+                      mode="time"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleEndTimeChange}
+                    />
+                  )}
+
+                  {/* Helper Info */}
+                  <View style={styles.helperCard}>
+                    <Ionicons name="information-circle" size={16} color={Colors.info} />
+                    <Text style={styles.helperCardText}>
+                      Use 24-hour format. Times are in your local timezone.
+                    </Text>
+                  </View>
+
+                  {/* Duration Preview */}
+                  {startDate &&
+                    startTime &&
+                    endDate &&
+                    endTime &&
+                    !errors.startDate &&
+                    !errors.endDate && (
+                      <View style={styles.durationPreview}>
+                        <Image
+                          source={require('../../assets/others/dateandtime.png')}
+                          style={{ width: 24, height: 24 }}
+                          resizeMode="contain"
+                        />
+                        <Text style={styles.durationText}>
+                          Duration: {calculateDuration(startDate, startTime, endDate, endTime)}
+                        </Text>
+                      </View>
+                    )}
+                </View>
+              </View>
+            )}
+
+            {/* Step 6: Trip Details (only for trips) */}
+            {step === 6 && eventType === 'trip' && (
               <View style={styles.stepContainer}>
                 <Text style={styles.stepTitle}>Trip Details</Text>
                 <Text style={styles.stepDescription}>
@@ -1046,7 +1560,11 @@ export default function CreateEventScreen() {
                 {/* Departure Location */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <Ionicons name="location" size={20} color={Colors.primary} />
+                    <Image
+                      source={require('../../assets/others/location.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.sectionHeaderText}>Departure & Pickups</Text>
                   </View>
 
@@ -1114,22 +1632,6 @@ export default function CreateEventScreen() {
                   <ItineraryBuilder value={itinerary} onChange={setItinerary} />
                 </View>
 
-                {/* Trip Gallery */}
-                <View style={styles.sectionCard}>
-                  <View style={styles.sectionHeader}>
-                    <Ionicons name="images" size={20} color={Colors.primary} />
-                    <Text style={styles.sectionHeaderText}>Trip Gallery</Text>
-                  </View>
-
-                  <MultiImageUpload
-                    maxImages={5}
-                    onImagesChange={setTripImages}
-                    currentImages={tripImages}
-                    bucket="event-images"
-                    folder={`trips/${user?.id}`}
-                  />
-                </View>
-
                 {/* What's Included / Not Included */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
@@ -1148,7 +1650,11 @@ export default function CreateEventScreen() {
                 {/* Things to Know */}
                 <View style={styles.sectionCard}>
                   <View style={styles.sectionHeader}>
-                    <Ionicons name="information-circle" size={20} color={Colors.primary} />
+                    <Image
+                      source={require('../../assets/others/info.png')}
+                      style={styles.sectionHeaderIcon}
+                      resizeMode="contain"
+                    />
                     <Text style={styles.sectionHeaderText}>Things to Know</Text>
                   </View>
 
@@ -1157,8 +1663,148 @@ export default function CreateEventScreen() {
               </View>
             )}
 
-            {/* Step 3 (Events/Experiences) or Step 4 (Trips): Capacity & Pricing */}
-            {((step === 3 && eventType !== 'trip') || (step === 4 && eventType === 'trip')) && (
+            {/* Step 7: Trip Gallery (only for trips) */}
+            {step === 7 && eventType === 'trip' && (
+              <View style={styles.coverImageContainer}>
+                <Text style={styles.coverImageTitle}>Trip Gallery</Text>
+                <Text style={styles.coverImageDescription}>
+                  Add photos that showcase your trip experience
+                </Text>
+
+                <View style={styles.coverImageUploadWrapper}>
+                  <MultiImageUpload
+                    maxImages={5}
+                    onImagesChange={setTripImages}
+                    currentImages={tripImages}
+                    bucket="event-images"
+                    folder={`trips/${user?.id}`}
+                  />
+
+                  <View style={styles.helperCard}>
+                    <Ionicons name="information-circle" size={16} color={Colors.info} />
+                    <Text style={styles.helperCardText}>
+                      Add up to 5 images to give users a better idea of what to expect on this trip
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Step 7: Terms & Conditions (Experiences Only) - Second to Last */}
+            {step === 7 && eventType === 'experience' && (
+              <View style={styles.additionalInfoContainer}>
+                <Text style={styles.additionalInfoTitle}>Terms & Policies</Text>
+                <Text style={styles.additionalInfoDescription}>
+                  Add terms and conditions for your experience
+                </Text>
+
+                <View style={styles.additionalInfoContent}>
+                  <Input
+                    label="Terms & Conditions (Optional)"
+                    placeholder="Add any terms and conditions for this experience..."
+                    value={termsAndConditions}
+                    onChangeText={setTermsAndConditions}
+                    multiline
+                    numberOfLines={4}
+                  />
+
+                  <Input
+                    label="Cancellation Policy (Optional)"
+                    placeholder="Add cancellation policy details..."
+                    value={cancellationPolicy}
+                    onChangeText={setCancellationPolicy}
+                    multiline
+                    numberOfLines={4}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 8: Capacity & Pricing (Experiences Only) */}
+            {step === 8 && eventType === 'experience' && (
+              <View style={styles.stepContainer}>
+                <Text style={styles.stepTitle}>Capacity & Pricing</Text>
+                <Text style={styles.stepDescription}>Set your limits and ticket price</Text>
+
+                <Input
+                  label="Maximum Capacity (Optional)"
+                  placeholder="Leave empty for unlimited"
+                  value={maxCapacity}
+                  onChangeText={setMaxCapacity}
+                  keyboardType="number-pad"
+                />
+
+                <Input
+                  label="Ticket Price (INR)"
+                  placeholder="0 for free events"
+                  value={price}
+                  onChangeText={setPrice}
+                  keyboardType="decimal-pad"
+                  leftIcon={<Text style={styles.currencySymbol}>₹</Text>}
+                />
+
+                <Card style={styles.summaryCard} variant="outlined">
+                  <Text style={styles.summaryTitle}>Event Summary</Text>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Type:</Text>
+                    <Text style={styles.summaryValue}>{eventType}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Title:</Text>
+                    <Text style={styles.summaryValue} numberOfLines={1}>
+                      {title}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Category:</Text>
+                    <Text style={styles.summaryValue}>{category}</Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Location:</Text>
+                    <Text style={styles.summaryValue} numberOfLines={1}>
+                      {locationName}
+                    </Text>
+                  </View>
+                  <View style={styles.summaryRow}>
+                    <Text style={styles.summaryLabel}>Date:</Text>
+                    <Text style={styles.summaryValue}>{startDate}</Text>
+                  </View>
+                </Card>
+              </View>
+            )}
+
+            {/* Step 8: Terms & Conditions (Trips Only) - Second to Last */}
+            {step === 8 && eventType === 'trip' && (
+              <View style={styles.additionalInfoContainer}>
+                <Text style={styles.additionalInfoTitle}>Terms & Policies</Text>
+                <Text style={styles.additionalInfoDescription}>
+                  Add terms and conditions for your trip
+                </Text>
+
+                <View style={styles.additionalInfoContent}>
+                  <Input
+                    label="Terms & Conditions (Optional)"
+                    placeholder="Add any terms and conditions for this trip..."
+                    value={termsAndConditions}
+                    onChangeText={setTermsAndConditions}
+                    multiline
+                    numberOfLines={4}
+                  />
+
+                  <Input
+                    label="Cancellation Policy (Optional)"
+                    placeholder="Add cancellation policy details..."
+                    value={cancellationPolicy}
+                    onChangeText={setCancellationPolicy}
+                    multiline
+                    numberOfLines={4}
+                  />
+                </View>
+              </View>
+            )}
+
+            {/* Step 9: Capacity & Pricing (Trips Only) */}
+            {step === 9 && eventType === 'trip' && (
               <View style={styles.stepContainer}>
                 <Text style={styles.stepTitle}>Capacity & Pricing</Text>
                 <Text style={styles.stepDescription}>Set your limits and ticket price</Text>
@@ -1213,7 +1859,7 @@ export default function CreateEventScreen() {
 
           {/* Footer Buttons */}
           <View style={styles.footer}>
-            {step > 1 && (
+            {step > 0 && (
               <Button
                 title="Back"
                 onPress={() => setStep(step - 1)}
@@ -1221,12 +1867,20 @@ export default function CreateEventScreen() {
                 style={styles.footerButton}
               />
             )}
-            {step < getTotalSteps() ? (
+            {step === 0 ? (
               <Button
                 title="Next"
                 onPress={handleNextStep}
                 variant="primary"
-                style={[styles.footerButton, step === 1 && styles.footerButtonFull]}
+                disabled={!eventType}
+                style={styles.footerButtonFull}
+              />
+            ) : step < getTotalSteps() ? (
+              <Button
+                title="Next"
+                onPress={handleNextStep}
+                variant="primary"
+                style={[styles.footerButton, step === 0 && styles.footerButtonFull]}
               />
             ) : (
               <Button
@@ -1244,6 +1898,10 @@ export default function CreateEventScreen() {
     </>
   );
 }
+
+const { width: _SCREEN_WIDTH } = Dimensions.get('window');
+const _CARD_PADDING = Spacing.lg * 2; // Total horizontal padding in ScrollView (left + right)
+const _CARD_GAP = Spacing.md; // Gap between cards (16px)
 
 const styles = StyleSheet.create({
   container: {
@@ -1266,7 +1924,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.border,
   },
   progressDotActive: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.text,
     width: 24,
   },
   scrollContent: {
@@ -1478,6 +2136,10 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     gap: Spacing.sm,
   },
+  sectionHeaderIcon: {
+    width: 24,
+    height: 24,
+  },
   sectionHeaderText: {
     ...Typography.h4,
     color: Colors.text,
@@ -1673,6 +2335,19 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: Fonts.semiBold,
   },
+  // Trip tags section (below category grid)
+  tripTagsSection: {
+    marginTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.lg,
+    width: '100%',
+  },
+  tripTagsLabel: {
+    fontSize: 16,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+  },
   // Trip-specific styles
   pickupContainer: {
     marginBottom: Spacing.md,
@@ -1757,5 +2432,300 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     flex: 1,
     lineHeight: 20,
+  },
+  // Intro Screen Styles
+  introContainer: {
+    flex: 1,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  introCardsContainer: {
+    gap: Spacing.lg,
+    width: '100%',
+    maxWidth: 280,
+    alignSelf: 'center',
+  },
+  introCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    padding: Spacing.xl,
+    paddingVertical: Spacing.xxl || Spacing.xl * 2,
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: Spacing.md,
+  },
+  introCardSelected: {
+    borderColor: '#000000',
+    borderWidth: 2,
+  },
+  introCardDisabled: {
+    opacity: 0.5,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  introCardLabel: {
+    ...Typography.h3,
+    fontSize: 20,
+    color: Colors.text,
+    fontFamily: Fonts.semiBold,
+    textAlign: 'center',
+  },
+  introCardLabelDisabled: {
+    color: Colors.textTertiary,
+  },
+  introCardImage: {
+    width: 90,
+    height: 90,
+  },
+  introCardImageDisabled: {
+    opacity: 0.4,
+  },
+  introCardEmoji: {
+    fontSize: 64,
+  },
+  introCardEmojiDisabled: {
+    opacity: 0.4,
+  },
+  introCardLock: {
+    position: 'absolute',
+    top: Spacing.md,
+    right: Spacing.md,
+  },
+  introPermissionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    padding: Spacing.md,
+    marginTop: Spacing.xl,
+    backgroundColor: Colors.infoLight,
+    borderColor: Colors.info,
+  },
+  introPermissionText: {
+    ...Typography.bodySmall,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  // Description Screen Styles (Step 1)
+  descriptionContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: Spacing.xl,
+  },
+  descriptionTitle: {
+    ...Typography.h2,
+    fontSize: 24,
+    color: Colors.text,
+    marginBottom: Spacing.xxl || Spacing.xl * 2,
+    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+    paddingHorizontal: Spacing.md,
+  },
+  descriptionImageContainer: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.xxl || Spacing.xl * 2,
+    marginBottom: Spacing.xxl || Spacing.xl * 2,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  descriptionImage: {
+    width: 120,
+    height: 120,
+    marginBottom: Spacing.md,
+  },
+  descriptionImageLabel: {
+    ...Typography.body,
+    fontSize: 16,
+    color: Colors.text,
+    fontFamily: Fonts.medium,
+  },
+  descriptionInputsContainer: {
+    width: '100%',
+    gap: Spacing.md,
+  },
+  // Cover Image Screen Styles (Step 2)
+  coverImageContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: Spacing.xl,
+  },
+  coverImageTitle: {
+    ...Typography.h2,
+    fontSize: 24,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+    paddingHorizontal: Spacing.md,
+  },
+  coverImageDescription: {
+    ...Typography.body,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xxl || Spacing.xl * 2,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  coverImageUploadWrapper: {
+    width: '100%',
+  },
+  // Additional Info Screen Styles (Step 3)
+  additionalInfoContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: Spacing.xl,
+  },
+  additionalInfoTitle: {
+    ...Typography.h2,
+    fontSize: 24,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+    paddingHorizontal: Spacing.md,
+  },
+  additionalInfoDescription: {
+    ...Typography.body,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xxl || Spacing.xl * 2,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  additionalInfoContent: {
+    width: '100%',
+  },
+  // Category Selection Screen Styles (Step 3 for Experiences)
+  categorySelectionContainer: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: Spacing.xl,
+  },
+  categorySelectionTitle: {
+    ...Typography.h2,
+    fontSize: 24,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+    paddingHorizontal: Spacing.md,
+  },
+  categorySelectionDescription: {
+    ...Typography.body,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.lg,
+  },
+  categoryCardsScroll: {
+    flex: 1,
+    width: '100%',
+  },
+  categoryCardsContent: {
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.xl,
+  },
+  categoryGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  categoryCard: {
+    width: '47%', // Use percentage instead of calculated width for better 2-column grid
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    alignItems: 'center',
+    marginBottom: Spacing.md,
+    minHeight: 180,
+    justifyContent: 'center',
+  },
+  categoryCardSelected: {
+    borderColor: '#000000',
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  categoryCardImage: {
+    width: 80,
+    height: 80,
+    marginBottom: Spacing.md,
+  },
+  categoryCardLabel: {
+    ...Typography.bodyMedium,
+    fontSize: 14,
+    color: Colors.text,
+    fontFamily: Fonts.semiBold,
+    textAlign: 'center',
+  },
+  // Subcategory Selection Screen Styles (Step 4 for Experiences)
+  subcategorySelectionContainer: {
+    flex: 1,
+    paddingTop: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+  },
+  subcategorySelectionTitle: {
+    ...Typography.h2,
+    fontSize: 24,
+    color: Colors.text,
+    marginBottom: Spacing.md,
+    textAlign: 'center',
+    fontFamily: Fonts.semiBold,
+  },
+  subcategorySelectionDescription: {
+    ...Typography.body,
+    fontSize: 16,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xl,
+    textAlign: 'center',
+  },
+  subcategoryCardsScroll: {
+    flex: 1,
+  },
+  subcategoryCardsContent: {
+    paddingBottom: Spacing.xl,
+    gap: Spacing.md,
+  },
+  subcategoryCard: {
+    width: '100%',
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginBottom: Spacing.sm,
+    position: 'relative',
+  },
+  subcategoryCardSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.surfaceSecondary,
+  },
+  subcategoryCardImage: {
+    width: 60,
+    height: 60,
+  },
+  subcategoryCardLabel: {
+    ...Typography.bodyLarge,
+    fontSize: 16,
+    color: Colors.text,
+    fontFamily: Fonts.medium,
+    flex: 1,
+  },
+  subcategoryCheckmark: {
+    position: 'absolute',
+    top: Spacing.sm,
+    right: Spacing.sm,
   },
 });

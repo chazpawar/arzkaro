@@ -465,34 +465,6 @@ export default function EventDetailsScreen() {
               </View>
             )}
 
-            {/* Host Section - Only for trips (shown early) */}
-            {event.type === 'trip' && (
-              <Pressable
-                style={styles.hostSection}
-                onPress={() => {
-                  if (event.host_id) {
-                    router.push(`/host-profile?userId=${event.host_id}`);
-                  }
-                }}
-              >
-                <View style={styles.hostAvatar}>
-                  {event.host?.avatar_url ? (
-                    <Image source={{ uri: event.host.avatar_url }} style={styles.hostAvatarImage} />
-                  ) : (
-                    <Text style={styles.hostAvatarText}>
-                      {event.host?.full_name?.charAt(0) || 'H'}
-                    </Text>
-                  )}
-                </View>
-                <View style={styles.hostInfo}>
-                  <Text style={styles.hostedBy}>Hosted by</Text>
-                  <Text style={styles.hostName}>{event.host?.full_name || 'Host'}</Text>
-                  <Text style={styles.hostStats}>View profile</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
-              </Pressable>
-            )}
-
             {/* Trip-Specific Details */}
             {event.type === 'trip' && (
               <>
@@ -728,6 +700,35 @@ export default function EventDetailsScreen() {
                     )}
                   </View>
                 )}
+
+                {/* Host Section - For trips (shown after Things to Know) */}
+                <Pressable
+                  style={styles.hostSection}
+                  onPress={() => {
+                    if (event.host_id) {
+                      router.push(`/host-profile?userId=${event.host_id}`);
+                    }
+                  }}
+                >
+                  <View style={styles.hostAvatar}>
+                    {event.host?.avatar_url ? (
+                      <Image
+                        source={{ uri: event.host.avatar_url }}
+                        style={styles.hostAvatarImage}
+                      />
+                    ) : (
+                      <Text style={styles.hostAvatarText}>
+                        {event.host?.full_name?.charAt(0) || 'H'}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.hostInfo}>
+                    <Text style={styles.hostedBy}>Hosted by</Text>
+                    <Text style={styles.hostName}>{event.host?.full_name || 'Host'}</Text>
+                    <Text style={styles.hostStats}>View profile</Text>
+                  </View>
+                  <Ionicons name="chevron-forward" size={20} color={Colors.textTertiary} />
+                </Pressable>
               </>
             )}
 
@@ -751,7 +752,41 @@ export default function EventDetailsScreen() {
                   )}
                 </View>
 
-                {/* Host Section - For experiences (shown after About this Event) */}
+                {/* Things to Know Section */}
+                {event.things_to_know && event.things_to_know.length > 0 && (
+                  <View style={styles.thingsToKnowSection}>
+                    <Text style={styles.thingsToKnowTitle}>Things to know:</Text>
+                    <View style={styles.thingsToKnowList}>
+                      {(showAllThingsToKnow
+                        ? event.things_to_know
+                        : event.things_to_know.slice(0, 3)
+                      ).map((item: string, index: number, array: string[]) => (
+                        <View
+                          key={index}
+                          style={[
+                            styles.thingsToKnowItem,
+                            index === array.length - 1 && styles.thingsToKnowItemLast,
+                          ]}
+                        >
+                          <Text style={styles.thingsToKnowBullet}>•</Text>
+                          <Text style={styles.thingsToKnowText}>{item}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    {event.things_to_know.length > 3 && (
+                      <Pressable
+                        style={styles.thingsToKnowSeeAll}
+                        onPress={() => setShowAllThingsToKnow(!showAllThingsToKnow)}
+                      >
+                        <Text style={styles.thingsToKnowSeeAllText}>
+                          {showAllThingsToKnow ? 'Show less' : 'See all...'}
+                        </Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
+
+                {/* Host Section - For experiences (shown after Things to Know) */}
                 <View style={styles.hostProfileSection}>
                   <View style={styles.hostProfileCard}>
                     <View style={styles.hostProfileHeader}>
@@ -856,40 +891,6 @@ export default function EventDetailsScreen() {
                     </View>
                   </View>
                 </View>
-
-                {/* Things to Know Section */}
-                {event.things_to_know && event.things_to_know.length > 0 && (
-                  <View style={styles.thingsToKnowSection}>
-                    <Text style={styles.thingsToKnowTitle}>Things to know:</Text>
-                    <View style={styles.thingsToKnowList}>
-                      {(showAllThingsToKnow
-                        ? event.things_to_know
-                        : event.things_to_know.slice(0, 3)
-                      ).map((item: string, index: number, array: string[]) => (
-                        <View
-                          key={index}
-                          style={[
-                            styles.thingsToKnowItem,
-                            index === array.length - 1 && styles.thingsToKnowItemLast,
-                          ]}
-                        >
-                          <Text style={styles.thingsToKnowBullet}>•</Text>
-                          <Text style={styles.thingsToKnowText}>{item}</Text>
-                        </View>
-                      ))}
-                    </View>
-                    {event.things_to_know.length > 3 && (
-                      <Pressable
-                        style={styles.thingsToKnowSeeAll}
-                        onPress={() => setShowAllThingsToKnow(!showAllThingsToKnow)}
-                      >
-                        <Text style={styles.thingsToKnowSeeAllText}>
-                          {showAllThingsToKnow ? 'Show less' : 'See all...'}
-                        </Text>
-                      </Pressable>
-                    )}
-                  </View>
-                )}
 
                 {/* Terms & Conditions Button */}
                 {event.terms_and_conditions && (

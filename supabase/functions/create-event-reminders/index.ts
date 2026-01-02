@@ -18,15 +18,15 @@ serve(async (req) => {
     // Verify authorization (allow cron jobs and service calls)
     const authHeader = req.headers.get('Authorization');
     const cronSecret = Deno.env.get('CRON_SECRET');
-    
+
     // Allow requests with valid Authorization header or correct cron secret
     if (!authHeader && cronSecret) {
       const providedSecret = req.headers.get('X-Cron-Secret');
       if (providedSecret !== cronSecret) {
-        return new Response(
-          JSON.stringify({ error: 'Unauthorized' }),
-          { status: 401, headers: { 'Content-Type': 'application/json' } }
-        );
+        return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' },
+        });
       }
     }
 
@@ -56,7 +56,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('[create-event-reminders] Error:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message || 'Internal server error',
         timestamp: new Date().toISOString(),
       }),

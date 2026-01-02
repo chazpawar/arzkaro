@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Platform, Image } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Import Ionicons
+import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { Spacing, BorderRadius } from '../constants/Styles';
 import { Fonts } from '../constants/Fonts';
 import type { Event } from '../types';
-
-// Dummy trip data since backend only has events mostly
 
 const TRIP_CATEGORIES = [
   { id: 'All', label: 'All', icon: 'grid-outline' },
@@ -21,11 +19,18 @@ interface TripsDetailProps {
   onTripPress?: (tripId: string) => void;
 }
 
+// Helper function to calculate duration in days
+function calculateDuration(startDate: string, endDate: string): string {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  const diffTime = Math.abs(end.getTime() - start.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const nights = diffDays > 0 ? diffDays - 1 : 0;
+  return `${diffDays}D, ${nights}N`;
+}
+
 export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
   const [activeFilter, setActiveFilter] = useState('All');
-
-  // Use passed events for real trip data
-  // Map the passed events to the structure needed for display
 
   const displayTrips =
     events.length > 0
@@ -38,15 +43,19 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
           date: new Date(event.start_date).toLocaleDateString('en-GB', {
             day: 'numeric',
             month: 'short',
+            year: 'numeric',
           }),
-          price: `₹${event.price}`,
+          price: event.price,
           location: event.location_name || 'Unknown Location',
+          duration: calculateDuration(event.start_date, event.end_date),
+          hostName: event.host?.full_name || 'Arzkaro',
+          attendeesCount: event.current_bookings || 0,
         }))
       : [];
 
   return (
     <View style={styles.container}>
-      {/* Horizontal Tags ScrollView (Circular Icons like CategoryDetail) */}
+      {/* Horizontal Tags ScrollView */}
       <View style={styles.tagsContainer}>
         <ScrollView
           horizontal
@@ -89,28 +98,97 @@ export default function TripsDetail({ events, onTripPress }: TripsDetailProps) {
         <ScrollView contentContainerStyle={styles.tripsList} scrollEnabled={false}>
           {displayTrips.map((trip) => (
             <Pressable key={trip.id} style={styles.tripCard} onPress={() => onTripPress?.(trip.id)}>
+              {/* Left Side - Trip Image */}
               <Image source={{ uri: trip.image }} style={styles.tripImage} />
+
+              {/* Right Side - Trip Details */}
               <View style={styles.tripContent}>
-                <Text style={styles.tripLocation}>{trip.location}</Text>
+                {/* Host Row with Logo and Name */}
+                <View style={styles.hostRow}>
+                  <Image
+                    source={require('../../assets/arz.png')}
+                    style={styles.hostLogo}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.hostName}>{trip.hostName}</Text>
+                </View>
 
-                <Text style={styles.tripTitle}>{trip.title}</Text>
-                <Text style={styles.tripDate}>{trip.date}</Text>
+                {/* Trip Title */}
+                <Text style={styles.tripTitle} numberOfLines={2}>
+                  {trip.title}
+                </Text>
 
-                <View style={styles.tripFooter}>
-                  <Text style={styles.tripPrice}>
-                    {trip.price} <Text style={styles.perPerson}>/ person</Text>
+                {/* Location */}
+                <View style={styles.infoRow}>
+                  <Image
+                    source={require('../../assets/others/location.png')}
+                    style={styles.icon}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.infoText} numberOfLines={1}>
+                    {trip.location}
                   </Text>
-                  <View style={styles.bookButton}>
-                    <Text style={styles.bookButtonText}>View</Text>
+                </View>
+
+                {/* Date */}
+                <View style={styles.infoRow}>
+                  <Image
+                    source={require('../../assets/others/dateandtime.png')}
+                    style={styles.icon}
+                    resizeMode="contain"
+                  />
+                  <Text style={styles.infoText}>{trip.date}</Text>
+                </View>
+
+                {/* Duration and Attendees Row */}
+                <View style={styles.bottomRow}>
+                  <Text style={styles.duration}>{trip.duration}</Text>
+
+                  {/* Attendees Avatars */}
+                  <View style={styles.attendeesRow}>
+                    <View style={styles.avatarStack}>
+                      {/* Mock avatars */}
+                      <View style={[styles.avatar, { backgroundColor: '#FF6B6B' }]}>
+                        <Text style={styles.avatarText}>A</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.avatar,
+                          styles.avatarOverlap,
+                          { backgroundColor: '#4ECDC4' },
+                        ]}
+                      >
+                        <Text style={styles.avatarText}>B</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.avatar,
+                          styles.avatarOverlap,
+                          { backgroundColor: '#95E1D3' },
+                        ]}
+                      >
+                        <Text style={styles.avatarText}>C</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.joinedText}>+{trip.attendeesCount} Joined</Text>
                   </View>
                 </View>
+
+                {/* Price Button */}
+                <Pressable style={styles.priceButton}>
+                  <Text style={styles.priceText}>{trip.price}/-</Text>
+                </Pressable>
               </View>
             </Pressable>
           ))}
         </ScrollView>
       ) : (
         <View style={styles.emptyState}>
-          <Ionicons name="location-outline" size={64} color={Colors.textSecondary} />
+          <Image
+            source={require('../../assets/others/location.png')}
+            style={{ width: 64, height: 64, opacity: 0.3 }}
+            resizeMode="contain"
+          />
           <Text style={styles.emptyText}>No trips found</Text>
           <Text style={styles.emptySubtext}>Try adjusting your search or filters</Text>
         </View>
@@ -123,7 +201,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  // Circular Tags Styles (Matched to CategoryDetail)
   tagsContainer: {
     paddingVertical: Spacing.md,
     backgroundColor: Colors.background,
@@ -176,7 +253,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontFamily: Fonts.bold,
   },
-  // Section Header
   sectionHeader: {
     fontSize: 20,
     fontFamily: Fonts.bold,
@@ -188,83 +264,133 @@ const styles = StyleSheet.create({
   },
   tripsList: {
     paddingHorizontal: Spacing.lg,
-    gap: Spacing.lg,
+    gap: Spacing.sm,
     paddingBottom: Spacing.xxl,
   },
-  // Card Styles (Matched to new big card style)
   tripCard: {
-    flexDirection: 'row', // Make it horizontal
-    alignItems: 'center', // Align items center vertically
+    flexDirection: 'row',
     backgroundColor: '#fff',
     borderRadius: BorderRadius.xl,
-    padding: Spacing.sm, // Add padding like other cards
+    padding: Spacing.md,
     marginBottom: Spacing.sm,
+    minHeight: 180,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.1,
         shadowRadius: 12,
       },
       android: {
-        elevation: 3,
+        elevation: 4,
       },
     }),
   },
   tripImage: {
-    width: 100, // Fixed width like other cards
-    height: 100, // Fixed height like other cards
-    borderRadius: BorderRadius.lg, // Match border radius style
-    marginRight: Spacing.md,
+    width: 160,
+    height: 180,
+    borderRadius: BorderRadius.xl,
+    backgroundColor: Colors.border,
   },
   tripContent: {
     flex: 1,
-    justifyContent: 'center',
-    padding: Spacing.sm, // Reduced padding
+    paddingLeft: Spacing.lg,
+    justifyContent: 'space-between',
   },
-  tripLocation: {
-    fontSize: 12, // Smaller font
-    fontFamily: Fonts.semiBold,
-    color: Colors.textSecondary,
-    textTransform: 'uppercase',
-  },
-  tripTitle: {
-    fontSize: 16, // Smaller title
-    fontFamily: Fonts.bold,
-    color: Colors.text,
-    marginBottom: 4,
-  },
-  tripDate: {
-    fontSize: 14,
-    color: Colors.textSecondary,
+  hostRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: Spacing.sm,
   },
-  tripFooter: {
+  hostLogo: {
+    width: 22,
+    height: 22,
+    marginRight: 8,
+  },
+  hostName: {
+    fontSize: 14,
+    fontFamily: Fonts.medium,
+    color: Colors.textSecondary,
+  },
+  tripTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.bold,
+    color: Colors.text,
+    marginBottom: Spacing.sm,
+    lineHeight: 24,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+    marginRight: 6,
+  },
+  infoText: {
+    fontSize: 13,
+    fontFamily: Fonts.regular,
+    color: Colors.textSecondary,
+    flex: 1,
+  },
+  bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 0,
+    marginTop: Spacing.sm,
   },
-  tripPrice: {
-    fontSize: 16, // Smaller price
-    fontFamily: Fonts.extraBold,
-    color: Colors.primary,
+  duration: {
+    fontSize: 14,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
   },
-  perPerson: {
-    fontSize: 12,
-    fontFamily: Fonts.regular,
+  attendeesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  avatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  avatarOverlap: {
+    marginLeft: -8,
+  },
+  avatarText: {
+    fontSize: 10,
+    fontFamily: Fonts.bold,
+    color: '#fff',
+  },
+  joinedText: {
+    fontSize: 11,
+    fontFamily: Fonts.medium,
     color: Colors.textSecondary,
   },
-  bookButton: {
-    backgroundColor: Colors.primary,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
+  priceButton: {
+    alignSelf: 'flex-end',
+    backgroundColor: Colors.background,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: 8,
     borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+    marginTop: Spacing.xs,
   },
-  bookButtonText: {
-    fontSize: 12,
-    fontFamily: Fonts.semiBold,
-    color: '#FFF',
+  priceText: {
+    fontSize: 14,
+    fontFamily: Fonts.bold,
+    color: Colors.primary,
   },
   emptyState: {
     alignItems: 'center',

@@ -9,6 +9,7 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
@@ -194,7 +195,11 @@ export default function HostPayoutRequests({ hostId }: HostPayoutRequestsProps) 
             <Text style={styles.statText}>{earnings?.total_bookings || 0} Bookings</Text>
           </View>
           <View style={styles.statItem}>
-            <Ionicons name="calendar-outline" size={20} color={Colors.primary} />
+            <Image
+              source={require('../../../assets/others/dateandtime.png')}
+              style={{ width: 24, height: 24 }}
+              resizeMode="contain"
+            />
             <Text style={styles.statText}>{earnings?.completed_events || 0} Events</Text>
           </View>
         </View>

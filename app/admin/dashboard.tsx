@@ -7,6 +7,7 @@ import {
   RefreshControl,
   Pressable,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -146,7 +147,11 @@ export default function AdminDashboard() {
 
               <View style={styles.statCard}>
                 <View style={[styles.statIconContainer, { backgroundColor: Colors.infoLight }]}>
-                  <Ionicons name="calendar-outline" size={20} color={Colors.info} />
+                  <Image
+                    source={require('../../assets/others/dateandtime.png')}
+                    style={{ width: 24, height: 24 }}
+                    resizeMode="contain"
+                  />
                 </View>
                 <Text style={styles.statValue}>{stats.totalBookings}</Text>
                 <Text style={styles.statLabel}>Total Bookings</Text>

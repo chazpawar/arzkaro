@@ -244,7 +244,11 @@ export default function BookEventScreen() {
             </Text>
             {event.location_name && (
               <View style={styles.summaryLocation}>
-                <Ionicons name="location-outline" size={14} color={Colors.textSecondary} />
+                <Image
+                  source={require('../../../assets/others/location.png')}
+                  style={{ width: 14, height: 14 }}
+                  resizeMode="contain"
+                />
                 <Text style={styles.summaryLocationText} numberOfLines={1}>
                   {event.location_name}
                 </Text>
