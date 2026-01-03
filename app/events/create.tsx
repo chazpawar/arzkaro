@@ -754,7 +754,7 @@ export default function CreateEventScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Create Listing',
+          title: eventType === 'trip' ? 'Create Trip' : 'Create Experience',
           headerBackTitle: '',
         }}
       />
@@ -1947,7 +1947,13 @@ export default function CreateEventScreen() {
               />
             ) : (
               <Button
-                title={loading ? 'Creating...' : 'Create Event'}
+                title={
+                  loading
+                    ? 'Creating...'
+                    : eventType === 'trip'
+                      ? 'Create Trip'
+                      : 'Create Experience'
+                }
                 onPress={handleCreateEvent}
                 variant="primary"
                 loading={loading}
