@@ -60,6 +60,13 @@ export default function HostScannerScreen() {
         }}
       />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <BackButton variant="minimal" />
+          <Text style={styles.headerTitle}>Validate Ticket</Text>
+          <View style={styles.headerPlaceholder} />
+        </View>
+
         <KeyboardAvoidingView
           style={styles.keyboardView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -71,9 +78,6 @@ export default function HostScannerScreen() {
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
             >
-              {/* Back Button */}
-              <BackButton variant="minimal" />
-
               <View style={styles.content}>
                 <View style={styles.iconContainer}>
                   <Image
@@ -144,18 +148,29 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: Colors.background,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontFamily: Fonts.semiBold,
+    color: Colors.text,
+  },
+  headerPlaceholder: {
+    width: 40,
+  },
   keyboardView: {
     flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
-  },
-  backButton: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  backButtonPressed: {
-    opacity: 0.6,
   },
   content: {
     padding: Spacing.xl,
