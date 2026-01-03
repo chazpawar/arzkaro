@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../src/components/ui/loading-spinner';
 import EmptyState from '../src/components/ui/empty-state';
+import BackButton from '../src/components/ui/back-button';
 import { Colors } from '../src/constants/Colors';
 import { BorderRadius, Spacing } from '../src/constants/Styles';
 import { Fonts } from '../src/constants/Fonts';
@@ -102,10 +103,8 @@ export default function UserProfileScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.customHeaderTitle}>Profile</Text>
+            <BackButton />
+            <Text style={styles.customHeaderTitle}>User Profile</Text>
             <View style={styles.headerPlaceholder} />
           </View>
           <LoadingSpinner fullScreen text="Loading profile..." />
@@ -121,10 +120,8 @@ export default function UserProfileScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
-            <Text style={styles.customHeaderTitle}>Profile</Text>
+            <BackButton />
+            <Text style={styles.customHeaderTitle}>User Profile</Text>
             <View style={styles.headerPlaceholder} />
           </View>
           <EmptyState
@@ -162,9 +159,7 @@ export default function UserProfileScreen() {
       <SafeAreaView style={styles.container}>
         {/* Header */}
         <View style={styles.customHeader}>
-          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <BackButton />
           <Text style={styles.customHeaderTitle}>Profile</Text>
           <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-outline" size={24} color={Colors.text} />
@@ -322,19 +317,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
-  },
-  customBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   customHeaderTitle: {
     fontSize: 18,

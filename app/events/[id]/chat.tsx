@@ -19,6 +19,7 @@ import MessageBubble from '../../../src/components/chat/message-bubble';
 import ChatInput from '../../../src/components/chat/chat-input';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
+import BackButton from '../../../src/components/ui/back-button';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, Typography } from '../../../src/constants/Styles';
 import { useAuth } from '../../../src/contexts/auth-context';
@@ -143,7 +144,7 @@ export default function EventChatScreen() {
 
   const handleMemberPress = useCallback(
     (userId: string) => {
-      router.push(`/users/${userId}`);
+      router.push(`/user-profile?userId=${userId}`);
     },
     [router]
   );
@@ -255,9 +256,7 @@ export default function EventChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Group Chat</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -274,9 +273,7 @@ export default function EventChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Group Chat</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -301,9 +298,8 @@ export default function EventChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
             <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -328,9 +324,8 @@ export default function EventChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
+            <Ionicons name="arrow-back" size={24} color={Colors.text} />
             <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -345,9 +340,7 @@ export default function EventChatScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.customHeader}>
-          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <BackButton />
           <Text style={styles.customHeaderTitle}>{group?.name || 'Group Chat'}</Text>
           <TouchableOpacity
             onPress={() => router.push(`/events/${eventId}/members`)}

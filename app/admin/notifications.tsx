@@ -13,13 +13,14 @@ import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
+import BackButton from '../../src/components/ui/back-button';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
 import { supabase } from '../../backend/supabase';
 
 export default function AdminNotificationsScreen() {
-  const router = useRouter();
+  const _router = useRouter();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [eventId, setEventId] = useState('');
@@ -130,9 +131,7 @@ export default function AdminNotificationsScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton variant="minimal" />
           <Text style={styles.title}>Send Notification</Text>
           <View style={styles.headerPlaceholder} />
         </View>

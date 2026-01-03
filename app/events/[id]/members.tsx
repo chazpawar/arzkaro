@@ -1,19 +1,11 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  Image,
-  Pressable,
-  Alert,
-  TouchableOpacity,
-} from 'react-native';
+import { View, Text, StyleSheet, FlatList, Image, Pressable, Alert } from 'react-native';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../../src/components/ui/loading-spinner';
 import EmptyState from '../../../src/components/ui/empty-state';
+import BackButton from '../../../src/components/ui/back-button';
 import { Colors } from '../../../src/constants/Colors';
 import { Spacing, BorderRadius } from '../../../src/constants/Styles';
 import { Fonts } from '../../../src/constants/Fonts';
@@ -389,9 +381,7 @@ export default function GroupMembersScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Group Members</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -416,9 +406,7 @@ export default function GroupMembersScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Group Members</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -435,9 +423,7 @@ export default function GroupMembersScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Group Members</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -460,9 +446,7 @@ export default function GroupMembersScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.customHeader}>
-          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <BackButton />
           <Text style={styles.customHeaderTitle}>Group Members</Text>
           <View style={styles.headerPlaceholder} />
         </View>
@@ -591,19 +575,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
     backgroundColor: Colors.background,
-  },
-  customBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   customHeaderTitle: {
     fontSize: 18,

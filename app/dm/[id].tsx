@@ -18,6 +18,7 @@ import MessageBubble from '../../src/components/chat/message-bubble';
 import ChatInput from '../../src/components/chat/chat-input';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
+import BackButton from '../../src/components/ui/back-button';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing } from '../../src/constants/Styles';
 import { useAuth } from '../../src/contexts/auth-context';
@@ -313,9 +314,7 @@ export default function DMChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Chat</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -332,9 +331,7 @@ export default function DMChatScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <SafeAreaView style={styles.container} edges={['top']}>
           <View style={styles.customHeader}>
-            <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </TouchableOpacity>
+            <BackButton />
             <Text style={styles.customHeaderTitle}>Chat</Text>
             <View style={styles.headerPlaceholder} />
           </View>
@@ -360,9 +357,7 @@ export default function DMChatScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.customHeader}>
-          <TouchableOpacity style={styles.customBackButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <BackButton />
           <Text style={styles.customHeaderTitle}>{otherUserName}</Text>
           <TouchableOpacity onPress={handleViewProfile} style={styles.customBackButton}>
             <Ionicons name="person-circle-outline" size={24} color={Colors.primary} />

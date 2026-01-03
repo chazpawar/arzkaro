@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
+import BackButton from '../../src/components/ui/back-button';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -44,7 +45,7 @@ interface Listing {
 }
 
 export default function AdminListingsScreen() {
-  const router = useRouter();
+  const _router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>('experiences');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -245,9 +246,7 @@ export default function AdminListingsScreen() {
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           {/* Header */}
           <View style={styles.header}>
-            <Pressable style={styles.backButton} onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </Pressable>
+            <BackButton variant="minimal" />
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>Listings</Text>
               <Text style={styles.headerSubtitle}>{total} total</Text>

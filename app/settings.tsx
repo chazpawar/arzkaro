@@ -13,6 +13,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import BackButton from '../src/components/ui/back-button';
 import { Colors } from '../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../src/constants/Styles';
 import { Fonts } from '../src/constants/Fonts';
@@ -217,9 +218,7 @@ export default function SettingsScreen() {
         <SafeAreaView style={styles.safeArea} edges={['top']}>
           {/* Custom Header */}
           <View style={styles.header}>
-            <Pressable onPress={() => router.back()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={24} color={Colors.text} />
-            </Pressable>
+            <BackButton variant="minimal" />
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerTitle}>Settings</Text>
               <Text style={styles.headerSubtitle}>App configuration</Text>

@@ -21,6 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
 import EmptyState from '../../src/components/ui/empty-state';
+import BackButton from '../../src/components/ui/back-button';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -357,11 +358,8 @@ export default function HostRequestsPage() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton variant="minimal" />
           <Text style={styles.headerTitle}>Host Requests</Text>
-          <View style={{ width: 32 }} />
         </View>
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>

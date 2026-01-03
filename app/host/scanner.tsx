@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TextInput,
   Alert,
-  Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -17,6 +16,7 @@ import { Stack, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../../src/components/ui/button';
+import BackButton from '../../src/components/ui/back-button';
 import { useAuth } from '../../src/contexts/auth-context';
 import { useTicketValidation } from '../../src/hooks/use-bookings';
 import { Colors } from '../../src/constants/Colors';
@@ -24,7 +24,7 @@ import { Spacing, Typography, BorderRadius } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
 
 export default function HostScannerScreen() {
-  const router = useRouter();
+  const _router = useRouter();
   const { user } = useAuth();
   const { validateTicket, validating, result } = useTicketValidation();
   const [ticketId, setTicketId] = useState('');
@@ -72,12 +72,7 @@ export default function HostScannerScreen() {
               showsVerticalScrollIndicator={false}
             >
               {/* Back Button */}
-              <Pressable
-                style={({ pressed }) => [styles.backButton, pressed && styles.backButtonPressed]}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="arrow-back" size={24} color={Colors.text} />
-              </Pressable>
+              <BackButton variant="minimal" />
 
               <View style={styles.content}>
                 <View style={styles.iconContainer}>

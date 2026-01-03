@@ -19,6 +19,7 @@ import { Colors } from '../../src/constants/Colors';
 import { Fonts } from '../../src/constants/Fonts';
 import { Spacing, BorderRadius } from '../../src/constants/Styles';
 import LoadingSpinner from '../../src/components/ui/loading-spinner';
+import BackButton from '../../src/components/ui/back-button';
 import { useEvent } from '../../src/hooks/use-events';
 import { getEventBookings, getUserBookings } from '../../src/services/booking-service';
 import { useAuth } from '../../src/contexts/auth-context';
@@ -296,9 +297,7 @@ For cancellation requests, please contact Arzkaro support.`;
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Header Buttons */}
         <View style={styles.headerContainer}>
-          <Pressable style={styles.backButton} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton />
           <Pressable style={styles.shareButton} onPress={handleShare}>
             <Ionicons name="share-outline" size={24} color={Colors.text} />
           </Pressable>
@@ -1241,25 +1240,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 4,
-      },
-    }),
   },
   imageContainer: {
     position: 'absolute',

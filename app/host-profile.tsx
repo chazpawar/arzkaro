@@ -13,6 +13,7 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Button from '../src/components/ui/button';
+import BackButton from '../src/components/ui/back-button';
 import { Colors } from '../src/constants/Colors';
 import { BorderRadius, Spacing } from '../src/constants/Styles';
 import { Fonts } from '../src/constants/Fonts';
@@ -113,9 +114,7 @@ export default function HostProfileScreen() {
 
       {/* Header */}
       <View style={styles.profileViewHeader}>
-        <TouchableOpacity style={styles.profileBackButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </TouchableOpacity>
+        <BackButton />
         <Text style={styles.profileViewTitle}>Host Profile</Text>
         <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
           <Ionicons name="share-outline" size={24} color={Colors.text} />
@@ -258,15 +257,6 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
-    backgroundColor: Colors.background,
-  },
-  profileBackButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   profileViewTitle: {
     fontSize: 18,

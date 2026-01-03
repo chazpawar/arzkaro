@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, StatusBar, Pressable } from 'react-native';
+import { View, Text, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import BackButton from '../../src/components/ui/back-button';
 import { Colors } from '../../src/constants/Colors';
 import { Spacing, Typography } from '../../src/constants/Styles';
 import { Fonts } from '../../src/constants/Fonts';
@@ -49,9 +49,7 @@ export default function AdminPayoutsPage() {
 
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </Pressable>
+        <BackButton variant="minimal" />
         <Text style={styles.headerTitle}>Payout Requests</Text>
         <View style={styles.headerPlaceholder} />
       </View>

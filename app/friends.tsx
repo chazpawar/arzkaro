@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import LoadingSpinner from '../src/components/ui/loading-spinner';
 import EmptyState from '../src/components/ui/empty-state';
+import BackButton from '../src/components/ui/back-button';
 import { Colors } from '../src/constants/Colors';
 import { Spacing, Typography, BorderRadius } from '../src/constants/Styles';
 import { Fonts } from '../src/constants/Fonts';
@@ -395,9 +396,7 @@ export default function FriendsScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       {/* Header */}
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={Colors.text} />
-        </Pressable>
+        <BackButton variant="minimal" />
         <View style={styles.headerTextContainer}>
           <Text style={styles.headerTitle}>Friends</Text>
           {!loading && (
