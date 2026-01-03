@@ -754,7 +754,7 @@ export default function CreateEventScreen() {
     <>
       <Stack.Screen
         options={{
-          title: 'Create Experience',
+          title: 'Create Listing',
           headerBackTitle: '',
         }}
       />
