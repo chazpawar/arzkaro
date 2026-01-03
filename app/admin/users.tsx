@@ -26,7 +26,7 @@ import type { Profile } from '../../src/types/user.types';
 type RoleFilter = 'all' | 'user' | 'host' | 'admin';
 
 export default function UsersPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [users, setUsers] = useState<Profile[]>([]);
@@ -253,9 +253,8 @@ export default function UsersPage() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Custom Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton variant="minimal" />
+          <Text style={styles.headerTitle}>Manage Users</Text>
           <View style={styles.headerActionPlaceholder} />
         </View>
 
@@ -315,10 +314,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
-  },
-  backButton: {
-    padding: Spacing.xs,
-    marginLeft: -Spacing.xs,
   },
   headerTextContainer: {
     flex: 1,

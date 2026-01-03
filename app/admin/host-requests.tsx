@@ -34,7 +34,7 @@ import { supabase } from '../../backend/supabase';
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
 export default function HostRequestsPage() {
-  const router = useRouter();
+  const _router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -377,9 +377,8 @@ export default function HostRequestsPage() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Custom Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton variant="minimal" />
+          <Text style={styles.headerTitle}>Host Requests</Text>
           <View style={styles.headerActionPlaceholder} />
         </View>
 
@@ -805,10 +804,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
-  },
-  backButton: {
-    padding: Spacing.xs,
-    marginLeft: -Spacing.xs,
   },
   headerTextContainer: {
     flex: 1,

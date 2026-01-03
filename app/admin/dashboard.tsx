@@ -70,6 +70,7 @@ export default function AdminDashboard() {
         <View style={styles.header}>
           <BackButton variant="minimal" />
           <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          <View style={styles.headerActionPlaceholder} />
         </View>
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.error} />
@@ -88,9 +89,8 @@ export default function AdminDashboard() {
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         {/* Custom Header */}
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={24} color={Colors.text} />
-          </Pressable>
+          <BackButton variant="minimal" />
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
           <View style={styles.headerActionPlaceholder} />
         </View>
 
@@ -305,10 +305,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.borderLight,
-  },
-  backButton: {
-    padding: Spacing.xs,
-    marginLeft: -Spacing.xs,
   },
   headerTextContainer: {
     flex: 1,
