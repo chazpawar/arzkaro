@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   predictionSecondaryText: {
     fontSize: 13,
-    fontFamily: Fonts.regular,
+    fontFamily: Fonts.light,
     color: Colors.textSecondary,
   },
   selectedBadge: {

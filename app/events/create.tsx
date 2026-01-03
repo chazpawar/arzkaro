@@ -994,7 +994,10 @@ export default function CreateEventScreen() {
                       >
                         <Image
                           source={cat.image}
-                          style={styles.categoryCardImage}
+                          style={[
+                            styles.categoryCardImage,
+                            cat.id === 'Nature' && styles.categoryCardImageLarge,
+                          ]}
                           resizeMode="contain"
                         />
                         <Text style={styles.categoryCardLabel}>{cat.label}</Text>
@@ -1133,11 +1136,10 @@ export default function CreateEventScreen() {
                       style={styles.sectionHeaderIcon}
                       resizeMode="contain"
                     />
-                    <Text style={styles.sectionHeaderText}>Venue Location</Text>
+                    <Text style={styles.sectionHeaderText}>Venue Details</Text>
                   </View>
 
                   <LocationAutocomplete
-                    label="Venue/Location"
                     placeholder="Search for a location..."
                     value={locationName}
                     onLocationSelect={(location) => {
@@ -1170,7 +1172,7 @@ export default function CreateEventScreen() {
             {step === 5 && eventType === 'experience' && (
               <View style={styles.stepContainer}>
                 <Text style={styles.stepTitle}>Location Details</Text>
-                <Text style={styles.stepDescription}>Where is your experience happening?</Text>
+                <Text style={styles.stepDescription}>Where will this take place?</Text>
 
                 {/* Location Section */}
                 <View style={styles.sectionCard}>
@@ -1180,11 +1182,10 @@ export default function CreateEventScreen() {
                       style={styles.sectionHeaderIcon}
                       resizeMode="contain"
                     />
-                    <Text style={styles.sectionHeaderText}>Venue Location</Text>
+                    <Text style={styles.sectionHeaderText}>Venue Details</Text>
                   </View>
 
                   <LocationAutocomplete
-                    label="Venue/Location"
                     placeholder="Search for a location..."
                     value={locationName}
                     onLocationSelect={(location) => {
@@ -2736,6 +2737,10 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     marginBottom: Spacing.md,
+  },
+  categoryCardImageLarge: {
+    width: 100,
+    height: 100,
   },
   categoryCardLabel: {
     ...Typography.bodyMedium,

@@ -476,40 +476,6 @@ For cancellation requests, please contact Arzkaro support.`;
               )}
             </View>
 
-            {/* Quick Info Cards - Only show for non-trip events */}
-            {!isTrip && (
-              <View style={styles.quickInfoContainer}>
-                <View style={styles.quickInfoCard}>
-                  <Image
-                    source={DateTimeIcon}
-                    style={[styles.quickInfoIcon, { width: 28, height: 28 }]}
-                    resizeMode="contain"
-                  />
-                  <View>
-                    <Text style={styles.quickInfoLabel}>TIME</Text>
-                    <Text style={styles.quickInfoValue}>
-                      {formatTime(event.start_date)} - {formatTime(event.end_date)}
-                    </Text>
-                  </View>
-                </View>
-
-                <View style={styles.quickInfoCard}>
-                  <Image
-                    source={LocationIcon}
-                    style={[styles.quickInfoIcon, { width: 24, height: 24 }]}
-                    resizeMode="contain"
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.quickInfoLabel}>VENUE</Text>
-                    <Text style={styles.quickInfoValue}>{event.location_name || 'TBA'}</Text>
-                    {event.location_address && (
-                      <Text style={styles.quickInfoSubValue}>{event.location_address}</Text>
-                    )}
-                  </View>
-                </View>
-              </View>
-            )}
-
             {/* Trip-Specific Details */}
             {event.type === 'trip' && (
               <>
@@ -1373,35 +1339,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontFamily: Fonts.bold,
     color: Colors.primary,
-  },
-  quickInfoContainer: {
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  quickInfoCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  quickInfoIcon: {
-    marginRight: Spacing.md,
-    marginTop: 2,
-  },
-  quickInfoLabel: {
-    fontSize: 11,
-    color: Colors.textSecondary,
-    marginBottom: 4,
-    fontFamily: Fonts.semiBold,
-    letterSpacing: 0.5,
-  },
-  quickInfoValue: {
-    fontSize: 16,
-    fontFamily: Fonts.medium,
-    color: Colors.text,
-  },
-  quickInfoSubValue: {
-    fontSize: 14,
-    color: Colors.textSecondary,
-    marginTop: 2,
   },
   availabilitySection: {
     marginBottom: Spacing.lg,

@@ -156,7 +156,11 @@ export default function TripsDetail({
                 onPress={() => setActiveFilter(cat.id)}
               >
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
-                  <Image source={cat.image} style={styles.categoryImage} resizeMode="contain" />
+                  <Image
+                    source={cat.image}
+                    style={[styles.categoryImage, cat.id === 'Nature' && styles.categoryImageLarge]}
+                    resizeMode="contain"
+                  />
                   {isSelected && (
                     <View style={styles.checkBadge}>
                       <Ionicons name="checkmark" size={10} color="#FFF" />
@@ -328,6 +332,10 @@ const styles = StyleSheet.create({
   categoryImage: {
     width: 56,
     height: 56,
+  },
+  categoryImageLarge: {
+    width: 68,
+    height: 68,
   },
   tagLabel: {
     fontSize: 12,
