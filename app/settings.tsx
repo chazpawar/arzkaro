@@ -293,13 +293,33 @@ export default function SettingsScreen() {
               <View style={styles.menuList}>
                 <Pressable
                   style={styles.menuItem}
-                  onPress={() => {
-                    const email = 'thearzkaro@gmail.com';
-                    const subject = 'Support Request';
-                    const body = 'Hi Arzkaro Team,\n\n';
-                    Linking.openURL(
-                      `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-                    );
+                  onPress={async () => {
+                    try {
+                      const email = 'thearzkaro@gmail.com';
+                      const subject = 'Support Request';
+                      const body = 'Hi Arzkaro Team,\n\n';
+                      const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+                      // Check if the device can handle mailto links
+                      const canOpen = await Linking.canOpenURL(mailtoUrl);
+
+                      if (canOpen) {
+                        await Linking.openURL(mailtoUrl);
+                      } else {
+                        Alert.alert(
+                          'No Email App',
+                          'Please send an email to thearzkaro@gmail.com',
+                          [{ text: 'OK' }]
+                        );
+                      }
+                    } catch (error) {
+                      console.error('[SETTINGS] Error opening email:', error);
+                      Alert.alert(
+                        'Error',
+                        'Could not open email app. Please email us at thearzkaro@gmail.com',
+                        [{ text: 'OK' }]
+                      );
+                    }
                   }}
                 >
                   <View style={[styles.menuIcon, { backgroundColor: Colors.primarySoft }]}>

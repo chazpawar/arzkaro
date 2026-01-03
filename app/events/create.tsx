@@ -16,7 +16,7 @@ import {
 import { useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from '../../src/components/ui/date-time-picker-modal';
 import Button from '../../src/components/ui/button';
 import Card from '../../src/components/ui/card';
 import Input from '../../src/components/ui/input';
@@ -390,57 +390,49 @@ export default function CreateEventScreen() {
   }
 
   // Date picker handlers
-  const handleStartDateChange = (event: any, selectedDate?: Date) => {
-    setShowStartDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setTempStartDate(selectedDate);
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      setStartDate(dateStr);
-      // Clear error when date is selected
-      if (errors.startDate) {
-        setErrors({ ...errors, startDate: '' });
-      }
+  const handleStartDateChange = (selectedDate: Date) => {
+    setShowStartDatePicker(false);
+    setTempStartDate(selectedDate);
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    setStartDate(dateStr);
+    // Clear error when date is selected
+    if (errors.startDate) {
+      setErrors({ ...errors, startDate: '' });
     }
   };
 
-  const handleStartTimeChange = (event: any, selectedTime?: Date) => {
-    setShowStartTimePicker(Platform.OS === 'ios');
-    if (selectedTime) {
-      const hours = selectedTime.getHours().toString().padStart(2, '0');
-      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
-      const timeStr = `${hours}:${minutes}`;
-      setStartTime(timeStr);
-      // Clear error when time is selected
-      if (errors.startTime) {
-        setErrors({ ...errors, startTime: '' });
-      }
+  const handleStartTimeChange = (selectedTime: Date) => {
+    setShowStartTimePicker(false);
+    const hours = selectedTime.getHours().toString().padStart(2, '0');
+    const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+    setStartTime(timeStr);
+    // Clear error when time is selected
+    if (errors.startTime) {
+      setErrors({ ...errors, startTime: '' });
     }
   };
 
-  const handleEndDateChange = (event: any, selectedDate?: Date) => {
-    setShowEndDatePicker(Platform.OS === 'ios');
-    if (selectedDate) {
-      setTempEndDate(selectedDate);
-      const dateStr = selectedDate.toISOString().split('T')[0];
-      setEndDate(dateStr);
-      // Clear error when date is selected
-      if (errors.endDate) {
-        setErrors({ ...errors, endDate: '' });
-      }
+  const handleEndDateChange = (selectedDate: Date) => {
+    setShowEndDatePicker(false);
+    setTempEndDate(selectedDate);
+    const dateStr = selectedDate.toISOString().split('T')[0];
+    setEndDate(dateStr);
+    // Clear error when date is selected
+    if (errors.endDate) {
+      setErrors({ ...errors, endDate: '' });
     }
   };
 
-  const handleEndTimeChange = (event: any, selectedTime?: Date) => {
-    setShowEndTimePicker(Platform.OS === 'ios');
-    if (selectedTime) {
-      const hours = selectedTime.getHours().toString().padStart(2, '0');
-      const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
-      const timeStr = `${hours}:${minutes}`;
-      setEndTime(timeStr);
-      // Clear error when time is selected
-      if (errors.endTime) {
-        setErrors({ ...errors, endTime: '' });
-      }
+  const handleEndTimeChange = (selectedTime: Date) => {
+    setShowEndTimePicker(false);
+    const hours = selectedTime.getHours().toString().padStart(2, '0');
+    const minutes = selectedTime.getMinutes().toString().padStart(2, '0');
+    const timeStr = `${hours}:${minutes}`;
+    setEndTime(timeStr);
+    // Clear error when time is selected
+    if (errors.endTime) {
+      setErrors({ ...errors, endTime: '' });
     }
   };
 
@@ -1346,40 +1338,40 @@ export default function CreateEventScreen() {
                   </View>
 
                   {/* Date Time Pickers */}
-                  {showStartDatePicker && (
-                    <DateTimePicker
-                      value={tempStartDate}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleStartDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                  {showStartTimePicker && (
-                    <DateTimePicker
-                      value={tempStartDate}
-                      mode="time"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleStartTimeChange}
-                    />
-                  )}
-                  {showEndDatePicker && (
-                    <DateTimePicker
-                      value={tempEndDate}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleEndDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                  {showEndTimePicker && (
-                    <DateTimePicker
-                      value={tempEndDate}
-                      mode="time"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleEndTimeChange}
-                    />
-                  )}
+                  <DateTimePickerModal
+                    visible={showStartDatePicker}
+                    mode="date"
+                    value={tempStartDate}
+                    minimumDate={new Date()}
+                    onConfirm={handleStartDateChange}
+                    onCancel={() => setShowStartDatePicker(false)}
+                    title="Select Start Date"
+                  />
+                  <DateTimePickerModal
+                    visible={showStartTimePicker}
+                    mode="time"
+                    value={tempStartDate}
+                    onConfirm={handleStartTimeChange}
+                    onCancel={() => setShowStartTimePicker(false)}
+                    title="Select Start Time"
+                  />
+                  <DateTimePickerModal
+                    visible={showEndDatePicker}
+                    mode="date"
+                    value={tempEndDate}
+                    minimumDate={new Date()}
+                    onConfirm={handleEndDateChange}
+                    onCancel={() => setShowEndDatePicker(false)}
+                    title="Select End Date"
+                  />
+                  <DateTimePickerModal
+                    visible={showEndTimePicker}
+                    mode="time"
+                    value={tempEndDate}
+                    onConfirm={handleEndTimeChange}
+                    onCancel={() => setShowEndTimePicker(false)}
+                    title="Select End Time"
+                  />
 
                   {/* Helper Info */}
                   <View style={styles.helperCard}>
@@ -1541,40 +1533,40 @@ export default function CreateEventScreen() {
                   </View>
 
                   {/* Date Time Pickers */}
-                  {showStartDatePicker && (
-                    <DateTimePicker
-                      value={tempStartDate}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleStartDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                  {showStartTimePicker && (
-                    <DateTimePicker
-                      value={tempStartDate}
-                      mode="time"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleStartTimeChange}
-                    />
-                  )}
-                  {showEndDatePicker && (
-                    <DateTimePicker
-                      value={tempEndDate}
-                      mode="date"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleEndDateChange}
-                      minimumDate={new Date()}
-                    />
-                  )}
-                  {showEndTimePicker && (
-                    <DateTimePicker
-                      value={tempEndDate}
-                      mode="time"
-                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                      onChange={handleEndTimeChange}
-                    />
-                  )}
+                  <DateTimePickerModal
+                    visible={showStartDatePicker}
+                    mode="date"
+                    value={tempStartDate}
+                    minimumDate={new Date()}
+                    onConfirm={handleStartDateChange}
+                    onCancel={() => setShowStartDatePicker(false)}
+                    title="Select Start Date"
+                  />
+                  <DateTimePickerModal
+                    visible={showStartTimePicker}
+                    mode="time"
+                    value={tempStartDate}
+                    onConfirm={handleStartTimeChange}
+                    onCancel={() => setShowStartTimePicker(false)}
+                    title="Select Start Time"
+                  />
+                  <DateTimePickerModal
+                    visible={showEndDatePicker}
+                    mode="date"
+                    value={tempEndDate}
+                    minimumDate={new Date()}
+                    onConfirm={handleEndDateChange}
+                    onCancel={() => setShowEndDatePicker(false)}
+                    title="Select End Date"
+                  />
+                  <DateTimePickerModal
+                    visible={showEndTimePicker}
+                    mode="time"
+                    value={tempEndDate}
+                    onConfirm={handleEndTimeChange}
+                    onCancel={() => setShowEndTimePicker(false)}
+                    title="Select End Time"
+                  />
 
                   {/* Helper Info */}
                   <View style={styles.helperCard}>
