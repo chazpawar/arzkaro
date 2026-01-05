@@ -8,7 +8,7 @@ import type { Event } from '../types';
 import { getEventBookings } from '../services/booking-service';
 
 const TRIP_CATEGORIES = [
-  { id: 'All', label: 'All', image: require('../../assets/others/foryou.png') },
+  { id: 'All', label: 'All', image: require('../../assets/trips/AllTrips.png') },
   { id: 'Adventure', label: 'Adventure', image: require('../../assets/trips/Adventure.png') },
   { id: 'Leisure', label: 'Leisure', image: require('../../assets/trips/Leisure.png') },
   { id: 'Offbeat', label: 'Offbeat', image: require('../../assets/trips/Offbeat.png') },
@@ -153,7 +153,13 @@ export default function TripsDetail({
               <Pressable
                 key={cat.id}
                 style={styles.tagItem}
-                onPress={() => setActiveFilter(cat.id)}
+                onPress={() => {
+                  // If it's "All" and already selected, do nothing
+                  if (cat.id === 'All' && isSelected) {
+                    return;
+                  }
+                  setActiveFilter(cat.id);
+                }}
               >
                 <View style={[styles.tagIconCircle, isSelected && styles.tagIconCircleSelected]}>
                   <Image
@@ -334,8 +340,8 @@ const styles = StyleSheet.create({
     height: 56,
   },
   categoryImageLarge: {
-    width: 68,
-    height: 68,
+    width: 76,
+    height: 76,
   },
   tagLabel: {
     fontSize: 12,

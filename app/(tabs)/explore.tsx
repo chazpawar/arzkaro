@@ -63,6 +63,7 @@ const YogaIcon = require('../../assets/categoriesicons/wellness/Yoga.png');
 const ForYouIcon = require('../../assets/others/foryou.png');
 const ExperiencesIcon = require('../../assets/others/experiences.png');
 const TripsIcon = require('../../assets/others/trips.png');
+const AllExperienceIcon = require('../../assets/categoriesicons/AllExperience.png');
 
 // Haversine distance calculation (returns distance in kilometers)
 function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -178,7 +179,7 @@ const CATEGORY_TAGS_BY_TYPE: Record<string, CategoryTag[]> = {
     {
       id: 'All',
       label: 'All',
-      icon: ForYouIcon,
+      icon: AllExperienceIcon,
     },
     {
       id: 'Cultural',

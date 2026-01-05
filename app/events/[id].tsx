@@ -136,27 +136,124 @@ export default function EventDetailsScreen() {
     return `₹${price.toLocaleString('en-IN')}`;
   };
 
-  // Default Terms & Conditions
-  const DEFAULT_TERMS = `By booking this experience/trip, you agree to the following terms:
+  // Default Terms & Conditions for Experiences
+  const DEFAULT_TERMS_EXPERIENCE = `Participation in this experience is voluntary and at your own risk.
 
-1. Booking Confirmation: Your booking is confirmed only after successful payment.
+You confirm that you are physically and mentally fit to take part.
 
-2. Age Requirements: Participants must meet any age requirements specified for the event.
+Please follow all instructions given by the host during the experience.
 
-3. Health & Safety: Participants must be in good health and inform the host of any medical conditions.
+The host and platform are not responsible for any injury, loss, damage, or accident that may occur during the experience.
 
-4. Conduct: Respectful behavior is expected. The host reserves the right to remove participants who violate this policy.
+Personal belongings are the participant's responsibility.
 
-5. Liability: Participants join at their own risk. The host is not liable for any injuries or losses.
+Respectful behaviour towards the host and other participants is expected.
 
-6. Changes: The host reserves the right to modify event details with prior notice.
+The host reserves the right to remove any participant for misbehavior, unsafe conduct, or disruption, without refund.
 
-7. Force Majeure: The host is not liable for cancellations due to unforeseen circumstances.
+Please arrive on time. Late entry may not be allowed once the experience has started.
 
-For questions, please contact the host or Arzkaro support.`;
+No refund will be provided for late arrival or no-show.
 
-  // Default Cancellation Policy
-  const DEFAULT_CANCELLATION = `Standard Cancellation Policy:
+Cancellation and refund terms are defined by the host for each experience and are mentioned on the experience page. Unless stated otherwise, bookings are non-refundable.
+
+The host may cancel or reschedule the experience due to unavoidable circumstances. In such cases, participants will be offered a refund or rescheduled slot, as decided by the host.
+
+Photos or videos may be taken during the experience for promotional purposes. If you do not wish to be featured, please inform the host before the experience begins.
+
+Unlawful resale (or attempted unlawful resale) of a ticket would lead to seizure or cancellation of that ticket without refund or other compensation.
+
+These terms and conditions are subject to change from time to time at the discretion of the organizer.`;
+
+  // Default Terms & Conditions for Trips
+  const DEFAULT_TERMS_TRIP = `Terms and Conditions
+
+1. Booking & Payment
+All bookings are subject to confirmation of full payment.
+No reservation will be considered valid unless payment is successfully completed.
+No boarding will be allowed without valid government-issued identification.
+
+2. Travel Insurance & Liability
+We do not provide any insurance coverage for accidents, injuries, illness, loss of belongings, theft, or death.
+Guests are strongly advised to arrange personal travel and medical insurance prior to the trip.
+The tour organiser and its staff shall not be responsible for any injury, illness, accident, or loss occurring during the trip.
+
+3. Health, Safety & Conduct
+Participants must follow all instructions given by trip leaders, guides, or trek instructors at all times.
+Smoking is strictly prohibited inside the transport vehicles.
+Any form of misbehavior, intoxication, abuse, or indiscipline will result in immediate termination of participation, with no refund.
+The driver has the discretion to switch off systems such as AC, music, or other vehicle features if required for safety reasons.
+
+4. Respect & Zero-Tolerance Policy
+We maintain a strict zero-tolerance policy towards disrespect or harassment, especially towards female co-passengers.
+Any such behaviour will result in immediate removal from the trip.
+The responsible individual(s) must arrange their own travel and accommodation at their own expense.
+We will not be liable for any costs incurred after removal from the trip.
+
+5. Itinerary & Schedule Changes
+Trip schedules and itineraries are subject to change due to weather conditions, road situations, safety concerns, government restrictions, or unforeseen circumstances.
+No refunds will be provided for itinerary changes, delayed departures, missed sightseeing, or canceled activities due to such reasons.
+Only the locations mentioned in the itinerary will be covered. Any additional sightseeing must be managed independently by the guest.
+
+6. Delays, Breakdowns & Force Majeure
+We are not responsible for delays caused by traffic, road construction, weather conditions, transport breakdowns, or natural calamities.
+In case of vehicle breakdown, we request guests to remain patient while repairs or alternate arrangements are made.
+Such delays do not qualify for refunds or compensation.
+
+7. Accommodation & Damages
+The person making the booking is financially responsible for any damage caused to hotel rooms, camps, vehicles, or property during the trip.
+Any damage costs must be settled immediately upon demand.
+
+8. Luggage & Personal Belongings
+Guests are advised to travel light and carry only essential items.
+The management is not responsible for lost, stolen, or misplaced belongings during the trip.
+
+9. Departure Timings
+Departure times are strict and non-negotiable.
+Guests must report on time and stay in contact with the trip coordinator.
+The organizer will attempt to contact delayed guests, but shall not be responsible if the guest is unreachable.
+
+10. Cancellations & Refunds
+No refund shall be provided in cases of:
+Misbehavior or rule violations
+Missed departures
+Itinerary changes due to uncontrollable circumstances
+Voluntary withdrawal from the trip
+
+11. Participation at Own Risk
+All trips and activities involve a degree of physical, mental, and environmental risk.
+By joining the trip, participants acknowledge that they are voluntarily participating at their own risk and are physically and mentally fit for the trip.
+We shall not be held liable for any injury, loss, or damage arising from participation in any activity.
+
+12. Medical Disclosure & Fitness
+Participants must disclose any pre-existing medical conditions, allergies, injuries, or physical limitations before booking.
+We reserve the right to deny participation if a guest's condition poses a risk to themselves or others.
+The organizer is not responsible for any medical emergencies arising due to undisclosed conditions.
+
+13. Minimum Group Size
+Trips are subject to a minimum number of participants.
+In case the minimum group size is not met, we reserve the right to reschedule or cancel the trip, offering either:
+An alternative date, or
+A full refund (excluding any non-recoverable transaction fees, if applicable).
+
+14. Photography & Media Usage
+We may capture photos and videos during the trip for promotional, marketing, and social media purposes.
+By participating, guests grant us royalty-free permission to use such content without compensation.
+If a participant does not wish to be featured, they must inform the organiser in writing before the trip begins.
+
+15. Alcohol, Drugs & Illegal Substances
+Consumption of illegal drugs or prohibited substances is strictly forbidden.
+Any participant found violating local laws will be immediately removed from the trip, and we will not be responsible for any legal consequences.
+
+16. Local Laws & Regulations
+All participants must comply with local laws, customs, and regulations of the destination.
+The organiser will not be responsible for any penalties, fines, or legal issues arising from non-compliance.
+
+17. Acceptance of Terms
+By booking the trip and making payment, the participant confirms that they have read, understood, and agreed to all Terms & Conditions.`;
+
+  // Default Cancellation Policy for Experiences
+  const DEFAULT_CANCELLATION_EXPERIENCE = `Standard Cancellation Policy:
 
 • Full Refund: Cancel 7+ days before the event
 • 50% Refund: Cancel 3-6 days before the event  
@@ -174,12 +271,80 @@ Weather/Emergency:
 
 For cancellation requests, please contact Arzkaro support.`;
 
+  // Default Cancellation Policy for Trips
+  const DEFAULT_CANCELLATION_TRIP = `Cancellation Policy
+
+1. General Policy
+All cancellation requests must be made in writing via email or the official communication channel used for booking.
+The date of receipt of the cancellation request will be considered as the official cancellation date.
+Refunds, if applicable, will be processed within 7–10 working days to the original mode of payment.
+
+2. Cancellation by the Participant
+A. Standard Cancellation Charges
+More than 15 days before the trip start date: 75% refund of the total trip cost.
+7 to 14 days before the trip start date: 50% refund of the total trip cost.
+Less than 7 days before the trip start date: No refund.
+Any transaction or payment gateway charges are non-refundable.
+
+B. No-Show Policy
+If a participant fails to report at the designated departure point on time, it will be treated as a No-Show.
+No refund will be provided in case of a No-Show.
+
+C. Partial Participation
+No refunds will be provided for:
+Late arrival
+Early departure
+Missed activities or sightseeing
+Voluntary withdrawal from the trip
+
+3. Cancellation by the Organiser
+We reserve the right to cancel or reschedule a trip due to:
+Insufficient number of participants
+Natural calamities
+Weather conditions
+Government restrictions
+Safety concerns
+Force majeure events
+
+In such cases, participants will be offered one of the following options:
+A full refund, or
+Adjustment of the amount towards a future trip
+
+No additional compensation will be provided beyond the refund of the trip amount.
+
+4. Non-Refundable Scenarios
+No refund will be issued in the following situations:
+Removal from the trip due to misbehaviour, intoxication, or violation of rules
+Medical emergencies arising from undisclosed health conditions
+Itinerary changes due to weather, road conditions, or safety reasons
+Transport delays or breakdowns
+Cancellation of sightseeing or activities due to uncontrollable circumstances
+Force majeure events
+
+5. Transfer Policy
+Bookings are non-transferable.
+Name changes or transfers to another person are not permitted unless explicitly approved in writing by the organiser.
+
+6. Refund Method
+Refunds will be processed to the original payment method only.
+Cash refunds will not be provided.
+Any convenience fee, platform fee, or service charge is non-refundable.
+
+7. Policy Acceptance
+By confirming a booking and making payment, the participant acknowledges that they have read, understood, and agreed to this Cancellation & Refund Policy.`;
+
   const getTermsText = () => {
-    return event?.terms_and_conditions?.trim() || DEFAULT_TERMS;
+    if (event?.terms_and_conditions?.trim()) {
+      return event.terms_and_conditions.trim();
+    }
+    return event?.type === 'trip' ? DEFAULT_TERMS_TRIP : DEFAULT_TERMS_EXPERIENCE;
   };
 
   const getCancellationText = () => {
-    return event?.cancellation_policy?.trim() || DEFAULT_CANCELLATION;
+    if (event?.cancellation_policy?.trim()) {
+      return event.cancellation_policy.trim();
+    }
+    return event?.type === 'trip' ? DEFAULT_CANCELLATION_TRIP : DEFAULT_CANCELLATION_EXPERIENCE;
   };
 
   const handleBookNow = () => {

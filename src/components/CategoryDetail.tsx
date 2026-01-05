@@ -247,6 +247,10 @@ export default function CategoryDetail({
                     // If it's a subcategory, set the subcategory
                     setSelectedSubcategory(selectedSubcategory === tag.id ? null : tag.id);
                   } else {
+                    // If it's the "All" category and already selected, do nothing
+                    if ((tag.id === 'All' || tag.id === 'all') && isSelected) {
+                      return;
+                    }
                     // If it's a main category, handle normal selection
                     onSelectTag(tag.id);
                   }
