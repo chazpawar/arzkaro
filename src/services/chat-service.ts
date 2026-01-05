@@ -1,0 +1,273 @@
+import { supabase } from '../../backend/supabase';
+import type { EventGroup, GroupMember, Message, CreateMessage } from '../types';
+
+/**
+ * Chat Service - Handles group chats for events
+ */
+
+// ============= GROUP CHAT =============
+
+// Get user's event groups with last message and unread count
+export async function getUserGroups(userId: string) {
+  // Get groups the user is a member of
+  const { data: memberData, error: memberError } = await supabase
+    .from('group_members')
+    .select(
+      `
+      group:event_groups(
+        id,
+        event_id,
+        name,
+        description,
+        created_at,
+        event:events(id, title, cover_image_url)
+      )
+    `
+    )
+    .eq('user_id', userId);
+
+  if (memberError) {
+    throw new Error(memberError.message);
+  }
+
+  const groups = (memberData as any[]).map((d) => d.group).filter(Boolean);
+
+  // For each group, fetch the last message and unread count
+  const groupsWithMessages = await Promise.all(
+    groups.map(async (group) => {
+      // Fetch last message
+      const { data: lastMessage } = await supabase
+        .from('messages')
+        .select(
+          `
+          id,
+          content,
+          created_at,
+          user_id,
+          user:profiles!user_id(id, full_name)
+        `
+        )
+        .eq('group_id', group.id)
+        .eq('is_deleted', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Get unread count using RPC function
+      const { data: unreadCount, error: unreadError } = await supabase.rpc('get_unread_count', {
+        p_group_id: group.id,
+        p_user_id: userId,
+      });
+
+      if (unreadError) {
+        console.error('[CHAT SERVICE] Error getting unread count:', unreadError);
+      }
+
+      return {
+        ...group,
+        last_message: lastMessage || null,
+        unread_count: unreadCount || 0,
+      };
+    })
+  );
+
+  return groupsWithMessages as EventGroup[];
+}
+
+// Mark group messages as read
+export async function markGroupAsRead(groupId: string, userId: string) {
+  // Validate inputs
+  if (!groupId || !userId) {
+    console.error('[CHAT SERVICE] Invalid params for markGroupAsRead:', { groupId, userId });
+    return;
+  }
+
+  try {
+    const { error } = await supabase.rpc('mark_group_as_read', {
+      p_group_id: groupId,
+      p_user_id: userId,
+    });
+
+    if (error) {
+      console.error('[CHAT SERVICE] Error marking group as read:', error);
+      throw error;
+    }
+  } catch (err) {
+    console.error('[CHAT SERVICE] Exception in markGroupAsRead:', err);
+    // Don't throw - this is not critical, just log it
+  }
+}
+
+// Get group by ID
+export async function getGroupById(groupId: string) {
+  const { data, error } = await supabase
+    .from('event_groups')
+    .select(
+      `
+      *,
+      event:events(id, title, cover_image_url, host_id)
+    `
+    )
+    .eq('id', groupId)
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as EventGroup;
+}
+
+// Get group by Event ID
+export async function getGroupByEventId(eventId: string) {
+  console.log('[CHAT SERVICE] Fetching group for event:', eventId);
+
+  try {
+    const { data, error } = await supabase
+      .from('event_groups')
+      .select(
+        `
+        *,
+        event:events(id, title, cover_image_url, host_id)
+      `
+      )
+      .eq('event_id', eventId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('[CHAT SERVICE] Error fetching group:', error);
+      throw new Error(error.message);
+    }
+
+    console.log('[CHAT SERVICE] Group result:', data ? data.id : 'not found');
+    return data as EventGroup | null;
+  } catch (err) {
+    console.error('[CHAT SERVICE] Exception fetching group:', err);
+    throw err;
+  }
+}
+
+// Check if user is a member of a group
+export async function isGroupMember(groupId: string, userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('group_members')
+    .select('id')
+    .eq('group_id', groupId)
+    .eq('user_id', userId)
+    .single();
+
+  return !!data && !error;
+}
+
+// Join a group (for booking flow)
+export async function joinGroup(groupId: string, userId: string) {
+  const { data, error } = await supabase
+    .from('group_members')
+    .insert({
+      group_id: groupId,
+      user_id: userId,
+      role: 'member',
+    })
+    .select()
+    .single();
+
+  if (error) {
+    if (error.code === '23505') {
+      // Already a member
+      return null;
+    }
+    throw new Error(error.message);
+  }
+
+  return data;
+}
+
+// Get group members
+export async function getGroupMembers(groupId: string) {
+  console.log('[CHAT SERVICE] Getting members for group:', groupId);
+
+  const { data, error } = await supabase
+    .from('group_members')
+    .select(
+      `
+      *,
+      user:profiles!user_id(id, full_name, email, avatar_url, username)
+    `
+    )
+    .eq('group_id', groupId)
+    .order('joined_at', { ascending: true });
+
+  if (error) {
+    console.error('[CHAT SERVICE] Error getting group members:', error);
+    throw new Error(error.message);
+  }
+
+  console.log('[CHAT SERVICE] Group members found:', data?.length || 0);
+  return data as GroupMember[];
+}
+
+// Get group messages
+export async function getGroupMessages(groupId: string, limit = 50, before?: string) {
+  let query = supabase
+    .from('messages')
+    .select(
+      `
+      *,
+      user:profiles!user_id(id, full_name, avatar_url)
+    `
+    )
+    .eq('group_id', groupId)
+    .eq('is_deleted', false)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (before) {
+    query = query.lt('created_at', before);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data as Message[]).reverse();
+}
+
+// Send a message to a group
+export async function sendGroupMessage(message: CreateMessage, userId: string) {
+  const { data, error } = await supabase
+    .from('messages')
+    .insert({
+      group_id: message.group_id,
+      user_id: userId,
+      content: message.content,
+      message_type: message.message_type || 'text',
+    })
+    .select(
+      `
+      *,
+      user:profiles!user_id(id, full_name, avatar_url)
+    `
+    )
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as Message;
+}
+
+// Remove a member from group (host only)
+export async function removeGroupMember(groupId: string, userId: string) {
+  const { error } = await supabase
+    .from('group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('user_id', userId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}

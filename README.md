@@ -6,19 +6,37 @@ This project is set up with React Native, Expo, and local EAS builds using **pnp
 
 ## 📚 Documentation
 
-- [**Development Workflow**](./docs/DEVELOPMENT_WORKFLOW.md): Daily guide, troubleshooting, and tips.
-- [**iOS Build Setup**](./docs/planios.md): Detailed EAS and Xcode setup.
+### iOS Development
+- [**Development Workflow (iOS)**](./docs/DEVELOPMENT_WORKFLOW.md): Daily guide, troubleshooting, and tips
+- [**iOS Build Setup**](./docs/planios.md): Detailed EAS and Xcode setup
+
+### Android Development
+- [**Quick Start (Android)**](./docs/ANDROID_QUICK_START.md): Get started with Android in 5 minutes
+- [**Development Workflow (Android)**](./docs/DEVELOPMENT_WORKFLOW_ANDROID.md): Complete Android development guide
+
+### General
+- [**All Documentation**](./docs/README.md): Complete documentation index
 
 ## Prerequisites
 
-Before running the app, ensure you have:
-
+### For Both Platforms
 - ✅ Node.js (LTS version)
 - ✅ pnpm (`npm install -g pnpm`)
-- ✅ Xcode (for iOS development)
-- ✅ CocoaPods (`sudo gem install cocoapods`)
 - ✅ EAS CLI (`pnpm install -g eas-cli`)
 - ✅ Expo CLI (`pnpm install -g @expo/cli`)
+
+### For iOS Development
+- ✅ macOS
+- ✅ Xcode (latest version)
+- ✅ CocoaPods (`sudo gem install cocoapods`)
+- ✅ iOS Simulator
+
+### For Android Development
+- ✅ Android Studio
+- ✅ Android SDK (via Android Studio)
+- ✅ Java Development Kit (JDK 17 recommended)
+- ✅ Android Emulator OR physical Android device
+- ✅ ANDROID_HOME environment variable configured
 
 ## Installation
 
@@ -29,9 +47,11 @@ pnpm install
 
 ## Running the App
 
-You have **two options** to run the app:
+You have **multiple options** to run the app on different platforms:
 
-### Option 1: Quick Testing with Expo Go (Recommended for First Run)
+### iOS Development
+
+#### Option 1: Quick Testing with Expo Go (Recommended for First Run)
 
 This is the fastest way to see your app running:
 
@@ -45,7 +65,7 @@ pnpm start
 
 **Note**: Expo Go is a pre-built app that lets you test your project quickly without building.
 
-### Option 2: Development Build (For Custom Native Code)
+#### Option 2: Development Build (For Custom Native Code)
 
 This creates a custom development build with `expo-dev-client`:
 
@@ -60,6 +80,7 @@ pnpm run ios
 ```
 
 **Alternative using EAS Build (Local)**:
+
 ```bash
 # Build using EAS locally
 pnpm run build:ios
@@ -67,6 +88,38 @@ pnpm run build:ios
 # Then install the .app file on simulator
 # Drag and drop the .app file onto the iOS Simulator
 ```
+
+**📖 For detailed iOS development workflow, see [DEVELOPMENT_WORKFLOW.md](./docs/DEVELOPMENT_WORKFLOW.md)**
+
+### Android Development
+
+#### Quick Start (3 Steps)
+
+```bash
+# Step 1: Start Android emulator
+emulator -avd Pixel_7
+# (or use your own emulator name from: emulator -list-avds)
+
+# Step 2: Build and run the app
+pnpm run android
+# This will build the app and install it on the emulator
+
+# Step 3: Start coding!
+# Edit any file and see changes instantly with Fast Refresh
+```
+
+#### Using Physical Android Device
+
+```bash
+# 1. Enable USB debugging on your device
+# 2. Connect via USB and verify:
+adb devices
+
+# 3. Run the app
+pnpm run android
+```
+
+**📖 For detailed Android development workflow, see [ANDROID_QUICK_START.md](./docs/ANDROID_QUICK_START.md) or [DEVELOPMENT_WORKFLOW_ANDROID.md](./docs/DEVELOPMENT_WORKFLOW_ANDROID.md)**
 
 ## Project Structure
 
@@ -109,28 +162,38 @@ pnpm start
 # Start with cache cleared
 pnpm start --clear
 
-# Run on iOS simulator (builds and runs)
-pnpm run ios
+# iOS Commands
+pnpm run ios                  # Build and run on iOS simulator
+pnpm run build:ios            # Local EAS build for iOS
 
-# Run on Android emulator
-npx expo run:android
-
-# Build for iOS simulator (local EAS build)
-pnpm run build:ios
-
-# Build for iOS device (requires Apple Developer account)
-eas build --platform ios --profile development-device --local
+# Android Commands
+pnpm run android              # Build and run on Android emulator/device
+emulator -list-avds           # List available Android emulators
+adb devices                   # List connected Android devices
+```
 
 ## ⚡ Quick Reference
 
+### iOS
 | Task | Command |
 |------|---------|
 | **Start Dev Server** | `pnpm start` |
 | **Run on iOS** | `pnpm run ios` |
-| **Reload App** | Press `r` in terminal |
+| **Reload App** | Press `r` in terminal OR `Cmd+R` in simulator |
 | **Open Dev Menu** | `Cmd+D` in simulator |
 | **Install Package** | `pnpm install <pkg>` |
 | **Rebuild Native** | `cd ios && pod install && cd .. && pnpm run ios` |
+
+### Android
+| Task | Command |
+|------|---------|
+| **Start Emulator** | `emulator -avd Pixel_7` |
+| **Run on Android** | `pnpm run android` |
+| **Reload App** | Press `r` in terminal OR `R+R` in emulator |
+| **Open Dev Menu** | `Ctrl+M` (Windows/Linux) OR `Cmd+M` (Mac) |
+| **List Devices** | `adb devices` |
+| **View Logs** | `adb logcat *:S ReactNative:V ReactNativeJS:V` |
+| **Clean Build** | `cd android && ./gradlew clean && cd ..` |
 ```
 
 ## Features
@@ -141,7 +204,7 @@ eas build --platform ios --profile development-device --local
 📱 **Three Sample Screens** - Home, Profile, and Settings  
 🔧 **Reusable Components** - Button and Card components  
 🏗️ **Local EAS Builds** - Build iOS apps locally  
-📦 **pnpm** - Fast and efficient package manager  
+📦 **pnpm** - Fast and efficient package manager
 
 ## Troubleshooting
 

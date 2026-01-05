@@ -5,6 +5,7 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 ## 📚 Available Guides
 
 ### 1. [DEVELOPMENT_WORKFLOW.md](./DEVELOPMENT_WORKFLOW.md) - **START HERE!**
+
 **Your daily development guide**
 
 - ⚡ Quick start commands
@@ -14,12 +15,31 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 - ⌨️ Keyboard shortcuts and tips
 
 **Perfect for:**
+
 - Daily development
 - Quick reference
 - Common issues
 - Understanding Fast Refresh
 
-### 2. [planios.md](./planios.md) - **Deep Dive**
+### 2. [NOTIFICATIONS_ARCHITECTURE.md](./NOTIFICATIONS_ARCHITECTURE.md) - **IMPORTANT!**
+
+**Complete notifications system guide**
+
+- 🔔 Two separate notification systems explained
+- 📱 In-app notifications vs push notifications
+- 🚀 Expo Go vs EAS build differences
+- 🔧 Setup and configuration
+- 🧪 Testing guide
+
+**Perfect for:**
+
+- Understanding notification architecture
+- Debugging notification issues
+- Preparing for EAS builds
+- Learning system limitations
+
+### 3. [planios.md](./planios.md) - **Deep Dive**
+
 **Complete EAS build reference**
 
 - 📦 Prerequisites and setup
@@ -29,6 +49,7 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 - 🔧 Advanced troubleshooting
 
 **Perfect for:**
+
 - Initial setup
 - Understanding EAS builds
 - Production builds
@@ -36,9 +57,8 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 
 ## 🚀 Quick Start for New Developers
 
-1. **First time setup?** 
+1. **First time setup?**
    - Read: [DEVELOPMENT_WORKFLOW.md - Project Setup](./DEVELOPMENT_WORKFLOW.md#project-setup-one-time)
-   
 2. **Daily development?**
    - Reference: [DEVELOPMENT_WORKFLOW.md - Daily Development Workflow](./DEVELOPMENT_WORKFLOW.md#daily-development-workflow)
 
@@ -50,23 +70,29 @@ This folder contains comprehensive guides for developing the Arzkaro iOS app wit
 
 ## 🎯 Common Tasks
 
-| Task | Guide | Section |
-|------|-------|---------|
-| Run app for first time | DEVELOPMENT_WORKFLOW.md | Quick Start |
-| Daily coding workflow | DEVELOPMENT_WORKFLOW.md | Daily Development Workflow |
-| Install new package | DEVELOPMENT_WORKFLOW.md | Scenario 2 |
-| Fix "No servers found" | DEVELOPMENT_WORKFLOW.md | Troubleshooting Issue 1 |
-| Configure EAS builds | planios.md | Configuration |
-| Build for production | planios.md | Building Locally |
-| Switch simulators | DEVELOPMENT_WORKFLOW.md | Scenario 4 |
-| Clear caches | DEVELOPMENT_WORKFLOW.md | Troubleshooting Issue 4 |
+| Task                        | Guide                       | Section                    |
+| --------------------------- | --------------------------- | -------------------------- |
+| Run app for first time      | DEVELOPMENT_WORKFLOW.md     | Quick Start                |
+| Daily coding workflow       | DEVELOPMENT_WORKFLOW.md     | Daily Development Workflow |
+| Install new package         | DEVELOPMENT_WORKFLOW.md     | Scenario 2                 |
+| Fix "No servers found"      | DEVELOPMENT_WORKFLOW.md     | Troubleshooting Issue 1    |
+| Configure EAS builds        | planios.md                  | Configuration              |
+| Build for production        | planios.md                  | Building Locally           |
+| Switch simulators           | DEVELOPMENT_WORKFLOW.md     | Scenario 4                 |
+| Clear caches                | DEVELOPMENT_WORKFLOW.md     | Troubleshooting Issue 4    |
+| Understand notifications    | NOTIFICATIONS_ARCHITECTURE  | Overview                   |
+| Fix notification crashes    | NOTIFICATIONS_ARCHITECTURE  | Common Issues              |
+| Enable push notifications   | NOTIFICATIONS_ARCHITECTURE  | Enabling Push for EAS      |
+| Test in-app notifications   | NOTIFICATIONS_TESTING_GUIDE | Testing Guide              |
 
 ## 💡 Key Concepts
 
 ### Fast Refresh (Hot Reload)
+
 Most code changes reload automatically without rebuilding. No need to rebuild the app every time!
 
 ### When to Rebuild
+
 - Installing native packages
 - Changing app.json
 - Modifying build configuration
@@ -74,6 +100,7 @@ Most code changes reload automatically without rebuilding. No need to rebuild th
 See: [When to Rebuild vs When to Just Reload](./DEVELOPMENT_WORKFLOW.md#when-to-rebuild-vs-when-to-just-reload)
 
 ### Build Types
+
 - **Development Build** (`pnpm run ios`) - Daily development
 - **EAS Local Build** - Testing production builds
 - **Production Build** - App Store release

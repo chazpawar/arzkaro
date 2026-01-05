@@ -1,0 +1,603 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase, hasValidCredentials } from '../../backend/supabase';
+import * as ChatService from '../services/chat-service';
+import type { EventGroup, Message, GroupMember } from '../types';
+
+// Timeout for fetch operations
+const FETCH_TIMEOUT = 10000; // 10 seconds
+
+// Message status types
+export type MessageStatus = 'sending' | 'sent' | 'failed';
+
+// Extended message type with optimistic update support
+export interface OptimisticMessage extends Omit<Message, 'id' | 'created_at'> {
+  id: string;
+  created_at: string;
+  status?: MessageStatus;
+  isOptimistic?: boolean;
+}
+
+// Typing user interface
+export interface TypingUser {
+  user_id: string;
+  user_name: string;
+  avatar_url?: string | null;
+}
+
+/**
+ * Hook for managing group chats with realtime features
+ */
+export function useGroupChat(groupId: string | undefined, currentUserId?: string) {
+  const [messages, setMessages] = useState<OptimisticMessage[]>([]);
+  const [members, setMembers] = useState<GroupMember[]>([]);
+  const [group, setGroup] = useState<EventGroup | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<TypingUser[]>([]);
+  const [isConnected, setIsConnected] = useState(false);
+
+  const channelRef = useRef<any>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fetch initial data
+  const fetchData = useCallback(async () => {
+    if (!groupId) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      console.log('[CHAT HOOK] Fetching data for group:', groupId);
+
+      const [groupData, messagesData, membersData] = await Promise.all([
+        ChatService.getGroupById(groupId),
+        ChatService.getGroupMessages(groupId),
+        ChatService.getGroupMembers(groupId),
+      ]);
+
+      console.log('[CHAT HOOK] Data fetched successfully:', {
+        group: groupData?.id,
+        messages: messagesData.length,
+        members: membersData.length,
+      });
+
+      setGroup(groupData);
+      setMessages(messagesData.map((msg) => ({ ...msg, status: 'sent' as MessageStatus })));
+      setMembers(membersData);
+    } catch (err) {
+      console.error('[CHAT HOOK] Error fetching data:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load chat');
+    } finally {
+      setLoading(false);
+    }
+  }, [groupId]);
+
+  // Setup realtime subscriptions
+  useEffect(() => {
+    if (!groupId || !hasValidCredentials) {
+      console.log('[CHAT HOOK] Skipping realtime setup:', {
+        groupId: groupId || 'null',
+        hasCredentials: hasValidCredentials,
+      });
+      setLoading(false);
+      return;
+    }
+
+    console.log('[CHAT HOOK] Setting up realtime for group:', groupId);
+
+    // Initial data fetch
+    fetchData();
+
+    // Create channel with presence support
+    const channel = supabase.channel(`group:${groupId}`, {
+      config: {
+        presence: {
+          key: currentUserId || 'anonymous',
+        },
+      },
+    });
+
+    channelRef.current = channel;
+
+    // Subscribe to new messages
+    channel
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        async (payload) => {
+          console.log('[CHAT] New message received:', payload.new.id);
+
+          // First, check if this is replacing our optimistic message
+          let wasOptimistic = false;
+          setMessages((prev) => {
+            const existingOptimistic = prev.find(
+              (m) =>
+                m.isOptimistic &&
+                m.user_id === payload.new.user_id &&
+                m.content === payload.new.content
+            );
+            if (existingOptimistic) {
+              wasOptimistic = true;
+              // Replace optimistic message with real one (we'll fetch full data below)
+              return prev.filter((m) => m.id !== existingOptimistic.id);
+            }
+            return prev;
+          });
+
+          // Fetch the full message with user info
+          try {
+            const { data: newMessage, error: fetchError } = await supabase
+              .from('messages')
+              .select(
+                `
+                *,
+                user:profiles!user_id(id, full_name, avatar_url)
+              `
+              )
+              .eq('id', payload.new.id)
+              .single();
+
+            if (fetchError) {
+              console.error('[CHAT] Error fetching new message:', fetchError);
+              return;
+            }
+
+            if (newMessage) {
+              console.log('[CHAT] Adding message to state:', {
+                id: newMessage.id,
+                content: newMessage.content.substring(0, 20),
+                wasOptimistic,
+              });
+
+              setMessages((prev) => {
+                // Double-check it doesn't already exist
+                if (prev.some((m) => m.id === newMessage.id)) {
+                  console.log('[CHAT] Message already exists, skipping');
+                  return prev;
+                }
+                return [...prev, { ...newMessage, status: 'sent' as MessageStatus }];
+              });
+            }
+          } catch (err) {
+            console.error('[CHAT] Error processing new message:', err);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          console.log('[CHAT] Message updated:', payload.new.id);
+          setMessages((prev) =>
+            prev.map((msg) => (msg.id === payload.new.id ? { ...msg, ...payload.new } : msg))
+          );
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'messages',
+          filter: `group_id=eq.${groupId}`,
+        },
+        (payload) => {
+          console.log('[CHAT] Message deleted:', payload.old.id);
+          setMessages((prev) => prev.filter((msg) => msg.id !== payload.old.id));
+        }
+      )
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        console.log('[CHAT] Presence sync:', state);
+
+        // Extract typing users from presence state
+        const typing: TypingUser[] = [];
+        Object.keys(state).forEach((key) => {
+          const presences = state[key];
+          presences.forEach((presence: any) => {
+            if (presence.typing && presence.user_id !== currentUserId) {
+              typing.push({
+                user_id: presence.user_id,
+                user_name: presence.user_name,
+                avatar_url: presence.avatar_url,
+              });
+            }
+          });
+        });
+
+        setTypingUsers(typing);
+      })
+      .on('presence', { event: 'join' }, ({ key, newPresences }) => {
+        console.log('[CHAT] User joined:', key, newPresences);
+      })
+      .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+        console.log('[CHAT] User left:', key, leftPresences);
+      })
+      .subscribe(async (status) => {
+        console.log('[CHAT] Channel status:', status);
+        setIsConnected(status === 'SUBSCRIBED');
+
+        if (status === 'SUBSCRIBED' && currentUserId) {
+          // Track initial presence (not typing)
+          await channel.track({
+            user_id: currentUserId,
+            typing: false,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    // Cleanup
+    return () => {
+      console.log('[CHAT] Cleaning up realtime for group:', groupId);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [groupId, currentUserId, fetchData]);
+
+  // Send a message with optimistic update
+  const sendMessage = useCallback(
+    async (content: string, userId: string, userName: string, avatarUrl?: string | null) => {
+      if (!groupId || !content.trim()) return;
+
+      const trimmedContent = content.trim();
+      const optimisticId = `optimistic-${Date.now()}-${Math.random()}`;
+
+      // Create optimistic message
+      const optimisticMessage: OptimisticMessage = {
+        id: optimisticId,
+        group_id: groupId,
+        user_id: userId,
+        content: trimmedContent,
+        message_type: 'text',
+        is_deleted: false,
+        created_at: new Date().toISOString(),
+        user: {
+          id: userId,
+          full_name: userName,
+          avatar_url: avatarUrl || null,
+        },
+        status: 'sending',
+        isOptimistic: true,
+      };
+
+      try {
+        setSending(true);
+
+        // Add optimistic message immediately
+        setMessages((prev) => [...prev, optimisticMessage]);
+
+        // Send to server
+        const sentMessage = await ChatService.sendGroupMessage(
+          { group_id: groupId, content: trimmedContent },
+          userId
+        );
+
+        // Replace optimistic message with real one
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === optimisticId
+              ? { ...sentMessage, status: 'sent' as MessageStatus, isOptimistic: false }
+              : msg
+          )
+        );
+
+        // Stop typing indicator
+        if (channelRef.current && currentUserId) {
+          await channelRef.current.track({
+            user_id: currentUserId,
+            typing: false,
+            online_at: new Date().toISOString(),
+          });
+        }
+      } catch (err) {
+        console.error('[CHAT] Error sending message:', err);
+
+        // Mark optimistic message as failed
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === optimisticId ? { ...msg, status: 'failed' as MessageStatus } : msg
+          )
+        );
+
+        setError(err instanceof Error ? err.message : 'Failed to send message');
+        throw err;
+      } finally {
+        setSending(false);
+      }
+    },
+    [groupId, currentUserId]
+  );
+
+  // Retry failed message
+  const retryMessage = useCallback(
+    async (
+      failedMessageId: string,
+      userId: string,
+      userName: string,
+      avatarUrl?: string | null
+    ) => {
+      const failedMessage = messages.find((m) => m.id === failedMessageId);
+      if (!failedMessage) return;
+
+      // Remove failed message
+      setMessages((prev) => prev.filter((m) => m.id !== failedMessageId));
+
+      // Resend
+      await sendMessage(failedMessage.content, userId, userName, avatarUrl);
+    },
+    [messages, sendMessage]
+  );
+
+  // Stop typing indicator
+  const stopTyping = useCallback(async () => {
+    if (!channelRef.current || !currentUserId) return;
+
+    try {
+      await channelRef.current.track({
+        user_id: currentUserId,
+        typing: false,
+        online_at: new Date().toISOString(),
+      });
+
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+      }
+    } catch (err) {
+      console.error('[CHAT] Error stopping typing:', err);
+    }
+  }, [currentUserId]);
+
+  // Start typing indicator
+  const startTyping = useCallback(
+    async (userName: string, avatarUrl?: string | null) => {
+      if (!channelRef.current || !currentUserId) return;
+
+      try {
+        await channelRef.current.track({
+          user_id: currentUserId,
+          user_name: userName,
+          avatar_url: avatarUrl,
+          typing: true,
+          online_at: new Date().toISOString(),
+        });
+
+        // Auto-stop typing after 3 seconds
+        if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+          stopTyping();
+        }, 3000) as any;
+      } catch (err) {
+        console.error('[CHAT] Error tracking typing:', err);
+      }
+    },
+    [currentUserId, stopTyping]
+  );
+
+  // Load more messages
+  const loadMore = useCallback(async () => {
+    if (!groupId || messages.length === 0) return;
+
+    try {
+      const oldestMessage = messages[0];
+      const olderMessages = await ChatService.getGroupMessages(
+        groupId,
+        50,
+        oldestMessage.created_at
+      );
+      setMessages((prev) => [
+        ...olderMessages.map((msg) => ({ ...msg, status: 'sent' as MessageStatus })),
+        ...prev,
+      ]);
+    } catch (err) {
+      console.error('[CHAT] Error loading more messages:', err);
+    }
+  }, [groupId, messages]);
+
+  return {
+    group,
+    messages,
+    members,
+    loading,
+    error,
+    sending,
+    typingUsers,
+    isConnected,
+    sendMessage,
+    retryMessage,
+    startTyping,
+    stopTyping,
+    loadMore,
+    refresh: fetchData,
+  };
+}
+
+/**
+ * Hook for user's event groups with realtime updates
+ */
+export function useUserGroups(userId: string | undefined) {
+  const [groups, setGroups] = useState<EventGroup[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const channelRef = useRef<any>(null);
+
+  const fetchGroups = useCallback(async () => {
+    if (!userId || !hasValidCredentials) {
+      setLoading(false);
+      setGroups([]);
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout>;
+    try {
+      setLoading(true);
+      setError(null);
+
+      const fetchPromise = ChatService.getUserGroups(userId);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error('Request timeout')), FETCH_TIMEOUT);
+      });
+
+      const data = await Promise.race([fetchPromise, timeoutPromise]);
+      setGroups(data);
+    } catch (err) {
+      // Don't show timeout as an error - just show empty state
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch groups';
+      if (errorMessage.includes('Request timeout')) {
+        console.warn('[CHAT] Groups fetch timed out - showing empty state');
+        setError(null);
+        setGroups([]);
+      } else {
+        console.error('[CHAT] Error fetching groups:', err);
+        setError(errorMessage);
+        setGroups([]);
+      }
+    } finally {
+      setLoading(false);
+      if (timeoutId!) {
+        clearTimeout(timeoutId);
+      }
+    }
+  }, [userId]);
+
+  // Setup realtime subscription for message updates
+  useEffect(() => {
+    if (!userId || !hasValidCredentials) {
+      return;
+    }
+
+    // Initial fetch
+    fetchGroups();
+
+    // Subscribe to all messages for groups the user is in
+    const channel = supabase
+      .channel(`user_groups:${userId}`) // Unique per user
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+        },
+        async (payload) => {
+          console.log('[CHAT LIST] New message received:', payload.new.id);
+
+          // Update the last message and increment unread count for the affected group
+          setGroups((prevGroups) => {
+            return prevGroups.map((group) => {
+              if (group.id === payload.new.group_id) {
+                console.log('[CHAT LIST] Updating last message for group:', group.name);
+
+                // Only increment unread if message is from another user
+                const shouldIncrementUnread = payload.new.user_id !== userId;
+
+                return {
+                  ...group,
+                  last_message: {
+                    id: payload.new.id,
+                    content: payload.new.content,
+                    created_at: payload.new.created_at,
+                    user_id: payload.new.user_id,
+                    group_id: payload.new.group_id,
+                    message_type: payload.new.message_type,
+                    is_deleted: false,
+                  } as Message,
+                  unread_count: shouldIncrementUnread
+                    ? (group.unread_count || 0) + 1
+                    : group.unread_count || 0,
+                };
+              }
+              return group;
+            });
+          });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'group_members',
+        },
+        async (payload) => {
+          // Listen for last_read_at updates to reset unread count
+          if (payload.new.user_id === userId && payload.new.last_read_at) {
+            console.log('[CHAT LIST] User read messages in group:', payload.new.group_id);
+
+            setGroups((prevGroups) => {
+              return prevGroups.map((group) => {
+                if (group.id === payload.new.group_id) {
+                  return {
+                    ...group,
+                    unread_count: 0,
+                  };
+                }
+                return group;
+              });
+            });
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'group_members',
+          filter: `user_id=eq.${userId}`,
+        },
+        async (payload) => {
+          console.log('[CHAT LIST] Group membership changed:', payload.eventType);
+
+          // Reload groups when user joins or leaves a group
+          if (payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+            console.log('[CHAT LIST] Reloading groups due to membership change');
+            await fetchGroups();
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('[CHAT LIST] Realtime subscription status:', status);
+      });
+
+    channelRef.current = channel;
+
+    // Cleanup
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+    };
+  }, [userId, fetchGroups]);
+
+  return {
+    groups,
+    loading,
+    error,
+    refresh: fetchGroups,
+  };
+}

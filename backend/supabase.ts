@@ -7,27 +7,52 @@ import type { Database } from './types/database.types';
 const supabaseUrl = Constants.expoConfig?.extra?.supabaseUrl as string | undefined;
 const supabaseAnonKey = Constants.expoConfig?.extra?.supabaseAnonKey as string | undefined;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+// Check if we have valid credentials
+export const hasValidCredentials = !!(
+  supabaseUrl &&
+  supabaseAnonKey &&
+  supabaseUrl !== 'https://your-project-id.supabase.co' &&
+  supabaseAnonKey !== 'your-anon-key-here'
+);
+
+if (!hasValidCredentials) {
   console.warn(
-    'Missing Supabase environment variables. Please create a .env file with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY'
+    'Missing or invalid Supabase environment variables. Please create a .env file with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY'
   );
 }
 
 // Create a placeholder client if credentials are missing (for development)
 const placeholderUrl = 'https://placeholder.supabase.co';
-const placeholderKey = 'placeholder-key';
+const placeholderKey =
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxOTIwMDAsImV4cCI6MTk2MDc2ODAwMH0.placeholder';
 
+// Create typed client with Database types with performance optimizations
 export const supabase = createClient<Database>(
   supabaseUrl || placeholderUrl,
   supabaseAnonKey || placeholderKey,
   {
     auth: {
-      storage: AsyncStorage,
+      storage: AsyncStorage, // AsyncStorage persists the code_verifier for PKCE
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: false,
-      // For Expo, we use custom scheme for deep linking
+      detectSessionInUrl: Platform.OS === 'web', // Only detect URL sessions on web
+      // Use PKCE flow for better security
+      // AsyncStorage will persist code_verifier between app restarts
       flowType: 'pkce',
+    },
+    global: {
+      headers: {
+        'X-Client-Info': 'arzkaro-mobile',
+      },
+    },
+    db: {
+      schema: 'public',
+    },
+    // Performance: Reduce timeout for faster failure feedback
+    realtime: {
+      params: {
+        eventsPerSecond: 10,
+      },
     },
   }
 );
