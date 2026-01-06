@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Menu, X } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
 
 type NavbarProps = {
   onAuthClick: () => void;
@@ -9,7 +8,6 @@ type NavbarProps = {
 };
 
 export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarProps) {
-  const { user: _user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const leagueFont = {

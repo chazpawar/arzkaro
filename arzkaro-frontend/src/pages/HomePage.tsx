@@ -1,11 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 
-export default function HomePage({
-  onNavigate: _onNavigate,
-}: {
-  onNavigate?: (p: string) => void;
-}) {
+export default function HomePage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Ticket as TicketIcon, MapPin, Calendar, MessageCircle } from 'lucide-react';
 import { supabase, Ticket, Event } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
@@ -17,13 +17,7 @@ export default function MyTicketsPage({ onEventSelect, onChatOpen }: MyTicketsPa
   const [tickets, setTickets] = useState<TicketWithEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      loadTickets();
-    }
-  }, [user]);
-
-  const loadTickets = async () => {
+  const loadTickets = useCallback(async () => {
     if (!user) return;
 
     try {
@@ -40,7 +34,13 @@ export default function MyTicketsPage({ onEventSelect, onChatOpen }: MyTicketsPa
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      loadTickets();
+    }
+  }, [user, loadTickets]);
 
   if (loading) {
     return (

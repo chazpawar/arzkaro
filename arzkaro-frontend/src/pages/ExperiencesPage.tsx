@@ -93,7 +93,7 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
     // For now, show all events regardless of category
     // Once events have category fields, implement proper filtering
     return ALL_MOCK_EVENTS;
-  }, [selectedTag]);
+  }, []);
 
   // Get visible categories based on selection
   const visibleCategories = useMemo(() => {

@@ -18,7 +18,7 @@ export type FormsProps = {
   amountINR: number; // integer rupee amount (e.g. 499)
   eventId?: string;
   onClose: () => void;
-  onPaymentSuccess?: (razorpayPayment: any, buyer: BuyerInfo) => void;
+  onPaymentSuccess?: (razorpayPayment: Record<string, unknown>, buyer: BuyerInfo) => void;
 };
 
 // ====== CONFIG - Replace these ======
@@ -29,6 +29,7 @@ const RAZORPAY_KEY = 'rzp_live_iZZc7jaS5vFcbq'; // replace with your Razorpay ke
 // Utility: load the Razorpay checkout script
 const loadRazorpayScript = (): Promise<boolean> => {
   return new Promise((resolve) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((window as any).Razorpay) return resolve(true);
     const script = document.createElement('script');
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -87,7 +88,7 @@ export default function Forms({ open, amountINR, eventId, onClose, onPaymentSucc
         amountINR: amountINR,
         _subject: `Ticket purchase for ${eventId || 'Event'}`,
         _template: 'table',
-      } as any;
+      } as Record<string, unknown>;
 
       await fetch(formUrl, {
         method: 'POST',
@@ -120,7 +121,7 @@ export default function Forms({ open, amountINR, eventId, onClose, onPaymentSucc
         name: 'Ticket Purchase',
         description: `Ticket for ${eventId ?? 'Event'}`,
         image: '', // optional - put your logo URL
-        handler: function (response: any) {
+        handler: function (response: Record<string, unknown>) {
           // response.razorpay_payment_id etc.
           try {
             // Save to sessionStorage so Thankyou page can read it
@@ -166,8 +167,9 @@ export default function Forms({ open, amountINR, eventId, onClose, onPaymentSucc
           buyerEmail: buyer.email,
         },
         theme: { color: '#FF785A' },
-      } as any;
+      } as Record<string, unknown>;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (payErr) {
