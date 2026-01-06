@@ -9,7 +9,7 @@ type NavbarProps = {
 };
 
 export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarProps) {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const leagueFont = {

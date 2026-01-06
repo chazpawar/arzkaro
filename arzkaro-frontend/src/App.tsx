@@ -160,9 +160,8 @@ function AppContent() {
     try {
       if (replace) window.history.replaceState({}, '', newPath);
       else window.history.pushState({}, '', newPath);
-    } catch (err) {
+    } catch {
       // some environments (file://) can throw; ignore
-      // console.warn('History API failed', err);
     }
   }, []);
 
@@ -194,7 +193,6 @@ function AppContent() {
       // normalize URL without creating history entry
       window.history.replaceState({}, '', pathFor(page, (id as string) || null));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // popstate handler: when user clicks back/forward in browser
@@ -304,9 +302,7 @@ function AppContent() {
           <ForYou onEventSelect={handleEventSelect} onTripSelect={handleTripSelect} />
         )}
 
-        {currentPage === 'experiences' && (
-          <ExperiencesPage onEventSelect={handleEventSelect} onChatOpen={() => {}} />
-        )}
+        {currentPage === 'experiences' && <ExperiencesPage onEventClick={handleEventSelect} />}
 
         {currentPage === 'trips' && (
           <TripsPage

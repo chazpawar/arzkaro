@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 
 type LastPayment = {
-  payment?: any;
+  payment?: {
+    razorpay_payment_id?: string;
+    [key: string]: unknown;
+  };
   buyer?: {
     fullName?: string;
     email?: string;
@@ -35,7 +38,8 @@ export default function Thankyou() {
       <div className="max-w-xl w-full bg-white rounded-2xl shadow-lg p-8">
         <h1 className="text-2xl font-bold mb-2">Thank you for your purchase!</h1>
         <p className="text-sm text-gray-600 mb-4">
-          Your payment was successful. Tickets and instructions will be sent to your email and WhatsApp within <strong>15–30 minutes</strong>.
+          Your payment was successful. Tickets and instructions will be sent to your email and
+          WhatsApp within <strong>15–30 minutes</strong>.
         </p>
 
         {data ? (
@@ -59,12 +63,14 @@ export default function Thankyou() {
               <strong>Payment ID:</strong> {data.payment?.razorpay_payment_id || '—'}
             </div>
             <div className="mb-2 text-sm text-gray-500">
-              <strong>Time:</strong> {data.timestamp ? new Date(data.timestamp).toLocaleString() : '—'}
+              <strong>Time:</strong>{' '}
+              {data.timestamp ? new Date(data.timestamp).toLocaleString() : '—'}
             </div>
           </div>
         ) : (
           <div className="text-sm text-gray-700 mb-4">
-            We don't have a saved payment detail right now. If you completed a payment, please check your email for confirmation. Contact support if you don't receive your ticket.
+            We don't have a saved payment detail right now. If you completed a payment, please check
+            your email for confirmation. Contact support if you don't receive your ticket.
           </div>
         )}
 

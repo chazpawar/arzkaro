@@ -1,13 +1,12 @@
 // src/pages/TripsPage.tsx
 import React, { useEffect, useState } from 'react';
-import { Search, MapPin, Users, Calendar, X, Globe } from 'lucide-react';
+import { Search, Users, Calendar, X, Globe } from 'lucide-react';
 // import { supabase } from '../lib/supabase'; // Assuming supabase and basic types are available
-import { 
-    MOCK_TRIPS_LISTING, 
-    BasicTrip as Trip, 
-    MOCK_DESTINATIONS_DATA, // Use the new data source with images
-    DetailedTrip // Although not directly used for the list, important for type consistency
-} from '../data/mockTrips'; 
+import {
+  MOCK_TRIPS_LISTING,
+  BasicTrip as Trip,
+  MOCK_DESTINATIONS_DATA, // Use the new data source with images
+} from '../data/mockTrips';
 
 const ACCENT_VARIABLE = '--accent';
 
@@ -15,9 +14,8 @@ const ACCENT_VARIABLE = '--accent';
 type TripsPageProps = {
   onTripSelect: (tripId: string) => void;
   onChatOpen?: (tripId: string) => void; // app-level chat opener
-  currentUserId?: string | null; 
+  currentUserId?: string | null;
 };
-
 
 export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: TripsPageProps) {
   const [trips, setTrips] = useState<Trip[]>([]);
@@ -28,12 +26,16 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
   // filter drawer states
   const [showFilters, setShowFilters] = useState(false);
-  const [activeFilterTab, setActiveFilterTab] = useState<'sort' | 'cost' | 'duration' | 'privacy' | 'more'>('sort');
+  const [activeFilterTab, setActiveFilterTab] = useState<
+    'sort' | 'cost' | 'duration' | 'privacy' | 'more'
+  >('sort');
 
   // detailed filter options
-  const [sortBy, setSortBy] = useState<'popularity' | 'cost_low' | 'cost_high' | 'date_upcoming'>('date_upcoming');
-  const [costRange, setCostRange] = useState<[number, number]>([0, 40000]); 
-  const [durationFilter, setDurationFilter] = useState<'short' | 'long' | 'any'>('any'); 
+  const [sortBy, setSortBy] = useState<'popularity' | 'cost_low' | 'cost_high' | 'date_upcoming'>(
+    'date_upcoming'
+  );
+  const [costRange, setCostRange] = useState<[number, number]>([0, 40000]);
+  const [durationFilter, setDurationFilter] = useState<'short' | 'long' | 'any'>('any');
   const [privacyFilter, setPrivacyFilter] = useState<'all' | 'public' | 'private'>('all');
 
   // user/joining state
@@ -50,14 +52,14 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
   }, [searchQuery, selectedDestination, trips, sortBy, costRange, durationFilter, privacyFilter]);
 
   const loadTrips = async () => {
-    setTrips(MOCK_TRIPS_LISTING as Trip[]); 
+    setTrips(MOCK_TRIPS_LISTING as Trip[]);
     await loadCurrentUserAndMemberships();
     setLoading(false);
   };
 
   const loadCurrentUserAndMemberships = async () => {
-    const mockUserId = 'user-123'; // Hardcoded mock user ID
-    setJoinedTripIds(new Set(['trip-1', 'trip-3'])); 
+    // Hardcoded mock user ID (not used but kept for future implementation)
+    setJoinedTripIds(new Set(['trip-1', 'trip-3']));
   };
 
   const filterTrips = () => {
@@ -74,26 +76,29 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
     }
 
     // Quick select filter: Destination
-    if (selectedDestination !== 'all') filtered = filtered.filter((t) => t.destination === selectedDestination);
+    if (selectedDestination !== 'all')
+      filtered = filtered.filter((t) => t.destination === selectedDestination);
 
     // Detailed filters
     if (privacyFilter !== 'all') {
-        const isPrivate = privacyFilter === 'private';
-        filtered = filtered.filter(t => t.is_private === isPrivate);
+      const isPrivate = privacyFilter === 'private';
+      filtered = filtered.filter((t) => t.is_private === isPrivate);
     }
 
-    filtered = filtered.filter((t) => t.estimated_cost >= costRange[0] && t.estimated_cost <= costRange[1]);
+    filtered = filtered.filter(
+      (t) => t.estimated_cost >= costRange[0] && t.estimated_cost <= costRange[1]
+    );
 
     if (durationFilter !== 'any') {
-        filtered = filtered.filter(t => {
-            const startDate = new Date(t.start_date).getTime();
-            const endDate = new Date(t.end_date).getTime();
-            const durationDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+      filtered = filtered.filter((t) => {
+        const startDate = new Date(t.start_date).getTime();
+        const endDate = new Date(t.end_date).getTime();
+        const durationDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-            if (durationFilter === 'short') return durationDays < 7;
-            if (durationFilter === 'long') return durationDays >= 7;
-            return true;
-        });
+        if (durationFilter === 'short') return durationDays < 7;
+        if (durationFilter === 'long') return durationDays >= 7;
+        return true;
+      });
     }
 
     // Sort
@@ -112,7 +117,7 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
   // Get unique destinations from current trips for the quick select dropdown
   const uniqueDestinations = Array.from(new Set(trips.map((t) => t.destination))).filter(Boolean);
-  const destinationList = MOCK_DESTINATIONS_DATA.filter(d => uniqueDestinations.includes(d.name));
+  const destinationList = MOCK_DESTINATIONS_DATA.filter((d) => uniqueDestinations.includes(d.name));
 
   if (loading) {
     return (
@@ -156,17 +161,17 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
   const joinTrip = async (tripId: string) => {
     if (!currentUserId) {
-        alert('Please sign in to join a trip.');
-        return;
+      alert('Please sign in to join a trip.');
+      return;
     }
 
     try {
-        // Simulate Supabase insert
-        setJoinedTripIds((prev) => new Set(Array.from(prev).concat([tripId])));
-        alert('Trip joined! You can now access the group chat.');
+      // Simulate Supabase insert
+      setJoinedTripIds((prev) => new Set(Array.from(prev).concat([tripId])));
+      alert('Trip joined! You can now access the group chat.');
     } catch (err) {
-        console.error('Join error:', err);
-        alert('Could not join trip. See console.');
+      console.error('Join error:', err);
+      alert('Could not join trip. See console.');
     }
   };
 
@@ -176,10 +181,18 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
     const endDate = new Date(end);
 
     const startStr = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    const endStr = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const endStr = endDate.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
 
-    if (startDate.getFullYear() === endDate.getFullYear() && startDate.getMonth() === endDate.getMonth() && startDate.getDate() === endDate.getDate()) {
-        return startStr + ', ' + startDate.getFullYear();
+    if (
+      startDate.getFullYear() === endDate.getFullYear() &&
+      startDate.getMonth() === endDate.getMonth() &&
+      startDate.getDate() === endDate.getDate()
+    ) {
+      return startStr + ', ' + startDate.getFullYear();
     }
 
     return `${startStr} - ${endStr}`;
@@ -197,13 +210,17 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
       {/* Removed top padding so the page starts at the top (no large gap under navbar) */}
       <div className="min-h-screen bg-white">
-        <div className="max-w-7xl mx-auto px-6 py-6"> {/* reduced vertical padding */}
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          {' '}
+          {/* reduced vertical padding */}
           {/* Header */}
           <div className="flex flex-col gap-4 mb-6">
             <div className="w-full flex items-end justify-between">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Explore Trips</h1>
-                <p className="text-sm text-gray-500 mt-1">Find your next adventure with fellow explorers.</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Find your next adventure with fellow explorers.
+                </p>
               </div>
             </div>
 
@@ -211,7 +228,10 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
             <div className="w-full">
               <div className="max-w-3xl w-full">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+                  <Search
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
                   <input
                     type="text"
                     placeholder="Search trip titles or destinations..."
@@ -223,7 +243,6 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
               </div>
             </div>
           </div>
-
           {/* Quick selects */}
           <div className="mb-6 flex flex-col md:flex-row gap-3 items-center">
             <select
@@ -245,7 +264,17 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                 className="inline-flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-colors bg-white"
                 aria-label="Filters"
               >
-                <svg style={{ width: 18, height: 18 }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 3H2l7 9v7l6-3v-4l7-9z" /></svg>
+                <svg
+                  style={{ width: 18, height: 18 }}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M22 3H2l7 9v7l6-3v-4l7-9z" />
+                </svg>
                 <span className="font-medium">Filters</span>
               </button>
 
@@ -259,11 +288,24 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
             </div>
 
             <div className="ml-auto flex items-center gap-3">
-              <button onClick={() => { setSortBy('popularity'); }} className={`px-3 py-2 rounded-lg text-sm ${sortBy === 'popularity' ? 'bg-[var(--accent)] text-white' : 'border'}`}>Popular</button>
-              <button onClick={() => { setSortBy('date_upcoming'); }} className={`px-3 py-2 rounded-lg text-sm ${sortBy === 'date_upcoming' ? 'bg-[var(--accent)] text-white' : 'border'}`}>Upcoming</button>
+              <button
+                onClick={() => {
+                  setSortBy('popularity');
+                }}
+                className={`px-3 py-2 rounded-lg text-sm ${sortBy === 'popularity' ? 'bg-[var(--accent)] text-white' : 'border'}`}
+              >
+                Popular
+              </button>
+              <button
+                onClick={() => {
+                  setSortBy('date_upcoming');
+                }}
+                className={`px-3 py-2 rounded-lg text-sm ${sortBy === 'date_upcoming' ? 'bg-[var(--accent)] text-white' : 'border'}`}
+              >
+                Upcoming
+              </button>
             </div>
           </div>
-
           {/* Destinations row */}
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-800 mb-3">Popular Destinations</h2>
@@ -293,7 +335,6 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
               ))}
             </div>
           </div>
-
           {/* Grid */}
           {visibleTrips.length === 0 ? (
             <div className="text-center py-16">
@@ -309,7 +350,11 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                   aria-labelledby={`trip-${trip.id}-title`}
                 >
                   <div className="relative">
-                    <img src={trip.image_url} alt={trip.title} className="w-full h-64 object-cover" />
+                    <img
+                      src={trip.image_url}
+                      alt={trip.title}
+                      className="w-full h-64 object-cover"
+                    />
 
                     <div className="absolute left-3 bottom-3 bg-black-85 text-white px-3 py-1 rounded-md text-sm flex items-center gap-2">
                       <Users size={14} />
@@ -317,17 +362,23 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                     </div>
 
                     <div className="absolute right-3 top-3 flex items-center gap-2">
-                        {trip.is_private ? (
-                             <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-white shadow">
-                                Private
-                            </span>
-                        ) : (
-                            <span className="px-3 py-1 rounded-full text-xs font-medium" style={{ backgroundColor: 'var(--accent)', color: 'white' }}>
-                                Public
-                            </span>
-                        )}
+                      {trip.is_private ? (
+                        <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-700 text-white shadow">
+                          Private
+                        </span>
+                      ) : (
+                        <span
+                          className="px-3 py-1 rounded-full text-xs font-medium"
+                          style={{ backgroundColor: 'var(--accent)', color: 'white' }}
+                        >
+                          Public
+                        </span>
+                      )}
                       <button
-                        onClick={(e) => { e.stopPropagation(); openChat(trip); }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openChat(trip);
+                        }}
                         className={`px-3 py-1 rounded-full text-sm font-medium shadow ${userHasJoined(trip.id) ? 'bg-[var(--accent)] text-white' : 'bg-white text-gray-800 border'}`}
                         aria-label="Open group chat"
                       >
@@ -339,10 +390,15 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                   <div className="p-4 flex-1 flex flex-col">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <h3 id={`trip-${trip.id}-title`} className="text-lg font-semibold text-gray-900 truncate">{trip.title}</h3>
+                        <h3
+                          id={`trip-${trip.id}-title`}
+                          className="text-lg font-semibold text-gray-900 truncate"
+                        >
+                          {trip.title}
+                        </h3>
                         <p className="text-sm text-gray-600 flex items-center gap-1">
-                            <Globe size={14} className='text-gray-400' />
-                            {trip.destination}
+                          <Globe size={14} className="text-gray-400" />
+                          {trip.destination}
                         </p>
                       </div>
 
@@ -360,7 +416,9 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                       </div>
                     </div>
 
-                    <p className="text-sm text-gray-500 mt-3 line-clamp-2">{trip.notes || 'An exciting adventure awaits at this beautiful destination!'}</p>
+                    <p className="text-sm text-gray-500 mt-3 line-clamp-2">
+                      {trip.notes || 'An exciting adventure awaits at this beautiful destination!'}
+                    </p>
 
                     <div className="mt-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -374,7 +432,9 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                             }
                           }}
                           className={`px-5 py-2 rounded-lg transition text-white text-sm ${userHasJoined(trip.id) ? 'bg-gray-700 cursor-default' : ''}`}
-                          style={{ backgroundColor: userHasJoined(trip.id) ? undefined : 'var(--accent)' }}
+                          style={{
+                            backgroundColor: userHasJoined(trip.id) ? undefined : 'var(--accent)',
+                          }}
                           aria-pressed={userHasJoined(trip.id)}
                         >
                           {userHasJoined(trip.id) ? 'Joined' : 'Join Trip'}
@@ -383,7 +443,10 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
                       <div>
                         <button
-                          onClick={(e) => { e.stopPropagation(); openChat(trip); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openChat(trip);
+                          }}
                           className="px-4 py-2 rounded-lg border text-sm"
                         >
                           Chat
@@ -423,7 +486,9 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                   {['sort', 'cost', 'duration', 'privacy', 'more'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setActiveFilterTab(tab as any)}
+                      onClick={() =>
+                        setActiveFilterTab(tab as 'sort' | 'cost' | 'duration' | 'privacy' | 'more')
+                      }
                       className={`w-full text-left px-3 py-2 rounded-lg ${activeFilterTab === tab ? 'bg-[var(--accent)]/10 text-[var(--accent)] font-semibold' : 'text-gray-800'}`}
                     >
                       {tab.charAt(0).toUpperCase() + tab.slice(1)}
@@ -438,19 +503,39 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                     <h4 className="text-xl font-semibold mb-4">Sort By</h4>
                     <div className="space-y-3">
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="sort" checked={sortBy === 'popularity'} onChange={() => setSortBy('popularity')} />
+                        <input
+                          type="radio"
+                          name="sort"
+                          checked={sortBy === 'popularity'}
+                          onChange={() => setSortBy('popularity')}
+                        />
                         <span className="font-medium">Popularity (Group Size)</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="sort" checked={sortBy === 'cost_low'} onChange={() => setSortBy('cost_low')} />
+                        <input
+                          type="radio"
+                          name="sort"
+                          checked={sortBy === 'cost_low'}
+                          onChange={() => setSortBy('cost_low')}
+                        />
                         <span className="font-medium">Cost : Low to High</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="sort" checked={sortBy === 'cost_high'} onChange={() => setSortBy('cost_high')} />
+                        <input
+                          type="radio"
+                          name="sort"
+                          checked={sortBy === 'cost_high'}
+                          onChange={() => setSortBy('cost_high')}
+                        />
                         <span className="font-medium">Cost : High to Low</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="sort" checked={sortBy === 'date_upcoming'} onChange={() => setSortBy('date_upcoming')} />
+                        <input
+                          type="radio"
+                          name="sort"
+                          checked={sortBy === 'date_upcoming'}
+                          onChange={() => setSortBy('date_upcoming')}
+                        />
                         <span className="font-medium">Upcoming Date</span>
                       </label>
                     </div>
@@ -464,18 +549,27 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                       <input
                         type="number"
                         value={costRange[0]}
-                        onChange={(e) => setCostRange([Math.max(0, Number(e.target.value)), costRange[1]])}
+                        onChange={(e) =>
+                          setCostRange([Math.max(0, Number(e.target.value)), costRange[1]])
+                        }
                         className="w-24 px-3 py-2 border rounded-lg"
                       />
                       <span>-</span>
                       <input
                         type="number"
                         value={costRange[1]}
-                        onChange={(e) => setCostRange([costRange[0], Math.max(costRange[0], Number(e.target.value))])}
+                        onChange={(e) =>
+                          setCostRange([
+                            costRange[0],
+                            Math.max(costRange[0], Number(e.target.value)),
+                          ])
+                        }
                         className="w-24 px-3 py-2 border rounded-lg"
                       />
                     </div>
-                    <p className="text-sm text-gray-500 mt-3">Filter based on the estimated cost per person.</p>
+                    <p className="text-sm text-gray-500 mt-3">
+                      Filter based on the estimated cost per person.
+                    </p>
                   </div>
                 )}
 
@@ -484,15 +578,30 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                     <h4 className="text-xl font-semibold mb-4">Trip Duration</h4>
                     <div className="space-y-2">
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="duration" checked={durationFilter === 'any'} onChange={() => setDurationFilter('any')} />
+                        <input
+                          type="radio"
+                          name="duration"
+                          checked={durationFilter === 'any'}
+                          onChange={() => setDurationFilter('any')}
+                        />
                         <span>Any Duration</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="duration" checked={durationFilter === 'short'} onChange={() => setDurationFilter('short')} />
+                        <input
+                          type="radio"
+                          name="duration"
+                          checked={durationFilter === 'short'}
+                          onChange={() => setDurationFilter('short')}
+                        />
                         <span>Short Trips (Under 7 Days)</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="duration" checked={durationFilter === 'long'} onChange={() => setDurationFilter('long')} />
+                        <input
+                          type="radio"
+                          name="duration"
+                          checked={durationFilter === 'long'}
+                          onChange={() => setDurationFilter('long')}
+                        />
                         <span>Long Trips (7+ Days)</span>
                       </label>
                     </div>
@@ -504,26 +613,45 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
                     <h4 className="text-xl font-semibold mb-4">Trip Privacy</h4>
                     <div className="space-y-2">
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="privacy" checked={privacyFilter === 'all'} onChange={() => setPrivacyFilter('all')} />
+                        <input
+                          type="radio"
+                          name="privacy"
+                          checked={privacyFilter === 'all'}
+                          onChange={() => setPrivacyFilter('all')}
+                        />
                         <span>All Trips</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="privacy" checked={privacyFilter === 'public'} onChange={() => setPrivacyFilter('public')} />
+                        <input
+                          type="radio"
+                          name="privacy"
+                          checked={privacyFilter === 'public'}
+                          onChange={() => setPrivacyFilter('public')}
+                        />
                         <span>Public Trips</span>
                       </label>
                       <label className="flex items-center gap-3">
-                        <input type="radio" name="privacy" checked={privacyFilter === 'private'} onChange={() => setPrivacyFilter('private')} />
+                        <input
+                          type="radio"
+                          name="privacy"
+                          checked={privacyFilter === 'private'}
+                          onChange={() => setPrivacyFilter('private')}
+                        />
                         <span>Private Trips</span>
                       </label>
                     </div>
-                    <p className="text-sm text-gray-500 mt-3">Private trips may require an invitation to join.</p>
+                    <p className="text-sm text-gray-500 mt-3">
+                      Private trips may require an invitation to join.
+                    </p>
                   </div>
                 )}
 
                 {activeFilterTab === 'more' && (
                   <div>
                     <h4 className="text-xl font-semibold mb-4">More Filters</h4>
-                    <p className="text-sm text-gray-600 mb-3">Filter by activity type, transportation, or required gear.</p>
+                    <p className="text-sm text-gray-600 mb-3">
+                      Filter by activity type, transportation, or required gear.
+                    </p>
 
                     <div className="flex gap-3 flex-wrap">
                       <label className="flex items-center gap-2 px-3 py-2 border rounded-lg">
@@ -544,7 +672,9 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
                 <div className="mt-8 flex items-center justify-between">
                   <button
-                    onClick={() => { clearAllFilters(); }}
+                    onClick={() => {
+                      clearAllFilters();
+                    }}
                     className="text-sm underline decoration-dotted text-gray-700"
                   >
                     Clear filters
@@ -552,14 +682,18 @@ export default function TripsPage({ onTripSelect, onChatOpen, currentUserId }: T
 
                   <div className="flex items-center gap-4">
                     <button
-                      onClick={() => { setShowFilters(false); }}
+                      onClick={() => {
+                        setShowFilters(false);
+                      }}
                       className="px-4 py-2 rounded-lg border"
                     >
                       Cancel
                     </button>
 
                     <button
-                      onClick={() => { setShowFilters(false); }}
+                      onClick={() => {
+                        setShowFilters(false);
+                      }}
                       className="px-8 py-3 rounded-2xl text-white text-lg font-semibold shadow"
                       style={{ backgroundColor: 'var(--accent)' }}
                     >
