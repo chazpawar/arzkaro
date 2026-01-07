@@ -369,8 +369,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Sign out
+  const [isSigningOut, setIsSigningOut] = useState(false);
   const signOut = async () => {
+    // Prevent multiple simultaneous sign out calls
+    if (isSigningOut) {
+      console.log('Sign out already in progress, ignoring...');
+      return;
+    }
+
     try {
+      setIsSigningOut(true);
       console.log('Signing out...');
       await supabase.auth.signOut();
       setUser(null);
@@ -385,6 +393,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
+    } finally {
+      setIsSigningOut(false);
     }
   };
 

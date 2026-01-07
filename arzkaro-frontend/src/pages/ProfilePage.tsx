@@ -32,10 +32,17 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     });
   }, [user?.id]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (window.confirm('Are you sure you want to sign out?')) {
-      await signOut();
-      onBack();
+      setLoading(true);
+      try {
+        await signOut();
+        onBack();
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
