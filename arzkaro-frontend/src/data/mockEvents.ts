@@ -1,9 +1,9 @@
 // src/data/mockEvents.ts
 
-import { Event } from '../pages/EventDetailPage';
+import { Event } from '../pages/ExperienceDetailPage';
 
 // Update the Event type to explicitly allow an array of artist names
-export type MockEventItem = Omit<Event, 'artist_name'> & { 
+export type MockEventItem = Omit<Event, 'artist_name'> & {
   artist_name: string | string[]; // Now supports a single string OR an array of strings
   member_count?: number;
   genre?: string;
