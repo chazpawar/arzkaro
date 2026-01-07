@@ -5,10 +5,17 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in env');
+  console.warn('⚠️ Missing Supabase credentials in .env file');
+  console.warn('Please create .env file with:');
+  console.warn('VITE_SUPABASE_URL=your_supabase_url');
+  console.warn('VITE_SUPABASE_ANON_KEY=your_supabase_anon_key');
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Create client with fallback values to prevent crashes
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder-key'
+);
 
 export type Profile = {
   id: string;

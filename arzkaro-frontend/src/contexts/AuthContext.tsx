@@ -101,37 +101,94 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Initialize auth state on mount
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    let mounted = true;
 
-      if (session?.user) {
-        fetchProfile(session.user.id).then(setProfile);
+    // Set a safety timeout to prevent infinite loading
+    const safetyTimeout = setTimeout(() => {
+      if (mounted && loading) {
+        console.warn('Auth initialization timeout - forcing loading to false');
+        setLoading(false);
       }
+    }, 5000); // 5 second timeout
 
-      setLoading(false);
-    });
+    // Get initial session
+    supabase.auth.getSession()
+      .then(async ({ data: { session }, error }) => {
+        if (!mounted) return;
+
+        if (error) {
+          console.error('Error getting session:', error);
+          setLoading(false);
+          return;
+        }
+
+        setSession(session);
+        setUser(session?.user ?? null);
+
+        if (session?.user) {
+          try {
+            const profileData = await fetchProfile(session.user.id);
+            if (mounted) {
+              setProfile(profileData);
+            }
+          } catch (err) {
+            console.error('Error loading profile on init:', err);
+            // Continue even if profile fetch fails
+            if (mounted) {
+              setProfile(null);
+            }
+          }
+        }
+
+        if (mounted) {
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Fatal error in getSession:', err);
+        if (mounted) {
+          setLoading(false);
+        }
+      });
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!mounted) return;
+
       console.log('Auth state changed:', _event);
       setSession(session);
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const profileData = await fetchProfile(session.user.id);
-        setProfile(profileData);
+        try {
+          const profileData = await fetchProfile(session.user.id);
+          if (mounted) {
+            setProfile(profileData);
+          }
+        } catch (err) {
+          console.error('Error loading profile on auth change:', err);
+          if (mounted) {
+            setProfile(null);
+          }
+        }
       } else {
-        setProfile(null);
+        if (mounted) {
+          setProfile(null);
+        }
       }
 
-      setLoading(false);
+      if (mounted) {
+        setLoading(false);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Sign in with email and password
