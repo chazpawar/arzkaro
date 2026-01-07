@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 
 type NavbarProps = {
   onAuthClick: () => void;
@@ -9,6 +10,7 @@ type NavbarProps = {
 
 export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { user, profile, isAuthenticated, signOut } = useAuth();
 
   const leagueFont = {
     fontFamily: `'League Spartan', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial`,
@@ -89,14 +91,46 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
           />
         </div>
 
-        {/* RIGHT: login button only */}
+        {/* RIGHT: login/profile button */}
         <div className="flex items-center gap-4">
-          <button
-            onClick={onAuthClick}
-            className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
-          >
-            Login/Signup
-          </button>
+          {isAuthenticated && user ? (
+            <div className="flex items-center gap-3">
+              {/* My Tickets */}
+              <button
+                onClick={() => onNavigate('my-tickets')}
+                className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-100 transition-all duration-200"
+              >
+                My Tickets
+              </button>
+              
+              {/* Profile/Logout */}
+              <div className="relative group">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200">
+                  <User size={20} />
+                  <span className="text-sm font-semibold">
+                    {profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User'}
+                  </span>
+                </button>
+                
+                {/* Dropdown */}
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <button
+                    onClick={signOut}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={onAuthClick}
+              className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+            >
+              Login/Signup
+            </button>
+          )}
         </div>
       </div>
 
@@ -172,15 +206,43 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
           </div>
 
           <div className="border-t border-gray-200 mt-6 pt-6 flex flex-col gap-4">
-            <button
-              onClick={() => {
-                onAuthClick();
-                setMobileOpen(false);
-              }}
-              className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
-            >
-              Login / Signup
-            </button>
+            {isAuthenticated && user ? (
+              <>
+                <button
+                  onClick={() => {
+                    onNavigate('my-tickets');
+                    setMobileOpen(false);
+                  }}
+                  className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+                >
+                  My Tickets
+                </button>
+                
+                <div className="px-4 py-2 text-sm text-gray-700">
+                  Signed in as <span className="font-semibold">{profile?.full_name || profile?.username || user.email?.split('@')[0]}</span>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    signOut();
+                    setMobileOpen(false);
+                  }}
+                  className="px-4 py-2 rounded-full text-base font-semibold text-red-600 hover:bg-red-50 transition-all duration-200"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  onAuthClick();
+                  setMobileOpen(false);
+                }}
+                className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+              >
+                Login / Signup
+              </button>
+            )}
 
             <div className="mt-4 text-sm text-gray-600">
               <div className="font-medium mb-2">Quick links</div>

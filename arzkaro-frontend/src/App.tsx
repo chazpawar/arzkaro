@@ -8,6 +8,7 @@ import HomePage from './pages/HomePage.tsx';
 import ForYou from './pages/ForYou.tsx';
 import ExperiencesPage from './pages/ExperiencesPage.tsx';
 import ExperienceDetailPage, { Event } from './pages/ExperienceDetailPage.tsx';
+import BookingPage from './pages/BookingPage.tsx';
 import MyTicketsPage from './pages/MyTicketsPage.tsx';
 import TripsPage from './pages/Trips.tsx';
 import TripDetailsPage from './pages/TripDetails.tsx';
@@ -58,6 +59,7 @@ type PageName =
   | 'for-you'
   | 'experiences'
   | 'experience-detail'
+  | 'booking'
   | 'trips'
   | 'trip-detail'
   | 'my-tickets'
@@ -88,6 +90,9 @@ function parsePathname(pathname: string) {
   const experienceMatch = clean.match(/^\/experience\/([^/]+)$/);
   if (experienceMatch) return { page: 'experience-detail' as PageName, id: experienceMatch[1] };
 
+  const bookingMatch = clean.match(/^\/booking\/([^/]+)$/);
+  if (bookingMatch) return { page: 'booking' as PageName, id: bookingMatch[1] };
+
   const tripMatch = clean.match(/^\/trip\/([^/]+)$/);
   if (tripMatch) return { page: 'trip-detail' as PageName, id: tripMatch[1] };
 
@@ -113,6 +118,8 @@ function pathFor(page: PageName, id?: string | null) {
       return '/my-tickets';
     case 'experience-detail':
       return id ? `/experience/${id}` : '/experiences';
+    case 'booking':
+      return id ? `/booking/${id}` : '/experiences';
     case 'trip-detail':
       return id ? `/trip/${id}` : '/trips';
     default:
@@ -144,6 +151,10 @@ function AppContent() {
 
     // if navigating to a detail page, restore the selected item so back/forward states can check it
     if (page === 'experience-detail' && id) {
+      const ev = getEventDataById(id);
+      setSelectedEvent(ev);
+      if (!ev) page = 'experiences'; // fallback
+    } else if (page === 'booking' && id) {
       const ev = getEventDataById(id);
       setSelectedEvent(ev);
       if (!ev) page = 'experiences'; // fallback
@@ -179,6 +190,15 @@ function AppContent() {
         // ensure URL matches
         window.history.replaceState({}, '', '/experiences');
       }
+    } else if (page === 'booking' && id) {
+      const ev = getEventDataById(id);
+      if (ev) {
+        setSelectedEvent(ev);
+        setCurrentPage('booking');
+      } else {
+        setCurrentPage('experiences');
+        window.history.replaceState({}, '', '/experiences');
+      }
     } else if (page === 'trip-detail' && id) {
       const tr = getTripDataById(id);
       if (tr) {
@@ -205,6 +225,18 @@ function AppContent() {
           setSelectedEvent(ev);
           setSelectedTrip(null);
           setCurrentPage('experience-detail');
+          return;
+        }
+        setCurrentPage('experiences');
+        return;
+      }
+
+      if (page === 'booking' && id) {
+        const ev = getEventDataById(id);
+        if (ev) {
+          setSelectedEvent(ev);
+          setSelectedTrip(null);
+          setCurrentPage('booking');
           return;
         }
         setCurrentPage('experiences');
@@ -296,7 +328,7 @@ function AppContent() {
       <div className="h-24" />
 
       <main className="flex-grow">
-        {currentPage === 'home' && <HomePage onNavigate={() => handleNavigate('home')} />}
+        {currentPage === 'home' && <HomePage />}
 
         {currentPage === 'for-you' && (
           <ForYou onEventSelect={handleEventSelect} onTripSelect={handleTripSelect} />
@@ -325,8 +357,13 @@ function AppContent() {
           <ExperienceDetailPage
             event={selectedEvent}
             onBack={() => handleNavigate('experiences')}
+            onBookNow={(eventId) => handleNavigate('booking', eventId)}
             onChatOpen={() => {}}
           />
+        )}
+
+        {currentPage === 'booking' && selectedEvent && (
+          <BookingPage event={selectedEvent} onBack={() => handleNavigate('experience-detail', selectedEvent.id)} />
         )}
 
         {currentPage === 'my-tickets' && (

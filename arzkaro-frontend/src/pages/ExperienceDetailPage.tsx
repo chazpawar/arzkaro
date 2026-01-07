@@ -1,7 +1,6 @@
 // src/pages/ExperienceDetailPage.tsx
 import React, { useState } from 'react';
 import { ChevronLeft, MapPin, Share2, Users } from 'lucide-react';
-import Forms from '../components/Form';
 
 export type Event = {
   id: string;
@@ -24,12 +23,13 @@ export type Event = {
 export default function ExperienceDetailPage({
   event,
   onBack,
+  onBookNow,
 }: {
   event: Event;
   onBack?: () => void;
+  onBookNow?: (eventId: string) => void;
   onChatOpen?: (eventId: string) => void;
 }) {
-  const [showForm, setShowForm] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
@@ -296,7 +296,7 @@ export default function ExperienceDetailPage({
                 </div>
 
                 <button
-                  onClick={() => setShowForm(true)}
+                  onClick={() => onBookNow?.(event.id)}
                   className="w-full px-6 py-4 bg-[#FF785A] text-white text-lg font-semibold rounded-xl hover:bg-[#ff6a47] transition-colors shadow-md"
                 >
                   Book Now
@@ -314,26 +314,6 @@ export default function ExperienceDetailPage({
           </div>
         </div>
       </div>
-
-      {/* Booking Form Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex items-center justify-center min-h-screen px-4">
-            <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm"
-              onClick={() => setShowForm(false)}
-            />
-            <div className="relative bg-white rounded-2xl max-w-md w-full shadow-xl">
-              <Forms
-                open={showForm}
-                amountINR={price}
-                eventId={event.id}
-                onClose={() => setShowForm(false)}
-              />
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Terms & Conditions Modal */}
       {showTermsModal && (
