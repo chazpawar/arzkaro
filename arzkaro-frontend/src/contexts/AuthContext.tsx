@@ -69,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isGuestMode, setIsGuestMode] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // Fetch user profile from database
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
@@ -369,23 +370,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Sign out
-  const [isSigningOut, setIsSigningOut] = useState(false);
   const signOut = async () => {
     // Prevent multiple simultaneous sign out calls
     if (isSigningOut) {
-      console.log('Sign out already in progress, ignoring...');
+      console.log('Sign out already in progress, skipping...');
       return;
     }
 
     try {
       setIsSigningOut(true);
       console.log('Signing out...');
-      await supabase.auth.signOut();
+      
+      // Add timeout to prevent hanging on invalid Supabase credentials
+      const signOutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Sign out timeout')), 3000)
+      );
+      
+      await Promise.race([signOutPromise, timeoutPromise])
+        .catch((error) => {
+          console.warn('Supabase signOut failed or timed out:', error);
+          // Continue to clear local state
+        });
+      
+      // Always clear local state
       setUser(null);
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
-      console.log('Sign out successful');
+      console.log('Sign out successful - local state cleared');
     } catch (error) {
       console.error('Error signing out:', error);
       // Still clear local state even if Supabase call fails

@@ -10,7 +10,6 @@ type NavbarProps = {
 
 export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const { user, profile, isAuthenticated, signOut } = useAuth();
 
   const leagueFont = {
@@ -105,11 +104,8 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
               </button>
               
               {/* Profile/Logout */}
-              <div className="relative">
-                <button 
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200"
-                >
+              <div className="relative group">
+                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200">
                   <User size={20} />
                   <span className="text-sm font-semibold">
                     {profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User'}
@@ -117,39 +113,24 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                 </button>
                 
                 {/* Dropdown */}
-                {profileDropdownOpen && (
-                  <>
-                    {/* Backdrop to close dropdown */}
-                    <div 
-                      className="fixed inset-0 z-10" 
-                      onClick={() => setProfileDropdownOpen(false)}
-                    />
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 z-20">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setProfileDropdownOpen(false);
-                          onNavigate('profile');
-                        }}
-                        className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
-                      >
-                        My Profile
-                      </button>
-                      <div className="border-t border-gray-100" />
-                      <button
-                        onClick={async (e) => {
-                          e.stopPropagation();
-                          setProfileDropdownOpen(false);
-                          await signOut();
-                          onNavigate('home');
-                        }}
-                        className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </>
-                )}
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                  <button
+                    onClick={() => onNavigate('profile')}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
+                  >
+                    My Profile
+                  </button>
+                  <div className="border-t border-gray-100" />
+                  <button
+                    onClick={async () => {
+                      await signOut();
+                      onNavigate('home');
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
+                  >
+                    Sign Out
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
@@ -262,11 +243,9 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                 </div>
                 
                 <button
-                  onClick={async (e) => {
-                    e.stopPropagation();
-                    e.preventDefault();
-                    setMobileOpen(false);
+                  onClick={async () => {
                     await signOut();
+                    setMobileOpen(false);
                     onNavigate('home');
                   }}
                   className="px-4 py-2 rounded-full text-base font-semibold text-red-600 hover:bg-red-50 transition-all duration-200"

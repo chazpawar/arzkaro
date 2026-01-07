@@ -25,7 +25,8 @@ export default function Auth({ onClose }: AuthProps) {
   const [loading, setLoading] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
 
-  const { signIn, sendSignupOTP, verifyOTP, resendOTP, signInWithGoogle, enableGuestMode } = useAuth();
+  const { signIn, sendSignupOTP, verifyOTP, resendOTP, signInWithGoogle, enableGuestMode } =
+    useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,7 +52,7 @@ export default function Auth({ onClose }: AuthProps) {
         if (otpError) {
           throw otpError;
         }
-        
+
         // Show OTP modal
         setShowOTPModal(true);
         setLoading(false);
@@ -61,14 +62,14 @@ export default function Auth({ onClose }: AuthProps) {
         if (signInError) {
           throw signInError;
         }
-        
+
         // Success! Close modal
         onClose();
       }
     } catch (err: unknown) {
       console.error('Auth error:', err);
       const errorMessage = err instanceof Error ? err.message : 'An error occurred';
-      
+
       // Handle specific Supabase errors
       if (errorMessage.includes('Invalid login credentials')) {
         setError('Invalid email or password');
@@ -130,25 +131,12 @@ export default function Auth({ onClose }: AuthProps) {
             <X size={24} />
           </button>
 
-          {/* Skip Button */}
-          <button
-            onClick={handleSkip}
-            className="absolute top-4 left-4 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
-          >
-            Skip
-          </button>
-
           {/* Logo Section */}
           <div className="text-center mb-8 mt-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center">
-              <span className="text-3xl">🎉</span>
-            </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
               {isSignUp ? 'Create Account' : 'Log in or Sign up'}
             </h2>
-            <p className="text-gray-600 text-sm">
-              Discover experiences happening in your city
-            </p>
+            <p className="text-gray-600 text-sm">Discover experiences happening in your city</p>
           </div>
 
           {/* Error Message */}
@@ -162,9 +150,7 @@ export default function Auth({ onClose }: AuthProps) {
             {/* Full Name - Only for Sign Up */}
             {isSignUp && (
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Full Name
-                </label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name</label>
                 <input
                   type="text"
                   value={fullName}
@@ -179,9 +165,7 @@ export default function Auth({ onClose }: AuthProps) {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Email
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Email</label>
               <input
                 type="email"
                 value={email}
@@ -195,16 +179,16 @@ export default function Auth({ onClose }: AuthProps) {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Password
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Password</label>
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-[#FF785A] focus:border-transparent transition-all"
-                  placeholder={isSignUp ? 'Create a password (min 6 characters)' : 'Enter your password'}
+                  placeholder={
+                    isSignUp ? 'Create a password (min 6 characters)' : 'Enter your password'
+                  }
                   required
                   disabled={loading}
                 />
@@ -255,9 +239,7 @@ export default function Auth({ onClose }: AuthProps) {
               }}
               className="text-[#FF785A] hover:underline font-medium"
             >
-              {isSignUp
-                ? 'Already have an account? Log in'
-                : "Don't have an account? Sign up"}
+              {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
             </button>
           </div>
 
