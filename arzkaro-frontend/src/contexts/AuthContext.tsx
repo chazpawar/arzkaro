@@ -370,11 +370,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sign out
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setSession(null);
-    setIsGuestMode(false);
+    try {
+      console.log('Signing out...');
+      await supabase.auth.signOut();
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      setIsGuestMode(false);
+      console.log('Sign out successful');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Still clear local state even if Supabase call fails
+      setUser(null);
+      setProfile(null);
+      setSession(null);
+      setIsGuestMode(false);
+    }
   };
 
   // Update profile

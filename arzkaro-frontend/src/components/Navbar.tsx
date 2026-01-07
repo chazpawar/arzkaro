@@ -122,7 +122,10 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                   </button>
                   <div className="border-t border-gray-100" />
                   <button
-                    onClick={signOut}
+                    onClick={async () => {
+                      await signOut();
+                      onNavigate('home');
+                    }}
                     className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
                   >
                     Sign Out
@@ -240,9 +243,10 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                 </div>
                 
                 <button
-                  onClick={() => {
-                    signOut();
+                  onClick={async () => {
+                    await signOut();
                     setMobileOpen(false);
+                    onNavigate('home');
                   }}
                   className="px-4 py-2 rounded-full text-base font-semibold text-red-600 hover:bg-red-50 transition-all duration-200"
                 >

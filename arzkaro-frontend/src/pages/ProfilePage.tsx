@@ -32,9 +32,9 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     });
   }, [user?.id]);
 
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
     if (window.confirm('Are you sure you want to sign out?')) {
-      signOut();
+      await signOut();
       onBack();
     }
   };
