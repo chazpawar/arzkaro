@@ -9,6 +9,9 @@ import ForYou from './pages/ForYou.tsx';
 import ExperiencesPage from './pages/ExperiencesPage.tsx';
 import ExperienceDetailPage, { Event } from './pages/ExperienceDetailPage.tsx';
 import BookingPage from './pages/BookingPage.tsx';
+import ProfilePage from './pages/ProfilePage.tsx';
+import EditProfilePage from './pages/EditProfilePage.tsx';
+import SettingsPage from './pages/SettingsPage.tsx';
 import MyTicketsPage from './pages/MyTicketsPage.tsx';
 import TripsPage from './pages/Trips.tsx';
 import TripDetailsPage from './pages/TripDetails.tsx';
@@ -60,6 +63,9 @@ type PageName =
   | 'experiences'
   | 'experience-detail'
   | 'booking'
+  | 'profile'
+  | 'edit-profile'
+  | 'settings'
   | 'trips'
   | 'trip-detail'
   | 'my-tickets'
@@ -85,6 +91,9 @@ function parsePathname(pathname: string) {
   if (clean === '/thankyou') return { page: 'thankyou' as PageName };
   if (clean === '/terms') return { page: 'terms' as PageName };
   if (clean === '/my-tickets') return { page: 'my-tickets' as PageName };
+  if (clean === '/profile') return { page: 'profile' as PageName };
+  if (clean === '/edit-profile') return { page: 'edit-profile' as PageName };
+  if (clean === '/settings') return { page: 'settings' as PageName };
 
   // dynamic routes
   const experienceMatch = clean.match(/^\/experience\/([^/]+)$/);
@@ -116,6 +125,12 @@ function pathFor(page: PageName, id?: string | null) {
       return '/terms';
     case 'my-tickets':
       return '/my-tickets';
+    case 'profile':
+      return '/profile';
+    case 'edit-profile':
+      return '/edit-profile';
+    case 'settings':
+      return '/settings';
     case 'experience-detail':
       return id ? `/experience/${id}` : '/experiences';
     case 'booking':
@@ -316,6 +331,9 @@ function AppContent() {
             experiences: 'experiences',
             trips: 'trips',
             'my-tickets': 'my-tickets',
+            profile: 'profile',
+            'edit-profile': 'edit-profile',
+            settings: 'settings',
             terms: 'terms',
             thankyou: 'thankyou',
           };
@@ -368,6 +386,24 @@ function AppContent() {
 
         {currentPage === 'my-tickets' && (
           <MyTicketsPage onEventSelect={handleEventSelect} onChatOpen={() => {}} />
+        )}
+
+        {currentPage === 'profile' && (
+          <ProfilePage 
+            onNavigate={(page) => handleNavigate(page as PageName)}
+            onBack={() => handleNavigate('home')}
+          />
+        )}
+
+        {currentPage === 'edit-profile' && (
+          <EditProfilePage
+            onBack={() => handleNavigate('profile')}
+            onSuccess={() => handleNavigate('profile')}
+          />
+        )}
+
+        {currentPage === 'settings' && (
+          <SettingsPage onBack={() => handleNavigate('profile')} />
         )}
 
         {currentPage === 'terms' && <TermsPage />}

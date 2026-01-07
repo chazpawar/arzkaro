@@ -115,8 +115,15 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                 {/* Dropdown */}
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                   <button
+                    onClick={() => onNavigate('profile')}
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
+                  >
+                    My Profile
+                  </button>
+                  <div className="border-t border-gray-100" />
+                  <button
                     onClick={signOut}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
                   >
                     Sign Out
                   </button>
@@ -208,6 +215,16 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
           <div className="border-t border-gray-200 mt-6 pt-6 flex flex-col gap-4">
             {isAuthenticated && user ? (
               <>
+                <button
+                  onClick={() => {
+                    onNavigate('profile');
+                    setMobileOpen(false);
+                  }}
+                  className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+                >
+                  My Profile
+                </button>
+                
                 <button
                   onClick={() => {
                     onNavigate('my-tickets');

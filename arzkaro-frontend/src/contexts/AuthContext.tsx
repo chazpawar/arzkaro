@@ -9,6 +9,16 @@ interface Profile {
   avatar_url?: string | null;
   email?: string | null;
   role?: 'user' | 'host' | 'admin';
+  bio?: string | null;
+  phone?: string | null;
+  date_of_birth?: string | null;
+  gender?: string | null;
+  instagram?: string | null;
+  youtube?: string | null;
+  linkedin?: string | null;
+  twitter?: string | null;
+  interests?: string[] | null;
+  is_public?: boolean | null;
   created_at?: string | null;
   updated_at?: string | null;
 }
