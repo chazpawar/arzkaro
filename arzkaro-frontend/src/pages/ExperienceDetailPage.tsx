@@ -4,6 +4,7 @@ import { ChevronLeft, MapPin, Share2, Users } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
 import { useAuth } from '../contexts/AuthContext';
 import { SkeletonStyles } from '../components/SkeletonCard';
+import AttendeesModal from '../components/AttendeesModal';
 
 // Skeleton loader for detail page
 const DetailPageSkeleton = () => (
@@ -89,6 +90,7 @@ export default function ExperienceDetailPage({
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
 
   // Handle Book Now click
   const handleBookNow = () => {
@@ -247,10 +249,13 @@ export default function ExperienceDetailPage({
           <div className="max-w-6xl mx-auto">
             {/* Member Count */}
             {event.member_count && event.member_count > 0 && (
-              <div className="flex items-center gap-2 mb-2 text-white/90">
+              <button
+                onClick={() => setShowAttendeesModal(true)}
+                className="flex items-center gap-2 mb-2 text-white/90 hover:text-white transition-colors"
+              >
                 <Users size={18} />
                 <span className="text-sm">+{event.member_count} have joined</span>
-              </div>
+              </button>
             )}
 
             {/* Genre Tag */}
@@ -628,6 +633,16 @@ export default function ExperienceDetailPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Attendees Modal */}
+      {showAttendeesModal && (
+        <AttendeesModal
+          eventId={eventId}
+          onClose={() => setShowAttendeesModal(false)}
+          accentColor="#FF785A"
+          onAuthClick={onAuthClick}
+        />
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { ChevronLeft, MapPin, Share2, Users } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
 import { useAuth } from '../contexts/AuthContext';
 import { SkeletonStyles } from '../components/SkeletonCard';
+import AttendeesModal from '../components/AttendeesModal';
 
 // --- Helper Functions ---
 
@@ -116,6 +117,7 @@ export default function TripDetailsPage({
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [showAttendeesModal, setShowAttendeesModal] = useState(false);
 
   // Map database trip to UI format
   const trip = useMemo(() => {
@@ -302,10 +304,13 @@ export default function TripDetailsPage({
           <div className="max-w-6xl mx-auto">
             {/* Member Count */}
             {trip.member_count && trip.member_count > 0 && (
-              <div className="flex items-center gap-2 mb-2 text-white/90">
+              <button
+                onClick={() => setShowAttendeesModal(true)}
+                className="flex items-center gap-2 mb-2 text-white/90 hover:text-white transition-colors"
+              >
                 <Users size={18} />
                 <span className="text-sm">+{trip.member_count} have joined</span>
-              </div>
+              </button>
             )}
 
             {/* Age Group Tag */}
@@ -936,6 +941,16 @@ export default function TripDetailsPage({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Attendees Modal */}
+      {showAttendeesModal && (
+        <AttendeesModal
+          eventId={tripId}
+          onClose={() => setShowAttendeesModal(false)}
+          accentColor="#ABDF8B"
+          onAuthClick={onAuthClick}
+        />
       )}
     </div>
   );
