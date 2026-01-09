@@ -1,6 +1,22 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, MapPin, Calendar } from 'lucide-react';
-import { ALL_MOCK_EVENTS } from '../data/mockEvents';
+import { supabase } from '../lib/supabase';
+import { SkeletonCard, SkeletonStyles } from '../components/SkeletonCard';
+
+interface Event {
+  id: string;
+  title: string;
+  cover_image_url: string | null;
+  location_name: string | null;
+  start_date: string;
+  price: number;
+  category: string | null;
+  // Legacy field mappings for compatibility
+  image_url?: string;
+  city?: string;
+  event_date?: string;
+  ticket_price?: number;
+}
 
 interface CategoryTag {
   id: string;
@@ -86,14 +102,52 @@ interface ExperiencesPageProps {
 const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryTag | null>(null);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch events from Supabase
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .eq('type', 'experience')
+          .eq('is_published', true)
+          .eq('is_cancelled', false)
+          .order('created_at', { ascending: false });
+
+        if (error) {
+          console.error('Error fetching events:', error);
+        } else {
+          // Map database fields to expected format
+          const mappedData = (data || []).map((event) => ({
+            ...event,
+            image_url: event.cover_image_url,
+            city: event.location_name,
+            event_date: event.start_date,
+            ticket_price: event.price,
+          }));
+          setEvents(mappedData);
+        }
+      } catch (error) {
+        console.error('Error loading events:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   // Filter events based on selected category
-  // TODO: Add category field to events for proper filtering
   const filteredEvents = useMemo(() => {
-    // For now, show all events regardless of category
-    // Once events have category fields, implement proper filtering
-    return ALL_MOCK_EVENTS;
-  }, []);
+    if (selectedTag === 'All') {
+      return events;
+    }
+    // Filter by category if events have category field
+    return events.filter((event) => event.category === selectedTag);
+  }, [events, selectedTag]);
 
   // Get visible categories based on selection
   const visibleCategories = useMemo(() => {
@@ -134,6 +188,45 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
   const isParentSelected = (categoryId: string): boolean => {
     return selectedParentCategory?.id === categoryId;
   };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="w-full min-h-screen bg-white">
+        <SkeletonStyles />
+
+        {/* Category Selection Skeleton */}
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 pb-4">
+          <div className="flex justify-center items-center">
+            <div className="overflow-x-auto scrollbar-hide">
+              <div className="flex gap-4 py-3 px-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2">
+                    <div className="w-16 h-16 rounded-2xl bg-gray-200 animate-pulse relative overflow-hidden">
+                      <div className="absolute inset-0 shimmer" />
+                    </div>
+                    <div className="h-4 w-16 bg-gray-200 rounded animate-pulse relative overflow-hidden">
+                      <div className="absolute inset-0 shimmer" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Divider */}
+        <div className="border-t border-gray-200"></div>
+
+        {/* Grid Skeleton */}
+        <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <SkeletonCard count={8} accentColor="#FF785A" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-screen bg-white">

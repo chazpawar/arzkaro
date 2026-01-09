@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ALL_MOCK_EVENTS } from '../data/mockEvents';
-import { ALL_MOCK_TRIPS } from '../data/mockTrips';
+import { supabase } from '../lib/supabase';
+import { SkeletonHorizontalCard, SkeletonStyles } from '../components/SkeletonCard';
 
 type ForYouProps = {
   onEventSelect: (eventId: string) => void;
@@ -56,30 +56,65 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
     return () => window.removeEventListener('resize', checkScrollNeeded);
   }, [topExperiences, popularTrips]);
 
-  const loadItems = () => {
-    // Top Experiences (from events)
-    const experiences: CombinedItem[] = ALL_MOCK_EVENTS.slice(0, 10).map((event) => ({
-      id: event.id,
-      title: event.title,
-      type: 'experience' as const,
-      image_url: event.image_url || '',
-      city: event.city,
-      ticket_price: event.ticket_price,
-    }));
+  const loadItems = async () => {
+    try {
+      // Fetch experiences (type = 'experience')
+      const { data: experienceData, error: experienceError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('type', 'experience')
+        .eq('is_published', true)
+        .eq('is_cancelled', false)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-    // Popular Trips
-    const trips: CombinedItem[] = ALL_MOCK_TRIPS.slice(0, 10).map((trip) => ({
-      id: trip.id,
-      title: trip.title,
-      type: 'trip' as const,
-      image_url: trip.image_url,
-      destination: trip.destination,
-      estimated_cost: trip.estimated_cost,
-    }));
+      if (experienceError) {
+        console.error('Error fetching experiences:', experienceError);
+      }
 
-    setTopExperiences(experiences);
-    setPopularTrips(trips);
-    setLoading(false);
+      // Fetch trips (type = 'trip')
+      const { data: tripData, error: tripError } = await supabase
+        .from('events')
+        .select('*')
+        .eq('type', 'trip')
+        .eq('is_published', true)
+        .eq('is_cancelled', false)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (tripError) {
+        console.error('Error fetching trips:', tripError);
+      }
+
+      // Transform experiences
+      const experiences: CombinedItem[] =
+        experienceData?.map((event) => ({
+          id: event.id,
+          title: event.title,
+          type: 'experience' as const,
+          image_url: event.cover_image_url || '',
+          city: event.location_name,
+          ticket_price: event.price,
+        })) || [];
+
+      // Transform trips
+      const trips: CombinedItem[] =
+        tripData?.map((trip) => ({
+          id: trip.id,
+          title: trip.title,
+          type: 'trip' as const,
+          image_url: trip.cover_image_url || '',
+          destination: trip.location_name,
+          estimated_cost: trip.price,
+        })) || [];
+
+      setTopExperiences(experiences);
+      setPopularTrips(trips);
+    } catch (error) {
+      console.error('Error loading items:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleItemClick = (item: CombinedItem) => {
@@ -116,8 +151,42 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-xl text-gray-600">Loading...</div>
+      <div className="min-h-screen bg-white">
+        <SkeletonStyles />
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Top Experiences Skeleton */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse relative overflow-hidden">
+                <div className="absolute inset-0 shimmer" />
+              </div>
+              <div className="h-6 w-20 bg-gray-200 rounded animate-pulse relative overflow-hidden">
+                <div className="absolute inset-0 shimmer" />
+              </div>
+            </div>
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar py-4">
+              <SkeletonHorizontalCard count={5} />
+            </div>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-200 my-6"></div>
+
+          {/* Popular Trips Skeleton */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="h-8 w-48 bg-gray-200 rounded animate-pulse relative overflow-hidden">
+                <div className="absolute inset-0 shimmer" />
+              </div>
+              <div className="h-6 w-20 bg-gray-200 rounded animate-pulse relative overflow-hidden">
+                <div className="absolute inset-0 shimmer" />
+              </div>
+            </div>
+            <div className="flex gap-4 overflow-x-auto hide-scrollbar py-4">
+              <SkeletonHorizontalCard count={5} />
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
