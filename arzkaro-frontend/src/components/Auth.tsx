@@ -25,8 +25,7 @@ export default function Auth({ onClose }: AuthProps) {
   const [loading, setLoading] = useState(false);
   const [showOTPModal, setShowOTPModal] = useState(false);
 
-  const { signIn, sendSignupOTP, verifyOTP, resendOTP, signInWithGoogle, enableGuestMode } =
-    useAuth();
+  const { signIn, sendSignupOTP, verifyOTP, resendOTP, signInWithGoogle } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,11 +111,6 @@ export default function Auth({ onClose }: AuthProps) {
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
       setLoading(false);
     }
-  };
-
-  const handleSkip = () => {
-    enableGuestMode();
-    onClose();
   };
 
   return (
@@ -261,7 +255,6 @@ export default function Auth({ onClose }: AuthProps) {
       <OTPVerificationModal
         visible={showOTPModal}
         email={email}
-        fullName={fullName}
         onClose={() => setShowOTPModal(false)}
         onVerifySuccess={handleOTPSuccess}
         onVerify={handleOTPVerify}

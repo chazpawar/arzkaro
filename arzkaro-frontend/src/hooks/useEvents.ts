@@ -4,30 +4,45 @@ import { supabase } from '../lib/supabase';
 // Event type matching the database schema
 export interface Event {
   id: string;
-  host_id: string;
-  type: 'event' | 'experience' | 'trip';
   title: string;
   description: string | null;
   short_description: string | null;
-  cover_image_url: string | null;
-  images: string[];
+  type: 'experience' | 'trip' | 'nightlife';
+  category: string;
+  tags: string[];
   location_name: string | null;
   location_address: string | null;
-  location_lat: number | null;
-  location_lng: number | null;
+  location_coordinates: { lat: number; lng: number } | null;
   start_date: string;
   end_date: string;
-  timezone: string;
-  max_capacity: number | null;
-  current_bookings: number;
   price: number;
-  currency: string;
-  is_published: boolean;
-  is_cancelled: boolean;
-  category: string | null;
-  tags: string[];
+  max_capacity: number;
+  current_bookings: number;
+  cover_image_url: string | null;
+  images: string[];
+  host_id: string;
+  host?: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+    bio?: string | null;
+    instagram?: string | null;
+    youtube?: string | null;
+    linkedin?: string | null;
+    twitter?: string | null;
+  };
+  status: 'draft' | 'published' | 'cancelled';
   created_at: string;
   updated_at: string;
+  // Additional fields for trips
+  departure_location: string | null;
+  pickups: string[];
+  itinerary: string | null;
+  whats_included: string | null;
+  whats_not_included: string | null;
+  things_to_know: string[] | null;
+  terms_and_conditions: string | null;
+  cancellation_policy: string | null;
 }
 
 export interface TicketType {
@@ -115,7 +130,8 @@ export function useEvent(eventId: string | null) {
       setLoading(true);
       setError(null);
 
-      // Fetch event details
+      // Fetch event details WITHOUT host profile join (to avoid 401 for unauthenticated users)
+      // Host details will be shown only to authenticated users via separate query or UI message
       const { data: eventData, error: eventError } = await supabase
         .from('events')
         .select('*')

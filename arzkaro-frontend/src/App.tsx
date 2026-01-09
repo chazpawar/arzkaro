@@ -7,8 +7,7 @@ import Auth from './components/Auth.tsx';
 import HomePage from './pages/HomePage.tsx';
 import ForYou from './pages/ForYou.tsx';
 import ExperiencesPage from './pages/ExperiencesPage.tsx';
-import ExperienceDetailPage, { Event } from './pages/ExperienceDetailPage.tsx';
-import BookingPage from './pages/BookingPage.tsx';
+import ExperienceDetailPage from './pages/ExperienceDetailPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
 import EditProfilePage from './pages/EditProfilePage.tsx';
 import SettingsPage from './pages/SettingsPage.tsx';
@@ -18,38 +17,6 @@ import TripDetailsPage from './pages/TripDetails.tsx';
 import Footer from './components/Footer.tsx';
 import TermsPage from './pages/Terms.tsx';
 import Thankyou from './pages/Thankyou.tsx';
-
-// Mock Data Imports
-import { ALL_MOCK_EVENTS } from './data/mockEvents.ts';
-import { ALL_MOCK_TRIPS, DetailedTrip } from './data/mockTrips.ts';
-
-// Convert the array of events into a map for fast lookup
-const EVENT_DETAIL_MAP: { [key: string]: Event } = ALL_MOCK_EVENTS.reduce(
-  (acc, event) => {
-    acc[event.id] = event as Event;
-    return acc;
-  },
-  {} as { [key: string]: Event }
-);
-
-function getEventDataById(id: string | null): Event | null {
-  if (!id) return null;
-  return EVENT_DETAIL_MAP[id] || null;
-}
-
-// Convert the array of DetailedTrips into a map for fast lookup
-const TRIP_DETAIL_MAP: { [key: string]: DetailedTrip } = ALL_MOCK_TRIPS.reduce(
-  (acc, trip) => {
-    acc[trip.id] = trip as DetailedTrip;
-    return acc;
-  },
-  {} as { [key: string]: DetailedTrip }
-);
-
-function getTripDataById(id: string | null): DetailedTrip | null {
-  if (!id) return null;
-  return TRIP_DETAIL_MAP[id] || null;
-}
 
 // Mocking the user object structure that would come from AuthContext
 interface MockUser {
@@ -154,29 +121,24 @@ function AppContent() {
   // default page
   const [currentPage, setCurrentPage] = useState<PageName>('home');
 
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
-  const [selectedTrip, setSelectedTrip] = useState<DetailedTrip | null>(null);
+  // Store IDs instead of full objects - detail pages will fetch from Supabase
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<boolean>(false);
 
   // Navigation helper that syncs history
   const handleNavigate = useCallback((page: PageName, id?: string | null, replace = false) => {
-    // update app state
-    setSelectedEvent(null);
-    setSelectedTrip(null);
+    // Clear selected IDs
+    setSelectedEventId(null);
+    setSelectedTripId(null);
 
-    // if navigating to a detail page, restore the selected item so back/forward states can check it
+    // Store ID for detail pages (detail pages will fetch from Supabase)
     if (page === 'experience-detail' && id) {
-      const ev = getEventDataById(id);
-      setSelectedEvent(ev);
-      if (!ev) page = 'experiences'; // fallback
+      setSelectedEventId(id);
     } else if (page === 'booking' && id) {
-      const ev = getEventDataById(id);
-      setSelectedEvent(ev);
-      if (!ev) page = 'experiences'; // fallback
+      setSelectedEventId(id);
     } else if (page === 'trip-detail' && id) {
-      const tr = getTripDataById(id);
-      setSelectedTrip(tr);
-      if (!tr) page = 'trips';
+      setSelectedTripId(id);
     }
 
     setCurrentPage(page);
@@ -196,33 +158,14 @@ function AppContent() {
     const { page, id } = parsePathname(window.location.pathname);
     // hydrate state based on parsed path
     if (page === 'experience-detail' && id) {
-      const ev = getEventDataById(id);
-      if (ev) {
-        setSelectedEvent(ev);
-        setCurrentPage('experience-detail');
-      } else {
-        setCurrentPage('experiences');
-        // ensure URL matches
-        window.history.replaceState({}, '', '/experiences');
-      }
+      setSelectedEventId(id);
+      setCurrentPage('experience-detail');
     } else if (page === 'booking' && id) {
-      const ev = getEventDataById(id);
-      if (ev) {
-        setSelectedEvent(ev);
-        setCurrentPage('booking');
-      } else {
-        setCurrentPage('experiences');
-        window.history.replaceState({}, '', '/experiences');
-      }
+      setSelectedEventId(id);
+      setCurrentPage('booking');
     } else if (page === 'trip-detail' && id) {
-      const tr = getTripDataById(id);
-      if (tr) {
-        setSelectedTrip(tr);
-        setCurrentPage('trip-detail');
-      } else {
-        setCurrentPage('trips');
-        window.history.replaceState({}, '', '/trips');
-      }
+      setSelectedTripId(id);
+      setCurrentPage('trip-detail');
     } else {
       setCurrentPage(page);
       // normalize URL without creating history entry
@@ -235,44 +178,29 @@ function AppContent() {
     const onPopState = () => {
       const { page, id } = parsePathname(window.location.pathname);
       if (page === 'experience-detail' && id) {
-        const ev = getEventDataById(id);
-        if (ev) {
-          setSelectedEvent(ev);
-          setSelectedTrip(null);
-          setCurrentPage('experience-detail');
-          return;
-        }
-        setCurrentPage('experiences');
+        setSelectedEventId(id);
+        setSelectedTripId(null);
+        setCurrentPage('experience-detail');
         return;
       }
 
       if (page === 'booking' && id) {
-        const ev = getEventDataById(id);
-        if (ev) {
-          setSelectedEvent(ev);
-          setSelectedTrip(null);
-          setCurrentPage('booking');
-          return;
-        }
-        setCurrentPage('experiences');
+        setSelectedEventId(id);
+        setSelectedTripId(null);
+        setCurrentPage('booking');
         return;
       }
 
       if (page === 'trip-detail' && id) {
-        const tr = getTripDataById(id);
-        if (tr) {
-          setSelectedTrip(tr);
-          setSelectedEvent(null);
-          setCurrentPage('trip-detail');
-          return;
-        }
-        setCurrentPage('trips');
+        setSelectedTripId(id);
+        setSelectedEventId(null);
+        setCurrentPage('trip-detail');
         return;
       }
 
       // simple pages
-      setSelectedEvent(null);
-      setSelectedTrip(null);
+      setSelectedEventId(null);
+      setSelectedTripId(null);
       setCurrentPage(page);
     };
 
@@ -289,24 +217,13 @@ function AppContent() {
   }, [currentPage]);
 
   const handleEventSelect = (eventId: string) => {
-    const eventData = getEventDataById(eventId);
-    if (eventData) {
-      // push state with event id
-      handleNavigate('experience-detail', eventId);
-    } else {
-      console.error(`Event with ID ${eventId} not found!`);
-      handleNavigate('experiences');
-    }
+    // Just navigate with ID - detail page will fetch from Supabase
+    handleNavigate('experience-detail', eventId);
   };
 
   const handleTripSelect = (tripId: string) => {
-    const tripData = getTripDataById(tripId);
-    if (tripData) {
-      handleNavigate('trip-detail', tripId);
-    } else {
-      console.error(`Trip with ID ${tripId} not found!`);
-      handleNavigate('trips');
-    }
+    // Just navigate with ID - detail page will fetch from Supabase
+    handleNavigate('trip-detail', tripId);
   };
 
   if (loading) {
@@ -362,34 +279,37 @@ function AppContent() {
           />
         )}
 
-        {currentPage === 'trip-detail' && selectedTrip && (
+        {currentPage === 'trip-detail' && selectedTripId && (
           <TripDetailsPage
-            tripId={selectedTrip.id}
+            tripId={selectedTripId}
             onBack={() => handleNavigate('trips')}
             onChatOpen={() => {}}
             currentUserId={user?.uid || null}
+            onAuthClick={() => setShowAuth(true)}
           />
         )}
 
-        {currentPage === 'experience-detail' && selectedEvent && (
+        {currentPage === 'experience-detail' && selectedEventId && (
           <ExperienceDetailPage
-            event={selectedEvent}
+            eventId={selectedEventId}
             onBack={() => handleNavigate('experiences')}
             onBookNow={(eventId) => handleNavigate('booking', eventId)}
             onChatOpen={() => {}}
+            onAuthClick={() => setShowAuth(true)}
           />
         )}
 
-        {currentPage === 'booking' && selectedEvent && (
-          <BookingPage event={selectedEvent} onBack={() => handleNavigate('experience-detail', selectedEvent.id)} />
-        )}
+        {/* TODO: Update BookingPage to accept eventId instead of event object */}
+        {/* {currentPage === 'booking' && selectedEventId && (
+          <BookingPage eventId={selectedEventId} onBack={() => handleNavigate('experience-detail', selectedEventId)} />
+        )} */}
 
         {currentPage === 'my-tickets' && (
           <MyTicketsPage onEventSelect={handleEventSelect} onChatOpen={() => {}} />
         )}
 
         {currentPage === 'profile' && (
-          <ProfilePage 
+          <ProfilePage
             onNavigate={(page) => handleNavigate(page as PageName)}
             onBack={() => handleNavigate('home')}
           />
@@ -402,9 +322,7 @@ function AppContent() {
           />
         )}
 
-        {currentPage === 'settings' && (
-          <SettingsPage onBack={() => handleNavigate('profile')} />
-        )}
+        {currentPage === 'settings' && <SettingsPage onBack={() => handleNavigate('profile')} />}
 
         {currentPage === 'terms' && <TermsPage />}
 

@@ -10,7 +10,6 @@ type ProfileModalProps = {
 export default function ProfileModal({ onClose }: ProfileModalProps) {
   const { profile, updateProfile, signOut } = useAuth();
   const [username, setUsername] = useState(profile?.username || '');
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(profile?.avatar_url || null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -24,7 +23,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
     if (file) {
-      setAvatarFile(file);
+      // TODO: Implement avatar file upload with storage
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
@@ -40,13 +39,13 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
 
     try {
       // Update profile with new data
-      const updates: any = {};
+      const updates: Record<string, string> = {};
       if (username !== profile?.username) {
         updates.username = username;
       }
       // Note: Avatar file upload would need to be handled separately with storage
       // For now, we'll just update the username
-      
+
       const { error } = await updateProfile(updates);
       if (error) {
         throw error;
@@ -88,20 +87,13 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
               )}
             </div>
             <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg transition">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="hidden"
-              />
+              <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
               Upload Photo
             </label>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Username
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
             <input
               type="text"
               value={username}
@@ -111,9 +103,7 @@ export default function ProfileModal({ onClose }: ProfileModalProps) {
             />
           </div>
 
-          {error && (
-            <div className="text-red-600 text-sm">{error}</div>
-          )}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <button
             type="submit"

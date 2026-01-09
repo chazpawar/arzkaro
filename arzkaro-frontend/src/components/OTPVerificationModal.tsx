@@ -5,7 +5,6 @@ import { X } from 'lucide-react';
 interface OTPVerificationModalProps {
   visible: boolean;
   email: string;
-  fullName: string;
   onClose: () => void;
   onVerifySuccess: () => void;
   onVerify: (otp: string) => Promise<{ error: Error | null }>;
@@ -15,7 +14,6 @@ interface OTPVerificationModalProps {
 export default function OTPVerificationModal({
   visible,
   email,
-  fullName,
   onClose,
   onVerifySuccess,
   onVerify,
@@ -46,15 +44,16 @@ export default function OTPVerificationModal({
 
       // Success!
       onVerifySuccess();
-    } catch (err: any) {
+    } catch (err) {
       console.error('OTP verification error:', err);
 
-      if (err.message?.includes('invalid') || err.message?.includes('expired')) {
+      const error = err as Error;
+      if (error.message?.includes('invalid') || error.message?.includes('expired')) {
         setError('Invalid or expired OTP. Please try again.');
-      } else if (err.message?.includes('rate limit')) {
+      } else if (error.message?.includes('rate limit')) {
         setError('Too many attempts. Please wait a moment.');
       } else {
-        setError(err.message || 'Failed to verify OTP. Please try again.');
+        setError(error.message || 'Failed to verify OTP. Please try again.');
       }
     } finally {
       setLoading(false);
@@ -75,13 +74,14 @@ export default function OTPVerificationModal({
 
       setSuccess('✓ Verification code sent successfully!');
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
+    } catch (err) {
       console.error('OTP resend error:', err);
 
-      if (err.message?.includes('rate limit')) {
+      const error = err as Error;
+      if (error.message?.includes('rate limit')) {
         setError('Please wait a moment before requesting another code.');
       } else {
-        setError(err.message || 'Failed to resend OTP');
+        setError(error.message || 'Failed to resend OTP');
       }
     } finally {
       setLoading(false);
@@ -112,7 +112,8 @@ export default function OTPVerificationModal({
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">Verify your email</h2>
           <p className="text-gray-600 text-sm">
-            Enter the 6-digit code sent to<br />
+            Enter the 6-digit code sent to
+            <br />
             <span className="font-semibold text-gray-900">{email}</span>
           </p>
         </div>

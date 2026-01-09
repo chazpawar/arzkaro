@@ -75,21 +75,25 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
   // Handle delete account
   const handleDeleteAccount = async () => {
-    if (!window.confirm(
-      'Are you sure you want to delete your account? This action cannot be undone.\n\n' +
-      'All your data including:\n' +
-      '• Profile information\n' +
-      '• Event bookings\n' +
-      '• Messages\n' +
-      '• Photos\n\n' +
-      'will be permanently deleted.'
-    )) {
+    if (
+      !window.confirm(
+        'Are you sure you want to delete your account? This action cannot be undone.\n\n' +
+          'All your data including:\n' +
+          '• Profile information\n' +
+          '• Event bookings\n' +
+          '• Messages\n' +
+          '• Photos\n\n' +
+          'will be permanently deleted.'
+      )
+    ) {
       return;
     }
 
-    if (!window.confirm(
-      'This is your last chance. Are you absolutely sure you want to permanently delete your account?'
-    )) {
+    if (
+      !window.confirm(
+        'This is your last chance. Are you absolutely sure you want to permanently delete your account?'
+      )
+    ) {
       return;
     }
 
@@ -100,7 +104,10 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
         throw new Error('No user found');
       }
 
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const {
+        data: { session },
+        error: sessionError,
+      } = await supabase.auth.getSession();
 
       if (sessionError || !session) {
         throw new Error('No active session found');
@@ -118,18 +125,20 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       }
 
       await signOut();
-      alert('Your account has been permanently deleted. We\'re sorry to see you go.');
+      alert("Your account has been permanently deleted. We're sorry to see you go.");
       onBack();
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error deleting account:', error);
-      alert(error.message || 'Failed to delete account. Please try again or contact support.');
+      const err = error as Error;
+      alert(err.message || 'Failed to delete account. Please try again or contact support.');
     } finally {
       setDeleting(false);
     }
   };
 
   const handleContactUs = () => {
-    window.location.href = 'mailto:thearzkaro@gmail.com?subject=Support%20Request&body=Hi%20Arzkaro%20Team%2C%0A%0A';
+    window.location.href =
+      'mailto:thearzkaro@gmail.com?subject=Support%20Request&body=Hi%20Arzkaro%20Team%2C%0A%0A';
   };
 
   return (
@@ -137,11 +146,16 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
-          <button
-            onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+          <button onClick={onBack} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
               <path d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -157,7 +171,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Profile Section */}
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">Profile</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+            Profile
+          </h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="flex items-center px-4 py-4">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">
@@ -168,9 +184,13 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 )}
               </div>
               <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">{isPublic ? 'Public Account' : 'Private Account'}</h3>
+                <h3 className="font-semibold text-gray-900">
+                  {isPublic ? 'Public Account' : 'Private Account'}
+                </h3>
                 <p className="text-sm text-gray-500">
-                  {isPublic ? 'Your profile is visible to everyone' : 'Your profile is only visible to you'}
+                  {isPublic
+                    ? 'Your profile is visible to everyone'
+                    : 'Your profile is only visible to you'}
                 </p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -189,7 +209,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
         {/* Preferences Section */}
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">Preferences</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+            Preferences
+          </h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="flex items-center px-4 py-4">
               <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">
@@ -214,7 +236,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
         {/* Support Section */}
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">Support</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+            Support
+          </h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button
               onClick={handleContactUs}
@@ -227,7 +251,15 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 <h3 className="font-semibold text-gray-900">Contact Us</h3>
                 <p className="text-sm text-gray-500">Get in touch with our team</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -236,7 +268,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
         {/* Legal Section */}
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">Legal</h2>
+          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
+            Legal
+          </h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button
               onClick={() => window.open('https://arzkaro.com/terms', '_blank')}
@@ -249,7 +283,15 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 <h3 className="font-semibold text-gray-900">Terms & Conditions</h3>
                 <p className="text-sm text-gray-500">View our terms of service</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -265,7 +307,15 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 <h3 className="font-semibold text-gray-900">Privacy Policy</h3>
                 <p className="text-sm text-gray-500">How we handle your data</p>
               </div>
-              <svg className="w-5 h-5 text-gray-400" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-5 h-5 text-gray-400"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -274,7 +324,9 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
         {/* Danger Zone */}
         <div className="mb-6">
-          <h2 className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-3 px-2">Danger Zone</h2>
+          <h2 className="text-xs font-semibold text-red-500 uppercase tracking-wider mb-3 px-2">
+            Danger Zone
+          </h2>
           <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <button
               onClick={handleDeleteAccount}
@@ -290,7 +342,15 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                 </h3>
                 <p className="text-sm text-gray-500">Permanently delete your account and data</p>
               </div>
-              <svg className="w-5 h-5 text-red-600" fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" stroke="currentColor">
+              <svg
+                className="w-5 h-5 text-red-600"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
                 <path d="M9 5l7 7-7 7" />
               </svg>
             </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Settings, Calendar, Ticket } from 'lucide-react';
+import { User, Settings } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 interface ProfilePageProps {
@@ -18,7 +18,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     eventsAttended: 0,
     ticketCount: 0,
   });
-  const [loading, setLoading] = useState(false);
+  const loading = false; // TODO: Set to true when actually loading data
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -46,7 +46,10 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
         <div className="max-w-3xl mx-auto px-4 py-8">
           <div className="flex flex-col items-center">
             {/* Avatar */}
-            <div className="relative mb-4 group cursor-pointer" onClick={() => onNavigate('edit-profile')}>
+            <div
+              className="relative mb-4 group cursor-pointer"
+              onClick={() => onNavigate('edit-profile')}
+            >
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -58,7 +61,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                   <span className="text-3xl font-semibold text-[#FF785A]">{avatarLetter}</span>
                 </div>
               )}
-              
+
               {/* Edit Badge */}
               <div className="absolute bottom-1 right-1 w-7 h-7 bg-[#FF785A] rounded-full flex items-center justify-center border-3 border-white shadow-md group-hover:bg-orange-600 transition-colors">
                 <User className="w-4 h-4 text-white" />
@@ -75,9 +78,9 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                 <p className="text-2xl font-bold text-gray-900">{stats.eventsAttended}</p>
                 <p className="text-sm text-gray-500 mt-1">Events</p>
               </div>
-              
+
               <div className="w-px bg-gray-300" />
-              
+
               <button
                 className="text-center flex-1 hover:bg-gray-200 rounded-lg transition-colors px-2 py-1"
                 onClick={() => onNavigate('my-tickets')}
@@ -136,7 +139,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
             </svg>
             Sign Out
           </button>
-          
+
           <p className="text-center text-sm text-gray-400 mt-4">Version 1.0.0</p>
         </div>
       </div>
