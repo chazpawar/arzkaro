@@ -398,7 +398,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
-      console.log('Sign out successful - local state cleared');
+      
+      // Explicitly clear all Supabase auth data from localStorage
+      // This ensures the session is removed even if signOut() failed/timed out
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('sb-') && key.includes('-auth-token')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
+      console.log('Sign out successful - local state and storage cleared');
     } catch (error) {
       console.error('Error signing out:', error);
       // Still clear local state even if Supabase call fails
@@ -406,6 +415,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
+      
+      // Explicitly clear all Supabase auth data from localStorage
+      try {
+        Object.keys(localStorage).forEach(key => {
+          if (key.startsWith('sb-') && key.includes('-auth-token')) {
+            localStorage.removeItem(key);
+          }
+        });
+      } catch (storageError) {
+        console.error('Error clearing localStorage:', storageError);
+      }
     } finally {
       setIsSigningOut(false);
     }
