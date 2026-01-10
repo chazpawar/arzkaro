@@ -8,10 +8,12 @@ import HomePage from './pages/HomePage.tsx';
 import ForYou from './pages/ForYou.tsx';
 import ExperiencesPage from './pages/ExperiencesPage.tsx';
 import ExperienceDetailPage from './pages/ExperienceDetailPage.tsx';
+import BookingPage from './pages/BookingPage.tsx';
 import ProfilePage from './pages/ProfilePage.tsx';
 import EditProfilePage from './pages/EditProfilePage.tsx';
 import SettingsPage from './pages/SettingsPage.tsx';
 import MyTicketsPage from './pages/MyTicketsPage.tsx';
+import TicketDetailPage from './pages/TicketDetailPage.tsx';
 import TripsPage from './pages/Trips.tsx';
 import TripDetailsPage from './pages/TripDetails.tsx';
 import Footer from './components/Footer.tsx';
@@ -36,6 +38,7 @@ type PageName =
   | 'trips'
   | 'trip-detail'
   | 'my-tickets'
+  | 'ticket-detail'
   | 'terms'
   | 'thankyou';
 
@@ -72,6 +75,9 @@ function parsePathname(pathname: string) {
   const tripMatch = clean.match(/^\/trip\/([^/]+)$/);
   if (tripMatch) return { page: 'trip-detail' as PageName, id: tripMatch[1] };
 
+  const ticketMatch = clean.match(/^\/ticket\/([^/]+)$/);
+  if (ticketMatch) return { page: 'ticket-detail' as PageName, id: ticketMatch[1] };
+
   // fallback
   return { page: 'home' as PageName };
 }
@@ -104,6 +110,8 @@ function pathFor(page: PageName, id?: string | null) {
       return id ? `/booking/${id}` : '/experiences';
     case 'trip-detail':
       return id ? `/trip/${id}` : '/trips';
+    case 'ticket-detail':
+      return id ? `/ticket/${id}` : '/my-tickets';
     default:
       return '/';
   }
@@ -137,6 +145,8 @@ function AppContent() {
       setSelectedEventId(id);
     } else if (page === 'booking' && id) {
       setSelectedEventId(id);
+    } else if (page === 'ticket-detail' && id) {
+      setSelectedEventId(id);
     } else if (page === 'trip-detail' && id) {
       setSelectedTripId(id);
     }
@@ -166,6 +176,9 @@ function AppContent() {
     } else if (page === 'trip-detail' && id) {
       setSelectedTripId(id);
       setCurrentPage('trip-detail');
+    } else if (page === 'ticket-detail' && id) {
+      setSelectedEventId(id);
+      setCurrentPage('ticket-detail');
     } else {
       setCurrentPage(page);
       // normalize URL without creating history entry
@@ -195,6 +208,13 @@ function AppContent() {
         setSelectedTripId(id);
         setSelectedEventId(null);
         setCurrentPage('trip-detail');
+        return;
+      }
+
+      if (page === 'ticket-detail' && id) {
+        setSelectedEventId(id);
+        setSelectedTripId(null);
+        setCurrentPage('ticket-detail');
         return;
       }
 
@@ -299,13 +319,29 @@ function AppContent() {
           />
         )}
 
-        {/* TODO: Update BookingPage to accept eventId instead of event object */}
-        {/* {currentPage === 'booking' && selectedEventId && (
-          <BookingPage eventId={selectedEventId} onBack={() => handleNavigate('experience-detail', selectedEventId)} />
-        )} */}
+        {currentPage === 'booking' && selectedEventId && (
+          <BookingPage
+            eventId={selectedEventId}
+            onBack={() => handleNavigate('experience-detail', selectedEventId)}
+            onSuccess={() => handleNavigate('my-tickets')}
+            onAuthClick={() => setShowAuth(true)}
+          />
+        )}
 
         {currentPage === 'my-tickets' && (
-          <MyTicketsPage onEventSelect={handleEventSelect} onChatOpen={() => {}} />
+          <MyTicketsPage 
+            onEventSelect={handleEventSelect} 
+            onChatOpen={() => {}} 
+            onTicketSelect={(ticketId) => handleNavigate('ticket-detail', ticketId)}
+            onAuthClick={() => setShowAuth(true)}
+          />
+        )}
+
+        {currentPage === 'ticket-detail' && selectedEventId && (
+          <TicketDetailPage
+            ticketId={selectedEventId}
+            onBack={() => handleNavigate('my-tickets')}
+          />
         )}
 
         {currentPage === 'profile' && (

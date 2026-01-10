@@ -1,8 +1,9 @@
 // src/pages/BookingPage.tsx
-import React, { useState } from 'react';
-import { ChevronLeft, MapPin } from 'lucide-react';
-import { Event } from './ExperienceDetailPage';
-import Forms from '../components/Form';
+import React, { useState, useEffect } from 'react';
+import { ChevronLeft, MapPin, Calendar } from 'lucide-react';
+import { useEvent } from '../hooks/useEvents';
+import { useAuth } from '../contexts/AuthContext';
+import { razorpayService } from '../services/razorpayService';
 
 interface TicketType {
   id: string;
@@ -14,29 +15,35 @@ interface TicketType {
 }
 
 interface BookingPageProps {
-  event: Event;
+  eventId: string;
   onBack: () => void;
+  onSuccess?: () => void;
+  onAuthClick?: () => void;
 }
 
-export default function BookingPage({ event, onBack }: BookingPageProps) {
+export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }: BookingPageProps) {
+  const { event, ticketTypes: fetchedTicketTypes, loading, error } = useEvent(eventId);
+  const { user } = useAuth();
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // Mock ticket types - in real implementation, fetch from Supabase
-  const ticketTypes: TicketType[] = [
-    {
-      id: '1',
-      name: 'General Admission',
-      description: 'Standard entry ticket',
-      price: event.ticket_price || 0,
-      quantity_available: 100,
-      quantity_sold: 20,
-    },
-  ];
+  // Use fetched ticket types or create a default one from event
+  const ticketTypes: TicketType[] = fetchedTicketTypes.length > 0
+    ? fetchedTicketTypes
+    : event
+      ? [{
+          id: 'default',
+          name: 'General Admission',
+          description: 'Standard entry ticket',
+          price: event.price || 0,
+          quantity_available: 100, // Default if not specified
+          quantity_sold: 0,
+        }]
+      : [];
 
   // Auto-select first ticket type
-  React.useEffect(() => {
+  useEffect(() => {
     if (ticketTypes.length > 0 && !selectedTicketType) {
       setSelectedTicketType(ticketTypes[0]);
     }
@@ -67,7 +74,7 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
     });
   };
 
-  const unitPrice = selectedTicketType?.price ?? event.ticket_price ?? 0;
+  const unitPrice = selectedTicketType?.price ?? event?.price ?? 0;
   const totalAmount = unitPrice * quantity;
   const maxQuantity = selectedTicketType
     ? Math.min(10, selectedTicketType.quantity_available - selectedTicketType.quantity_sold)
@@ -80,9 +87,144 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
     }
   };
 
-  const handleConfirmBooking = () => {
-    setShowPaymentForm(true);
+  const handleConfirmBooking = async () => {
+    // Check if user is logged in
+    if (!user) {
+      if (onAuthClick) {
+        onAuthClick();
+      } else {
+        alert('Please log in to book tickets');
+      }
+      return;
+    }
+
+    if (!event || !selectedTicketType) {
+      alert('Please select a ticket type');
+      return;
+    }
+
+    setIsProcessing(true);
+
+    try {
+      // Get user details
+      const userDetails = {
+        name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'Guest',
+        email: user.email || '',
+        contact: user.user_metadata?.phone || '+919999999999',
+      };
+
+      if (totalAmount > 0) {
+        // PAID EVENT - Process with Razorpay
+        const result = await razorpayService.processPayment(
+          event.id,
+          selectedTicketType.id,
+          quantity,
+          user.id,
+          userDetails
+        );
+
+        if (result.success) {
+          alert('🎉 Booking confirmed! Check your tickets in My Tickets.');
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            onBack();
+          }
+        } else if (result.cancelled) {
+          // User cancelled payment - just show message, don't navigate away
+          alert('Payment cancelled. You can try again when ready.');
+        } else {
+          throw new Error(result.error || 'Payment failed');
+        }
+      } else {
+        // FREE EVENT - Direct booking
+        const result = await razorpayService.processFreeBooking(
+          event.id,
+          selectedTicketType.id,
+          quantity,
+          user.id
+        );
+
+        if (result.success) {
+          alert('🎉 Booking confirmed! This one\'s on us! Check your tickets in My Tickets.');
+          if (onSuccess) {
+            onSuccess();
+          } else {
+            onBack();
+          }
+        } else {
+          throw new Error(result.error || 'Booking failed');
+        }
+      }
+    } catch (err: any) {
+      console.error('Booking error:', err);
+      alert(err.message || 'Failed to complete booking. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-[#FF785A] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading event details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center px-4">
+          <div className="text-6xl mb-4">😕</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Event not found</h2>
+          <p className="text-gray-600 mb-6">We couldn't load this event. It may have been removed.</p>
+          <button
+            onClick={onBack}
+            className="px-6 py-3 bg-[#FF785A] text-white font-semibold rounded-xl hover:bg-[#ff6a47] transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Sold out check
+  const isSoldOut = ticketTypes.every(
+    (ticket) => ticket.quantity_available - ticket.quantity_sold <= 0
+  );
+
+  if (isSoldOut) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 py-4">
+            <button
+              onClick={onBack}
+              className="p-2 hover:bg-gray-100 rounded-full transition-colors inline-flex items-center gap-2"
+              aria-label="Go back"
+            >
+              <ChevronLeft size={24} className="text-gray-900" />
+              <span className="text-sm font-medium text-gray-900">Back</span>
+            </button>
+          </div>
+        </div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center px-4">
+            <div className="text-6xl mb-4">🎫</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">Sold Out</h2>
+            <p className="text-gray-600">All tickets for this event have been sold.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -106,9 +248,9 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
           <div className="flex gap-4">
             {/* Event Image */}
             <div className="flex-shrink-0">
-              {event.image_url ? (
+              {event.cover_image_url ? (
                 <img
-                  src={event.image_url}
+                  src={event.cover_image_url}
                   alt={event.title}
                   className="w-24 h-24 object-cover rounded-xl"
                   onError={(e) => {
@@ -125,13 +267,16 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
             {/* Event Info */}
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-bold text-gray-900 mb-2 truncate">{event.title}</h2>
-              <p className="text-sm text-gray-600 mb-1">
-                {formatDate(event.event_date)} · {formatTime(event.event_date)}
-              </p>
-              {event.venue && (
+              <div className="flex items-center gap-1 text-sm text-gray-600 mb-1">
+                <Calendar size={14} />
+                <span>
+                  {formatDate(event.start_date)} · {formatTime(event.start_date)}
+                </span>
+              </div>
+              {event.location_name && (
                 <div className="flex items-center gap-1 text-sm text-gray-600">
                   <MapPin size={14} />
-                  <span className="truncate">{event.venue}</span>
+                  <span className="truncate">{event.location_name}</span>
                 </div>
               )}
             </div>
@@ -146,40 +291,40 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
               {ticketTypes.map((ticket) => {
                 const available = ticket.quantity_available - ticket.quantity_sold;
                 const isSelected = selectedTicketType?.id === ticket.id;
-                const isSoldOut = available <= 0;
+                const isTicketSoldOut = available <= 0;
 
                 return (
                   <button
                     key={ticket.id}
-                    onClick={() => !isSoldOut && setSelectedTicketType(ticket)}
-                    disabled={isSoldOut}
+                    onClick={() => !isTicketSoldOut && setSelectedTicketType(ticket)}
+                    disabled={isTicketSoldOut}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-all ${
                       isSelected
                         ? 'border-[#FF785A] bg-[#FF785A]/5'
-                        : isSoldOut
+                        : isTicketSoldOut
                           ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
                           : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span
-                        className={`font-semibold ${isSoldOut ? 'text-gray-400' : 'text-gray-900'}`}
+                        className={`font-semibold ${isTicketSoldOut ? 'text-gray-400' : 'text-gray-900'}`}
                       >
                         {ticket.name}
                       </span>
                       <span
-                        className={`font-bold ${isSoldOut ? 'text-gray-400' : 'text-[#FF785A]'}`}
+                        className={`font-bold ${isTicketSoldOut ? 'text-gray-400' : 'text-[#FF785A]'}`}
                       >
-                        {formatPrice(ticket.price)}
+                        {ticket.price === 0 ? 'Free' : formatPrice(ticket.price)}
                       </span>
                     </div>
                     {ticket.description && (
                       <p className="text-sm text-gray-600 mb-2">{ticket.description}</p>
                     )}
                     <p
-                      className={`text-xs ${isSoldOut ? 'text-red-500 font-semibold' : 'text-gray-500'}`}
+                      className={`text-xs ${isTicketSoldOut ? 'text-red-500 font-semibold' : 'text-gray-500'}`}
                     >
-                      {isSoldOut ? 'Sold Out' : `${available} left`}
+                      {isTicketSoldOut ? 'Sold Out' : `${available} left`}
                     </p>
                   </button>
                 );
@@ -225,7 +370,9 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
               <span className="text-gray-700">
                 {selectedTicketType?.name || 'Ticket'} x {quantity}
               </span>
-              <span className="font-semibold text-gray-900">{formatPrice(totalAmount)}</span>
+              <span className="font-semibold text-gray-900">
+                {totalAmount === 0 ? 'Free' : formatPrice(totalAmount)}
+              </span>
             </div>
             <div className="border-t border-gray-200 my-3"></div>
             <div className="flex items-center justify-between">
@@ -281,27 +428,21 @@ export default function BookingPage({ event, onBack }: BookingPageProps) {
             </div>
             <button
               onClick={handleConfirmBooking}
-              className="px-8 py-4 bg-[#FF785A] text-white text-lg font-semibold rounded-xl hover:bg-[#ff6a47] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isProcessing || !selectedTicketType}
+              className="px-8 py-4 bg-[#FF785A] text-white text-lg font-semibold rounded-xl hover:bg-[#ff6a47] transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Confirm Booking
+              {isProcessing ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <span>Confirm Booking</span>
+              )}
             </button>
           </div>
         </div>
       </div>
-
-      {/* Payment Form Modal */}
-      {showPaymentForm && (
-        <Forms
-          open={showPaymentForm}
-          amountINR={totalAmount}
-          eventId={event.id}
-          onClose={() => setShowPaymentForm(false)}
-          onPaymentSuccess={() => {
-            // Handle successful payment
-            console.log('Payment successful!');
-          }}
-        />
-      )}
     </div>
   );
 }
