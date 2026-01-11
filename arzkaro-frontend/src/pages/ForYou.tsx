@@ -67,7 +67,8 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
         .eq('type', 'experience')
         .eq('is_published', true)
         .eq('is_cancelled', false)
-        .order('created_at', { ascending: false })
+        .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
+        .order('start_date', { ascending: true })
         .limit(10);
 
       if (experienceError) {
@@ -81,7 +82,8 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
         .eq('type', 'trip')
         .eq('is_published', true)
         .eq('is_cancelled', false)
-        .order('created_at', { ascending: false })
+        .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
+        .order('start_date', { ascending: true })
         .limit(10);
 
       if (tripError) {

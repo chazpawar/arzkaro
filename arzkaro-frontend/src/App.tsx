@@ -20,6 +20,7 @@ import TripDetailsPage from './pages/TripDetails.tsx';
 import Footer from './components/Footer.tsx';
 import TermsPage from './pages/Terms.tsx';
 import Thankyou from './pages/Thankyou.tsx';
+import ChatModal from './components/ChatModal.tsx';
 
 // Mocking the user object structure that would come from AuthContext
 interface MockUser {
@@ -134,6 +135,7 @@ function AppContent() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<boolean>(false);
+  const [showChatModal, setShowChatModal] = useState<boolean>(false);
 
   // Navigation helper that syncs history
   const handleNavigate = useCallback((page: PageName, id?: string | null, replace = false) => {
@@ -278,6 +280,7 @@ function AppContent() {
           const page = mapping[p] || 'home';
           handleNavigate(page);
         }}
+        onChatClick={() => setShowChatModal(true)}
       />
 
       {/* Spacer for fixed navbar */}
@@ -318,6 +321,7 @@ function AppContent() {
             onChatOpen={() => {}}
             currentUserId={user?.uid || null}
             onAuthClick={() => setShowAuth(true)}
+            onBookNow={(tripId) => handleNavigate('booking', tripId)}
           />
         )}
 
@@ -377,6 +381,7 @@ function AppContent() {
         {currentPage === 'thankyou' && <Thankyou />}
 
         {showAuth && !user && <Auth onClose={() => setShowAuth(false)} />}
+        {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
       </main>
 
       {/* Pass handleNavigate so Footer can trigger navigation (e.g., to 'terms' or 'thankyou') */}

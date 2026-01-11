@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Menu, X, User } from 'lucide-react';
+import { Menu, X, User, MessageCircle } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 type NavbarProps = {
   onAuthClick: () => void;
   currentPage: string;
   onNavigate: (page: string) => void;
+  onChatClick: () => void;
 };
 
-export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarProps) {
+export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatClick }: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, profile, isAuthenticated, signOut } = useAuth();
 
@@ -95,6 +96,15 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
         <div className="flex items-center gap-4">
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
+              {/* Chat Button */}
+              <button
+                onClick={onChatClick}
+                className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 relative"
+                aria-label="Chat"
+              >
+                <MessageCircle size={24} className="text-gray-700" />
+              </button>
+              
               {/* My Tickets */}
               <button
                 onClick={() => onNavigate('my-tickets')}
@@ -235,6 +245,17 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                   className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
                 >
                   My Profile
+                </button>
+                
+                <button
+                  onClick={() => {
+                    onChatClick();
+                    setMobileOpen(false);
+                  }}
+                  className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200 flex items-center gap-2"
+                >
+                  <MessageCircle size={20} />
+                  Chat
                 </button>
                 
                 <button

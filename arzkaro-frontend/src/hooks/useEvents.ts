@@ -83,6 +83,7 @@ export function useEvents(category?: string) {
         .eq('is_published', true)
         .eq('is_cancelled', false)
         .in('type', ['event', 'experience'])
+        .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
         .order('start_date', { ascending: true });
 
       if (category && category !== 'All') {
@@ -132,11 +133,22 @@ export function useEvent(eventId: string | null) {
       setLoading(true);
       setError(null);
 
-      // Fetch event details WITHOUT host profile join (to avoid 401 for unauthenticated users)
-      // Host details will be shown only to authenticated users via separate query or UI message
+      // Fetch event details with host profile data
       const { data: eventData, error: eventError } = await supabase
         .from('events')
-        .select('*')
+        .select(`
+          *,
+          host:profiles!host_id(
+            id,
+            full_name,
+            avatar_url,
+            bio,
+            instagram,
+            youtube,
+            linkedin,
+            twitter
+          )
+        `)
         .eq('id', eventId)
         .single();
 
@@ -189,7 +201,7 @@ export function useFeaturedEvents(limit: number = 10) {
         .eq('is_published', true)
         .eq('is_cancelled', false)
         .in('type', ['event', 'experience'])
-        .gte('start_date', new Date().toISOString())
+        .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
         .order('start_date', { ascending: true })
         .limit(limit);
 

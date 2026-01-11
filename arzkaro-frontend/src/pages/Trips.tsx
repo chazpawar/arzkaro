@@ -60,7 +60,8 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
           .eq('type', 'trip')
           .eq('is_published', true)
           .eq('is_cancelled', false)
-          .order('created_at', { ascending: false });
+          .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
+          .order('start_date', { ascending: true });
 
         if (error) {
           console.error('Error fetching trips:', error);

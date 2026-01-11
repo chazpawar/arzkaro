@@ -47,6 +47,20 @@ export default function EditProfilePage({ onBack, onSuccess }: EditProfilePagePr
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        alert('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+        return;
+      }
+
+      // Validate file size (2MB limit)
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+      if (file.size > maxSize) {
+        alert('Image size must be less than 2MB');
+        return;
+      }
+
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -118,23 +132,27 @@ export default function EditProfilePage({ onBack, onSuccess }: EditProfilePagePr
       // Upload avatar if changed
       if (avatarFile && user?.id) {
         const fileExt = avatarFile.name.split('.').pop();
-        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const fileName = `${Date.now()}.${fileExt}`;
+        const filePath = `${user.id}/${fileName}`; // Upload to user's folder
+        
         const { error: uploadError } = await supabase.storage
           .from('avatars')
-          .upload(fileName, avatarFile, { upsert: true });
+          .upload(filePath, avatarFile, { upsert: true });
 
         if (uploadError) {
           console.error('Error uploading avatar:', uploadError);
+          alert(`Failed to upload avatar: ${uploadError.message}`);
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
-            .getPublicUrl(fileName);
+            .getPublicUrl(filePath);
           avatarUrl = publicUrl;
         }
       }
 
       // Update profile
       const { error } = await updateProfile({
+        full_name: formData.fullName || undefined,
         username: formData.username || undefined,
         bio: formData.bio || undefined,
         phone: formData.phone || undefined,
