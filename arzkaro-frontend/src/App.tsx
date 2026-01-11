@@ -286,7 +286,18 @@ function AppContent() {
         {currentPage === 'home' && <HomePage />}
 
         {currentPage === 'for-you' && (
-          <ForYou onEventSelect={handleEventSelect} onTripSelect={handleTripSelect} />
+          <ForYou 
+            onEventSelect={handleEventSelect} 
+            onTripSelect={handleTripSelect}
+            onNavigate={(p: string) => {
+              const mapping: { [k: string]: PageName } = {
+                experiences: 'experiences',
+                trips: 'trips',
+              };
+              const page = mapping[p] || 'home';
+              handleNavigate(page);
+            }}
+          />
         )}
 
         {currentPage === 'experiences' && <ExperiencesPage onEventClick={handleEventSelect} />}

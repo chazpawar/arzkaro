@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, MapPin, Calendar, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { SkeletonCard, SkeletonStyles } from '../components/SkeletonCard';
+import { PLACEHOLDER_IMAGES, getPlaceholderImage } from '../utils/placeholders';
 
 interface Trip {
   id: string;
@@ -206,8 +207,7 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
                           alt={category.label}
                           className="w-14 h-14 object-contain"
                           onError={(e) => {
-                            e.currentTarget.src =
-                              'https://via.placeholder.com/56?text=' + category.label;
+                            e.currentTarget.src = getPlaceholderImage(56, 56, category.label.substring(0, 2));
                           }}
                         />
 
@@ -276,7 +276,7 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
                     alt={trip.title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                     onError={(e) => {
-                      e.currentTarget.src = 'https://via.placeholder.com/400x300?text=No+Image';
+                      e.currentTarget.src = PLACEHOLDER_IMAGES.medium;
                     }}
                   />
                 </div>

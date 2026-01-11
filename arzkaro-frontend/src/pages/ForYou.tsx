@@ -4,10 +4,12 @@ import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { SkeletonHorizontalCard, SkeletonStyles } from '../components/SkeletonCard';
+import { PLACEHOLDER_IMAGES } from '../utils/placeholders';
 
 type ForYouProps = {
   onEventSelect: (eventId: string) => void;
   onTripSelect: (tripId: string) => void;
+  onNavigate?: (page: string) => void;
 };
 
 type CombinedItem = {
@@ -23,7 +25,7 @@ type CombinedItem = {
   estimated_cost?: number;
 };
 
-export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
+export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForYouProps) {
   const [topExperiences, setTopExperiences] = useState<CombinedItem[]>([]);
   const [popularTrips, setPopularTrips] = useState<CombinedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -200,7 +202,7 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Top Experiences</h2>
             <button
-              onClick={() => onEventSelect('')}
+              onClick={() => onNavigate?.('experiences')}
               className="text-[#FF785A] font-semibold hover:underline transition-colors"
             >
               See All
@@ -253,7 +255,7 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
                         alt={item.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                         onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/256x160?text=No+Image';
+                          e.currentTarget.src = PLACEHOLDER_IMAGES.card;
                         }}
                       />
                     </div>
@@ -299,7 +301,7 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-2xl font-bold text-gray-900">Popular Trips</h2>
             <button
-              onClick={() => onTripSelect('')}
+              onClick={() => onNavigate?.('trips')}
               className="text-[#ABDF8B] font-semibold hover:underline transition-colors"
             >
               See All
@@ -352,7 +354,7 @@ export default function ForYou({ onEventSelect, onTripSelect }: ForYouProps) {
                         alt={item.title}
                         className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                         onError={(e) => {
-                          e.currentTarget.src = 'https://via.placeholder.com/256x160?text=No+Image';
+                          e.currentTarget.src = PLACEHOLDER_IMAGES.card;
                         }}
                       />
                     </div>

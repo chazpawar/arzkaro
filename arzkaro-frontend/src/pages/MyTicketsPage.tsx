@@ -15,7 +15,6 @@ type TabType = 'active' | 'used' | 'expired';
 
 export default function MyTicketsPage({
   onEventSelect,
-  onChatOpen,
   onTicketSelect,
   onAuthClick,
 }: MyTicketsPageProps) {

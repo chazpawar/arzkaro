@@ -78,7 +78,7 @@ export function useTickets(userId: string | undefined) {
       if (fetchError) throw fetchError;
 
       // Type assertion with proper handling
-      const ticketsData = (data || []).map((item: any) => ({
+      const ticketsData = (data || []).map((item: Record<string, unknown>) => ({
         ...item,
         event: item.event || {},
         ticket_type: item.ticket_type || null,
@@ -86,8 +86,8 @@ export function useTickets(userId: string | undefined) {
       })) as TicketWithDetails[];
 
       setTickets(ticketsData);
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         console.error('Request timed out while fetching tickets');
         setError('Request timed out. Please try again.');
       } else {
@@ -197,8 +197,8 @@ export function useTicket(ticketId: string | undefined) {
       } as TicketWithDetails;
 
       setTicket(ticketData);
-    } catch (err: any) {
-      if (err.name === 'AbortError') {
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') {
         console.error('Request timed out while fetching ticket');
         setError('Request timed out. Please try again.');
       } else {

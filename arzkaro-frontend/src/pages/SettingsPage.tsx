@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, EyeOff, Bell, Mail, FileText, Shield, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, Mail, FileText, Shield, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -10,7 +10,6 @@ interface SettingsPageProps {
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, signOut } = useAuth();
   const [isPublic, setIsPublic] = useState(true);
-  const [notifications, setNotifications] = useState(true);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -199,33 +198,6 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
                   checked={isPublic}
                   onChange={(e) => handleVisibilityToggle(e.target.checked)}
                   disabled={loading || updating}
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF785A]"></div>
-              </label>
-            </div>
-          </div>
-        </div>
-
-        {/* Preferences Section */}
-        <div className="mb-6">
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3 px-2">
-            Preferences
-          </h2>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="flex items-center px-4 py-4">
-              <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-4">
-                <Bell className="w-5 h-5 text-gray-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900">Push Notifications</h3>
-                <p className="text-sm text-gray-500">Stay updated</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={notifications}
-                  onChange={(e) => setNotifications(e.target.checked)}
                   className="sr-only peer"
                 />
                 <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF785A]"></div>

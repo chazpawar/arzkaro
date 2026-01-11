@@ -71,14 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
-  // Fetch user profile from database
+  // Fetch user profile from database with optimized query
   const fetchProfile = async (userId: string): Promise<Profile | null> => {
     try {
+      // Only fetch essential fields to reduce query time
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, username, full_name, avatar_url, email, role, bio, phone, date_of_birth, gender, instagram, youtube, linkedin, twitter, interests, is_public, created_at, updated_at')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // Use maybeSingle instead of single to avoid errors if profile doesn't exist
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -103,30 +104,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize auth state on mount
   useEffect(() => {
     let mounted = true;
+    let isFetchingProfile = false; // Flag to prevent duplicate fetches
+    let safetyTimeoutId: ReturnType<typeof setTimeout> | null = null;
+    let isInitialLoad = true; // Track if this is the initial load
 
-    // Set a safety timeout to prevent infinite loading
-    const safetyTimeout = setTimeout(() => {
-      if (mounted && loading) {
-        console.warn('Auth initialization timeout - forcing loading to false');
-        setLoading(false);
-      }
-    }, 5000); // 5 second timeout
+    const initAuth = async () => {
+      try {
+        // Set a safety timeout to prevent infinite loading (3 seconds like mobile)
+        safetyTimeoutId = setTimeout(() => {
+          if (mounted && loading) {
+            console.warn('Auth initialization timeout - forcing loading to false');
+            setLoading(false);
+          }
+        }, 3000); // 3 second timeout (same as mobile)
 
-    // Get initial session
-    supabase.auth.getSession()
-      .then(async ({ data: { session }, error }) => {
+        // Get initial session
+        const { data: { session }, error } = await supabase.auth.getSession();
+
         if (!mounted) return;
 
         if (error) {
           console.error('Error getting session:', error);
           setLoading(false);
+          if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
           return;
         }
 
         setSession(session);
         setUser(session?.user ?? null);
 
-        if (session?.user) {
+        // Fetch profile only if we have a user and haven't started fetching
+        if (session?.user && !isFetchingProfile) {
+          isFetchingProfile = true;
           try {
             const profileData = await fetchProfile(session.user.id);
             if (mounted) {
@@ -134,23 +143,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           } catch (err) {
             console.error('Error loading profile on init:', err);
-            // Continue even if profile fetch fails
             if (mounted) {
               setProfile(null);
             }
+          } finally {
+            isFetchingProfile = false;
           }
         }
 
         if (mounted) {
           setLoading(false);
+          isInitialLoad = false; // Mark initial load as complete
+          if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
         }
-      })
-      .catch((err) => {
-        console.error('Fatal error in getSession:', err);
+      } catch (err) {
+        console.error('Fatal error in auth initialization:', err);
         if (mounted) {
           setLoading(false);
+          if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
         }
-      });
+      }
+    };
+
+    // Start initialization
+    initAuth();
 
     // Listen for auth changes
     const {
@@ -159,11 +175,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!mounted) return;
 
       console.log('Auth state changed:', _event);
+      
+      // CRITICAL FIX: Skip INITIAL_SESSION event to avoid race condition with initAuth
+      if (isInitialLoad && _event === 'INITIAL_SESSION') {
+        console.log('⏭️ Skipping INITIAL_SESSION event (already handled by initAuth)');
+        return;
+      }
+
+      // Mark as no longer initial load after first event
+      if (_event === 'INITIAL_SESSION') {
+        isInitialLoad = false;
+      }
+
       setSession(session);
       setUser(session?.user ?? null);
 
-      if (session?.user) {
+      // CRITICAL FIX: For SIGNED_IN events, we need to handle them specially
+      // The SIGNED_IN event fires DURING the auth process, and the session 
+      // hasn't fully propagated to Supabase's RLS system yet.
+      // We set the user/session state immediately but delay the profile fetch
+      if (_event === 'SIGNED_IN') {
+        console.log('⏭️ SIGNED_IN detected - setting state and scheduling delayed profile fetch');
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        // Fetch profile after a delay to allow session propagation
+        if (session?.user && !isFetchingProfile) {
+          isFetchingProfile = true;
+          console.log('⏳ Waiting 2s for session propagation before fetching profile...');
+          
+          setTimeout(async () => {
+            try {
+              const profileData = await fetchProfile(session.user.id);
+              if (mounted) {
+                setProfile(profileData);
+                console.log('✅ Profile fetched successfully after SIGNED_IN delay');
+              }
+            } catch (err) {
+              console.error('Error fetching profile after SIGNED_IN:', err);
+              if (mounted) {
+                setProfile(null);
+              }
+            } finally {
+              isFetchingProfile = false;
+            }
+          }, 2000);
+        }
+        
+        if (mounted) {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // Only fetch profile if user exists and we're not already fetching
+      if (session?.user && !isFetchingProfile) {
+        isFetchingProfile = true;
         try {
+          // CRITICAL FIX: For TOKEN_REFRESHED events, add a delay
+          // to ensure the session has fully propagated to Supabase's RLS system
+          if (_event === 'TOKEN_REFRESHED') {
+            console.log('⏳ TOKEN_REFRESHED - waiting 1500ms for session propagation...');
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+          }
+
           const profileData = await fetchProfile(session.user.id);
           if (mounted) {
             setProfile(profileData);
@@ -173,8 +249,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (mounted) {
             setProfile(null);
           }
+        } finally {
+          isFetchingProfile = false;
         }
-      } else {
+      } else if (!session?.user) {
         if (mounted) {
           setProfile(null);
         }
@@ -187,7 +265,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       mounted = false;
-      clearTimeout(safetyTimeout);
+      if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
       subscription.unsubscribe();
     };
   }, []);
@@ -195,18 +273,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in with email and password
   const signIn = async (email: string, password: string): Promise<{ error: Error | null }> => {
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: email.trim().toLowerCase(),
         password,
       });
 
       if (error) throw error;
 
-      if (data.user) {
-        const profileData = await fetchProfile(data.user.id);
-        setProfile(profileData);
-      }
-
+      // Profile will be fetched by the SIGNED_IN event handler after a delay
       return { error: null };
     } catch (error) {
       console.error('Sign in error:', error);
@@ -221,7 +295,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     fullName?: string
   ): Promise<{ error: Error | null }> => {
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { error } = await supabase.auth.signUp({
         email: email.trim().toLowerCase(),
         password,
         options: {
@@ -233,12 +307,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      if (data.user) {
-        // Profile is auto-created by database trigger
-        const profileData = await fetchProfile(data.user.id);
-        setProfile(profileData);
-      }
-
+      // Profile is auto-created by database trigger and will be fetched by onAuthStateChange
       return { error: null };
     } catch (error) {
       console.error('Sign up error:', error);
@@ -314,10 +383,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      // Fetch profile
-      const profileData = await fetchProfile(data.user.id);
-      setProfile(profileData);
-
+      // Profile will be fetched automatically by onAuthStateChange listener
       return { error: null };
     } catch (error) {
       console.error('Verify OTP error:', error);

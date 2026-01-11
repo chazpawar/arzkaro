@@ -156,9 +156,10 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
           throw new Error(result.error || 'Booking failed');
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Booking error:', err);
-      alert(err.message || 'Failed to complete booking. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to complete booking. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsProcessing(false);
     }

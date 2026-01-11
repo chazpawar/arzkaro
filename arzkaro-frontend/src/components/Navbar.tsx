@@ -105,32 +105,41 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
               
               {/* Profile/Logout */}
               <div className="relative group">
-                <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200">
-                  <User size={20} />
-                  <span className="text-sm font-semibold">
-                    {profile?.full_name || profile?.username || user.email?.split('@')[0] || 'User'}
-                  </span>
-                </button>
-                
-                {/* Dropdown */}
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
-                  <button
-                    onClick={() => onNavigate('profile')}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
-                  >
-                    My Profile
-                  </button>
-                  <div className="border-t border-gray-100" />
-                  <button
-                    onClick={async () => {
-                      await signOut();
-                      onNavigate('home');
-                    }}
-                    className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
-                  >
-                    Sign Out
-                  </button>
-                </div>
+                {profile ? (
+                  <>
+                    <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200">
+                      <User size={20} />
+                      <span className="text-sm font-semibold">
+                        {profile.full_name || profile.username || user.email?.split('@')[0] || 'User'}
+                      </span>
+                    </button>
+                    
+                    {/* Dropdown */}
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                      <button
+                        onClick={() => onNavigate('profile')}
+                        className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
+                      >
+                        My Profile
+                      </button>
+                      <div className="border-t border-gray-100" />
+                      <button
+                        onClick={async () => {
+                          await signOut();
+                          onNavigate('home');
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-b-xl transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 animate-pulse">
+                    <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
+                    <div className="h-4 w-12 bg-gray-300 rounded"></div>
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -239,7 +248,14 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate }: NavbarP
                 </button>
                 
                 <div className="px-4 py-2 text-sm text-gray-700">
-                  Signed in as <span className="font-semibold">{profile?.full_name || profile?.username || user.email?.split('@')[0]}</span>
+                  Signed in as{' '}
+                  {profile ? (
+                    <span className="font-semibold">
+                      {profile.full_name || profile.username || user.email?.split('@')[0]}
+                    </span>
+                  ) : (
+                    <span className="inline-block h-4 w-24 bg-gray-300 rounded animate-pulse align-middle"></span>
+                  )}
                 </div>
                 
                 <button
