@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, User } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 type NavbarProps = {
   onAuthClick: () => void;

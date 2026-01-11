@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Settings } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface ProfilePageProps {
   onNavigate: (page: 'settings' | 'edit-profile' | 'my-tickets') => void;

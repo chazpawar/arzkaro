@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, MapPin, Share2, Users } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { SkeletonStyles } from '../components/SkeletonCard';
 import AttendeesModal from '../components/AttendeesModal';
 

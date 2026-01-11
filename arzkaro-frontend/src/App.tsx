@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
+import { AuthProvider } from './contexts/AuthContext.tsx';
+import { useAuth } from './hooks/useAuth';
 
 // Import all components / pages
 import Navbar from './components/Navbar.tsx';

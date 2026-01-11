@@ -1,6 +1,6 @@
 // src/components/Auth.tsx
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { X, Eye, EyeOff } from 'lucide-react';
 import OTPVerificationModal from './OTPVerificationModal';
 

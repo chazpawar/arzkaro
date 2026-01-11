@@ -69,6 +69,7 @@ export function useEvents(category?: string) {
 
   useEffect(() => {
     fetchEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category]);
 
   const fetchEvents = async () => {
@@ -121,6 +122,7 @@ export function useEvent(eventId: string | null) {
       setTicketTypes([]);
       setLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const fetchEvent = async () => {
@@ -172,6 +174,7 @@ export function useFeaturedEvents(limit: number = 10) {
 
   useEffect(() => {
     fetchFeaturedEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [limit]);
 
   const fetchFeaturedEvents = async () => {

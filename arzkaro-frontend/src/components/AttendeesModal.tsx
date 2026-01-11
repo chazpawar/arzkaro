@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, User, Lock } from 'lucide-react';
 import { getEventAttendees, type Attendee } from '../services/bookingService';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 type AttendeesModalProps = {
   eventId: string;

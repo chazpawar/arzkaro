@@ -1,7 +1,7 @@
 // src/pages/MyTicketsPage.tsx
 import { useState } from 'react';
 import { Ticket as TicketIcon, MapPin, Calendar, Search, Clock } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { useTickets } from '../hooks/useTickets';
 
 type MyTicketsPageProps = {

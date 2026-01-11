@@ -1,8 +1,8 @@
 // src/pages/BookingPage.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, MapPin, Calendar } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 import { razorpayService } from '../services/razorpayService';
 
 interface TicketType {
@@ -29,18 +29,20 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Use fetched ticket types or create a default one from event
-  const ticketTypes: TicketType[] = fetchedTicketTypes.length > 0
-    ? fetchedTicketTypes
-    : event
-      ? [{
-          id: 'default',
-          name: 'General Admission',
-          description: 'Standard entry ticket',
-          price: event.price || 0,
-          quantity_available: 100, // Default if not specified
-          quantity_sold: 0,
-        }]
-      : [];
+  const ticketTypes: TicketType[] = useMemo(() => {
+    return fetchedTicketTypes.length > 0
+      ? fetchedTicketTypes
+      : event
+        ? [{
+            id: 'default',
+            name: 'General Admission',
+            description: 'Standard entry ticket',
+            price: event.price || 0,
+            quantity_available: 100, // Default if not specified
+            quantity_sold: 0,
+          }]
+        : [];
+  }, [fetchedTicketTypes, event]);
 
   // Auto-select first ticket type
   useEffect(() => {
