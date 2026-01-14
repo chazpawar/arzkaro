@@ -275,7 +275,7 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
                       </div>
 
                       {/* Price */}
-                      <div className="text-lg font-bold text-[#FF785A]">{formatPrice(item)}</div>
+                      <div className="text-lg font-bold text-gray-900">{formatPrice(item)}</div>
                     </div>
                   </motion.div>
                 ))}

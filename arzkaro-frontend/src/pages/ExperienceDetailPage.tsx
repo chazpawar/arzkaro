@@ -246,12 +246,12 @@ export default function ExperienceDetailPage({
 
         {/* Event Info Overlay (Bottom of Banner) */}
         <div className="absolute bottom-0 left-0 right-0 z-10 px-4 sm:px-6 lg:px-8 pb-8">
-          <div className="max-w-6xl mx-auto">
-            {/* Member Count */}
+          <div className="max-w-6xl mx-auto relative">
+            {/* Member Count - Now positioned to bottom-right */}
             {event.member_count && event.member_count > 0 && (
               <button
                 onClick={() => setShowAttendeesModal(true)}
-                className="flex items-center gap-2 mb-2 text-white/90 hover:text-white transition-colors"
+                className="absolute bottom-0 right-0 flex items-center gap-2 text-white/90 hover:text-white transition-colors"
               >
                 <Users size={18} />
                 <span className="text-sm">+{event.member_count} have joined</span>

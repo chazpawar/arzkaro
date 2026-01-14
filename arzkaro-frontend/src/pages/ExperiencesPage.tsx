@@ -367,7 +367,7 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
                   )}
 
                   {/* Price */}
-                  <div className="text-xl font-bold text-[#FF785A]">
+                  <div className="text-xl font-bold text-gray-900">
                     ₹{event.ticket_price?.toLocaleString('en-IN') || 'TBA'}
                   </div>
                 </div>

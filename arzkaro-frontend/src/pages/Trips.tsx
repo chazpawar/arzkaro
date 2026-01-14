@@ -313,7 +313,7 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
                   )}
 
                   {/* Price */}
-                  <div className="text-xl font-bold text-[#ABDF8B]">
+                  <div className="text-xl font-bold text-gray-900">
                     ₹{(trip.estimated_cost || trip.price)?.toLocaleString('en-IN') || 'TBA'}
                   </div>
                 </div>

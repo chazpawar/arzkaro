@@ -22,11 +22,13 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
     page,
     colorClasses,
     onClick,
+    icon,
   }: {
     label: string;
     page: string;
     colorClasses: string;
     onClick?: () => void;
+    icon?: string;
   }) => {
     const isActive = currentPage === page;
 
@@ -37,12 +39,13 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
           if (onClick) onClick();
         }}
         aria-current={isActive ? 'page' : undefined}
-        className={`inline-flex items-center px-4 py-2 rounded-full text-base font-bold tracking-wide transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-60 ${
+        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-base font-bold tracking-wide transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-opacity-60 ${
           isActive
             ? `${colorClasses} shadow-sm text-gray-900`
             : `text-gray-700 hover:text-gray-900 ${colorClasses}`
         }`}
       >
+        {icon && <img src={icon} alt={label} className="w-8 h-8 object-contain" />}
         {label}
       </button>
     );
@@ -54,9 +57,9 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
       style={leagueFont}
     >
       {/* ===== DESKTOP: unchanged for md+ ===== */}
-      <div className="hidden md:flex w-full px-10 py-4 justify-between items-center">
-        {/* LEFT: logo (bigger visual scale but same navbar height) */}
-        <div className="flex items-center">
+      <div className="hidden md:flex w-full px-10 py-4 relative">
+        {/* LEFT: logo (absolute positioned) */}
+        <div className="absolute left-10 top-1/2 -translate-y-1/2 flex items-center">
           <button
             onClick={() => onNavigate('home')}
             aria-label="Go to home"
@@ -70,30 +73,33 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
           </button>
         </div>
 
-        {/* CENTER: nav links */}
-        <div className="flex items-center gap-10">
+        {/* CENTER: nav links (flex centered) */}
+        <div className="flex items-center justify-center gap-10 flex-1">
           <NavItem
             label="For You"
             page="for-you"
+            icon="/others/foryou.png"
             // For You color: #FFD700 (gold)
             colorClasses="hover:bg-[#FFD700] active:bg-[#FFD700] bg-[#FFD700]/0"
           />
           <NavItem
             label="Experiences"
             page="experiences"
+            icon="/others/experiences.png"
             // Experiences color: #FF785A
             colorClasses="hover:bg-[#FF785A] active:bg-[#FF785A] bg-[#FF785A]/0"
           />
           <NavItem
             label="Trips"
             page="trips"
+            icon="/others/trips.png"
             // Trips color: #ABDF8B
             colorClasses="hover:bg-[#ABDF8B] active:bg-[#ABDF8B] bg-[#ABDF8B]/0"
           />
         </div>
 
-        {/* RIGHT: login/profile button */}
-        <div className="flex items-center gap-4">
+        {/* RIGHT: login/profile button (absolute positioned) */}
+        <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-4">
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
               {/* Chat Button */}
@@ -104,7 +110,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
               >
                 <MessageCircle size={24} className="text-gray-700" />
               </button>
-              
+
               {/* My Tickets */}
               <button
                 onClick={() => onNavigate('my-tickets')}
@@ -112,7 +118,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
               >
                 My Tickets
               </button>
-              
+
               {/* Profile/Logout */}
               <div className="relative group">
                 {profile ? (
@@ -123,7 +129,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
                         {profile.full_name || profile.username || user.email?.split('@')[0] || 'User'}
                       </span>
                     </button>
-                    
+
                     {/* Dropdown */}
                     <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                       <button
@@ -215,6 +221,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
             <NavItem
               label="For You"
               page="for-you"
+              icon="/others/foryou.png"
               colorClasses="hover:bg-[#FFD700] active:bg-[#FFD700] bg-[#FFD700]/0"
               onClick={() => setMobileOpen(false)}
             />
@@ -222,6 +229,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
             <NavItem
               label="Experiences"
               page="experiences"
+              icon="/others/experiences.png"
               colorClasses="hover:bg-[#FF785A] active:bg-[#FF785A] bg-[#FF785A]/0"
               onClick={() => setMobileOpen(false)}
             />
@@ -229,6 +237,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
             <NavItem
               label="Trips"
               page="trips"
+              icon="/others/trips.png"
               colorClasses="hover:bg-[#ABDF8B] active:bg-[#ABDF8B] bg-[#ABDF8B]/0"
               onClick={() => setMobileOpen(false)}
             />

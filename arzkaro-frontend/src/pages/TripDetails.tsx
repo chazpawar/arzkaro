@@ -674,7 +674,7 @@ export default function TripDetailsPage({
 
                 <div className="border-t border-gray-200 pt-6 mb-6">
                   <div className="text-sm text-gray-600 mb-1">Estimated Cost</div>
-                  <div className="text-3xl font-bold text-[#ABDF8B]">
+                  <div className="text-3xl font-bold text-gray-900">
                     {priceFormatter.format(price)}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">per person</div>
