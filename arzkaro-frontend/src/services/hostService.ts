@@ -74,10 +74,10 @@ export async function getHostStats(hostId: string): Promise<HostStats> {
   // Calculate stats
   const stats: HostStats = {
     totalEvents: eventsList.length,
-    publishedEvents: eventsList.filter((e) => e.status === 'published').length,
+    publishedEvents: eventsList.filter((e) => e.is_published).length,
     totalBookings: bookings.length,
     totalRevenue: bookings.reduce((sum, b) => sum + (b.total_amount || 0), 0),
-    upcomingEvents: eventsList.filter((e) => e.start_date && e.start_date > now && e.status === 'published').length,
+    upcomingEvents: eventsList.filter((e) => (e.start_date ?? '') > now && e.is_published).length,
   };
 
   return stats;

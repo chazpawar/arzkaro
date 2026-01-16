@@ -31,7 +31,8 @@ export interface AppEvent {
     linkedin?: string | null;
     twitter?: string | null;
   };
-  status: 'draft' | 'published' | 'cancelled';
+  is_published: boolean;
+  is_cancelled: boolean;
   created_at: string;
   updated_at: string;
   // Additional fields for trips

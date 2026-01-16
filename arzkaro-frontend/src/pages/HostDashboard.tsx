@@ -233,9 +233,9 @@ export default function HostDashboard({ onNavigate }: HostDashboardProps) {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-gray-900 truncate mb-1">{event.title}</h4>
                       <p className="text-xs text-gray-500 mb-2">{event.category}</p>
-                      <div className="flex items-center text-[10px] font-bold">
-                        <span className={event.status === 'published' ? 'text-green-600' : 'text-gray-400'}>
-                          {event.status?.toUpperCase()}
+                      <div className="flex items-center text-[10px] font-bold uppercase">
+                        <span className={event.is_published ? 'text-green-600' : (event.is_cancelled ? 'text-red-600' : 'text-gray-400')}>
+                          {event.is_published ? 'PUBLISHED' : (event.is_cancelled ? 'CANCELLED' : 'DRAFT')}
                         </span>
                       </div>
                     </div>

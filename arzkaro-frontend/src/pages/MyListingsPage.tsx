@@ -114,9 +114,9 @@ export default function MyListingsPage({ onBack, onNavigate, onEventClick }: MyL
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-[#FF785A]">₹{event.price}</span>
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                          event.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'
+                          event.is_published ? 'bg-green-50 text-green-600' : (event.is_cancelled ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-400')
                         }`}>
-                          {event.status?.toUpperCase()}
+                          {event.is_published ? 'PUBLISHED' : (event.is_cancelled ? 'CANCELLED' : 'DRAFT')}
                         </span>
                       </div>
                     </div>
@@ -161,9 +161,9 @@ export default function MyListingsPage({ onBack, onNavigate, onEventClick }: MyL
                         <td className="px-6 py-4 font-bold text-sm">₹{event.price}</td>
                         <td className="px-6 py-4">
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            event.status === 'published' ? 'bg-green-50 text-green-600' : 'bg-gray-50 text-gray-400'
+                            event.is_published ? 'bg-green-50 text-green-600' : (event.is_cancelled ? 'bg-red-50 text-red-600' : 'bg-gray-50 text-gray-400')
                           }`}>
-                            {event.status?.toUpperCase()}
+                            {event.is_published ? 'PUBLISHED' : (event.is_cancelled ? 'CANCELLED' : 'DRAFT')}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-gray-500">

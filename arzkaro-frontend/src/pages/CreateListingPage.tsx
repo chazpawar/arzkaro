@@ -60,7 +60,8 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
           max_capacity: parseInt(formData.max_capacity),
           price: parseFloat(formData.price),
           cover_image_url: formData.cover_image_url,
-          status: 'published'
+          is_published: true,
+          is_cancelled: false
         })
         .select()
         .single();
