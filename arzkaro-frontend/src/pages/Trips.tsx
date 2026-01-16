@@ -43,9 +43,19 @@ interface TripsPageProps {
   onTripSelect: (tripId: string) => void;
   onChatOpen?: (tripId: string) => void;
   currentUserId?: string | null;
+  searchQuery?: string;
+  location?: string;
+  radius?: number;
+  coordinates?: { latitude: number; longitude: number };
+  onClearFilters?: () => void;
 }
 
-const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
+const TripsPage: React.FC<TripsPageProps> = ({ 
+  onTripSelect, 
+  searchQuery, 
+  location,
+  onClearFilters 
+}) => {
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,14 +95,33 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
     fetchTrips();
   }, []);
 
-  // Filter trips based on selected category
+  // Filter trips based on selected category and search state
   const filteredTrips = useMemo(() => {
-    if (selectedTag === 'All') {
-      return trips;
+    let result = trips;
+
+    // Filter by tag
+    if (selectedTag !== 'All') {
+      result = result.filter((trip) => trip.category === selectedTag);
     }
-    // Filter by category if trips have category field
-    return trips.filter((trip) => trip.category === selectedTag);
-  }, [trips, selectedTag]);
+
+    // Filter by search query
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (trip) =>
+          trip.title.toLowerCase().includes(q) ||
+          trip.location_name?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by location name
+    if (location && location !== 'All Locations' && location !== 'Current Location') {
+      const loc = location.toLowerCase();
+      result = result.filter((trip) => trip.location_name?.toLowerCase().includes(loc));
+    }
+
+    return result;
+  }, [trips, selectedTag, searchQuery, location]);
 
   // Get visible categories based on selection
   const visibleCategories = useMemo(() => {
@@ -256,11 +285,22 @@ const TripsPage: React.FC<TripsPageProps> = ({ onTripSelect }) => {
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-8">
         {filteredTrips.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-gray-500 text-lg">
+            <p className="text-gray-500 text-lg mb-6">
               {selectedTag === 'All'
                 ? 'No trips available at the moment'
                 : `No ${selectedTag.toLowerCase()} trips available`}
             </p>
+            {(searchQuery || location || selectedTag !== 'All') && (
+              <button
+                onClick={() => {
+                  setSelectedTag('All');
+                  if (onClearFilters) onClearFilters();
+                }}
+                className="px-6 py-2 bg-[#FF785A] text-white rounded-full font-bold hover:shadow-lg transition-all"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

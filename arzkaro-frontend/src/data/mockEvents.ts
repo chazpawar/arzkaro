@@ -1,14 +1,24 @@
 // src/data/mockEvents.ts
 
-import { Event } from '../pages/ExperienceDetailPage';
+import { Event } from '../hooks/useEvents';
 
 // Update the Event type to explicitly allow an array of artist names
-export type MockEventItem = Omit<Event, 'artist_name'> & {
-  artist_name: string | string[]; // Now supports a single string OR an array of strings
+export type MockEventItem = Partial<Event> & {
+  id: string;
+  title: string;
+  artist_name: string | string[];
+  city?: string;
+  venue?: string;
+  event_date?: string;
+  image_url?: string;
+  ticket_price?: number;
   member_count?: number;
   genre?: string;
   is_online?: boolean;
   banner_image_url?: string;
+  includes?: string[];
+  notes?: string[];
+  contact?: string;
 };
 
 // --- MOCK ARTISTS (For EventsPage & Artist Profiles) ---

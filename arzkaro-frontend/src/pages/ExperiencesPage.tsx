@@ -98,9 +98,20 @@ const CATEGORY_TAGS: CategoryTag[] = [
 
 interface ExperiencesPageProps {
   onEventClick: (eventId: string) => void;
+  searchQuery?: string;
+  location?: string;
+  radius?: number;
+  coordinates?: { latitude: number; longitude: number };
+  onClearFilters?: () => void;
 }
 
-const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
+const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ 
+  onEventClick,
+  searchQuery,
+  location,
+  onClearFilters,
+  // radius and coordinates can be used for more advanced server-side search
+}) => {
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryTag | null>(null);
   const [events, setEvents] = useState<Event[]>([]);
@@ -142,14 +153,33 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
     fetchEvents();
   }, []);
 
-  // Filter events based on selected category
+  // Filter events based on selected category and search state
   const filteredEvents = useMemo(() => {
-    if (selectedTag === 'All') {
-      return events;
+    let result = events;
+
+    // Filter by tag
+    if (selectedTag !== 'All') {
+      result = result.filter((event) => event.category === selectedTag);
     }
-    // Filter by category if events have category field
-    return events.filter((event) => event.category === selectedTag);
-  }, [events, selectedTag]);
+
+    // Filter by search query
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (event) =>
+          event.title.toLowerCase().includes(q) ||
+          event.location_name?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by location name (if not All Locations/Current Location which might require coords)
+    if (location && location !== 'All Locations' && location !== 'Current Location') {
+      const loc = location.toLowerCase();
+      result = result.filter((event) => event.location_name?.toLowerCase().includes(loc));
+    }
+
+    return result;
+  }, [events, selectedTag, searchQuery, location]);
 
   // Get visible categories based on selection
   const visibleCategories = useMemo(() => {
@@ -377,9 +407,21 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({ onEventClick }) => {
         ) : (
           <div className="flex flex-col items-center justify-center py-24 text-center">
             <p className="text-2xl font-semibold text-gray-600 mb-2">No experiences found</p>
-            <p className="text-base text-gray-500">
+            <p className="text-base text-gray-500 mb-6">
               Try selecting a different category or check back later
             </p>
+            {(searchQuery || location || selectedTag !== 'All') && (
+              <button
+                onClick={() => {
+                  setSelectedTag('All');
+                  setSelectedParentCategory(null);
+                  if (onClearFilters) onClearFilters();
+                }}
+                className="px-6 py-2 bg-[#FF785A] text-white rounded-full font-bold hover:shadow-lg transition-all"
+              >
+                Clear all filters
+              </button>
+            )}
           </div>
         )}
       </div>

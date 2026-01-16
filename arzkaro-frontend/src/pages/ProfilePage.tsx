@@ -1,6 +1,6 @@
 // src/pages/ProfilePage.tsx
 import React, { useState, useEffect } from 'react';
-import { User, Briefcase, Users, MapPin, CheckCircle2, MessageSquare } from 'lucide-react';
+import { Briefcase, Users, MapPin } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 
@@ -12,7 +12,7 @@ interface ProfilePageProps {
 type ActiveSection = 'about' | 'past-trips' | 'connections';
 
 export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState<ActiveSection>('about');
   const [stats, setStats] = useState({
     tripsAttended: 0,

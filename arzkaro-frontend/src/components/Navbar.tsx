@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, X, User, MessageCircle } from 'lucide-react';
+import { Menu, X, User, Search } from 'lucide-react';
+import SearchModal from './SearchModal';
 import { useAuth } from '../hooks/useAuth';
 
 type NavbarProps = {
@@ -7,11 +8,32 @@ type NavbarProps = {
   currentPage: string;
   onNavigate: (page: string) => void;
   onChatClick: () => void;
+  searchState: {
+    location: string;
+    query: string;
+    radius: number;
+    coordinates?: { latitude: number; longitude: number };
+  };
+  onSearch: (
+    location: string,
+    query: string,
+    radius: number,
+    coordinates?: { latitude: number; longitude: number }
+  ) => void;
+  onClearFilters: () => void;
 };
 
-export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatClick }: NavbarProps) {
+export default function Navbar({
+  onAuthClick,
+  currentPage,
+  onNavigate,
+  searchState,
+  onSearch,
+  onClearFilters,
+}: NavbarProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { user, profile, isAuthenticated, signOut } = useAuth();
+  const [searchModalOpen, setSearchModalOpen] = useState(false);
 
   const leagueFont = {
     fontFamily: `'League Spartan', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial`,
@@ -79,38 +101,50 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
             label="For You"
             page="for-you"
             icon="/others/foryou.png"
-            // For You color: #FFD700 (gold)
             colorClasses="hover:bg-[#FFD700] active:bg-[#FFD700] bg-[#FFD700]/0"
           />
           <NavItem
             label="Experiences"
             page="experiences"
             icon="/others/experiences.png"
-            // Experiences color: #FF785A
             colorClasses="hover:bg-[#FF785A] active:bg-[#FF785A] bg-[#FF785A]/0"
           />
           <NavItem
             label="Trips"
             page="trips"
             icon="/others/trips.png"
-            // Trips color: #ABDF8B
             colorClasses="hover:bg-[#ABDF8B] active:bg-[#ABDF8B] bg-[#ABDF8B]/0"
           />
         </div>
 
-        {/* RIGHT: login/profile button (absolute positioned) */}
-        <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-4">
+        {/* RIGHT: search, login/profile button (absolute positioned) */}
+        <div className="absolute right-10 top-1/2 -translate-y-1/2 flex items-center gap-3">
+          {/* Desktop Search Group */}
+          <div className="flex items-center">
+            {(searchState.query || searchState.location) && (
+              <button
+                onClick={onClearFilters}
+                className="mr-2 text-[11px] font-bold text-[#FF785A] hover:text-[#ff6a47] underline underline-offset-4 transition-colors"
+              >
+                Clear Search
+              </button>
+            )}
+            <button
+              onClick={() => setSearchModalOpen(true)}
+              className="p-2.5 rounded-full hover:bg-gray-100 transition-all group"
+              aria-label="Search"
+            >
+              <Search
+                size={24}
+                className={`${
+                  searchState.query || searchState.location ? 'text-[#FF785A]' : 'text-gray-700'
+                } group-hover:scale-110 transition-transform`}
+              />
+            </button>
+          </div>
+
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
-              {/* Chat Button */}
-              <button
-                onClick={onChatClick}
-                className="p-2 rounded-full hover:bg-gray-100 transition-all duration-200 relative"
-                aria-label="Chat"
-              >
-                <MessageCircle size={24} className="text-gray-700" />
-              </button>
-
               {/* My Tickets */}
               <button
                 onClick={() => onNavigate('my-tickets')}
@@ -126,12 +160,12 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
                     <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-gray-200 transition-all duration-200">
                       <User size={20} />
                       <span className="text-sm font-semibold">
-                        {profile.full_name || profile.username || user.email?.split('@')[0] || 'User'}
+                        {profile.username || profile.full_name || 'User'}
                       </span>
                     </button>
 
                     {/* Dropdown */}
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-gray-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[100]">
                       <button
                         onClick={() => onNavigate('profile')}
                         className="w-full text-left px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50 rounded-t-xl transition-colors"
@@ -151,10 +185,7 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
                     </div>
                   </>
                 ) : (
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-200 animate-pulse">
-                    <div className="w-5 h-5 bg-gray-300 rounded-full"></div>
-                    <div className="h-4 w-12 bg-gray-300 rounded"></div>
-                  </div>
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 animate-pulse w-24 h-10" />
                 )}
               </div>
             </div>
@@ -170,32 +201,51 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
       </div>
 
       {/* ===== MOBILE: only for small screens (md:hidden) ===== */}
-      <div className="flex md:hidden w-full px-4 py-3 items-center justify-between">
-        {/* LEFT: logo aligned left on mobile */}
+      <div className="flex md:hidden w-full px-4 h-16 items-center justify-between">
+        {/* LEFT: minimized logo for mobile */}
         <div className="flex items-center">
           <button
             onClick={() => onNavigate('home')}
             aria-label="Go to home"
             className="flex items-center"
           >
-            <img src="/logo.png" alt="arz" className="h-10 w-auto object-contain" />
+            <img src="/logo.png" alt="arz" className="h-8 w-auto object-contain" />
           </button>
         </div>
 
-        {/* spacer to keep center area flexible */}
-        <div className="flex-1" />
+        {/* MOBILE SEARCH ICON */}
+        <div className="flex items-center ml-auto gap-1">
+          {(searchState.query || searchState.location) && (
+            <button
+              onClick={onClearFilters}
+              className="p-1 px-2 text-[10px] font-bold text-[#FF785A] bg-[#FF785A]/10 rounded-full transition-all"
+            >
+              Clear
+            </button>
+          )}
+          <button
+            onClick={() => setSearchModalOpen(true)}
+            className="p-2 rounded-full hover:bg-gray-100 transition-all"
+            aria-label="Open search"
+          >
+            <Search
+              size={22}
+              className={searchState.query || searchState.location ? 'text-[#FF785A]' : 'text-gray-900'}
+            />
+          </button>
+        </div>
 
         {/* RIGHT: hamburger only */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center">
           <button
             onClick={() => setMobileOpen((s) => !s)}
-            className="p-2 rounded-full hover:bg-gray-100 transition"
+            className="p-2 -mr-2 rounded-full hover:bg-gray-100 transition"
             aria-label="Open menu"
           >
             {mobileOpen ? (
-              <X size={20} className="text-gray-700" />
+              <X size={22} className="text-gray-900" />
             ) : (
-              <Menu size={20} className="text-gray-700" />
+              <Menu size={22} className="text-gray-900" />
             )}
           </button>
         </div>
@@ -254,17 +304,6 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
                   className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
                 >
                   My Profile
-                </button>
-                
-                <button
-                  onClick={() => {
-                    onChatClick();
-                    setMobileOpen(false);
-                  }}
-                  className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200 flex items-center gap-2"
-                >
-                  <MessageCircle size={20} />
-                  Chat
                 </button>
                 
                 <button
@@ -346,6 +385,18 @@ export default function Navbar({ onAuthClick, currentPage, onNavigate, onChatCli
           </div>
         </div>
       )}
+
+      {/* Global Search Modal */}
+      <SearchModal
+        isOpen={searchModalOpen}
+        onClose={() => setSearchModalOpen(false)}
+        onSearch={(location, query, radius, coordinates) => {
+          onSearch(location, query, radius, coordinates);
+          // In a full implementation, you'd trigger a search across pages here
+          console.log('Searching for:', { location, query, radius, coordinates });
+        }}
+        searchContext={currentPage === 'trips' ? 'trips' : currentPage === 'experiences' ? 'experiences' : 'all'}
+      />
     </nav>
   );
 }

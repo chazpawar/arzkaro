@@ -136,6 +136,25 @@ function AppContent() {
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [showAuth, setShowAuth] = useState<boolean>(false);
   const [showChatModal, setShowChatModal] = useState<boolean>(false);
+  const [searchState, setSearchState] = useState({
+    location: '',
+    query: '',
+    radius: 10,
+    coordinates: undefined as { latitude: number; longitude: number } | undefined,
+  });
+
+  const handleSearch = (location: string, query: string, radius: number, coordinates?: { latitude: number; longitude: number }) => {
+    setSearchState({ location, query, radius, coordinates });
+  };
+
+  const handleClearFilters = useCallback(() => {
+    setSearchState({ 
+      location: '', 
+      query: '', 
+      radius: 10, 
+      coordinates: undefined 
+    });
+  }, []);
 
   // Navigation helper that syncs history
   const handleNavigate = useCallback((page: PageName, id?: string | null, replace = false) => {
@@ -262,6 +281,9 @@ function AppContent() {
       <Navbar
         onAuthClick={() => setShowAuth(true)}
         currentPage={currentPage}
+        searchState={searchState}
+        onSearch={handleSearch}
+        onClearFilters={handleClearFilters}
         onNavigate={(p: string) => {
           // keep API compatible for components that pass a string route name
           // Map simple strings to PageName where possible
@@ -284,7 +306,7 @@ function AppContent() {
       />
 
       {/* Spacer for fixed navbar */}
-      <div className="h-24" />
+      <div className="h-16 md:h-24" />
 
       <main className="flex-grow">
         {currentPage === 'home' && <HomePage />}
@@ -304,13 +326,27 @@ function AppContent() {
           />
         )}
 
-        {currentPage === 'experiences' && <ExperiencesPage onEventClick={handleEventSelect} />}
+        {currentPage === 'experiences' && (
+          <ExperiencesPage 
+            onEventClick={handleEventSelect} 
+            searchQuery={searchState.query}
+            location={searchState.location}
+            radius={searchState.radius}
+            coordinates={searchState.coordinates}
+            onClearFilters={handleClearFilters}
+          />
+        )}
 
         {currentPage === 'trips' && (
           <TripsPage
             onTripSelect={handleTripSelect}
             onChatOpen={() => {}}
             currentUserId={user?.uid || null}
+            searchQuery={searchState.query}
+            location={searchState.location}
+            radius={searchState.radius}
+            coordinates={searchState.coordinates}
+            onClearFilters={handleClearFilters}
           />
         )}
 
@@ -380,11 +416,9 @@ function AppContent() {
 
         {currentPage === 'thankyou' && <Thankyou />}
 
-        {showAuth && !user && <Auth onClose={() => setShowAuth(false)} />}
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
+        {showAuth && <Auth onClose={() => setShowAuth(false)} />}
       </main>
-
-      {/* Pass handleNavigate so Footer can trigger navigation (e.g., to 'terms' or 'thankyou') */}
       <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />
     </div>
   );
