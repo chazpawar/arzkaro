@@ -1,9 +1,9 @@
 // src/data/mockEvents.ts
 
-import { Event } from '../hooks/useEvents';
+import { AppEvent } from '../hooks/useEvents';
 
 // Update the Event type to explicitly allow an array of artist names
-export type MockEventItem = Partial<Event> & {
+export type MockEventItem = Partial<AppEvent> & {
   id: string;
   title: string;
   artist_name: string | string[];

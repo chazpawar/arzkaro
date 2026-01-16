@@ -173,6 +173,25 @@ export default function Navbar({
                         My Profile
                       </button>
                       <div className="border-t border-gray-100" />
+                      
+                      {/* Hosting Option */}
+                      {profile.role === 'host' || profile.role === 'admin' ? (
+                        <button
+                          onClick={() => onNavigate('host-dashboard')}
+                          className="w-full text-left px-4 py-3 text-sm font-semibold text-[#FF785A] hover:bg-[#FF785A]/5 transition-colors"
+                        >
+                          Host Dashboard
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => onNavigate('host-request')}
+                          className="w-full text-left px-4 py-3 text-sm font-semibold text-[#FF785A] hover:bg-[#FF785A]/5 transition-colors"
+                        >
+                          Become a Host
+                        </button>
+                      )}
+                      
+                      <div className="border-t border-gray-100" />
                       <button
                         onClick={async () => {
                           await signOut();
@@ -303,8 +322,29 @@ export default function Navbar({
                   }}
                   className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
                 >
-                  My Profile
                 </button>
+
+                {profile?.role === 'host' || profile?.role === 'admin' ? (
+                  <button
+                    onClick={() => {
+                      onNavigate('host-dashboard');
+                      setMobileOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+                  >
+                    Host Dashboard
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      onNavigate('host-request');
+                      setMobileOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
+                  >
+                    Become a Host
+                  </button>
+                )}
                 
                 <button
                   onClick={() => {

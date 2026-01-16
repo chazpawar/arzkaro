@@ -1,23 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, MapPin, Calendar } from 'lucide-react';
+import { ChevronLeft, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { SkeletonCard, SkeletonStyles } from '../components/SkeletonCard';
 import { PLACEHOLDER_IMAGES, getPlaceholderImage } from '../utils/placeholders';
+import type { AppEvent } from '../hooks/useEvents';
 
-interface Event {
-  id: string;
-  title: string;
-  cover_image_url: string | null;
-  location_name: string | null;
-  start_date: string;
-  price: number;
-  category: string | null;
-  // Legacy field mappings for compatibility
-  image_url?: string;
-  city?: string;
-  event_date?: string;
-  ticket_price?: number;
-}
 
 interface CategoryTag {
   id: string;
@@ -114,7 +101,7 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({
 }) => {
   const [selectedTag, setSelectedTag] = useState<string>('All');
   const [selectedParentCategory, setSelectedParentCategory] = useState<CategoryTag | null>(null);
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch events from Supabase
@@ -133,15 +120,7 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({
         if (error) {
           console.error('Error fetching events:', error);
         } else {
-          // Map database fields to expected format
-          const mappedData = (data || []).map((event) => ({
-            ...event,
-            image_url: event.cover_image_url,
-            city: event.location_name,
-            event_date: event.start_date,
-            ticket_price: event.price,
-          }));
-          setEvents(mappedData);
+          setEvents(data || []);
         }
       } catch (error) {
         console.error('Error loading events:', error);
@@ -361,7 +340,7 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({
                 {/* Event Image */}
                 <div className="relative h-48 overflow-hidden bg-gray-100">
                   <img
-                    src={event.image_url}
+                    src={event.cover_image_url || PLACEHOLDER_IMAGES.medium}
                     alt={event.title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                     onError={(e) => {
@@ -379,26 +358,19 @@ const ExperiencesPage: React.FC<ExperiencesPageProps> = ({
                   {/* Location */}
                   <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                     <MapPin size={16} className="flex-shrink-0" />
-                    <span className="line-clamp-1">{event.city || 'TBA'}</span>
+                    <span className="line-clamp-1">{event.location_name || 'TBA'}</span>
                   </div>
 
                   {/* Date */}
-                  {event.event_date && (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
-                      <Calendar size={16} className="flex-shrink-0" />
-                      <span>
-                        {new Date(event.event_date).toLocaleDateString('en-US', {
+                        {new Date(event.start_date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
                         })}
-                      </span>
-                    </div>
-                  )}
 
                   {/* Price */}
                   <div className="text-xl font-bold text-gray-900">
-                    ₹{event.ticket_price?.toLocaleString('en-IN') || 'TBA'}
+                    ₹{event.price?.toLocaleString('en-IN') || 'TBA'}
                   </div>
                 </div>
               </div>

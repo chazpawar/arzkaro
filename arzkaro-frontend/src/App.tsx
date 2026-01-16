@@ -21,6 +21,11 @@ import Footer from './components/Footer.tsx';
 import TermsPage from './pages/Terms.tsx';
 import Thankyou from './pages/Thankyou.tsx';
 import ChatModal from './components/ChatModal.tsx';
+import HostRequestPage from './pages/HostRequestPage.tsx';
+import HostDashboard from './pages/HostDashboard.tsx';
+import CreateListingPage from './pages/CreateListingPage.tsx';
+import MyListingsPage from './pages/MyListingsPage.tsx';
+import type { PageName } from './types/navigation.ts';
 
 // Mocking the user object structure that would come from AuthContext
 interface MockUser {
@@ -28,21 +33,6 @@ interface MockUser {
   email: string;
 }
 
-type PageName =
-  | 'home'
-  | 'for-you'
-  | 'experiences'
-  | 'experience-detail'
-  | 'booking'
-  | 'profile'
-  | 'edit-profile'
-  | 'settings'
-  | 'trips'
-  | 'trip-detail'
-  | 'my-tickets'
-  | 'ticket-detail'
-  | 'terms'
-  | 'thankyou';
 
 export default function App() {
   return (
@@ -66,6 +56,10 @@ function parsePathname(pathname: string) {
   if (clean === '/profile') return { page: 'profile' as PageName };
   if (clean === '/edit-profile') return { page: 'edit-profile' as PageName };
   if (clean === '/settings') return { page: 'settings' as PageName };
+  if (clean === '/host/request') return { page: 'host-request' as PageName };
+  if (clean === '/host/dashboard') return { page: 'host-dashboard' as PageName };
+  if (clean === '/host/create') return { page: 'create-listing' as PageName };
+  if (clean === '/host/listings') return { page: 'my-listings' as PageName };
 
   // dynamic routes
   const experienceMatch = clean.match(/^\/experience\/([^/]+)$/);
@@ -106,6 +100,14 @@ function pathFor(page: PageName, id?: string | null) {
       return '/edit-profile';
     case 'settings':
       return '/settings';
+    case 'host-request':
+      return '/host/request';
+    case 'host-dashboard':
+      return '/host/dashboard';
+    case 'create-listing':
+      return '/host/create';
+    case 'my-listings':
+      return '/host/listings';
     case 'experience-detail':
       return id ? `/experience/${id}` : '/experiences';
     case 'booking':
@@ -298,6 +300,10 @@ function AppContent() {
             settings: 'settings',
             terms: 'terms',
             thankyou: 'thankyou',
+            'host-request': 'host-request',
+            'host-dashboard': 'host-dashboard',
+            'create-listing': 'create-listing',
+            'my-listings': 'my-listings',
           };
           const page = mapping[p] || 'home';
           handleNavigate(page);
@@ -414,7 +420,35 @@ function AppContent() {
 
         {currentPage === 'terms' && <TermsPage />}
 
-        {currentPage === 'thankyou' && <Thankyou />}
+        {currentPage === 'thankyou' && <Thankyou onNavigate={handleNavigate} />}
+
+        {currentPage === 'host-request' && (
+          <HostRequestPage 
+            onBack={() => handleNavigate('home')} 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
+        {currentPage === 'host-dashboard' && (
+          <HostDashboard 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
+        {currentPage === 'create-listing' && (
+          <CreateListingPage 
+            onBack={() => handleNavigate('host-dashboard')} 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
+        {currentPage === 'my-listings' && (
+          <MyListingsPage 
+            onBack={() => handleNavigate('host-dashboard')} 
+            onNavigate={handleNavigate}
+            onEventClick={handleEventSelect}
+          />
+        )}
 
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}

@@ -1,0 +1,40 @@
+
+> vite-react-typescript-starter@0.0.0 lint
+> eslint .
+
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/pages/CreateListingPage.tsx
+   7:12  error  'ImageIcon' is defined but never used      @typescript-eslint/no-unused-vars
+   8:3   error  'Calendar' is defined but never used       @typescript-eslint/no-unused-vars
+   9:3   error  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+  12:3   error  'AlignLeft' is defined but never used      @typescript-eslint/no-unused-vars
+  13:3   error  'CheckCircle2' is defined but never used   @typescript-eslint/no-unused-vars
+  15:3   error  'Upload' is defined but never used         @typescript-eslint/no-unused-vars
+  20:22  error  Unexpected any. Specify a different type   @typescript-eslint/no-explicit-any
+  53:15  error  'data' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/pages/HostDashboard.tsx
+  10:3   error  'TrendingUp' is defined but never used    @typescript-eslint/no-unused-vars
+  21:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/pages/HostRequestPage.tsx
+   7:3   error  'ChevronRight' is defined but never used             @typescript-eslint/no-unused-vars
+  13:3   error  'AlertCircle' is defined but never used              @typescript-eslint/no-unused-vars
+  15:3   error  'Star' is defined but never used                     @typescript-eslint/no-unused-vars
+  20:22  error  Unexpected any. Specify a different type             @typescript-eslint/no-explicit-any
+  24:26  error  'refreshProfile' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/pages/MyListingsPage.tsx
+  9:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/pages/Thankyou.tsx
+  20:22  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  23:36  error  'onNavigate' is defined but never used    @typescript-eslint/no-unused-vars
+
+/Users/RohitKumar/Desktop/arzkaro/arzkaro-frontend/src/services/hostService.ts
+  30:21  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  55:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 21 problems (21 errors, 0 warnings)
+

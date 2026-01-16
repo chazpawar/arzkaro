@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 // Event type matching the database schema
-export interface Event {
+export interface AppEvent {
   id: string;
   title: string;
   description: string | null;
@@ -63,7 +63,7 @@ export interface TicketType {
  * Hook to fetch all published events/experiences (not trips)
  */
 export function useEvents(category?: string) {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -110,7 +110,7 @@ export function useEvents(category?: string) {
  * Hook to fetch a single event by ID with its ticket types
  */
 export function useEvent(eventId: string | null) {
-  const [event, setEvent] = useState<Event | null>(null);
+  const [event, setEvent] = useState<AppEvent | null>(null);
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -180,7 +180,7 @@ export function useEvent(eventId: string | null) {
  * Hook to fetch featured/recommended events for "For You" page
  */
 export function useFeaturedEvents(limit: number = 10) {
-  const [events, setEvents] = useState<Event[]>([]);
+  const [events, setEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 

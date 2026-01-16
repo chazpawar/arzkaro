@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import type { PageName } from '../types/navigation';
 
 type LastPayment = {
   payment?: {
@@ -16,7 +17,11 @@ type LastPayment = {
   timestamp?: string;
 };
 
-export default function Thankyou() {
+interface ThankyouProps {
+  onNavigate: (page: PageName) => void;
+}
+
+export default function Thankyou({ onNavigate }: ThankyouProps) {
   const [data, setData] = useState<LastPayment | null>(null);
 
   useEffect(() => {
@@ -75,12 +80,12 @@ export default function Thankyou() {
         )}
 
         <div className="mt-6 flex gap-3">
-          <a
-            href="/"
+          <button
+            onClick={() => onNavigate('home')}
             className="inline-block px-4 py-2 rounded-lg border border-gray-200 bg-white text-sm font-medium"
           >
             Back to home
-          </a>
+          </button>
 
           <button
             onClick={() => {
