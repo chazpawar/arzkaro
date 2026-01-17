@@ -452,8 +452,8 @@ function AppContent() {
 
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}
-      </main>
-      <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />
+</main>
+      {currentPage !== 'create-listing' && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
     </div>
   );
 }
