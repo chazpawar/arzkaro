@@ -14,7 +14,9 @@ import {
   Banknote,
   ChevronRight,
   AlertCircle,
-  Loader2
+  Loader2,
+  X,
+  Smartphone
 } from 'lucide-react';
 
 interface HostDashboardProps {
@@ -27,6 +29,7 @@ export default function HostDashboard({ onNavigate }: HostDashboardProps) {
   const [events, setEvents] = useState<AppEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showInstallPopup, setShowInstallPopup] = useState(false);
 
   const fetchData = useCallback(async () => {
     if (!user?.id) return;
@@ -173,7 +176,10 @@ export default function HostDashboard({ onNavigate }: HostDashboardProps) {
                 <ChevronRight className="text-gray-300" />
               </button>
 
-              <button className="w-full flex items-center p-6 hover:bg-gray-50 transition-colors border-b border-gray-100">
+              <button 
+                onClick={() => setShowInstallPopup(true)}
+                className="w-full flex items-center p-6 hover:bg-gray-50 transition-colors border-b border-gray-100"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center mr-4">
                   <QrCode className="text-gray-600" size={24} />
                 </div>
@@ -203,7 +209,10 @@ export default function HostDashboard({ onNavigate }: HostDashboardProps) {
                 <ChevronRight className="text-gray-300" />
               </button>
 
-              <button className="w-full flex items-center p-6 hover:bg-gray-50 transition-colors">
+              <button 
+                onClick={() => setShowInstallPopup(true)}
+                className="w-full flex items-center p-6 hover:bg-gray-50 transition-colors"
+              >
                 <div className="w-12 h-12 rounded-2xl bg-green-50 flex items-center justify-center mr-4">
                   <Banknote className="text-green-600" size={24} />
                 </div>
@@ -251,6 +260,48 @@ export default function HostDashboard({ onNavigate }: HostDashboardProps) {
           </div>
         </div>
       </div>
+
+      {/* Install App Popup */}
+      {showInstallPopup && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full border-2 border-black shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-[#FF785A]/10 flex items-center justify-center">
+                  <Smartphone className="text-[#FF785A]" size={24} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Install App</h3>
+              </div>
+              <button
+                onClick={() => setShowInstallPopup(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-600" />
+              </button>
+            </div>
+            <p className="text-gray-600 mb-6">
+              This feature is only available in the mobile app. Please install the app to use this feature.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowInstallPopup(false)}
+                className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+              >
+                Close
+              </button>
+              <button
+                onClick={() => {
+                  // You can add app store links here
+                  setShowInstallPopup(false);
+                }}
+                className="flex-1 py-3 px-4 bg-black text-white font-medium rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Download App
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

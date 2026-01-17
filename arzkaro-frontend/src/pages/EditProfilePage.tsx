@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Camera, Instagram, Youtube, Linkedin, Twitter } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 
 interface EditProfilePageProps {
@@ -20,6 +21,7 @@ const GENDER_OPTIONS = ['Male', 'Female', 'Other', 'Prefer not to say'];
 
 export default function EditProfilePage({ onBack, onSuccess }: EditProfilePageProps) {
   const { user, profile, updateProfile, refreshProfile } = useAuth();
+  const { showToast } = useToast();
   
   const [formData, setFormData] = useState({
     fullName: profile?.full_name || '',
@@ -50,14 +52,14 @@ export default function EditProfilePage({ onBack, onSuccess }: EditProfilePagePr
       // Validate file type
       const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
       if (!allowedTypes.includes(file.type)) {
-        alert('Please upload a valid image file (JPEG, PNG, GIF, or WebP)');
+        showToast('Please upload a valid image file (JPEG, PNG, GIF, or WebP)', 'warning');
         return;
       }
 
       // Validate file size (2MB limit)
       const maxSize = 2 * 1024 * 1024; // 2MB in bytes
       if (file.size > maxSize) {
-        alert('Image size must be less than 2MB');
+        showToast('Image size must be less than 2MB', 'warning');
         return;
       }
 
@@ -141,7 +143,7 @@ export default function EditProfilePage({ onBack, onSuccess }: EditProfilePagePr
 
         if (uploadError) {
           console.error('Error uploading avatar:', uploadError);
-          alert(`Failed to upload avatar: ${uploadError.message}`);
+          showToast(`Failed to upload avatar: ${uploadError.message}`, 'error');
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('avatars')
@@ -171,11 +173,11 @@ export default function EditProfilePage({ onBack, onSuccess }: EditProfilePagePr
       }
 
       await refreshProfile();
-      alert('Profile updated successfully!');
+      showToast('Profile updated successfully!', 'success');
       onSuccess();
     } catch (error) {
       console.error('Error updating profile:', error);
-      alert('Failed to update profile. Please try again.');
+      showToast('Failed to update profile. Please try again.', 'error');
     } finally {
       setLoading(false);
     }

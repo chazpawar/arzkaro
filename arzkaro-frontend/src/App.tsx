@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { AuthProvider } from './contexts/AuthContext.tsx';
+import { ToastProvider } from './contexts/ToastContext.tsx';
 import { useAuth } from './hooks/useAuth';
 
 // Import all components / pages
@@ -37,7 +38,9 @@ interface MockUser {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </AuthProvider>
   );
 }

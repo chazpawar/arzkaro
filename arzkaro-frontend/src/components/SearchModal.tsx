@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, MapPin, Navigation, ChevronRight, CheckCircle2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useToast } from '../contexts/ToastContext';
 import { searchPlaces, getPlaceDetails, type PlaceAutocompleteResult } from '../services/googlePlacesService';
 
 interface SearchModalProps {
@@ -29,6 +30,7 @@ export default function SearchModal({
   onSearch,
   searchContext = 'all',
 }: SearchModalProps) {
+  const { showToast } = useToast();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedRadius, setSelectedRadius] = useState(10);
@@ -100,12 +102,12 @@ export default function SearchModal({
         },
         (error) => {
           console.error('Error getting location:', error);
-          alert('Failed to get location. Please enable location permissions.');
+          showToast('Failed to get location. Please enable location permissions.', 'error');
           setIsLoadingLocation(false);
         }
       );
     } else {
-      alert('Geolocation is not supported by your browser.');
+      showToast('Geolocation is not supported by your browser.', 'error');
       setIsLoadingLocation(false);
     }
   };

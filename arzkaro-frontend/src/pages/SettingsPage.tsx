@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, FileText, Shield, Trash2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 
 interface SettingsPageProps {
@@ -9,6 +10,7 @@ interface SettingsPageProps {
 
 export default function SettingsPage({ onBack }: SettingsPageProps) {
   const { user, signOut } = useAuth();
+  const { showToast } = useToast();
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
   const [updating, setUpdating] = useState(false);
@@ -61,12 +63,12 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       if (error) {
         console.error('Error updating visibility:', error);
         setIsPublic(!value); // Revert on error
-        alert('Failed to update account visibility. Please try again.');
+        showToast('Failed to update account visibility. Please try again.', 'error');
       }
     } catch (error) {
       console.error('Error in handleVisibilityToggle:', error);
       setIsPublic(!value); // Revert on error
-      alert('Failed to update account visibility. Please try again.');
+      showToast('Failed to update account visibility. Please try again.', 'error');
     } finally {
       setUpdating(false);
     }
@@ -124,12 +126,12 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
       }
 
       await signOut();
-      alert("Your account has been permanently deleted. We're sorry to see you go.");
+      showToast("Your account has been permanently deleted. We're sorry to see you go.", 'info');
       onBack();
     } catch (error) {
       console.error('Error deleting account:', error);
       const err = error as Error;
-      alert(err.message || 'Failed to delete account. Please try again or contact support.');
+      showToast(err.message || 'Failed to delete account. Please try again or contact support.', 'error');
     } finally {
       setDeleting(false);
     }

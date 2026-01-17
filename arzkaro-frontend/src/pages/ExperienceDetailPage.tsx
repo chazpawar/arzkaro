@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { ChevronLeft, MapPin, Share2, Users } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../contexts/ToastContext';
 import { SkeletonStyles } from '../components/SkeletonCard';
 import AttendeesModal from '../components/AttendeesModal';
 
@@ -85,6 +86,7 @@ export default function ExperienceDetailPage({
   onAuthClick?: () => void;
 }) {
   const { isAuthenticated } = useAuth();
+  const { showToast } = useToast();
   const { event: dbEvent, loading, error } = useEvent(eventId);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
@@ -202,7 +204,7 @@ export default function ExperienceDetailPage({
         .catch((err) => console.log('Error sharing:', err));
     } else {
       navigator.clipboard.writeText(window.location.href);
-      alert('Link copied to clipboard!');
+      showToast('Link copied to clipboard!', 'success');
     }
   };
 

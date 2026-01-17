@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { ChevronLeft, MapPin, Calendar } from 'lucide-react';
 import { useEvent } from '../hooks/useEvents';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../contexts/ToastContext';
 import { razorpayService } from '../services/razorpayService';
 
 interface TicketType {
@@ -24,6 +25,7 @@ interface BookingPageProps {
 export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }: BookingPageProps) {
   const { event, ticketTypes: fetchedTicketTypes, loading, error } = useEvent(eventId);
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [selectedTicketType, setSelectedTicketType] = useState<TicketType | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -95,13 +97,13 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
       if (onAuthClick) {
         onAuthClick();
       } else {
-        alert('Please log in to book tickets');
+        showToast('Please log in to book tickets', 'info');
       }
       return;
     }
 
     if (!event || !selectedTicketType) {
-      alert('Please select a ticket type');
+      showToast('Please select a ticket type', 'warning');
       return;
     }
 
@@ -126,7 +128,7 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
         );
 
         if (result.success) {
-          alert('🎉 Booking confirmed! Check your tickets in My Tickets.');
+          showToast('🎉 Booking confirmed! Check your tickets in My Tickets.', 'success');
           if (onSuccess) {
             onSuccess();
           } else {
@@ -134,7 +136,7 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
           }
         } else if (result.cancelled) {
           // User cancelled payment - just show message, don't navigate away
-          alert('Payment cancelled. You can try again when ready.');
+          showToast('Payment cancelled. You can try again when ready.', 'info');
         } else {
           throw new Error(result.error || 'Payment failed');
         }
@@ -148,7 +150,7 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
         );
 
         if (result.success) {
-          alert('🎉 Booking confirmed! This one\'s on us! Check your tickets in My Tickets.');
+          showToast('🎉 Booking confirmed! This one\'s on us! Check your tickets in My Tickets.', 'success');
           if (onSuccess) {
             onSuccess();
           } else {
@@ -161,7 +163,7 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
     } catch (err: unknown) {
       console.error('Booking error:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to complete booking. Please try again.';
-      alert(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setIsProcessing(false);
     }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useToast } from '../contexts/ToastContext';
 import { getLatestHostRequest, submitHostRequest } from '../services/hostService';
 import type { HostRequest, HostType, HostRequestData } from '../types/host';
 import type { PageName } from '../types/navigation';
@@ -20,6 +21,7 @@ interface HostRequestPageProps {
 
 export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageProps) {
   const { user, profile } = useAuth();
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [existingRequest, setExistingRequest] = useState<HostRequest | null>(null);
@@ -76,7 +78,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
       const updatedRequest = await getLatestHostRequest(user.id);
       setExistingRequest(updatedRequest);
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Submission failed');
+      showToast(err instanceof Error ? err.message : 'Submission failed', 'error');
     } finally {
       setSubmitting(false);
     }
