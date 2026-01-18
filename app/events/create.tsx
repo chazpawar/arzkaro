@@ -2737,8 +2737,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   categoryCardImageLarge: {
-    width: 100,
-    height: 100,
+    width: 192,
+    height: 192,
   },
   categoryCardLabel: {
     ...Typography.bodyMedium,

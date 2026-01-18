@@ -142,7 +142,7 @@ class RazorpayService {
         key: this.keyId,
         amount: options.amount || 0,
         currency: options.currency || 'INR',
-        name: options.name || 'Arzkaro',
+        name: options.name || 'Arz',
         description: options.description || 'Event Booking Payment',
         image: options.image || '/logo.png',
         order_id: options.order_id || '',

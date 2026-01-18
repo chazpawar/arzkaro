@@ -373,7 +373,7 @@ export default function ExperienceDetailPage({
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-600 mb-1">Hosted by</p>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {dbEvent?.host?.full_name || 'Arzkaro'}
+                      {dbEvent?.host?.full_name || 'Arz'}
                     </h3>
                     
                     {/* Host Bio */}

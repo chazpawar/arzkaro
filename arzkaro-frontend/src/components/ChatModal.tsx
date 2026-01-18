@@ -34,7 +34,7 @@ export default function ChatModal({ onClose }: ChatModalProps) {
         
         {/* Message */}
         <p className="text-gray-600 mb-6">
-          Chat is only available on the mobile app. Download the Arzkaro app to connect with hosts and other travelers!
+          Chat is only available on the mobile app. Download the Arz app to connect with hosts and other travelers!
         </p>
         
         {/* App store buttons */}

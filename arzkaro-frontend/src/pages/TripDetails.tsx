@@ -558,7 +558,7 @@ export default function TripDetailsPage({
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-600 mb-1">Hosted by</p>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {dbTrip?.host?.full_name || 'Arzkaro'}
+                      {dbTrip?.host?.full_name || 'Arz'}
                     </h3>
                     
                     {/* Host Bio */}

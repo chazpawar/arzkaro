@@ -210,7 +210,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                               {stats.monthsOnPlatform}
                             </div>
                             <div className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
-                              Month on Arzkaro
+                              Month on Arz
                             </div>
                           </div>
                         </div>

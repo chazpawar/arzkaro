@@ -139,7 +139,7 @@ export default function SettingsPage({ onBack }: SettingsPageProps) {
 
   const handleContactUs = () => {
     window.location.href =
-      'mailto:thearzkaro@gmail.com?subject=Support%20Request&body=Hi%20Arzkaro%20Team%2C%0A%0A';
+      'mailto:thearzkaro@gmail.com?subject=Support%20Request&body=Hi%20Arz%20Team%2C%0A%0A';
   };
 
   return (

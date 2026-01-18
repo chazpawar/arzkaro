@@ -26,6 +26,7 @@ export interface PlaceDetails {
  */
 export async function searchPlaces(
   input: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _types: string[] = [],
   components: string[] = ['in']
 ): Promise<PlaceAutocompleteResult[]> {
