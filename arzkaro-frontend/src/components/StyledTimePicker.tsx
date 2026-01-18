@@ -19,7 +19,6 @@ export function StyledTimePicker({ value, onChange, label, className = '', minTi
   const timePickerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [positionAbove, setPositionAbove] = useState(false);
 
   useEffect(() => {
     if (value) {
@@ -106,8 +105,6 @@ export function StyledTimePicker({ value, onChange, label, className = '', minTi
       
       // If there's not enough space below but enough space above, position above
       const shouldPositionAbove = spaceBelow < timePickerHeight && spaceAbove > timePickerHeight;
-      
-      setPositionAbove(shouldPositionAbove);
       
       // Calculate top position
       let top: number;

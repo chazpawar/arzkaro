@@ -3,7 +3,6 @@ import { useAuth } from '../hooks/useAuth';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import {
-  ChevronLeft,
   Image as ImageIcon,
   MapPin,
   Calendar,
@@ -288,11 +287,11 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
         description: formData.description.trim(),
         cover_image_url: formData.coverImage,
         category: formData.mainCategory,
-        subcategories: listingType === 'experience' ? formData.subcategories : formData.customTags,
+        tags: listingType === 'experience' ? formData.subcategories : formData.customTags,
         location_name: formData.location?.address || null,
         location_address: formData.location?.address || null,
-        latitude: formData.location?.latitude || null,
-        longitude: formData.location?.longitude || null,
+        location_lat: formData.location?.latitude || null,
+        location_lng: formData.location?.longitude || null,
         start_date: new Date(formData.startDate).toISOString(),
         end_date: new Date(formData.endDate).toISOString(),
         max_capacity: parseInt(formData.maxCapacity),
@@ -306,15 +305,16 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
 
       if (listingType === 'trip') {
         eventData.departure_location = formData.departureLocation.trim();
-        eventData.pickup_points = formData.pickupPoints.length > 0 ? formData.pickupPoints : null;
-        eventData.itinerary = formData.itinerary.length > 0 ? formData.itinerary : null;
+        eventData.pickups = formData.pickupPoints.length > 0 ? formData.pickupPoints : null;
+        eventData.itinerary = formData.itinerary.length > 0 ? JSON.stringify(formData.itinerary) : null;
         eventData.whats_included =
-          formData.whatsIncluded.length > 0 ? formData.whatsIncluded : null;
+          formData.whatsIncluded.length > 0 ? JSON.stringify(formData.whatsIncluded) : null;
         eventData.whats_not_included =
-          formData.whatsNotIncluded.length > 0 ? formData.whatsNotIncluded : null;
+          formData.whatsNotIncluded.length > 0 ? JSON.stringify(formData.whatsNotIncluded) : null;
         eventData.images = formData.tripImages.length > 0 ? formData.tripImages : null;
       }
 
+      console.log('Inserting eventData:', eventData);
       const { error, data } = await supabase.from('events').insert(eventData).select().single();
 
       if (error) {

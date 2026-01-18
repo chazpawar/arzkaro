@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface StyledDatePickerProps {
   value: string;
@@ -17,7 +17,6 @@ export function StyledDatePicker({ value, onChange, label, className = '', minDa
   const calendarRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
-  const [positionAbove, setPositionAbove] = useState(false);
 
   useEffect(() => {
     if (value) {
@@ -36,8 +35,6 @@ export function StyledDatePicker({ value, onChange, label, className = '', minDa
       
       // If there's not enough space below but enough space above, position above
       const shouldPositionAbove = spaceBelow < calendarHeight && spaceAbove > calendarHeight;
-      
-      setPositionAbove(shouldPositionAbove);
       
       // Calculate top position
       let top: number;

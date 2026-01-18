@@ -190,8 +190,6 @@ export function MultiImageUpload({
     }
   };
 
-  const isUploading = uploadingCount > 0;
-
   return (
     <div className="w-full">
       {label && (
