@@ -34,13 +34,59 @@ export default function MultiImageUpload({
   const [uploadingIndex, setUploadingIndex] = useState<number | null>(null);
   const [showOptions, setShowOptions] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<number>(0);
+  const [uploadQueue, setUploadQueue] = useState<{ uri: string; slot: number }[]>([]);
+  const [isProcessingQueue, setIsProcessingQueue] = useState(false);
+
+  // Process upload queue one at a time
+  React.useEffect(() => {
+    const processQueue = async () => {
+      if (uploadQueue.length === 0 || isProcessingQueue) return;
+
+      setIsProcessingQueue(true);
+      const { uri, slot } = uploadQueue[0];
+
+      try {
+        setUploading(true);
+        setUploadingIndex(slot);
+
+        // Small delay to let React Native's fetch settle
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        const result = await StorageService.uploadImage(uri, bucket, folder);
+
+        const cleanedImages = [...currentImages];
+        if (slot < cleanedImages.length) {
+          cleanedImages[slot] = result.url;
+        } else {
+          cleanedImages.push(result.url);
+        }
+        onImagesChange(cleanedImages);
+      } catch (error) {
+        Alert.alert('Upload Failed', 'Could not upload image. Please try again.');
+        console.error('Upload error:', error);
+      } finally {
+        setUploading(false);
+        setUploadingIndex(null);
+        // Remove processed item from queue
+        setUploadQueue((prev) => prev.slice(1));
+        setIsProcessingQueue(false);
+      }
+    };
+
+    processQueue();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uploadQueue, isProcessingQueue, currentImages, bucket, folder]);
+
+  const queueUpload = (uri: string) => {
+    setUploadQueue((prev) => [...prev, { uri, slot: selectedSlot }]);
+  };
 
   const handlePickImage = async () => {
     try {
       setShowOptions(false);
       const asset = await StorageService.pickImage();
       if (asset) {
-        await uploadImage(asset.uri);
+        queueUpload(asset.uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to pick image. Please try again.');
@@ -53,34 +99,11 @@ export default function MultiImageUpload({
       setShowOptions(false);
       const asset = await StorageService.takePhoto();
       if (asset) {
-        await uploadImage(asset.uri);
+        queueUpload(asset.uri);
       }
     } catch (error) {
       Alert.alert('Error', 'Failed to take photo. Please try again.');
       console.error('Take photo error:', error);
-    }
-  };
-
-  const uploadImage = async (uri: string) => {
-    try {
-      setUploading(true);
-      setUploadingIndex(selectedSlot);
-      const result = await StorageService.uploadImage(uri, bucket, folder);
-
-      const newImages = [...currentImages];
-      if (selectedSlot < newImages.length) {
-        newImages[selectedSlot] = result.url;
-      } else {
-        newImages.push(result.url);
-      }
-
-      onImagesChange(newImages);
-    } catch (error) {
-      Alert.alert('Upload Failed', 'Could not upload image. Please try again.');
-      console.error('Upload error:', error);
-    } finally {
-      setUploading(false);
-      setUploadingIndex(null);
     }
   };
 

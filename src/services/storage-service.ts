@@ -1,4 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
+import * as ImageManipulator from 'expo-image-manipulator';
 import { supabase } from '../../backend/supabase';
 
 export interface ImageUploadResult {
@@ -33,8 +34,8 @@ export async function pickImage(): Promise<ImagePicker.ImagePickerAsset | null> 
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: 'images',
-      allowsEditing: false,
+      mediaTypes: ['images'],
+      allowsEditing: false, // Don't force cropping
       quality: 0.8,
     });
 
@@ -60,7 +61,7 @@ export async function takePhoto(): Promise<ImagePicker.ImagePickerAsset | null> 
     }
 
     const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: false,
+      allowsEditing: false, // Don't force cropping
       quality: 0.8,
     });
 
@@ -77,10 +78,6 @@ export async function takePhoto(): Promise<ImagePicker.ImagePickerAsset | null> 
 
 /**
  * Upload an image to Supabase Storage
- * @param uri - Local URI of the image
- * @param bucket - Storage bucket name (default: 'event-images')
- * @param folder - Optional folder path within the bucket
- * @returns The public URL and storage path of the uploaded image
  */
 export async function uploadImage(
   uri: string,
@@ -88,65 +85,88 @@ export async function uploadImage(
   folder?: string
 ): Promise<ImageUploadResult> {
   try {
-    // Generate a unique filename
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(7);
-    const extension = uri.split('.').pop() || 'jpg';
-    const filename = `${timestamp}_${random}.${extension}`;
+    const filename = `${timestamp}_${random}.jpg`;
     const path = folder ? `${folder}/${filename}` : filename;
 
-    // Fetch the image
-    const response = await fetch(uri);
+    // Get Supabase session for auth token
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    if (!token) {
+      throw new Error('Not authenticated. Please log in to upload images.');
+    }
+
+    // Convert HEIC to JPEG without cropping using ImageManipulator
+    // This preserves the full image while ensuring JPEG format
+    let processedUri = uri;
+    if (uri.toLowerCase().endsWith('.heic') || uri.toLowerCase().includes('.heic')) {
+      const manipResult = await ImageManipulator.manipulateAsync(
+        uri,
+        [], // No transformations - just format conversion
+        { compress: 0.8, format: ImageManipulator.SaveFormat.JPEG }
+      );
+      processedUri = manipResult.uri;
+    }
+
+    // Read file as base64
+    const response = await fetch(processedUri);
     const blob = await response.blob();
 
-    // Read blob as base64 for React Native compatibility
-    const reader = new FileReader();
-    const base64Promise = new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => {
-        const base64 = reader.result as string;
-        // Remove data URL prefix (e.g., "data:image/jpeg;base64,")
-        const base64Data = base64.split(',')[1];
-        resolve(base64Data);
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        resolve(result.split(',')[1]);
       };
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
 
-    const base64Data = await base64Promise;
-
-    // Convert base64 to Uint8Array
-    const binaryString = atob(base64Data);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
+    // Convert to binary
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
     }
 
-    // Upload to Supabase Storage
-    const { data, error } = await supabase.storage.from(bucket).upload(path, bytes.buffer, {
-      contentType: blob.type || 'image/jpeg',
-      upsert: false,
+    // Upload using XMLHttpRequest (more stable than fetch in RN)
+    const supabaseUrl = (supabase as any).supabaseUrl;
+    const supabaseKey = (supabase as any).supabaseKey;
+    const uploadUrl = `${supabaseUrl}/storage/v1/object/${bucket}/${path}`;
+
+    return new Promise<ImageUploadResult>((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.open('POST', uploadUrl);
+      xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+      xhr.setRequestHeader('apikey', supabaseKey);
+      xhr.setRequestHeader('Content-Type', 'image/jpeg');
+      xhr.setRequestHeader('x-upsert', 'false');
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          const publicUrl = `${supabaseUrl}/storage/v1/object/public/${bucket}/${path}`;
+          console.log('✅ Upload successful:', path);
+          resolve({ url: publicUrl, path });
+        } else {
+          console.error('Upload failed:', xhr.status, xhr.responseText);
+          reject(new Error(`Upload failed: ${xhr.status} - ${xhr.responseText}`));
+        }
+      };
+
+      xhr.onerror = (e) => {
+        console.error('XHR Error Event:', e);
+        reject(new Error('Network request failed - check console for details'));
+      };
+      xhr.ontimeout = () => reject(new Error('Upload timeout'));
+
+      xhr.timeout = 30000; // 30 second timeout
+      xhr.send(bytes.buffer);
     });
-
-    if (error) {
-      console.error('Supabase upload error:', error);
-      throw new Error(`Failed to upload image: ${error.message}`);
-    }
-
-    if (!data) {
-      throw new Error('Upload succeeded but no data returned');
-    }
-
-    // For private buckets (like host-documents), return the storage path
-    // For public buckets, return the public URL
-    // Admin can fetch signed URLs as needed for private buckets
-    const {
-      data: { publicUrl },
-    } = supabase.storage.from(bucket).getPublicUrl(data.path);
-
-    return {
-      url: publicUrl, // Note: For private buckets, this won't work directly - need signed URLs
-      path: data.path,
-    };
   } catch (error) {
     console.error('Error uploading image:', error);
     throw error;
