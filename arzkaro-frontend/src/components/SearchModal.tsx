@@ -62,13 +62,14 @@ export default function SearchModal({
 
     if (!locationSearchQuery.trim()) {
       setLocationSuggestions([]);
+      setIsLoadingSuggestions(false);
       return;
     }
 
     setIsLoadingSuggestions(true);
     debounceTimerRef.current = setTimeout(async () => {
       try {
-        const results = await searchPlaces(locationSearchQuery, '(cities)', 'country:in');
+        const results = await searchPlaces(locationSearchQuery, [], ['in']);
         setLocationSuggestions(results.slice(0, 5));
       } catch (error) {
         console.error('Autocomplete error:', error);

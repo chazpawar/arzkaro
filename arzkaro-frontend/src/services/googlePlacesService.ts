@@ -1,4 +1,4 @@
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+/// <reference types="google.maps" />
 
 export interface PlaceAutocompleteResult {
   place_id: string;
@@ -22,49 +22,43 @@ export interface PlaceDetails {
 }
 
 /**
- * Search for place autocomplete suggestions
+ * Search for place autocomplete suggestions using the Google Maps JavaScript SDK
  */
 export async function searchPlaces(
   input: string,
-  types = '',
-  components = 'country:in'
+  _types: string[] = [],
+  components: string[] = ['in']
 ): Promise<PlaceAutocompleteResult[]> {
   if (!input || input.trim().length === 0) {
     return [];
   }
 
-  if (!GOOGLE_MAPS_API_KEY) {
-    console.error('[GOOGLE_PLACES] API key not configured');
+  // Ensure Google Maps is loaded
+  if (typeof window === 'undefined' || !window.google?.maps?.places?.AutocompleteSuggestion) {
+    console.warn('[GOOGLE_PLACES] Google Maps SDK not loaded or New Places API not available');
     return [];
   }
 
   try {
-    const params = new URLSearchParams({
+    const { suggestions } = await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
       input: input.trim(),
-      key: GOOGLE_MAPS_API_KEY,
-      components: components,
+      includedRegionCodes: components,
     });
 
-    if (types) {
-      params.append('types', types);
-    }
+    if (!suggestions) return [];
 
-    // Use a CORS proxy if needed, but Google Maps API usually allows client-side fetch from authorized domains.
-    // For local dev, we might need to handle CORS if the API key isn't restricted properly.
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/autocomplete/json?${params.toString()}`
-    );
-
-    const data = await response.json();
-
-    if (data.status === 'OK') {
-      return data.predictions || [];
-    } else if (data.status === 'ZERO_RESULTS') {
-      return [];
-    } else {
-      console.error('[GOOGLE_PLACES] API error:', data.status, data.error_message);
-      return [];
-    }
+    return suggestions.map(suggestion => {
+      const p = suggestion.placePrediction;
+      if (!p) return null;
+      return {
+        place_id: p.placeId || '',
+        description: p.text?.toString() || '',
+        structured_formatting: {
+          main_text: p.mainText?.toString() || p.text?.toString() || '',
+          secondary_text: p.secondaryText?.toString() || ''
+        }
+      };
+    }).filter((item): item is PlaceAutocompleteResult => item !== null);
   } catch (error) {
     console.error('[GOOGLE_PLACES] Search error:', error);
     return [];
@@ -72,33 +66,34 @@ export async function searchPlaces(
 }
 
 /**
- * Get detailed information about a place including coordinates
+ * Get detailed information about a place including coordinates using the Google Maps JavaScript SDK
  */
 export async function getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
-  if (!GOOGLE_MAPS_API_KEY) {
-    console.error('[GOOGLE_PLACES] API key not configured');
+  if (typeof window === 'undefined' || !window.google?.maps?.places?.Place) {
+    console.warn('[GOOGLE_PLACES] Google Maps SDK not loaded');
     return null;
   }
 
   try {
-    const params = new URLSearchParams({
-      place_id: placeId,
-      key: GOOGLE_MAPS_API_KEY,
-      fields: 'place_id,name,formatted_address,geometry',
+    const place = new window.google.maps.places.Place({ id: placeId });
+    await place.fetchFields({
+      fields: ['id', 'displayName', 'formattedAddress', 'location']
     });
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/details/json?${params.toString()}`
-    );
-
-    const data = await response.json();
-
-    if (data.status === 'OK') {
-      return data.result;
-    } else {
-      console.error('[GOOGLE_PLACES] Details API error:', data.status, data.error_message);
-      return null;
+    if (place.location) {
+      return {
+        place_id: place.id,
+        name: place.displayName || '',
+        formatted_address: place.formattedAddress || '',
+        geometry: {
+          location: {
+            lat: place.location.lat(),
+            lng: place.location.lng()
+          }
+        }
+      };
     }
+    return null;
   } catch (error) {
     console.error('[GOOGLE_PLACES] Get details error:', error);
     return null;

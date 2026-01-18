@@ -56,6 +56,7 @@ export function LocationAutocomplete({
     if (!newValue.trim()) {
       setSuggestions([]);
       setShowSuggestions(false);
+      setIsLoading(false);
       return;
     }
 
