@@ -4,12 +4,15 @@ module.exports = {
   expo: {
     name: 'arzkaro',
     slug: 'arzkaro',
+
+    owner: 'chaz1', // ✅ ADD THIS LINE
+
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
     userInterfaceStyle: 'light',
     scheme: 'arzkaro',
-    newArchEnabled: false, // Disabled for react-native-razorpay compatibility
+    newArchEnabled: false,
     splash: {
       image: './assets/splash-icon.png',
       resizeMode: 'contain',
@@ -44,7 +47,7 @@ module.exports = {
     },
     extra: {
       eas: {
-        projectId: 'e998f214-0dd4-4d63-b5f3-0d464ef70a7f',
+        projectId: '27bcb6e8-0b00-429d-9ac0-387b9e876cd7',
       },
       supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,

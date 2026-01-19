@@ -1,5 +1,5 @@
 // src/pages/ForYou.tsx
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
@@ -10,6 +10,13 @@ type ForYouProps = {
   onEventSelect: (eventId: string) => void;
   onTripSelect: (tripId: string) => void;
   onNavigate?: (page: string) => void;
+  searchQuery?: string;
+  location?: string;
+  radius?: number;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 type CombinedItem = {
@@ -25,9 +32,18 @@ type CombinedItem = {
   estimated_cost?: number;
 };
 
-export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForYouProps) {
+export default function ForYou({ 
+  onEventSelect, 
+  onTripSelect, 
+  onNavigate,
+  searchQuery,
+  location,
+  // radius and coordinates can be used for more advanced server-side search
+}: ForYouProps) {
   const [topExperiences, setTopExperiences] = useState<CombinedItem[]>([]);
   const [popularTrips, setPopularTrips] = useState<CombinedItem[]>([]);
+  const [allExperiences, setAllExperiences] = useState<CombinedItem[]>([]);
+  const [allTrips, setAllTrips] = useState<CombinedItem[]>([]);
   const [loading, setLoading] = useState(true);
   const experiencesRef = useRef<HTMLDivElement>(null);
   const tripsRef = useRef<HTMLDivElement>(null);
@@ -37,6 +53,50 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
   useEffect(() => {
     loadItems();
   }, []);
+
+  const filterItems = useCallback(() => {
+    let filteredExperiences = [...allExperiences];
+    let filteredTrips = [...allTrips];
+
+    // Filter by search query
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filteredExperiences = filteredExperiences.filter((item) => {
+        return (
+          item.title.toLowerCase().includes(q) ||
+          item.city?.toLowerCase().includes(q)
+        );
+      });
+      
+      filteredTrips = filteredTrips.filter((item) => {
+        return (
+          item.title.toLowerCase().includes(q) ||
+          item.destination?.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    // Filter by location
+    if (location) {
+      const loc = location.toLowerCase();
+      filteredExperiences = filteredExperiences.filter((item) => {
+        return item.city?.toLowerCase().includes(loc);
+      });
+      
+      filteredTrips = filteredTrips.filter((item) => {
+        return item.destination?.toLowerCase().includes(loc);
+      });
+    }
+
+    // Update displayed items
+    setTopExperiences(filteredExperiences.slice(0, 10));
+    setPopularTrips(filteredTrips.slice(0, 10));
+  }, [searchQuery, location, allExperiences, allTrips]);
+
+  // Filter items when search changes
+  useEffect(() => {
+    filterItems();
+  }, [filterItems]);
 
   useEffect(() => {
     const checkScrollNeeded = () => {
@@ -68,8 +128,7 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
         .eq('is_published', true)
         .eq('is_cancelled', false)
         .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
-        .order('start_date', { ascending: true })
-        .limit(10);
+        .order('start_date', { ascending: true });
 
       if (experienceError) {
         console.error('Error fetching experiences:', experienceError);
@@ -83,8 +142,7 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
         .eq('is_published', true)
         .eq('is_cancelled', false)
         .gte('end_date', new Date().toISOString()) // Hide expired events (same as mobile app)
-        .order('start_date', { ascending: true })
-        .limit(10);
+        .order('start_date', { ascending: true });
 
       if (tripError) {
         console.error('Error fetching trips:', tripError);
@@ -112,8 +170,12 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
           estimated_cost: trip.price,
         })) || [];
 
-      setTopExperiences(experiences);
-      setPopularTrips(trips);
+      setAllExperiences(experiences);
+      setAllTrips(trips);
+      
+      // Initially show first 10
+      setTopExperiences(experiences.slice(0, 10));
+      setPopularTrips(trips.slice(0, 10));
     } catch (error) {
       console.error('Error loading items:', error);
     } finally {
@@ -199,6 +261,32 @@ export default function ForYou({ onEventSelect, onTripSelect, onNavigate }: ForY
     <div className="min-h-screen bg-white">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Search Results Info */}
+        {(searchQuery || location) && (
+          <div className="mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Showing results
+                  {searchQuery && (
+                    <span className="ml-1">
+                      for <span className="font-semibold">"{searchQuery}"</span>
+                    </span>
+                  )}
+                  {location && (
+                    <span className="ml-1">
+                      in <span className="font-semibold">{location}</span>
+                    </span>
+                  )}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  {topExperiences.length} experience{topExperiences.length !== 1 ? 's' : ''} • {popularTrips.length} trip{popularTrips.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Top Experiences Section */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">

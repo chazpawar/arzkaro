@@ -1,8 +1,9 @@
 // src/pages/ProfilePage.tsx
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Users, MapPin } from 'lucide-react';
+import { Briefcase, Users, MapPin, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
+import { getFriends, getFriendCounts, type Friendship } from '../services/friendsService';
 
 interface ProfilePageProps {
   onNavigate: (page: 'settings' | 'edit-profile' | 'my-tickets') => void;
@@ -18,7 +19,11 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     tripsAttended: 0,
     reviews: 0,
     monthsOnPlatform: 0,
+    friendsCount: 0,
+    pendingRequestsCount: 0,
   });
+  const [friends, setFriends] = useState<Friendship[]>([]);
+  const [loadingFriends, setLoadingFriends] = useState(false);
 
   const displayName = profile?.full_name || user?.email?.split('@')[0] || 'User';
   const avatarLetter = displayName.charAt(0).toUpperCase();
@@ -44,16 +49,21 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
       if (!user?.id) return;
 
       try {
-        // Get trips count
-        const { count: tripsCount } = await supabase
-          .from('tickets')
-          .select('*', { count: 'exact', head: true })
-          .eq('user_id', user.id);
+        // Get trips count and friend counts in parallel
+        const [tripsResult, friendCounts] = await Promise.all([
+          supabase
+            .from('tickets')
+            .select('*', { count: 'exact', head: true })
+            .eq('user_id', user.id),
+          getFriendCounts(user.id),
+        ]);
 
         setStats(prev => ({
           ...prev,
-          tripsAttended: tripsCount || 0,
+          tripsAttended: tripsResult.count || 0,
           reviews: 0, // Placeholder for reviews
+          friendsCount: friendCounts.friendsCount,
+          pendingRequestsCount: friendCounts.pendingRequestsCount,
         }));
       } catch (error) {
         console.error('Error loading stats:', error);
@@ -62,6 +72,27 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
 
     loadStats();
   }, [user?.id]);
+
+  // Load friends when connections section is active
+  useEffect(() => {
+    const loadFriends = async () => {
+      if (!user?.id || activeSection !== 'connections') return;
+
+      setLoadingFriends(true);
+      try {
+        const friendsData = await getFriends(user.id);
+        setFriends(friendsData);
+      } catch (error) {
+        console.error('Error loading friends:', error);
+      } finally {
+        setLoadingFriends(false);
+      }
+    };
+
+    loadFriends();
+  }, [user?.id, activeSection]);
+
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -190,17 +221,17 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                               {stats.tripsAttended}
                             </div>
                             <div className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
-                              Trip
+                              Trip{stats.tripsAttended !== 1 ? 's' : ''}
                             </div>
                           </div>
 
-                          {/* Reviews */}
+                          {/* Friends */}
                           <div className="pt-2 pb-2">
                             <div className="text-2xl font-semibold text-gray-900 leading-none">
-                              {stats.reviews}
+                              {stats.friendsCount}
                             </div>
                             <div className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
-                              Reviews
+                              Friend{stats.friendsCount !== 1 ? 's' : ''}
                             </div>
                           </div>
 
@@ -210,7 +241,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                               {stats.monthsOnPlatform}
                             </div>
                             <div className="text-[11px] uppercase tracking-wide text-gray-500 mt-1">
-                              Month on Arz
+                              Month{stats.monthsOnPlatform !== 1 ? 's' : ''} on Arz
                             </div>
                           </div>
                         </div>
@@ -267,23 +298,90 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
             {activeSection === 'connections' && (
               <div>
                 <div className="pb-6 border-b border-gray-200 mb-8">
-                  <h1 className="text-3xl font-semibold text-gray-900">Connections</h1>
-                </div>
-                <div className="bg-white rounded-2xl border border-gray-200 p-12">
-                  <div className="text-center">
-                    <Users size={64} className="mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">No connections yet</h3>
-                    <p className="text-gray-600 mb-6">
-                      Connect with other travelers and make new friends
-                    </p>
-                    <button
-                      onClick={() => onBack()}
-                      className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
-                    >
-                      Explore events
-                    </button>
+                  <div className="flex items-center justify-between">
+                    <h1 className="text-3xl font-semibold text-gray-900">Connections</h1>
+                    <div className="text-sm text-gray-500">
+                      {stats.friendsCount} friend{stats.friendsCount !== 1 ? 's' : ''}
+                    </div>
                   </div>
                 </div>
+
+                {/* Loading State */}
+                {loadingFriends && (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-8 h-8 text-gray-400 animate-spin" />
+                    <span className="ml-3 text-gray-600">Loading friends...</span>
+                  </div>
+                )}
+
+                {/* Friends List */}
+                {!loadingFriends && friends.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {friends.map((friendship) => {
+                      if (!friendship.friend) return null;
+
+                      const displayName = friendship.friend.full_name || friendship.friend.email?.split('@')[0] || 'User';
+                      const avatarLetter = displayName.charAt(0).toUpperCase();
+
+                      return (
+                        <div
+                          key={friendship.id}
+                          className="bg-white rounded-xl border border-gray-200 p-4 hover:shadow-md transition-shadow"
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Avatar */}
+                            <div className="flex-shrink-0">
+                              {friendship.friend.avatar_url ? (
+                                <img
+                                  src={friendship.friend.avatar_url}
+                                  alt={displayName}
+                                  className="w-12 h-12 rounded-full object-cover"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center">
+                                  <span className="text-lg font-bold text-white">
+                                    {avatarLetter}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Friend Info */}
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base font-semibold text-gray-900 truncate">
+                                {displayName}
+                              </h3>
+                              <p className="text-sm text-gray-500 truncate">
+                                {friendship.friend.email}
+                              </p>
+                            </div>
+                          </div>
+
+
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Empty State */}
+                {!loadingFriends && friends.length === 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-200 p-12">
+                    <div className="text-center">
+                      <Users size={64} className="mx-auto text-gray-300 mb-4" />
+                      <h3 className="text-xl font-bold text-gray-900 mb-2">No connections yet</h3>
+                      <p className="text-gray-600 mb-6">
+                        Connect with other travelers and make new friends
+                      </p>
+                      <button
+                        onClick={() => onBack()}
+                        className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+                      >
+                        Explore events
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

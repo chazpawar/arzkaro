@@ -324,6 +324,10 @@ function AppContent() {
           <ForYou 
             onEventSelect={handleEventSelect} 
             onTripSelect={handleTripSelect}
+            searchQuery={searchState.query}
+            location={searchState.location}
+            radius={searchState.radius}
+            coordinates={searchState.coordinates}
             onNavigate={(p: string) => {
               const mapping: { [k: string]: PageName } = {
                 experiences: 'experiences',

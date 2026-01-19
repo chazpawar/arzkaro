@@ -229,13 +229,13 @@ const TripsPage: React.FC<TripsPageProps> = ({
                         transition: 'transform 0.3s ease',
                       }}
                     >
-                      {/* Category Icon Container - 68px with relative positioning for badge */}
-                      <div className="relative w-[68px] h-[68px] flex items-center justify-center">
-                        {/* Icon - 56px for most, 192px for Nature */}
+                      {/* Category Icon Container - 72px with relative positioning for badge */}
+                      <div className="relative w-[72px] h-[72px] flex items-center justify-center">
+                        {/* Icon - 56px for most, 64px for Nature */}
                         <img
                           src={category.icon}
                           alt={category.label}
-                          className={category.id === 'Nature' ? 'w-48 h-48 object-contain' : 'w-14 h-14 object-contain'}
+                          className={category.id === 'Nature' ? 'w-16 h-16 object-contain' : 'w-14 h-14 object-contain'}
                           onError={(e) => {
                             e.currentTarget.src = getPlaceholderImage(56, 56, category.label.substring(0, 2));
                           }}
