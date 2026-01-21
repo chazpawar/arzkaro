@@ -16,4 +16,7 @@ export type PageName =
   | 'host-request'
   | 'host-dashboard'
   | 'create-listing'
-  | 'my-listings';
+  | 'my-listings'
+  | 'admin-dashboard'
+  | 'admin-host-requests'
+  | 'admin-payouts';

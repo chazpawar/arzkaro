@@ -26,6 +26,9 @@ import HostRequestPage from './pages/HostRequestPage.tsx';
 import HostDashboard from './pages/HostDashboard.tsx';
 import CreateListingPage from './pages/CreateListingPage.tsx';
 import MyListingsPage from './pages/MyListingsPage.tsx';
+import AdminDashboard from './pages/admin/AdminDashboard.tsx';
+import AdminHostRequests from './pages/admin/AdminHostRequests.tsx';
+import AdminPayouts from './pages/admin/AdminPayouts.tsx';
 import type { PageName } from './types/navigation.ts';
 
 // Mocking the user object structure that would come from AuthContext
@@ -63,6 +66,9 @@ function parsePathname(pathname: string) {
   if (clean === '/host/dashboard') return { page: 'host-dashboard' as PageName };
   if (clean === '/host/create') return { page: 'create-listing' as PageName };
   if (clean === '/host/listings') return { page: 'my-listings' as PageName };
+  if (clean === '/admin/dashboard') return { page: 'admin-dashboard' as PageName };
+  if (clean === '/admin/host-requests') return { page: 'admin-host-requests' as PageName };
+  if (clean === '/admin/payouts') return { page: 'admin-payouts' as PageName };
 
   // dynamic routes
   const experienceMatch = clean.match(/^\/experience\/([^/]+)$/);
@@ -111,6 +117,12 @@ function pathFor(page: PageName, id?: string | null) {
       return '/host/create';
     case 'my-listings':
       return '/host/listings';
+    case 'admin-dashboard':
+      return '/admin/dashboard';
+    case 'admin-host-requests':
+      return '/admin/host-requests';
+    case 'admin-payouts':
+      return '/admin/payouts';
     case 'experience-detail':
       return id ? `/experience/${id}` : '/experiences';
     case 'booking':
@@ -307,6 +319,9 @@ function AppContent() {
             'host-dashboard': 'host-dashboard',
             'create-listing': 'create-listing',
             'my-listings': 'my-listings',
+            'admin-dashboard': 'admin-dashboard',
+            'admin-host-requests': 'admin-host-requests',
+            'admin-payouts': 'admin-payouts',
           };
           const page = mapping[p] || 'home';
           handleNavigate(page);
@@ -457,10 +472,30 @@ function AppContent() {
           />
         )}
 
+        {currentPage === 'admin-dashboard' && (
+          <AdminDashboard 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
+        {currentPage === 'admin-host-requests' && (
+          <AdminHostRequests 
+            onBack={() => handleNavigate('admin-dashboard')} 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
+        {currentPage === 'admin-payouts' && (
+          <AdminPayouts 
+            onBack={() => handleNavigate('admin-dashboard')} 
+            onNavigate={handleNavigate} 
+          />
+        )}
+
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}
 </main>
-      {currentPage !== 'create-listing' && currentPage !== 'host-request' && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
+      {currentPage !== 'create-listing' && currentPage !== 'host-request' && !currentPage.startsWith('admin-') && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
     </div>
   );
 }

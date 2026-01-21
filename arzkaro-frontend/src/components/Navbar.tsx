@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, User, Search } from 'lucide-react';
+import { Menu, X, User, Search, Shield } from 'lucide-react';
 import SearchModal from './SearchModal';
 import { useAuth } from '../hooks/useAuth';
 
@@ -174,6 +174,20 @@ export default function Navbar({
                       </button>
                       <div className="border-t border-gray-100" />
                       
+                      {/* Admin Panel - Only for admins */}
+                      {profile.role === 'admin' && (
+                        <>
+                          <button
+                            onClick={() => onNavigate('admin-dashboard')}
+                            className="w-full text-left px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-2"
+                          >
+                            <Shield size={16} />
+                            Admin Panel
+                          </button>
+                          <div className="border-t border-gray-100" />
+                        </>
+                      )}
+                      
                       {/* Hosting Option */}
                       {profile.role === 'host' || profile.role === 'admin' ? (
                         <button
@@ -322,7 +336,22 @@ export default function Navbar({
                   }}
                   className="px-4 py-2 rounded-full text-base font-semibold text-gray-900 hover:bg-gray-200 transition-all duration-200"
                 >
+                  My Profile
                 </button>
+
+                {/* Admin Panel - Only for admins */}
+                {profile?.role === 'admin' && (
+                  <button
+                    onClick={() => {
+                      onNavigate('admin-dashboard');
+                      setMobileOpen(false);
+                    }}
+                    className="px-4 py-2 rounded-full text-base font-semibold text-red-600 hover:bg-red-50 transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <Shield size={20} />
+                    Admin Panel
+                  </button>
+                )}
 
                 {profile?.role === 'host' || profile?.role === 'admin' ? (
                   <button
