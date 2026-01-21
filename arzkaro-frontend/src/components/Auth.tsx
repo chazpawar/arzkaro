@@ -97,17 +97,22 @@ export default function Auth({ onClose }: AuthProps) {
   };
 
   const handleGoogleSignIn = async () => {
+    console.log('🔵 Google button clicked!');
     setError('');
     setLoading(true);
 
     try {
+      console.log('🔵 Calling signInWithGoogle...');
       const { error: googleError } = await signInWithGoogle();
+      console.log('🔵 signInWithGoogle returned:', { error: googleError });
+
       if (googleError) {
         throw googleError;
       }
-      // Note: User will be redirected to Google OAuth, then back to the app
+      // User will be redirected to Google OAuth, then back to /auth/callback
+      // The AuthCallback page will handle the code exchange and redirect to home
     } catch (err: unknown) {
-      console.error('Google sign in error:', err);
+      console.error('❌ Google sign in error:', err);
       setError(err instanceof Error ? err.message : 'Failed to sign in with Google');
       setLoading(false);
     }

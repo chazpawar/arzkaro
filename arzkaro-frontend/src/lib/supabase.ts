@@ -11,11 +11,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('VITE_SUPABASE_ANON_KEY=your_supabase_anon_key');
 }
 
-// Create client with fallback values to prevent crashes
+// Create client with implicit flow for OAuth (for web apps)
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key'
+  supabaseAnonKey || 'placeholder-key',
+  {
+    auth: {
+      // IMPORTANT: Enable auto-detect for implicit flow
+      detectSessionInUrl: true,
+      // Use implicit flow for web (Supabase handles token exchange automatically)
+      flowType: 'implicit',
+      // Automatically refresh tokens
+      autoRefreshToken: true,
+      // Persist session to localStorage
+      persistSession: true,
+      // Storage key prefix
+      storageKey: 'sb-auth-token',
+    },
+  }
 );
+
+console.log('✅ Supabase client initialized with implicit flow');
 
 export type Profile = {
   id: string;

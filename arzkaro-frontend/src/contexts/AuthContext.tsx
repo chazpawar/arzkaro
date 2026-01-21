@@ -32,7 +32,11 @@ interface AuthContextType {
   isGuestMode: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
-  sendSignupOTP: (email: string, fullName: string, password: string) => Promise<{ error: Error | null }>;
+  sendSignupOTP: (
+    email: string,
+    fullName: string,
+    password: string
+  ) => Promise<{ error: Error | null }>;
   verifyOTP: (email: string, otp: string) => Promise<{ error: Error | null }>;
   resendOTP: (email: string) => Promise<{ error: Error | null }>;
   signInWithGoogle: () => Promise<{ error: Error | null }>;
@@ -77,7 +81,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Only fetch essential fields to reduce query time
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, username, full_name, avatar_url, email, role, bio, phone, date_of_birth, gender, instagram, youtube, linkedin, twitter, interests, is_public, created_at, updated_at')
+        .select(
+          'id, username, full_name, avatar_url, email, role, bio, phone, date_of_birth, gender, instagram, youtube, linkedin, twitter, interests, is_public, created_at, updated_at'
+        )
         .eq('id', userId)
         .maybeSingle(); // Use maybeSingle instead of single to avoid errors if profile doesn't exist
 
@@ -113,18 +119,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Set a safety timeout to prevent infinite loading (3 seconds like mobile)
         safetyTimeoutId = setTimeout(() => {
           if (mounted && loading) {
-            console.warn('Auth initialization timeout - forcing loading to false');
+            console.warn('⚠️ Auth initialization timeout - forcing loading to false');
             setLoading(false);
           }
         }, 3000); // 3 second timeout (same as mobile)
 
-        // Get initial session
-        const { data: { session }, error } = await supabase.auth.getSession();
+        // CRITICAL: Check if we have tokens in URL hash from OAuth redirect
+        // First check current hash, then fallback to sessionStorage (in case hash was cleared)
+        let hash = window.location.hash;
+
+        // If hash is empty, check sessionStorage
+        if (!hash || !hash.includes('access_token')) {
+          const storedHash = sessionStorage.getItem('oauth_hash');
+          if (storedHash) {
+            hash = storedHash;
+            sessionStorage.removeItem('oauth_hash'); // Clean up
+          }
+        }
+
+        const hashParams = new URLSearchParams(hash.substring(1));
+        const accessToken = hashParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token');
+
+        if (accessToken && refreshToken) {
+          // Set the session from the tokens
+          const { data, error: setError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (setError) {
+            console.error('❌ Error setting session from hash tokens:', setError);
+          } else if (data.session) {
+            // Clear the hash from URL
+            window.history.replaceState(null, '', window.location.pathname);
+
+            if (mounted) {
+              setSession(data.session);
+              setUser(data.session.user);
+
+              // Fetch profile
+              if (data.session.user) {
+                const profileData = await fetchProfile(data.session.user.id);
+                if (mounted) {
+                  setProfile(profileData);
+                }
+              }
+
+              setLoading(false);
+              if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
+            }
+            return; // Exit early, we're done
+          }
+        }
+
+        // Get initial session (if no tokens in hash)
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession();
 
         if (!mounted) return;
 
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('❌ Error getting session:', error);
           setLoading(false);
           if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
           return;
@@ -142,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               setProfile(profileData);
             }
           } catch (err) {
-            console.error('Error loading profile on init:', err);
+            console.error('❌ Error loading profile on init:', err);
             if (mounted) {
               setProfile(null);
             }
@@ -157,7 +215,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
         }
       } catch (err) {
-        console.error('Fatal error in auth initialization:', err);
+        console.error('❌ Fatal error in auth initialization:', err);
         if (mounted) {
           setLoading(false);
           if (safetyTimeoutId) clearTimeout(safetyTimeoutId);
@@ -174,11 +232,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
 
-      console.log('Auth state changed:', _event);
-      
-      // CRITICAL FIX: Skip INITIAL_SESSION event to avoid race condition with initAuth
+      // Skip INITIAL_SESSION to avoid race with initAuth
       if (isInitialLoad && _event === 'INITIAL_SESSION') {
-        console.log('⏭️ Skipping INITIAL_SESSION event (already handled by initAuth)');
         return;
       }
 
@@ -190,39 +245,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setSession(session);
       setUser(session?.user ?? null);
 
-      // CRITICAL FIX: For SIGNED_IN events, we need to handle them specially
-      // The SIGNED_IN event fires DURING the auth process, and the session 
-      // hasn't fully propagated to Supabase's RLS system yet.
-      // We set the user/session state immediately but delay the profile fetch
+      // For SIGNED_IN event (happens after OAuth), fetch profile with delay
       if (_event === 'SIGNED_IN') {
-        console.log('⏭️ SIGNED_IN detected - setting state and scheduling delayed profile fetch');
-        
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        // Fetch profile after a delay to allow session propagation
         if (session?.user && !isFetchingProfile) {
           isFetchingProfile = true;
-          console.log('⏳ Waiting 2s for session propagation before fetching profile...');
-          
+
           setTimeout(async () => {
             try {
               const profileData = await fetchProfile(session.user.id);
               if (mounted) {
                 setProfile(profileData);
-                console.log('✅ Profile fetched successfully after SIGNED_IN delay');
               }
             } catch (err) {
-              console.error('Error fetching profile after SIGNED_IN:', err);
+              console.error('❌ Error fetching profile after SIGNED_IN:', err);
               if (mounted) {
                 setProfile(null);
               }
             } finally {
               isFetchingProfile = false;
             }
-          }, 2000);
+          }, 1000);
         }
-        
+
         if (mounted) {
           setLoading(false);
         }
@@ -233,10 +277,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (session?.user && !isFetchingProfile) {
         isFetchingProfile = true;
         try {
-          // CRITICAL FIX: For TOKEN_REFRESHED events, add a delay
-          // to ensure the session has fully propagated to Supabase's RLS system
+          // For TOKEN_REFRESHED events, add a delay
           if (_event === 'TOKEN_REFRESHED') {
-            console.log('⏳ TOKEN_REFRESHED - waiting 1500ms for session propagation...');
             await new Promise((resolve) => setTimeout(resolve, 1500));
           }
 
@@ -416,10 +458,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sign in with Google OAuth
   const signInWithGoogle = async (): Promise<{ error: Error | null }> => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      console.log('🔐 Starting Google OAuth...');
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin,
+          // For implicit flow, Supabase handles redirect automatically
+          // It will redirect back to current origin with tokens in URL hash
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',
@@ -429,9 +474,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
+      console.log('✅ OAuth initiated, redirecting to Google...', data);
+
       return { error: null };
     } catch (error) {
-      console.error('Google sign in error:', error);
+      console.error('❌ Google sign in error:', error);
       return { error: error as Error };
     }
   };
@@ -447,33 +494,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setIsSigningOut(true);
       console.log('Signing out...');
-      
+
       // Add timeout to prevent hanging on invalid Supabase credentials
       const signOutPromise = supabase.auth.signOut();
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Sign out timeout')), 3000)
       );
-      
-      await Promise.race([signOutPromise, timeoutPromise])
-        .catch((error) => {
-          console.warn('Supabase signOut failed or timed out:', error);
-          // Continue to clear local state
-        });
-      
+
+      await Promise.race([signOutPromise, timeoutPromise]).catch((error) => {
+        console.warn('Supabase signOut failed or timed out:', error);
+        // Continue to clear local state
+      });
+
       // Always clear local state
       setUser(null);
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
-      
+
       // Explicitly clear all Supabase auth data from localStorage
       // This ensures the session is removed even if signOut() failed/timed out
-      Object.keys(localStorage).forEach(key => {
+      Object.keys(localStorage).forEach((key) => {
         if (key.startsWith('sb-') && key.includes('-auth-token')) {
           localStorage.removeItem(key);
         }
       });
-      
+
       console.log('Sign out successful - local state and storage cleared');
     } catch (error) {
       console.error('Error signing out:', error);
@@ -482,10 +528,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setSession(null);
       setIsGuestMode(false);
-      
+
       // Explicitly clear all Supabase auth data from localStorage
       try {
-        Object.keys(localStorage).forEach(key => {
+        Object.keys(localStorage).forEach((key) => {
           if (key.startsWith('sb-') && key.includes('-auth-token')) {
             localStorage.removeItem(key);
           }
@@ -505,10 +551,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+      const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
 
       if (error) throw error;
 

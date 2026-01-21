@@ -1,5 +1,6 @@
 export type PageName =
   | 'home'
+  | 'auth-callback'
   | 'for-you'
   | 'experiences'
   | 'experience-detail'

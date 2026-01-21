@@ -3,6 +3,12 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// CRITICAL: Capture OAuth hash BEFORE React renders
+// This prevents the custom router from clearing it
+if (window.location.hash && window.location.hash.includes('access_token')) {
+  sessionStorage.setItem('oauth_hash', window.location.hash);
+}
+
 // Load Google Maps API
 const loadGoogleMapsAPI = () => {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -19,8 +25,4 @@ const loadGoogleMapsAPI = () => {
 
 loadGoogleMapsAPI();
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>
-);
+createRoot(document.getElementById('root')!).render(<App />);

@@ -29,6 +29,7 @@ import MyListingsPage from './pages/MyListingsPage.tsx';
 import AdminDashboard from './pages/admin/AdminDashboard.tsx';
 import AdminHostRequests from './pages/admin/AdminHostRequests.tsx';
 import AdminPayouts from './pages/admin/AdminPayouts.tsx';
+import AuthCallback from './pages/AuthCallback.tsx';
 import type { PageName } from './types/navigation.ts';
 
 // Mocking the user object structure that would come from AuthContext
@@ -36,7 +37,6 @@ interface MockUser {
   uid: string;
   email: string;
 }
-
 
 export default function App() {
   return (
@@ -53,6 +53,7 @@ function parsePathname(pathname: string) {
   const clean = pathname.replace(/\/+$/, '') || '/';
   // Patterns:
   if (clean === '/' || clean === '') return { page: 'home' as PageName };
+  if (clean === '/auth/callback') return { page: 'auth-callback' as PageName };
   if (clean === '/for-you') return { page: 'for-you' as PageName };
   if (clean === '/experiences') return { page: 'experiences' as PageName };
   if (clean === '/trips') return { page: 'trips' as PageName };
@@ -91,6 +92,8 @@ function pathFor(page: PageName, id?: string | null) {
   switch (page) {
     case 'home':
       return '/';
+    case 'auth-callback':
+      return '/auth/callback';
     case 'for-you':
       return '/for-you';
     case 'experiences':
@@ -160,16 +163,21 @@ function AppContent() {
     coordinates: undefined as { latitude: number; longitude: number } | undefined,
   });
 
-  const handleSearch = (location: string, query: string, radius: number, coordinates?: { latitude: number; longitude: number }) => {
+  const handleSearch = (
+    location: string,
+    query: string,
+    radius: number,
+    coordinates?: { latitude: number; longitude: number }
+  ) => {
     setSearchState({ location, query, radius, coordinates });
   };
 
   const handleClearFilters = useCallback(() => {
-    setSearchState({ 
-      location: '', 
-      query: '', 
-      radius: 10, 
-      coordinates: undefined 
+    setSearchState({
+      location: '',
+      query: '',
+      radius: 10,
+      coordinates: undefined,
     });
   }, []);
 
@@ -335,9 +343,11 @@ function AppContent() {
       <main className="flex-grow">
         {currentPage === 'home' && <HomePage />}
 
+        {currentPage === 'auth-callback' && <AuthCallback />}
+
         {currentPage === 'for-you' && (
-          <ForYou 
-            onEventSelect={handleEventSelect} 
+          <ForYou
+            onEventSelect={handleEventSelect}
             onTripSelect={handleTripSelect}
             searchQuery={searchState.query}
             location={searchState.location}
@@ -355,8 +365,8 @@ function AppContent() {
         )}
 
         {currentPage === 'experiences' && (
-          <ExperiencesPage 
-            onEventClick={handleEventSelect} 
+          <ExperiencesPage
+            onEventClick={handleEventSelect}
             searchQuery={searchState.query}
             location={searchState.location}
             radius={searchState.radius}
@@ -409,9 +419,9 @@ function AppContent() {
         )}
 
         {currentPage === 'my-tickets' && (
-          <MyTicketsPage 
-            onEventSelect={handleEventSelect} 
-            onChatOpen={() => {}} 
+          <MyTicketsPage
+            onEventSelect={handleEventSelect}
+            onChatOpen={() => {}}
             onTicketSelect={(ticketId) => handleNavigate('ticket-detail', ticketId)}
             onAuthClick={() => setShowAuth(true)}
           />
@@ -445,57 +455,50 @@ function AppContent() {
         {currentPage === 'thankyou' && <Thankyou onNavigate={handleNavigate} />}
 
         {currentPage === 'host-request' && (
-          <HostRequestPage 
-            onBack={() => handleNavigate('home')} 
-            onNavigate={handleNavigate} 
-          />
+          <HostRequestPage onBack={() => handleNavigate('home')} onNavigate={handleNavigate} />
         )}
 
-        {currentPage === 'host-dashboard' && (
-          <HostDashboard 
-            onNavigate={handleNavigate} 
-          />
-        )}
+        {currentPage === 'host-dashboard' && <HostDashboard onNavigate={handleNavigate} />}
 
         {currentPage === 'create-listing' && (
-          <CreateListingPage 
-            onBack={() => handleNavigate('host-dashboard')} 
-            onNavigate={handleNavigate} 
+          <CreateListingPage
+            onBack={() => handleNavigate('host-dashboard')}
+            onNavigate={handleNavigate}
           />
         )}
 
         {currentPage === 'my-listings' && (
-          <MyListingsPage 
-            onBack={() => handleNavigate('host-dashboard')} 
+          <MyListingsPage
+            onBack={() => handleNavigate('host-dashboard')}
             onNavigate={handleNavigate}
             onEventClick={handleEventSelect}
           />
         )}
 
-        {currentPage === 'admin-dashboard' && (
-          <AdminDashboard 
-            onNavigate={handleNavigate} 
-          />
-        )}
+        {currentPage === 'admin-dashboard' && <AdminDashboard onNavigate={handleNavigate} />}
 
         {currentPage === 'admin-host-requests' && (
-          <AdminHostRequests 
-            onBack={() => handleNavigate('admin-dashboard')} 
-            onNavigate={handleNavigate} 
+          <AdminHostRequests
+            onBack={() => handleNavigate('admin-dashboard')}
+            onNavigate={handleNavigate}
           />
         )}
 
         {currentPage === 'admin-payouts' && (
-          <AdminPayouts 
-            onBack={() => handleNavigate('admin-dashboard')} 
-            onNavigate={handleNavigate} 
+          <AdminPayouts
+            onBack={() => handleNavigate('admin-dashboard')}
+            onNavigate={handleNavigate}
           />
         )}
 
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}
-</main>
-      {currentPage !== 'create-listing' && currentPage !== 'host-request' && !currentPage.startsWith('admin-') && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
+      </main>
+      {currentPage !== 'create-listing' &&
+        currentPage !== 'host-request' &&
+        !currentPage.startsWith('admin-') && (
+          <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />
+        )}
     </div>
   );
 }
