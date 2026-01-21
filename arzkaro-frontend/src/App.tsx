@@ -460,7 +460,7 @@ function AppContent() {
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
         {showAuth && <Auth onClose={() => setShowAuth(false)} />}
 </main>
-      {currentPage !== 'create-listing' && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
+      {currentPage !== 'create-listing' && currentPage !== 'host-request' && <Footer onNavigate={(p: string) => handleNavigate(p as PageName)} />}
     </div>
   );
 }
