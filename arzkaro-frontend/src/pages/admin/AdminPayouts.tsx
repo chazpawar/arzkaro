@@ -14,14 +14,12 @@ import type { PageName } from '../../types/navigation';
 import { 
   ChevronLeft, 
   CreditCard,
-  User as UserIcon,
-  Building2,
+  UserIcon,
   CheckCircle,
   XCircle,
   Clock,
   Check,
   Loader2,
-  X,
   AlertCircle,
   TrendingUp
 } from 'lucide-react';
@@ -58,6 +56,7 @@ export default function AdminPayouts({ onBack, onNavigate }: AdminPayoutsProps) 
     }
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, profile]);
 
   const fetchData = async () => {
@@ -69,7 +68,7 @@ export default function AdminPayouts({ onBack, onNavigate }: AdminPayoutsProps) 
       ]);
       setRequests(payoutsData);
       setStats(statsData);
-    } catch (err) {
+    } catch {
       showToast('Failed to load payout requests', 'error');
     } finally {
       setLoading(false);

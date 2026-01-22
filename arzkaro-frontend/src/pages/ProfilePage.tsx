@@ -6,13 +6,12 @@ import { supabase } from '../lib/supabase';
 import { getFriends, getFriendCounts, type Friendship } from '../services/friendsService';
 
 interface ProfilePageProps {
-  onNavigate: (page: 'settings' | 'edit-profile' | 'my-tickets') => void;
-  onBack: () => void;
+  onNavigate: (page: 'settings' | 'edit-profile' | 'my-tickets' | 'for-you') => void;
 }
 
 type ActiveSection = 'about' | 'past-trips' | 'connections';
 
-export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
+export default function ProfilePage({ onNavigate }: ProfilePageProps) {
   const { user, profile } = useAuth();
   const [activeSection, setActiveSection] = useState<ActiveSection>('about');
   const [stats, setStats] = useState({
@@ -34,9 +33,12 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     if (user?.created_at) {
       const createdDate = new Date(user.created_at);
       const now = new Date();
-      const monthsDiff = Math.max(1, Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-      
-      setStats(prev => ({
+      const monthsDiff = Math.max(
+        1,
+        Math.floor((now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
+      );
+
+      setStats((prev) => ({
         ...prev,
         monthsOnPlatform: monthsDiff,
       }));
@@ -58,7 +60,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
           getFriendCounts(user.id),
         ]);
 
-        setStats(prev => ({
+        setStats((prev) => ({
           ...prev,
           tripsAttended: tripsResult.count || 0,
           reviews: 0, // Placeholder for reviews
@@ -92,8 +94,6 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
     loadFriends();
   }, [user?.id, activeSection]);
 
-
-
   return (
     <div className="min-h-screen bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-16">
@@ -102,22 +102,24 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
           <div className="lg:col-span-3">
             <div className="space-y-1">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">Profile</h2>
-              
+
               {/* About me */}
               <button
                 onClick={() => setActiveSection('about')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                  activeSection === 'about'
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  activeSection === 'about' ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                  activeSection === 'about' ? 'bg-gray-900' : 'bg-gray-200'
-                }`}>
-                  <span className={`text-lg font-bold ${
-                    activeSection === 'about' ? 'text-white' : 'text-gray-600'
-                  }`}>
+                <div
+                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    activeSection === 'about' ? 'bg-gray-900' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    className={`text-lg font-bold ${
+                      activeSection === 'about' ? 'text-white' : 'text-gray-600'
+                    }`}
+                  >
                     {avatarLetter}
                   </span>
                 </div>
@@ -128,14 +130,12 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
               <button
                 onClick={() => setActiveSection('past-trips')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                  activeSection === 'past-trips'
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  activeSection === 'past-trips' ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 <div className="w-10 h-10">
-                  <img 
-                    src="/others/trips.png" 
+                  <img
+                    src="/others/trips.png"
                     alt="Past trips"
                     className="w-full h-full object-contain"
                   />
@@ -147,14 +147,12 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
               <button
                 onClick={() => setActiveSection('connections')}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-colors text-left ${
-                  activeSection === 'connections'
-                    ? 'bg-gray-100'
-                    : 'hover:bg-gray-50'
+                  activeSection === 'connections' ? 'bg-gray-100' : 'hover:bg-gray-50'
                 }`}
               >
                 <div className="w-10 h-10">
-                  <img 
-                    src="/others/foryou.png" 
+                  <img
+                    src="/others/foryou.png"
                     alt="Connections"
                     className="w-full h-full object-contain"
                   />
@@ -174,9 +172,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
               <div className="space-y-8">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-6 border-b border-gray-200">
-                  <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">
-                    About me
-                  </h1>
+                  <h1 className="text-3xl font-semibold text-gray-900 tracking-tight">About me</h1>
                 </div>
 
                 {/* Profile card and right-side details, spaced like Airbnb */}
@@ -194,9 +190,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                           />
                         ) : (
                           <div className="w-20 h-20 rounded-full bg-gray-900 flex items-center justify-center">
-                            <span className="text-2xl font-bold text-white">
-                              {avatarLetter}
-                            </span>
+                            <span className="text-2xl font-bold text-white">{avatarLetter}</span>
                           </div>
                         )}
 
@@ -284,7 +278,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                       Time to dust off your bags and start planning your next adventure
                     </p>
                     <button
-                      onClick={() => onBack()}
+                      onClick={() => onNavigate('for-you')}
                       className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
                     >
                       Start exploring
@@ -320,7 +314,10 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                     {friends.map((friendship) => {
                       if (!friendship.friend) return null;
 
-                      const displayName = friendship.friend.full_name || friendship.friend.email?.split('@')[0] || 'User';
+                      const displayName =
+                        friendship.friend.full_name ||
+                        friendship.friend.email?.split('@')[0] ||
+                        'User';
                       const avatarLetter = displayName.charAt(0).toUpperCase();
 
                       return (
@@ -356,8 +353,6 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                               </p>
                             </div>
                           </div>
-
-
                         </div>
                       );
                     })}
@@ -374,7 +369,7 @@ export default function ProfilePage({ onNavigate, onBack }: ProfilePageProps) {
                         Connect with other travelers and make new friends
                       </p>
                       <button
-                        onClick={() => onBack()}
+                        onClick={() => onNavigate('for-you')}
                         className="px-6 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
                       >
                         Explore events

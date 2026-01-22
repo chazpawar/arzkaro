@@ -6,7 +6,6 @@ import type { AdminStats } from '../../types/admin';
 import type { PageName } from '../../types/navigation';
 import { 
   ChevronLeft, 
-  Users, 
   Wallet, 
   Calendar,
   FileText,
@@ -22,7 +21,7 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
-  const { profile, user } = useAuth();
+  const { profile } = useAuth();
   const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -37,6 +36,7 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
     }
 
     fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profile]);
 
   const fetchStats = async () => {

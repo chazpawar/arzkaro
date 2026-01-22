@@ -42,7 +42,6 @@ export default function AdminHostRequests({ onBack, onNavigate }: AdminHostReque
   
   const [loading, setLoading] = useState(true);
   const [requests, setRequests] = useState<HostRequestWithUser[]>([]);
-  const [total, setTotal] = useState(0);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('pending');
   const [selectedRequest, setSelectedRequest] = useState<HostRequestWithUser | null>(null);
   const [adminNotes, setAdminNotes] = useState('');
@@ -63,6 +62,7 @@ export default function AdminHostRequests({ onBack, onNavigate }: AdminHostReque
     }
 
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [statusFilter, profile]);
 
   const fetchRequests = async () => {
@@ -74,8 +74,7 @@ export default function AdminHostRequests({ onBack, onNavigate }: AdminHostReque
         limit: 100
       });
       setRequests(result.requests);
-      setTotal(result.total);
-    } catch (err) {
+    } catch {
       showToast('Failed to load host requests', 'error');
     } finally {
       setLoading(false);
