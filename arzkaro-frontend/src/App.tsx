@@ -32,11 +32,6 @@ import AdminPayouts from './pages/admin/AdminPayouts.tsx';
 import AuthCallback from './pages/AuthCallback.tsx';
 import type { PageName } from './types/navigation.ts';
 
-// Mocking the user object structure that would come from AuthContext
-interface MockUser {
-  uid: string;
-  email: string;
-}
 
 export default function App() {
   return (
@@ -141,11 +136,7 @@ function pathFor(page: PageName, id?: string | null) {
 
 function AppContent() {
   const authContext = useAuth();
-  const mockUser: MockUser | null = authContext.user
-    ? { uid: 'user-123', email: 'user@example.com' }
-    : null;
-
-  const user = mockUser;
+  const user = authContext.user;
   const loading = authContext.loading;
 
   // default page
@@ -379,7 +370,7 @@ function AppContent() {
           <TripsPage
             onTripSelect={handleTripSelect}
             onChatOpen={() => {}}
-            currentUserId={user?.uid || null}
+            currentUserId={user?.id || null}
             searchQuery={searchState.query}
             location={searchState.location}
             radius={searchState.radius}
@@ -393,7 +384,7 @@ function AppContent() {
             tripId={selectedTripId}
             onBack={() => handleNavigate('trips')}
             onChatOpen={() => {}}
-            currentUserId={user?.uid || null}
+            currentUserId={user?.id || null}
             onAuthClick={() => setShowAuth(true)}
             onBookNow={(tripId) => handleNavigate('booking', tripId)}
           />
@@ -437,7 +428,6 @@ function AppContent() {
         {currentPage === 'profile' && (
           <ProfilePage
             onNavigate={(page) => handleNavigate(page as PageName)}
-            onBack={() => handleNavigate('home')}
           />
         )}
 

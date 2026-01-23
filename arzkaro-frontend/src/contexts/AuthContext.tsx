@@ -366,6 +366,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ): Promise<{ error: Error | null }> => {
     try {
       const cleanEmail = email.trim().toLowerCase();
+      
+      // Check if user already exists to prevent "recreating" or confusing existing users
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle();
+
+      if (existingProfile) {
+        throw new Error('User already registered. Please log in instead.');
+      }
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
