@@ -56,15 +56,16 @@ export default function MyTicketsPage({
 
   // Get current tab tickets
   const getCurrentTickets = () => {
-    let tickets = activeTab === 'active' ? validTickets : activeTab === 'used' ? usedTickets : expiredTickets;
-    
+    let tickets =
+      activeTab === 'active' ? validTickets : activeTab === 'used' ? usedTickets : expiredTickets;
+
     // Apply search filter
     if (searchQuery.trim()) {
       tickets = tickets.filter((ticket) =>
         ticket.event?.title?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    
+
     return tickets;
   };
 
@@ -112,12 +113,11 @@ export default function MyTicketsPage({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-12">
+    <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 pt-28 md:pt-36">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pb-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
-            <TicketIcon size={32} className="text-[#FF785A]" />
             <h1 className="text-3xl font-bold text-gray-900">My Tickets</h1>
           </div>
         </div>
@@ -174,7 +174,10 @@ export default function MyTicketsPage({
         {/* Search */}
         <div className="mb-6">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               placeholder="Search tickets..."
@@ -231,9 +234,7 @@ export default function MyTicketsPage({
                       🎉
                     </div>
                   )}
-                  <div className="absolute top-3 right-3">
-                    {getStatusBadge(ticket.status)}
-                  </div>
+                  <div className="absolute top-3 right-3">{getStatusBadge(ticket.status)}</div>
                 </div>
 
                 {/* Ticket Details */}
@@ -267,7 +268,9 @@ export default function MyTicketsPage({
                   <div className="flex items-center justify-between pt-3 border-t border-gray-200">
                     <div>
                       <p className="text-xs text-gray-500">Quantity</p>
-                      <p className="font-semibold text-gray-900">{ticket.booking?.quantity || 1}x</p>
+                      <p className="font-semibold text-gray-900">
+                        {ticket.booking?.quantity || 1}x
+                      </p>
                     </div>
                     <div className="text-right">
                       <p className="text-xs text-gray-500">Price</p>
