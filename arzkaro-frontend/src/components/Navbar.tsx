@@ -242,7 +242,11 @@ export default function Navbar({
             aria-label="Go to home"
             className="flex items-center"
           >
-            <img src="/logo.png" alt="arz" className="h-8 w-auto object-contain" />
+            <img 
+              src="/logo.png" 
+              alt="arz" 
+              className="h-12 w-auto object-contain transform scale-125 origin-left" 
+            />
           </button>
         </div>
 
