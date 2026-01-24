@@ -6,6 +6,7 @@ import OTPVerificationModal from './OTPVerificationModal';
 
 type AuthProps = {
   onClose: () => void;
+  onSuccess?: () => void;
 };
 
 const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="http://www.w3.org/2000/svg">
@@ -15,7 +16,7 @@ const GOOGLE_SVG = `<svg width="24" height="24" viewBox="-0.5 0 48 48" xmlns="ht
   <path d="M46.1454545,24 C46.1454545,22.6133333 45.9318182,21.12 45.6113636,19.7333333 L23.7136364,19.7333333 L23.7136364,28.8 L36.3181818,28.8 C35.6879545,31.8912 33.9724545,34.2677333 31.5177727,35.8144 L39.0249545,41.6181333 C43.3393409,37.6138667 46.1454545,31.6490667 46.1454545,24" fill="#4285F4"/>
 </svg>`;
 
-export default function Auth({ onClose }: AuthProps) {
+export default function Auth({ onClose, onSuccess }: AuthProps) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -64,6 +65,7 @@ export default function Auth({ onClose }: AuthProps) {
 
         // Success! Close modal
         onClose();
+        if (onSuccess) onSuccess();
       }
     } catch (err: unknown) {
       console.error('Auth error:', err);
@@ -94,6 +96,7 @@ export default function Auth({ onClose }: AuthProps) {
   const handleOTPSuccess = () => {
     setShowOTPModal(false);
     onClose();
+    if (onSuccess) onSuccess();
   };
 
   const handleGoogleSignIn = async () => {

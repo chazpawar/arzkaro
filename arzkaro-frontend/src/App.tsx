@@ -32,7 +32,6 @@ import AdminPayouts from './pages/admin/AdminPayouts.tsx';
 import AuthCallback from './pages/AuthCallback.tsx';
 import type { PageName } from './types/navigation.ts';
 
-
 export default function App() {
   return (
     <AuthProvider>
@@ -274,6 +273,13 @@ function AppContent() {
     });
   }, [currentPage]);
 
+  // Redirect authenticated users from Home to For You
+  useEffect(() => {
+    if (!loading && user && currentPage === 'home') {
+      handleNavigate('for-you', null, true);
+    }
+  }, [user, loading, currentPage, handleNavigate]);
+
   const handleEventSelect = (eventId: string) => {
     // Just navigate with ID - detail page will fetch from Supabase
     handleNavigate('experience-detail', eventId);
@@ -329,7 +335,7 @@ function AppContent() {
       />
 
       {/* Spacer for fixed navbar */}
-      <div className="h-16 md:h-24" />
+      <div className="h-16 md:h-20" />
 
       <main className="flex-grow">
         {currentPage === 'home' && <HomePage />}
@@ -426,9 +432,7 @@ function AppContent() {
         )}
 
         {currentPage === 'profile' && (
-          <ProfilePage
-            onNavigate={(page) => handleNavigate(page as PageName)}
-          />
+          <ProfilePage onNavigate={(page) => handleNavigate(page as PageName)} />
         )}
 
         {currentPage === 'edit-profile' && (
@@ -482,7 +486,12 @@ function AppContent() {
         )}
 
         {showChatModal && <ChatModal onClose={() => setShowChatModal(false)} />}
-        {showAuth && <Auth onClose={() => setShowAuth(false)} />}
+        {showAuth && (
+          <Auth
+            onClose={() => setShowAuth(false)}
+            onSuccess={() => handleNavigate('for-you')}
+          />
+        )}
       </main>
       {currentPage !== 'create-listing' &&
         currentPage !== 'host-request' &&

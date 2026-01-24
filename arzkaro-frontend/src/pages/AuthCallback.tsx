@@ -66,7 +66,7 @@ export default function AuthCallback() {
           console.log('✅ Session set from access token!');
           setStatus('success');
           setTimeout(() => {
-            window.location.replace('/');
+            window.location.replace('/for-you');
           }, 1500);
           return;
         }
@@ -135,7 +135,7 @@ export default function AuthCallback() {
         // Force a full page reload to ensure AuthContext picks up the new session
         console.log('🔄 Redirecting to home page with full reload...');
         setTimeout(() => {
-          window.location.replace('/');
+          window.location.replace('/for-you');
         }, 1500);
       } catch (err) {
         console.error('❌ Unexpected error during callback:', err);
