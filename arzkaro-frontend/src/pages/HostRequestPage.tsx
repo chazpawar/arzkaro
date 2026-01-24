@@ -227,7 +227,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-[#FF785A]" />
       </div>
     );
@@ -236,7 +236,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
   // If already a host
   if (profile?.role === 'host' || profile?.role === 'admin') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-8">
+      <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 flex flex-col items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -284,7 +284,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
   // If application is pending
   if (existingRequest?.status === 'pending') {
     return (
-      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-8">
+      <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 flex flex-col items-center justify-center p-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -332,7 +332,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
   // Selection Screen
   if (step === 'selection') {
     return (
-      <div className="min-h-screen bg-gray-50 pt-12 pb-24">
+      <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 pt-28 md:pt-36 pb-24">
         {/* Header */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -428,7 +428,7 @@ export default function HostRequestPage({ onBack, onNavigate }: HostRequestPageP
 
   // Form Steps
   return (
-    <div className="min-h-screen bg-gray-50 pt-12 pb-32">
+    <div className="min-h-screen bg-gray-50 -mt-16 md:-mt-24 pt-28 md:pt-36 pb-32">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
