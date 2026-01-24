@@ -163,8 +163,8 @@ const TripsPage: React.FC<TripsPageProps> = ({
 
         {/* Category Selection Skeleton */}
         <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 pb-4">
-          <div className="flex justify-center items-center">
-            <div className="overflow-x-auto scrollbar-hide">
+          <div className="flex justify-center items-center w-full">
+            <div className="overflow-x-auto scrollbar-hide max-w-full">
               <div className="flex gap-4 py-3 px-4">
                 {Array.from({ length: 9 }).map((_, i) => (
                   <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2">
@@ -199,8 +199,8 @@ const TripsPage: React.FC<TripsPageProps> = ({
       {/* Category Selection Section - Full Width with proper padding */}
       <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-12 pt-6 pb-4">
         {/* Center container for categories and back button */}
-        <div className="flex justify-center items-center">
-          <div className="flex items-center gap-3">
+        <div className="flex justify-center items-center w-full">
+          <div className="flex items-center gap-3 max-w-full">
             {/* Back Button */}
             {selectedTag !== 'All' && (
               <button
@@ -213,7 +213,7 @@ const TripsPage: React.FC<TripsPageProps> = ({
             )}
 
             {/* Horizontal Scrollable Categories */}
-            <div className="overflow-x-auto scrollbar-hide">
+            <div className="overflow-x-auto scrollbar-hide max-w-full">
               <div className="flex gap-4 py-3 px-4">
                 {visibleCategories.map((category) => {
                   const selected = isSelected(category.id);
