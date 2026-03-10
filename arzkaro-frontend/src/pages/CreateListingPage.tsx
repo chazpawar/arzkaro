@@ -67,8 +67,8 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
     description: '',
     coverImage: null as string | null,
     mainCategory: '',
+    tripCategories: [] as string[],
     subcategories: [] as string[],
-    customTags: [] as string[],
     location: null as { address: string; latitude: number; longitude: number } | null,
     startDate: '',
     endDate: '',
@@ -96,7 +96,10 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
       case 2:
         return formData.coverImage !== null;
       case 3:
-        return formData.mainCategory !== '';
+        if (listingType === 'experience') {
+          return formData.mainCategory !== '';
+        }
+        return formData.tripCategories.length > 0;
       case 4:
         if (listingType === 'experience') {
           return formData.subcategories.length > 0;
@@ -155,8 +158,15 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
       return { isValid: false, errorMessage: 'Cover image is required. Please upload a cover image.' };
     }
 
-    if (!formData.mainCategory) {
+    if (listingType === 'experience' && !formData.mainCategory) {
       return { isValid: false, errorMessage: 'Category is required. Please select a category.' };
+    }
+
+    if (listingType === 'trip' && formData.tripCategories.length === 0) {
+      return {
+        isValid: false,
+        errorMessage: 'At least one category is required. Please select one or more categories.',
+      };
     }
 
     if (listingType === 'experience' && formData.subcategories.length === 0) {
@@ -286,8 +296,9 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
         title: formData.title.trim(),
         description: formData.description.trim(),
         cover_image_url: formData.coverImage,
-        category: formData.mainCategory,
-        tags: listingType === 'experience' ? formData.subcategories : formData.customTags,
+        category:
+          listingType === 'experience' ? formData.mainCategory : formData.tripCategories[0] || null,
+        tags: listingType === 'experience' ? formData.subcategories : formData.tripCategories,
         location_name: formData.location?.address || null,
         location_address: formData.location?.address || null,
         location_lat: formData.location?.latitude || null,
@@ -474,18 +485,45 @@ export default function CreateListingPage({ onBack, onNavigate }: CreateListingP
           <div className={`text-center mb-6 transition-all duration-500 ${
             isAnimating ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           }`} style={{ transitionDelay: '50ms' }}>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Choose a category</h2>
-            <p className="text-gray-600">Help people find your {listingType}</p>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              {listingType === 'trip' ? 'Choose categories' : 'Choose a category'}
+            </h2>
+            <p className="text-gray-600">
+              {listingType === 'trip'
+                ? 'Select all categories that match your trip'
+                : `Help people find your ${listingType}`}
+            </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
             {categories.map((category, index) => (
               <button
                 key={category}
                 type="button"
-                onClick={() => setFormData({ ...formData, mainCategory: category })}
+                onClick={() => {
+                  if (listingType === 'experience') {
+                    setFormData({ ...formData, mainCategory: category, subcategories: [] });
+                    return;
+                  }
+
+                  const isSelected = formData.tripCategories.includes(category);
+                  setFormData({
+                    ...formData,
+                    tripCategories: isSelected
+                      ? formData.tripCategories.filter((item) => item !== category)
+                      : [...formData.tripCategories, category],
+                  });
+                }}
                 className={`p-6 rounded-lg border-2 transition-all duration-500 text-center hover:scale-105 ${
                   isAnimating ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                } ${formData.mainCategory === category ? 'border-black bg-gray-100 text-gray-900' : 'border-gray-200 hover:border-gray-300 text-gray-700'}`}
+                } ${
+                  listingType === 'experience'
+                    ? formData.mainCategory === category
+                      ? 'border-black bg-gray-100 text-gray-900'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    : formData.tripCategories.includes(category)
+                      ? 'border-black bg-gray-100 text-gray-900'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                }`}
                 style={{ transitionDelay: `${100 + (index * 50)}ms` }}
               >
                 <img

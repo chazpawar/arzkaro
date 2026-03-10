@@ -35,14 +35,16 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
     return fetchedTicketTypes.length > 0
       ? fetchedTicketTypes
       : event
-        ? [{
-            id: 'default',
-            name: 'General Admission',
-            description: 'Standard entry ticket',
-            price: event.price || 0,
-            quantity_available: 100, // Default if not specified
-            quantity_sold: 0,
-          }]
+        ? [
+            {
+              id: 'default',
+              name: 'Ticket',
+              description: 'Standard entry ticket',
+              price: event.price || 0,
+              quantity_available: 100, // Default if not specified
+              quantity_sold: 0,
+            },
+          ]
         : [];
   }, [fetchedTicketTypes, event]);
 
@@ -150,7 +152,10 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
         );
 
         if (result.success) {
-          showToast('🎉 Booking confirmed! This one\'s on us! Check your tickets in My Tickets.', 'success');
+          showToast(
+            "🎉 Booking confirmed! This one's on us! Check your tickets in My Tickets.",
+            'success'
+          );
           if (onSuccess) {
             onSuccess();
           } else {
@@ -162,7 +167,8 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
       }
     } catch (err: unknown) {
       console.error('Booking error:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to complete booking. Please try again.';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to complete booking. Please try again.';
       showToast(errorMessage, 'error');
     } finally {
       setIsProcessing(false);
@@ -188,7 +194,9 @@ export default function BookingPage({ eventId, onBack, onSuccess, onAuthClick }:
         <div className="text-center px-4">
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-xl font-bold text-gray-900 mb-2">Event not found</h2>
-          <p className="text-gray-600 mb-6">We couldn't load this event. It may have been removed.</p>
+          <p className="text-gray-600 mb-6">
+            We couldn't load this event. It may have been removed.
+          </p>
           <button
             onClick={onBack}
             className="px-6 py-3 bg-[#FF785A] text-white font-semibold rounded-xl hover:bg-[#ff6a47] transition-colors"
